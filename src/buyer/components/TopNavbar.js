@@ -89,24 +89,14 @@ const TopNavbar = ({ searchQuery, setSearchQuery, handleSearch }) => {
 		const fetchCategories = async () => {
 			try {
 				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
-					{
-						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
-						},
-					}
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`
 				);
 				if (!response.ok) throw new Error("Failed to fetch categories");
 
 				const categoryData = await response.json();
 
 				const subcategoryResponse = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
-					{
-						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
-						},
-					}
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`
 				);
 				if (!subcategoryResponse.ok)
 					throw new Error("Failed to fetch subcategories");

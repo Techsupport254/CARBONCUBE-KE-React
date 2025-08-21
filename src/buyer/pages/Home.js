@@ -45,17 +45,10 @@ const Home = () => {
 	useEffect(() => {
 		const fetchCategoriesAndAds = async () => {
 			try {
-				const token = sessionStorage.getItem("token");
-				const headers = { Authorization: `Bearer ${token}` };
-
-				// Fetch categories and subcategories
+				// Fetch categories and subcategories without authentication
 				const [categoryResponse, subcategoryResponse] = await Promise.all([
-					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`, {
-						headers,
-					}),
-					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`, {
-						headers,
-					}),
+					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`),
+					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`),
 				]);
 
 				if (!categoryResponse.ok || !subcategoryResponse.ok)
@@ -79,7 +72,11 @@ const Home = () => {
 				// ✅ Fetch all ads with pagination
 				const adResponse = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=500`,
-					{ headers }
+					{
+						headers: {
+							Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						},
+					}
 				);
 
 				if (!adResponse.ok) throw new Error("Failed to fetch ads");
