@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
+import TopNavbar from "../components/TopNavbar";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Sidebar from "../components/Sidebar";
 import { Container, Row, Col, Card, Modal } from "react-bootstrap";
 import { Pie, Bar } from "react-chartjs-2";
 import "./dashboard.css";
+import CategoryClickEvents from "../components/CategoryClickEvents";
 import ShareableUrlGenerator from "../../components/ShareableUrlGenerator";
 import { IoMdTrendingUp } from "react-icons/io";
 import { HiTrendingDown } from "react-icons/hi";
@@ -35,27 +38,6 @@ import {
 import { SiGoogle, SiBrave } from "react-icons/si";
 import { MdSearch, MdLink } from "react-icons/md";
 import Spinner from "react-spinkit";
-
-// Import new components
-import {
-	TopNavbar,
-	Sidebar,
-	CategoryClickEvents,
-	DashboardCard,
-	DashboardCharts,
-	SourceTrackingCards,
-	VisitorEngagementMetrics,
-	AnalyticsModal,
-	SourceTrackingModal,
-} from "../components";
-
-// Import helper functions
-import {
-	getFilterKey,
-	calculateGrowthAndTrend,
-	formatChartData,
-	getChartOptions,
-} from "../utils/dashboardHelpers";
 
 import {
 	Chart as ChartJS,
@@ -1498,28 +1480,83 @@ function SalesDashboard() {
 										value: dataSource.total_ads_clicks,
 									},
 								].map(({ title, value }, index) => (
-									<DashboardCard
-										key={index}
-										title={title}
-										value={value}
-										onClick={() => {
-											setSelectedCard({ title, value });
-											setDateFilter("all");
-											setCustomStartDate("");
-											setCustomEndDate("");
-											setShowModal(true);
-										}}
-									/>
+									<Col xs={12} sm={6} lg={4} xl={3} key={index}>
+										<div
+											className="stat-card p-3 rounded shadow-sm bg-white h-100"
+											style={{
+												cursor: "pointer",
+											}}
+											onClick={() => {
+												setSelectedCard({ title, value });
+												setDateFilter("all");
+												setCustomStartDate("");
+												setCustomEndDate("");
+												setShowModal(true);
+											}}
+										>
+											<div className="d-flex justify-content-between align-items-center mb-2">
+												<h6 className="mb-0 fw-semibold text-muted">{title}</h6>
+												<div className="dots">⋯</div>
+											</div>
+											<h3 className="fw-bold">
+												{(value || 0).toLocaleString()}
+											</h3>
+										</div>
+									</Col>
 								))}
 							</Row>
 
 							<Row className="g-6">
 								<h3 className="pt-5 fw-bold">Seller related </h3>
-								<DashboardCharts
-									pieData={pieData}
-									buyerAdClickBarData={buyerAdClickBarData}
-									analytics={analytics}
-								/>
+
+								<Col xs={12} sm={6} md={4} className="text-center mt-4 ">
+									<Card className="p-3 shadow-sm custom-card">
+										<Card.Header className="text-center fw-bold">
+											Subscription Distribution
+										</Card.Header>
+										<Card.Body className="">
+											<Pie data={pieData} className="" />
+										</Card.Body>
+									</Card>
+								</Col>
+
+								<Col xs={12} sm={6} md={4} className="text-center mt-4 ">
+									<Card className="p-3 shadow-sm custom-card h-100">
+										<Card.Header className="text-center fw-bold">
+											Renewal Rate {renewalRate} (%)
+										</Card.Header>
+										<Card.Body>
+											<Bar
+												data={barData}
+												options={barOptions}
+												className="h-100"
+											/>
+										</Card.Body>
+									</Card>
+								</Col>
+
+								<Col
+									xs={12}
+									sm={6}
+									md={4}
+									className="text-center mt-4 "
+									onClick={() => {
+										// Handle click event
+									}}
+								>
+									<Card className="p-3 shadow-sm custom-card h-100">
+										<Card.Header className="text-center fw-bold">
+											Total Ad Clicks
+										</Card.Header>
+										<Card.Body style={{ height: "250px" }}>
+											<Bar
+												data={buyerAdClickBarData}
+												options={buyerAdClickBarOptions}
+												className="h-100"
+											/>
+										</Card.Body>
+									</Card>
+								</Col>
 							</Row>
 							<Row className="mt-4 g-4">
 								<h3 className="pt-1 fw-bold pb-3">Buyer related </h3>
@@ -1542,17 +1579,242 @@ function SalesDashboard() {
 										Source Tracking Analytics
 									</h3>
 								</Col>
-								<SourceTrackingCards
-									sourceAnalytics={sourceAnalytics}
-									memoizedFilteredSourceData={memoizedFilteredSourceData}
-									onSourceCardClick={(card) => {
-										setSelectedSourceCard(card);
-										setSourceDateFilter("all");
-										setSourceCustomStartDate("");
-										setSourceCustomEndDate("");
-										setShowSourceModal(true);
-									}}
-								/>
+
+								{/* Key Metrics Cards */}
+								<Col xs={12} sm={6} lg={3}>
+									<div
+										className="stat-card p-3 rounded shadow-sm bg-white h-100"
+										style={{ cursor: "pointer" }}
+										onClick={() => {
+											setSelectedSourceCard({
+												title: "Total Page Visits",
+												value: sourceAnalytics?.total_visits || 0,
+												data: sourceAnalytics?.daily_visits || {},
+											});
+											setSourceDateFilter("all");
+											setSourceCustomStartDate("");
+											setSourceCustomEndDate("");
+											setShowSourceModal(true);
+										}}
+									>
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Total Page Visits
+											</h6>
+											<div className="text-success">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-primary">
+											{(sourceAnalytics?.total_visits || 0).toLocaleString()}
+										</h3>
+										<small className="text-muted">Last 30 days</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div
+										className="stat-card p-3 rounded shadow-sm bg-white h-100"
+										style={{ cursor: "pointer" }}
+										onClick={() => {
+											const socialSources = [
+												"facebook",
+												"whatsapp",
+												"telegram",
+												"twitter",
+												"instagram",
+												"linkedin",
+												"youtube",
+												"tiktok",
+												"snapchat",
+												"pinterest",
+												"reddit",
+											];
+											const socialVisits = socialSources.reduce(
+												(total, source) => {
+													return (
+														total +
+														(sourceAnalytics?.source_distribution?.[source] ||
+															0)
+													);
+												},
+												0
+											);
+
+											setSelectedSourceCard({
+												title: "Social Media Visits",
+												value: socialVisits,
+												data: sourceAnalytics?.source_distribution || {},
+												sources: socialSources,
+											});
+											setSourceDateFilter("all");
+											setSourceCustomStartDate("");
+											setSourceCustomEndDate("");
+											setShowSourceModal(true);
+										}}
+									>
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Social Media Visits
+											</h6>
+											<div className="text-info">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+													<path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-info">
+											{(() => {
+												const socialSources = [
+													"facebook",
+													"whatsapp",
+													"telegram",
+													"twitter",
+													"instagram",
+													"linkedin",
+													"youtube",
+													"tiktok",
+													"snapchat",
+													"pinterest",
+													"reddit",
+												];
+												const total = socialSources.reduce((total, source) => {
+													return (
+														total +
+														(sourceAnalytics?.source_distribution?.[source] ||
+															0)
+													);
+												}, 0);
+												return total.toLocaleString();
+											})()}
+										</h3>
+										<small className="text-muted">
+											Combined social traffic
+										</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div
+										className="stat-card p-3 rounded shadow-sm bg-white h-100"
+										style={{ cursor: "pointer" }}
+										onClick={() => {
+											setSelectedSourceCard({
+												title: "Direct Visits",
+												value:
+													sourceAnalytics?.source_distribution?.direct || 0,
+												data: {
+													direct:
+														sourceAnalytics?.source_distribution?.direct || 0,
+												},
+											});
+											setSourceDateFilter("all");
+											setSourceCustomStartDate("");
+											setSourceCustomEndDate("");
+											setShowSourceModal(true);
+										}}
+									>
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Direct Visits
+											</h6>
+											<div className="text-warning">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path
+														fillRule="evenodd"
+														d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+														clipRule="evenodd"
+													/>
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-warning">
+											{(
+												sourceAnalytics?.source_distribution?.direct || 0
+											).toLocaleString()}
+										</h3>
+										<small className="text-muted">Direct traffic</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div
+										className="stat-card p-3 rounded shadow-sm bg-white h-100"
+										style={{ cursor: "pointer" }}
+										onClick={() => {
+											const searchSources = ["google", "bing", "yahoo"];
+											const searchVisits = searchSources.reduce(
+												(total, source) => {
+													return (
+														total +
+														(sourceAnalytics?.source_distribution?.[source] ||
+															0)
+													);
+												},
+												0
+											);
+
+											setSelectedSourceCard({
+												title: "Search Engine Visits",
+												value: searchVisits,
+												data: sourceAnalytics?.source_distribution || {},
+												sources: searchSources,
+											});
+											setSourceDateFilter("all");
+											setSourceCustomStartDate("");
+											setSourceCustomEndDate("");
+											setShowSourceModal(true);
+										}}
+									>
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Search Engine Visits
+											</h6>
+											<div className="text-success">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path
+														fillRule="evenodd"
+														d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+														clipRule="evenodd"
+													/>
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-success">
+											{(() => {
+												const searchSources = ["google", "bing", "yahoo"];
+												const total = searchSources.reduce((total, source) => {
+													return (
+														total +
+														(sourceAnalytics?.source_distribution?.[source] ||
+															0)
+													);
+												}, 0);
+												return total.toLocaleString();
+											})()}
+										</h3>
+										<small className="text-muted">Organic search</small>
+									</div>
+								</Col>
 							</Row>
 
 							{/* Unique Visitor Metrics Row */}
@@ -1562,9 +1824,103 @@ function SalesDashboard() {
 										Visitor Engagement Metrics
 									</h4>
 								</Col>
-								<VisitorEngagementMetrics
-									memoizedFilteredSourceData={memoizedFilteredSourceData}
-								/>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div className="stat-card p-3 rounded shadow-sm bg-white h-100">
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Unique Visitors
+											</h6>
+											<div className="text-success">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-success">
+											{(sourceAnalytics?.unique_visitors || 0).toLocaleString()}
+										</h3>
+										<small className="text-muted">Individual users</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div className="stat-card p-3 rounded shadow-sm bg-white h-100">
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Returning Visitors
+											</h6>
+											<div className="text-warning">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-warning">
+											{(
+												sourceAnalytics?.returning_visitors || 0
+											).toLocaleString()}
+										</h3>
+										<small className="text-muted">Repeat visitors</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div className="stat-card p-3 rounded shadow-sm bg-white h-100">
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												New Visitors
+											</h6>
+											<div className="text-info">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-info">
+											{(sourceAnalytics?.new_visitors || 0).toLocaleString()}
+										</h3>
+										<small className="text-muted">First-time visitors</small>
+									</div>
+								</Col>
+
+								<Col xs={12} sm={6} lg={3}>
+									<div className="stat-card p-3 rounded shadow-sm bg-white h-100">
+										<div className="d-flex justify-content-between align-items-center mb-2">
+											<h6 className="mb-0 fw-semibold text-muted">
+												Avg Visits/Visitor
+											</h6>
+											<div className="text-primary">
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+													<path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+												</svg>
+											</div>
+										</div>
+										<h3 className="fw-bold text-primary">
+											{(
+												sourceAnalytics?.avg_visits_per_visitor || 0
+											).toLocaleString()}
+										</h3>
+										<small className="text-muted">Engagement rate</small>
+									</div>
+								</Col>
 							</Row>
 
 							{/* Source Distribution Charts and Tables */}
@@ -2194,37 +2550,899 @@ function SalesDashboard() {
 			</Container>
 
 			{/* Analytics Detail Modal */}
-			<AnalyticsModal
+			<Modal
 				show={showModal}
 				onHide={() => setShowModal(false)}
-				selectedCard={selectedCard}
-				dateFilter={dateFilter}
-				onDateFilterChange={setDateFilter}
-				customStartDate={customStartDate}
-				customEndDate={customEndDate}
-				onCustomStartDateChange={setCustomStartDate}
-				onCustomEndDateChange={setCustomEndDate}
-				generateTrendData={generateTrendData}
-				getFilterKey={getFilterKey}
-				memoizedFilteredData={memoizedFilteredData}
-				analytics={analytics}
-			/>
+				centered
+				size="xl"
+				className="modern-modal"
+			>
+				<Modal.Header className="bg-secondary p-3 text-white border-0">
+					<div className="flex flex-col gap-3 pr-12">
+						{/* Title Row */}
+						<div className="flex items-center justify-center sm:justify-between mb-4">
+							<Modal.Title className="fw-bold text-lg lg:text-xl">
+								{selectedCard?.title} Analytics
+							</Modal.Title>
+						</div>
+
+						{/* Count and Controls Row */}
+						<div className="flex flex-col sm:flex-row items-center justify-between gap-3 pr-16">
+							{/* Main Metric Display */}
+							<div className="flex items-center gap-3">
+								<div className="text-center">
+									<div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+										{(memoizedFilteredData
+											? memoizedFilteredData[
+													getFilterKey(selectedCard?.title)
+											  ] || 0
+											: selectedCard?.value || 0
+										).toLocaleString()}
+									</div>
+									<div className="text-sm text-white text-opacity-80">
+										{selectedCard?.title}
+									</div>
+								</div>
+
+								{/* Growth Badge */}
+								<div
+									className={`flex items-center gap-1 px-3 py-2 rounded-lg ${
+										calculateGrowthRate() >= 0
+											? "bg-green-100 text-green-700"
+											: "bg-red-100 text-red-700"
+									}`}
+								>
+									{calculateGrowthRate() >= 0 ? (
+										<IoMdTrendingUp className="w-4 h-4" />
+									) : (
+										<HiTrendingDown className="w-4 h-4" />
+									)}
+									<span className="text-sm font-semibold">
+										{calculateGrowthRate() >= 0 ? "+" : ""}
+										{calculateGrowthRate()}%
+									</span>
+								</div>
+							</div>
+
+							{/* Filter Controls */}
+							<div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+								<div className="relative w-full sm:w-auto">
+									<select
+										className="w-full sm:w-auto px-3 py-2 pr-8 border border-white border-opacity-30 rounded-md text-sm bg-white bg-opacity-70 text-gray-800 focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+										value={dateFilter}
+										onChange={(e) => {
+											setDateFilter(e.target.value);
+										}}
+									>
+										<option value="all" className="text-gray-800">
+											All Time
+										</option>
+										<option value="today" className="text-gray-800">
+											Today
+										</option>
+										<option value="week" className="text-gray-800">
+											Last 7 Days
+										</option>
+										<option value="month" className="text-gray-800">
+											Last 30 Days
+										</option>
+										<option value="year" className="text-gray-800">
+											Last Year
+										</option>
+										<option value="custom" className="text-gray-800">
+											Custom Range
+										</option>
+									</select>
+									{/* Custom dropdown arrow */}
+									<div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+										<svg
+											className="w-4 h-4 text-gray-800"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M19 9l-7 7-7-7"
+											/>
+										</svg>
+									</div>
+								</div>
+
+								{dateFilter === "custom" && (
+									<div className="flex items-center gap-2 w-full sm:w-auto">
+										<input
+											type="date"
+											className="flex-1 sm:w-auto px-3 py-2 border border-white border-opacity-30 rounded-md text-sm bg-white bg-opacity-70 text-gray-800 focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200"
+											value={customStartDate}
+											onChange={(e) => {
+												setCustomStartDate(e.target.value);
+											}}
+										/>
+										<span className="text-white text-sm font-medium whitespace-nowrap">
+											to
+										</span>
+										<input
+											type="date"
+											className="flex-1 sm:w-auto px-3 py-2 border border-white border-opacity-30 rounded-md text-sm bg-white bg-opacity-70 text-gray-800 focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200"
+											value={customEndDate}
+											onChange={(e) => {
+												setCustomEndDate(e.target.value);
+											}}
+										/>
+									</div>
+								)}
+
+								<button
+									className="w-full sm:w-auto px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-20 rounded-md transition-all duration-200 font-medium"
+									onClick={() => {
+										setDateFilter("all");
+										setCustomStartDate("");
+										setCustomEndDate("");
+									}}
+								>
+									Reset
+								</button>
+							</div>
+						</div>
+					</div>
+
+					{/* Close Button - Always at the end */}
+					<button
+						onClick={() => setShowModal(false)}
+						className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 p-2 z-20"
+						aria-label="Close modal"
+					>
+						<svg
+							className="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				</Modal.Header>
+				<Modal.Body className="p-0 bg-gray-50">
+					{/* Hero Section */}
+					<div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 text-center">
+						{memoizedFilteredData && dateFilter !== "all" && (
+							<div className="mb-4">
+								<div className="text-sm text-gray-500 bg-white bg-opacity-50 rounded-full px-4 py-1 inline-block">
+									{dateFilter === "custom"
+										? `Custom Range: ${customStartDate} to ${customEndDate}`
+										: `Filtered: ${
+												dateFilter.charAt(0).toUpperCase() + dateFilter.slice(1)
+										  }`}
+								</div>
+							</div>
+						)}
+
+						{/* Big Trend Chart */}
+						<div className="w-full max-w-4xl mx-auto bg-white rounded-xl p-4 sm:p-6 shadow-lg">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+								<div>
+									<h3 className="text-lg sm:text-xl font-bold text-gray-800">
+										{selectedCard?.title} Trend Analysis
+									</h3>
+									<p className="text-sm text-gray-600 mt-1">
+										{dateFilter === "today"
+											? "Performance by hour today"
+											: dateFilter === "week"
+											? "Performance over the last 7 days"
+											: dateFilter === "month"
+											? "Performance over the last 4 weeks"
+											: dateFilter === "year"
+											? "Performance over the last 12 months"
+											: dateFilter === "custom"
+											? "Performance for selected period"
+											: "Performance over the last 30 days"}
+									</p>
+								</div>
+								<div className="flex items-center justify-between w-full sm:w-auto">
+									<div className="text-center sm:text-left">
+										<div className="text-xl sm:text-2xl font-bold text-gray-800">
+											{selectedCard?.type === "source_tracking"
+												? selectedCard?.value || 0
+												: memoizedFilteredData
+												? memoizedFilteredData[
+														getFilterKey(selectedCard?.title)
+												  ] || 0
+												: selectedCard?.value || 0}
+										</div>
+										<div className="text-sm text-gray-600">Total Count</div>
+									</div>
+									<div
+										className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+											calculateGrowthRate() >= 0
+												? "bg-green-100 text-green-700"
+												: "bg-red-100 text-red-700"
+										}`}
+									>
+										{calculateGrowthRate() >= 0 ? (
+											<IoMdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+										) : (
+											<HiTrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
+										)}
+										<span className="font-semibold text-sm sm:text-base">
+											{calculateGrowthRate() >= 0 ? "+" : ""}
+											{calculateGrowthRate()}%
+										</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Big Chart */}
+							<div className="h-64 sm:h-80 w-full">
+								<Bar
+									data={{
+										labels:
+											selectedCard?.type === "source_tracking"
+												? generateSourceTrackingTrendData().labels
+												: generateTrendData().labels,
+										datasets: [
+											{
+												label: selectedCard?.title || "Data",
+												data: (selectedCard?.type === "source_tracking"
+													? generateSourceTrackingTrendData().data
+													: generateTrendData().data
+												).map((value) => Math.round(value)),
+												backgroundColor: "rgba(59, 130, 246, 0.8)",
+												borderColor: "rgba(59, 130, 246, 1)",
+												borderWidth: 2,
+												borderRadius: 8,
+												hoverBackgroundColor: "rgba(59, 130, 246, 1)",
+											},
+										],
+									}}
+									options={{
+										responsive: true,
+										maintainAspectRatio: false,
+										plugins: {
+											legend: {
+												display: false,
+											},
+											tooltip: {
+												backgroundColor: "rgba(0, 0, 0, 0.8)",
+												titleColor: "white",
+												bodyColor: "white",
+												borderRadius: 8,
+												displayColors: false,
+											},
+										},
+										scales: {
+											y: {
+												beginAtZero: true,
+												grid: {
+													color: "rgba(0, 0, 0, 0.1)",
+												},
+												ticks: {
+													color: "rgba(0, 0, 0, 0.6)",
+													font: {
+														size: 12,
+													},
+												},
+											},
+											x: {
+												grid: {
+													display: false,
+												},
+												ticks: {
+													color: "rgba(0, 0, 0, 0.6)",
+													font: {
+														size: 12,
+													},
+												},
+											},
+										},
+									}}
+								/>
+							</div>
+
+							{/* Chart Stats */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+								<div className="flex items-center justify-between">
+									<div className="text-2xl font-bold text-green-600">
+										{(() => {
+											const trendData =
+												selectedCard?.type === "source_tracking"
+													? generateSourceTrackingTrendData().data
+													: generateTrendData().data;
+											const average =
+												trendData.length > 0
+													? Math.round(
+															trendData.reduce((sum, val) => sum + val, 0) /
+																trendData.length
+													  )
+													: 0;
+											return average.toLocaleString();
+										})()}
+									</div>
+									<div className="text-sm text-gray-600">Average</div>
+								</div>
+								<div className="flex items-center justify-between">
+									<div className="text-2xl font-bold text-purple-600">
+										{(() => {
+											const trendData =
+												selectedCard?.type === "source_tracking"
+													? generateSourceTrackingTrendData().data
+													: generateTrendData().data;
+											const activeDays = trendData.filter(
+												(val) => val > 0
+											).length;
+											return activeDays.toLocaleString();
+										})()}
+									</div>
+									<div className="text-sm text-gray-600">Active Days</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Analytics Grid */}
+					<div className="p-4 sm:p-6">
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+							{/* Key Metrics Card */}
+							<div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+								<div className="flex items-center justify-between mb-4">
+									<h6 className="text-lg font-semibold text-gray-800">
+										Key Metrics
+									</h6>
+									<div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+										<svg
+											className="w-5 h-5 text-blue-600"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+										</svg>
+									</div>
+								</div>
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-gray-600">Growth Rate</span>
+										<span
+											className={`text-sm font-semibold ${
+												calculateGrowthRate() >= 0
+													? "text-green-600"
+													: "text-red-600"
+											}`}
+										>
+											{calculateGrowthRate() >= 0 ? "+" : ""}
+											{calculateGrowthRate()}%
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-gray-600">Conversion</span>
+										<span className="text-sm font-semibold text-blue-600">
+											{calculateConversionRate()}%
+										</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Status Card */}
+							<div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+								<div className="flex items-center justify-between mb-4">
+									<h6 className="text-lg font-semibold text-gray-800">
+										Status
+									</h6>
+									<div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+										<svg
+											className="w-5 h-5 text-purple-600"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path
+												fillRule="evenodd"
+												d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+												clipRule="evenodd"
+											/>
+										</svg>
+									</div>
+								</div>
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-gray-600">Status</span>
+										<span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+											Active
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-gray-600">Last Updated</span>
+										<span className="text-sm font-semibold text-gray-800">
+											{new Date().toLocaleDateString()}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm text-gray-600">Trend</span>
+										<span
+											className={`text-sm font-semibold flex items-center gap-1 ${
+												calculateTrendDirection().color
+											}`}
+										>
+											{calculateTrendDirection().direction === "increasing" ? (
+												<IoMdTrendingUp className="w-4 h-4" />
+											) : calculateTrendDirection().direction ===
+											  "decreasing" ? (
+												<HiTrendingDown className="w-4 h-4" />
+											) : (
+												<svg
+													className="w-4 h-4"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path
+														fillRule="evenodd"
+														d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+														clipRule="evenodd"
+													/>
+												</svg>
+											)}
+											{calculateTrendDirection().direction}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</Modal.Body>
+			</Modal>
 
 			{/* Source Tracking Analytics Modal */}
-			<SourceTrackingModal
+			<Modal
 				show={showSourceModal}
 				onHide={() => setShowSourceModal(false)}
-				selectedSourceCard={selectedSourceCard}
-				sourceDateFilter={sourceDateFilter}
-				onSourceDateFilterChange={setSourceDateFilter}
-				sourceCustomStartDate={sourceCustomStartDate}
-				sourceCustomEndDate={sourceCustomEndDate}
-				onSourceCustomStartDateChange={setSourceCustomStartDate}
-				onSourceCustomEndDateChange={setSourceCustomEndDate}
-				generateSourceTrackingTrendData={generateSourceTrackingTrendData}
-				memoizedFilteredSourceData={memoizedFilteredSourceData}
-				sourceAnalytics={sourceAnalytics}
-			/>
+				size="xl"
+				className="source-tracking-modal"
+				style={{ backdropFilter: "blur(10px)" }}
+			>
+				<Modal.Header className="bg-gradient-to-r from-gray-800 to-gray-900 text-white border-0 relative">
+					<div className="w-full">
+						{/* Title Row */}
+						<div className="mb-4 sm:mb-6">
+							<h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">
+								{selectedSourceCard?.title} Analytics
+							</h2>
+							<p className="text-blue-100 text-sm sm:text-base mt-1">
+								Source tracking performance insights
+							</p>
+						</div>
+
+						{/* Count and Controls Row */}
+						<div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pr-16">
+							{/* Count Display */}
+							<div className="flex items-center gap-3">
+								<div className="text-center lg:text-left">
+									<div className="text-2xl sm:text-3xl lg:text-4xl font-bold">
+										{(() => {
+											// Calculate the correct count based on the selected source card
+											let count = 0;
+											if (selectedSourceCard?.sources) {
+												// For social media and search engine visits, sum the specific sources
+												count = selectedSourceCard.sources.reduce(
+													(total, source) => {
+														return (
+															total +
+															(memoizedFilteredSourceData
+																?.source_distribution?.[source] || 0)
+														);
+													},
+													0
+												);
+											} else if (
+												selectedSourceCard?.data?.direct !== undefined
+											) {
+												// For direct visits
+												count =
+													memoizedFilteredSourceData?.source_distribution
+														?.direct || 0;
+											} else {
+												// For total page visits
+												count = memoizedFilteredSourceData?.total_visits || 0;
+											}
+											return count.toLocaleString();
+										})()}
+									</div>
+									<div className="text-blue-100 text-sm sm:text-base">
+										Total Count
+									</div>
+								</div>
+							</div>
+
+							{/* Date Filter Controls */}
+							<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+								<div className="relative w-full sm:w-auto">
+									<select
+										value={sourceDateFilter}
+										onChange={(e) => setSourceDateFilter(e.target.value)}
+										className="w-full sm:w-auto px-3 py-2 pr-8 bg-white bg-opacity-30 text-gray-800 border border-white border-opacity-30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 appearance-none cursor-pointer"
+									>
+										<option value="all">All Time</option>
+										<option value="today">Today</option>
+										<option value="week">Last 7 Days</option>
+										<option value="month">Last 30 Days</option>
+										<option value="year">Last Year</option>
+										<option value="custom">Custom Range</option>
+									</select>
+									{/* Custom dropdown arrow */}
+									<div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+										<svg
+											className="w-4 h-4 text-gray-800"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M19 9l-7 7-7-7"
+											/>
+										</svg>
+									</div>
+								</div>
+
+								{sourceDateFilter === "custom" && (
+									<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+										<input
+											type="date"
+											value={sourceCustomStartDate}
+											onChange={(e) => setSourceCustomStartDate(e.target.value)}
+											className="w-full sm:w-auto px-3 py-2 bg-white bg-opacity-70 text-gray-800 border border-white border-opacity-30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+										/>
+										<span className="text-white text-center sm:text-left">
+											to
+										</span>
+										<input
+											type="date"
+											value={sourceCustomEndDate}
+											onChange={(e) => setSourceCustomEndDate(e.target.value)}
+											className="w-full sm:w-auto px-3 py-2 bg-white bg-opacity-70 text-gray-800 border border-white border-opacity-30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+										/>
+									</div>
+								)}
+
+								<button
+									className="w-full sm:w-auto px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-20 rounded-md transition-all duration-200 font-medium"
+									onClick={() => {
+										setSourceDateFilter("all");
+										setSourceCustomStartDate("");
+										setSourceCustomEndDate("");
+									}}
+								>
+									Reset
+								</button>
+							</div>
+						</div>
+					</div>
+
+					{/* Close Button */}
+					<button
+						onClick={() => setShowSourceModal(false)}
+						className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 p-2 z-20"
+						aria-label="Close modal"
+					>
+						<svg
+							className="w-6 h-6"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				</Modal.Header>
+				<Modal.Body className="p-0 bg-gray-50">
+					{/* Hero Section */}
+					<div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8 text-center">
+						{sourceDateFilter !== "all" && (
+							<div className="mb-4 sm:mb-6">
+								<div className="text-sm sm:text-base text-gray-500 bg-white bg-opacity-50 rounded-full px-4 py-2 inline-block">
+									{sourceDateFilter === "custom"
+										? `Custom Range: ${sourceCustomStartDate} to ${sourceCustomEndDate}`
+										: `Filtered: ${
+												sourceDateFilter.charAt(0).toUpperCase() +
+												sourceDateFilter.slice(1)
+										  }`}
+								</div>
+							</div>
+						)}
+
+						{/* Big Trend Chart */}
+						<div className="w-full max-w-5xl mx-auto bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 gap-4">
+								<div>
+									<h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
+										{selectedSourceCard?.title} Trend Analysis
+									</h3>
+									<p className="text-sm sm:text-base text-gray-600 mt-1">
+										{sourceDateFilter === "today"
+											? "Performance by hour today"
+											: sourceDateFilter === "week"
+											? "Performance over the last 7 days"
+											: sourceDateFilter === "month"
+											? "Performance over the last 4 weeks"
+											: sourceDateFilter === "year"
+											? "Performance over the last 12 months"
+											: sourceDateFilter === "custom"
+											? "Performance for selected period"
+											: "Performance over the last 30 days"}
+									</p>
+								</div>
+							</div>
+
+							{/* Big Chart */}
+							<div className="h-64 sm:h-80 lg:h-96 w-full">
+								<Bar
+									data={{
+										labels: generateSourceTrackingTrendData().labels,
+										datasets: [
+											{
+												label: selectedSourceCard?.title || "Data",
+												data: generateSourceTrackingTrendData().data.map(
+													(value) => Math.round(value)
+												),
+												backgroundColor: "rgba(59, 130, 246, 0.8)",
+												borderColor: "rgba(59, 130, 246, 1)",
+												borderWidth: 2,
+												borderRadius: 8,
+												hoverBackgroundColor: "rgba(59, 130, 246, 1)",
+											},
+										],
+									}}
+									options={{
+										responsive: true,
+										maintainAspectRatio: false,
+										plugins: {
+											legend: {
+												display: false,
+											},
+											tooltip: {
+												backgroundColor: "rgba(0, 0, 0, 0.8)",
+												titleColor: "white",
+												bodyColor: "white",
+												borderRadius: 8,
+												displayColors: false,
+											},
+										},
+										scales: {
+											y: {
+												beginAtZero: true,
+												grid: {
+													color: "rgba(0, 0, 0, 0.1)",
+												},
+												ticks: {
+													color: "rgba(0, 0, 0, 0.6)",
+													font: {
+														size: 12,
+													},
+												},
+											},
+											x: {
+												grid: {
+													display: false,
+												},
+												ticks: {
+													color: "rgba(0, 0, 0, 0.6)",
+													font: {
+														size: 12,
+													},
+												},
+											},
+										},
+									}}
+								/>
+							</div>
+
+							{/* Chart Stats */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6 lg:mt-8 pt-4 sm:pt-6 border-t border-gray-200">
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
+									<div className="text-2xl sm:text-3xl font-bold text-green-600">
+										{(() => {
+											const trendData = generateSourceTrackingTrendData().data;
+											const average =
+												trendData.length > 0
+													? Math.round(
+															trendData.reduce((sum, val) => sum + val, 0) /
+																trendData.length
+													  )
+													: 0;
+											return average.toLocaleString();
+										})()}
+									</div>
+									<div className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-0">
+										Average
+									</div>
+								</div>
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
+									<div className="text-2xl sm:text-3xl font-bold text-purple-600">
+										{(() => {
+											const trendData = generateSourceTrackingTrendData().data;
+											const activeDays = trendData.filter(
+												(val) => val > 0
+											).length;
+											return activeDays.toLocaleString();
+										})()}
+									</div>
+									<div className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-0">
+										Active Days
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Analytics Grid */}
+					<div className="p-4 sm:p-6 lg:p-8">
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+							{/* Source Breakdown Card */}
+							<div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
+								<div className="flex items-center justify-between mb-4 sm:mb-6">
+									<h6 className="text-lg sm:text-xl font-semibold text-gray-800">
+										Source Breakdown
+									</h6>
+									<div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+										<svg
+											className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+											<path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+										</svg>
+									</div>
+								</div>
+								<div className="space-y-4 sm:space-y-6">
+									{selectedSourceCard?.sources
+										? // For Social Media and Search Engine cards, show breakdown
+										  selectedSourceCard.sources.map((source, index) => {
+												const sourceData =
+													memoizedFilteredSourceData?.source_distribution?.[
+														source
+													] || 0;
+												const total =
+													memoizedFilteredSourceData?.total_visits || 0;
+												const percentage =
+													total > 0
+														? Math.round((sourceData / total) * 100)
+														: 0;
+
+												return (
+													<div key={index} className="space-y-2 sm:space-y-3">
+														<div className="flex items-center justify-between">
+															<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
+																{source}
+															</span>
+															<span className="text-sm sm:text-base font-semibold text-gray-800">
+																{sourceData.toLocaleString()} ({percentage}%)
+															</span>
+														</div>
+														<div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+															<div
+																className="h-2 sm:h-3 rounded-full transition-all duration-300"
+																style={{
+																	width: `${percentage}%`,
+																	backgroundColor: getSourceBrandColor(source),
+																}}
+															></div>
+														</div>
+													</div>
+												);
+										  })
+										: // For Total Page Visits and Direct Visits, show top sources
+										  Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+										  )
+												.sort(([, a], [, b]) => b - a)
+												.slice(0, 5)
+												.map(([source, count], index) => {
+													const total =
+														memoizedFilteredSourceData?.total_visits || 0;
+													const percentage =
+														total > 0 ? Math.round((count / total) * 100) : 0;
+
+													return (
+														<div key={index} className="space-y-2 sm:space-y-3">
+															<div className="flex items-center justify-between">
+																<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
+																	{source}
+																</span>
+																<span className="text-sm sm:text-base font-semibold text-gray-800">
+																	{count.toLocaleString()} ({percentage}%)
+																</span>
+															</div>
+															<div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+																<div
+																	className="h-2 sm:h-3 rounded-full transition-all duration-300"
+																	style={{
+																		width: `${percentage}%`,
+																		backgroundColor:
+																			getSourceBrandColor(source),
+																	}}
+																></div>
+															</div>
+														</div>
+													);
+												})}
+								</div>
+							</div>
+
+							{/* Visitor Engagement Metrics Card */}
+							<div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
+								<div className="flex items-center justify-between mb-4 sm:mb-6">
+									<h6 className="text-lg sm:text-xl font-semibold text-gray-800">
+										Visitor Engagement Metrics
+									</h6>
+									<div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+										<svg
+											className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+										</svg>
+									</div>
+								</div>
+								<div className="space-y-3 sm:space-y-4">
+									<div className="flex items-center justify-between">
+										<span className="text-sm sm:text-base text-gray-600">
+											Unique Visitors
+										</span>
+										<span className="text-sm sm:text-base font-semibold text-gray-800">
+											{(
+												memoizedFilteredSourceData?.unique_visitors || 0
+											).toLocaleString()}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm sm:text-base text-gray-600">
+											Returning Visitors
+										</span>
+										<span className="text-sm sm:text-base font-semibold text-gray-800">
+											{(
+												memoizedFilteredSourceData?.returning_visitors || 0
+											).toLocaleString()}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm sm:text-base text-gray-600">
+											New Visitors
+										</span>
+										<span className="text-sm sm:text-base font-semibold text-gray-800">
+											{(
+												memoizedFilteredSourceData?.new_visitors || 0
+											).toLocaleString()}
+										</span>
+									</div>
+									<div className="flex items-center justify-between">
+										<span className="text-sm sm:text-base text-gray-600">
+											Avg Visits/Visitor
+										</span>
+										<span className="text-sm sm:text-base font-semibold text-gray-800">
+											{(
+												memoizedFilteredSourceData?.avg_visits_per_visitor || 0
+											).toLocaleString()}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</Modal.Body>
+			</Modal>
 		</>
 	);
 }

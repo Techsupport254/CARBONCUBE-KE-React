@@ -2,6 +2,15 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Development Tools
+
+### React DevTools
+
+To eliminate the React DevTools warning and get better debugging capabilities, install the React DevTools browser extension:
+
+- **Chrome/Edge**: [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
+- **Firefox**: [React Developer Tools](https://addons.mozilla.org/en-US/firefox/addon/react-devtools/)
+
 ## Available Scripts
 
 In the project directory, you can run:

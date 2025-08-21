@@ -12,15 +12,8 @@ import {
 	faFacebook,
 	faInstagram,
 	faWhatsapp,
-	faBox,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-	faLinkedinIn as faLinkedinInBrand,
-	faFacebook as faFacebookBrand,
-	faInstagram as faInstagramBrand,
-	faWhatsapp as faWhatsappBrand,
 } from "@fortawesome/free-brands-svg-icons";
-// import "../css/Home.css"; // Removed CSS import
+import "../css/Home.css";
 import Footer from "../../components/Footer";
 
 const Home = () => {
@@ -35,10 +28,6 @@ const Home = () => {
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchAttempted, setSearchAttempted] = useState(false);
 	const [currentSearchType, setCurrentSearchType] = useState(""); // Track if it's a subcategory search
-	const [displayedResults, setDisplayedResults] = useState([]);
-	const [currentPage, setCurrentPage] = useState(1);
-	const [hasMore, setHasMore] = useState(true);
-	const RESULTS_PER_PAGE = 18; // Show 18 items per page (3 rows of 6 items)
 	const navigate = useNavigate(); // Initialize useNavigate
 	const [isComponentMounted, setIsComponentMounted] = useState(false);
 
@@ -85,6 +74,7 @@ const Home = () => {
 				if (!adResponse.ok) throw new Error("Failed to fetch ads");
 
 				const adData = await adResponse.json();
+				// Ads response received successfully
 
 				// ✅ Ensure ads are grouped correctly
 				setAds(adData);
@@ -114,14 +104,7 @@ const Home = () => {
 		const category = params.get("category");
 		const subcategory = params.get("subcategory");
 
-		// Only trigger search if we have actual search parameters
-		// Ignore other parameters like 'from', 'utm_source', etc.
-		const hasSearchParams =
-			query ||
-			(category && category !== "All") ||
-			(subcategory && subcategory !== "All");
-
-		if (!hasSearchParams) {
+		if (!params.toString()) {
 			setSearchResults([]);
 			setCurrentSearchType("");
 			setIsSearching(false);
@@ -156,12 +139,11 @@ const Home = () => {
 				if (!response.ok) throw new Error("Failed to fetch search results");
 
 				const results = await response.json();
+				// Search results processed successfully
 				if (!results || results.length === 0) {
 					setSearchResults([]);
-					setDisplayedResults([]);
 				} else {
 					setSearchResults(results);
-					initializeDisplayedResults(results);
 				}
 
 				if (searchQuery.trim()) {
@@ -189,6 +171,8 @@ const Home = () => {
 	const handleSidebarToggle = () => {
 		setSidebarOpen(!sidebarOpen);
 	};
+
+	// console.log('ads:', ads); // Debugging: Log the ads data
 
 	const handleAdClick = async (adId) => {
 		if (!adId) {
@@ -308,29 +292,6 @@ const Home = () => {
 		setSearchQuery("");
 		setCurrentSearchType("");
 		setIsSearching(false);
-		setDisplayedResults([]);
-		setCurrentPage(1);
-		setHasMore(true);
-	};
-
-	// Function to load more results
-	const handleLoadMore = () => {
-		const nextPage = currentPage + 1;
-		const startIndex = (nextPage - 1) * RESULTS_PER_PAGE;
-		const endIndex = startIndex + RESULTS_PER_PAGE;
-		const newResults = searchResults.slice(startIndex, endIndex);
-
-		setDisplayedResults((prev) => [...prev, ...newResults]);
-		setCurrentPage(nextPage);
-		setHasMore(endIndex < searchResults.length);
-	};
-
-	// Function to initialize displayed results when search results change
-	const initializeDisplayedResults = (results) => {
-		const initialResults = results.slice(0, RESULTS_PER_PAGE);
-		setDisplayedResults(initialResults);
-		setCurrentPage(1);
-		setHasMore(results.length > RESULTS_PER_PAGE);
 	};
 
 	// Function to log the ad search
@@ -383,14 +344,14 @@ const Home = () => {
 		const randomizedSubcategories = shuffleArray(subcategories).slice(0, 4);
 
 		return (
-			<Card className="bg-white/95 mb-4 mx-0 shadow-xl border-0">
-				<Card.Header className="bg-secondary text-white px-3 py-2 rounded-t-lg flex justify-start shadow-md">
-					<h4 className="m-0 font-bold text-sm sm:text-base">{title}</h4>
+			<Card className="section bg-transparent mb-3 m-5 my-xs-0 mx-5">
+				<Card.Header className="category-header justify-content-start">
+					<h4 className="m-0">{title}</h4>
 				</Card.Header>
-				<Card.Body className="bg-transparent p-2">
-					<Row className="g-2">
+				<Card.Body className="cat-body p-0">
+					<Row className="g-3">
 						{randomizedSubcategories.map((subcategory) => (
-							<Col xs={6} sm={6} md={3} key={subcategory.id}>
+							<Col xs={12} sm={6} md={3} key={subcategory.id}>
 								<SubcategorySection
 									subcategory={subcategory.name}
 									categoryName={title}
@@ -414,110 +375,120 @@ const Home = () => {
 		onSubcategoryClick,
 	}) => {
 		const displayedAds = ads.slice(0, 4);
-		const hasAds = displayedAds && displayedAds.length > 0;
 
+		// if (!ads || ads.length === 0) {
+		// return ;
+		// }
 		return (
-			<Card
-				className="h-full bg-white/90 rounded-lg flex flex-col"
-				style={{ minHeight: "200px" }}
-			>
-				<Card.Body className="p-1 flex-grow flex flex-col justify-between">
-					{hasAds ? (
-						<Row className="g-1">
-							{displayedAds.map((ad) => {
-								const borderColor = getBorderColor(ad.seller_tier);
-								return (
-									<Col xs={6} key={ad.id}>
-										<Card
-											className="h-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
-											style={{
-												border: `2px solid ${borderColor}`,
-											}}
-										>
-											<div>
-												{/* Tier label */}
-												<div
-													className="text-dark px-1 text-xs rounded"
-													style={{
-														backgroundColor: borderColor,
-													}}
-												>
-													{ad.tier_name}
-												</div>
-
-												<Card.Img
-													variant="top"
-													loading="lazy"
-													src={
-														ad.media && ad.media.length > 0
-															? ad.media[0]
-															: "default-image-url"
-													}
-													alt={ad.title}
-													className="object-contain w-full h-auto aspect-square rounded-lg shadow-lg cursor-pointer transition-opacity duration-300 ease-in-out"
-													onClick={() => onAdClick(ad.id)}
-													onLoad={(e) => {
-														e.target.style.opacity = "1";
-													}}
-													onError={(e) => {
-														e.target.src = "default-image-url";
-														e.target.style.opacity = "1";
-													}}
-													style={{ opacity: 0 }}
-												/>
+			<Card className="subcategory-section h-100">
+				<Card.Body className="p-2">
+					<Row className="g-2">
+						{displayedAds.map((ad) => {
+							const borderColor = getBorderColor(ad.seller_tier); // Get the border color
+							return (
+								<Col xs={6} key={ad.id}>
+									<Card
+										className="ad-card h-100"
+										style={{
+											border: `2px solid ${borderColor}`,
+										}}
+									>
+										<div style={{ position: "relative" }}>
+											{/* Tier label */}
+											<div
+												className="tier-label text-dark"
+												style={{
+													position: "absolute",
+													top: "0px",
+													left: "0px",
+													padding: "0px 5px",
+													fontSize: "12px",
+													backgroundColor: borderColor, // Match background to border color
+													borderRadius: "4px",
+													zIndex: 20,
+												}}
+											>
+												{ad.tier_name}
 											</div>
-										</Card>
-									</Col>
-								);
-							})}
-						</Row>
-					) : (
-						<div className="flex items-center justify-center h-full w-full absolute inset-0">
-							<div className="text-center text-gray-500">
-								<div className="text-2xl mb-1 text-gray-400">
-									<FontAwesomeIcon icon={faBox} />
-								</div>
-								<p className="text-xs">No items available</p>
-							</div>
-						</div>
-					)}
+
+											<Card.Img
+												variant="top"
+												loading="lazy"
+												src={
+													ad.media && ad.media.length > 0
+														? ad.media[0]
+														: "default-image-url"
+												}
+												alt={ad.title}
+												className="ad-image"
+												onClick={() => onAdClick(ad.id)}
+											/>
+										</div>
+									</Card>
+								</Col>
+							);
+						})}
+					</Row>
 				</Card.Body>
-				<Card.Footer className="flex justify-start border-t border-gray-200 bg-gray-50 px-2 py-1 mt-auto">
-					<h6
-						className="m-0 cursor-pointer transition-all duration-300 hover:text-blue-600 hover:translate-x-1 font-semibold text-gray-800 text-xs sm:text-sm"
+				<Card.Footer className="d-flex justify-content-start">
+					<h5
+						className="m-0 subcategory-title"
 						onClick={() => onSubcategoryClick(subcategory, categoryName)}
+						style={{
+							cursor: "pointer",
+							transition: "color 0.3s ease, transform 0.2s ease",
+						}}
+						onMouseEnter={(e) => {
+							e.target.style.color = "#007bff";
+							e.target.style.transform = "translateX(5px)";
+						}}
+						onMouseLeave={(e) => {
+							e.target.style.color = "";
+							e.target.style.transform = "translateX(0)";
+						}}
 					>
 						{subcategory}
-					</h6>
+					</h5>
 				</Card.Footer>
 			</Card>
 		);
 	};
 
 	const PopularAdsSection = ({ ads, onAdClick }) => (
-		<Card className="bg-white/95 mb-4 mx-0 shadow-xl border-0">
-			<Card.Header className="flex justify-start bg-secondary text-white px-3 py-2 rounded-t-lg shadow-md">
-				<h3 className="mb-0 font-bold text-sm sm:text-base">Best Sellers</h3>
+		<Card className="section bg-transparent mb-3 m-4 mx-5 z-index-10">
+			<Card.Header className="d-flex justify-content-start popular-ads-header ">
+				<h3 className="mb-0">Best Sellers</h3>
 			</Card.Header>
-			<Card.Body className="p-2">
-				<Row className="g-2">
+			<Card.Body className="cat-body">
+				<Row className="g-3">
 					{ads.slice(0, 8).map((ad) => {
 						const borderColor = getBorderColor(ad.seller_tier);
+						{
+							/* console.log("ad", ad);
+                        console.log("borderColor", getBorderColor(ad.seller_tier)); */
+						}
 
 						return (
 							<Col xs={6} sm={6} md={4} lg={3} key={ad.id}>
 								<Card
-									className="h-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+									className="ad-card h-100"
 									style={{
 										border: `2px solid ${borderColor}`,
 									}}
 								>
-									<div>
+									<div style={{ position: "relative" }}>
 										{/* Tier label */}
 										<div
-											className="text-dark px-1 text-xs rounded"
+											className="tier-label text-dark"
 											style={{
-												backgroundColor: borderColor,
+												position: "absolute",
+												top: "0px",
+												left: "0px",
+												padding: "0px 5px",
+												fontSize: "12px",
+												backgroundColor: borderColor, // Match background to border color
+												borderRadius: "4px",
+												zIndex: 20,
 											}}
 										>
 											{ad.tier_name}
@@ -531,16 +502,8 @@ const Home = () => {
 													: "default-image-url"
 											}
 											alt={ad.title}
-											className="object-contain w-full h-auto aspect-square rounded-lg shadow-lg cursor-pointer transition-opacity duration-300 ease-in-out"
+											className="ad-image"
 											onClick={() => onAdClick(ad.id)}
-											onLoad={(e) => {
-												e.target.style.opacity = "1";
-											}}
-											onError={(e) => {
-												e.target.src = "default-image-url";
-												e.target.style.opacity = "1";
-											}}
-											style={{ opacity: 0 }}
 										/>
 									</div>
 								</Card>
@@ -552,12 +515,7 @@ const Home = () => {
 		</Card>
 	);
 
-	const SearchResultSection = ({
-		results,
-		searchType,
-		onLoadMore,
-		hasMore,
-	}) => {
+	const SearchResultSection = ({ results, searchType }) => {
 		const getHeaderTitle = () => {
 			if (
 				typeof searchType === "string" &&
@@ -573,134 +531,123 @@ const Home = () => {
 		};
 
 		return (
-			<div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-				<Card className="mb-4 mt-2 mx-0">
-					<Card.Header className="flex justify-between items-center px-3 py-2">
-						<h3 className="mb-0 text-sm sm:text-base">{getHeaderTitle()}</h3>
-						<Button
-							variant="outline-secondary bg-warning rounded-pill text-dark"
-							size="sm"
-							onClick={handleClearSearch}
-							className="flex items-center gap-2 text-xs sm:text-sm"
-						>
-							Back to Home
-						</Button>
-					</Card.Header>
-					<Card.Body className="p-2">
-						{results.length === 0 ? (
-							<div className="text-center py-4">
-								<h5 className="text-muted text-sm sm:text-base">
-									No products found
-								</h5>
-								<p className="text-muted text-xs sm:text-sm">
-									Try adjusting your search or browse other categories
-								</p>
-							</div>
-						) : (
-							<>
-								<Row className="g-2">
-									{results.map((ad) => {
-										const borderColor = getBorderColor(ad.seller_tier);
-										return (
-											<Col xs={6} sm={4} md={3} lg={2} key={ad.id}>
-												<Card
-													className="mb-2"
+			<Card className="section-search mb-4 mt-2">
+				<Card.Header className="d-flex justify-content-between align-items-center">
+					<h3 className="mb-0">{getHeaderTitle()}</h3>
+					<Button
+						variant="outline-secondary bg-warning rounded-pill text-dark"
+						size="sm"
+						onClick={handleClearSearch}
+						className="d-flex align-items-center gap-2"
+					>
+						Back to Home
+					</Button>
+				</Card.Header>
+				<Card.Body>
+					{results.length === 0 ? (
+						<div className="text-center py-5">
+							<h5 className="text-muted">No products found</h5>
+							<p className="text-muted">
+								Try adjusting your search or browse other categories
+							</p>
+						</div>
+					) : (
+						<Row className="g-3">
+							{results.map((ad) => {
+								const borderColor = getBorderColor(ad.seller_tier); // Get the border color
+								return (
+									<Col xs={6} sm={6} md={2} key={ad.id} className="">
+										<Card
+											className="ad-card-seller mb-3"
+											style={{
+												border: `2px solid ${borderColor}`,
+											}}
+										>
+											<div style={{ position: "relative" }}>
+												{/* Tier label */}
+												<div
+													className="tier-label text-dark"
 													style={{
-														border: `2px solid ${borderColor}`,
+														position: "absolute",
+														top: "0px",
+														right: "-2px",
+														padding: "2px 6px",
+														fontSize: "11px",
+														backgroundColor: borderColor,
+														borderTopLeftRadius: "0px",
+														borderTopRightRadius: "4px",
+														borderBottomRightRadius: "0px",
+														borderBottomLeftRadius: "6px",
+														zIndex: 2,
 													}}
 												>
-													<div>
-														{/* Tier label */}
-														<div
-															className="text-dark px-1 py-0.5 text-xs"
-															style={{
-																backgroundColor: borderColor,
-																borderTopLeftRadius: "0px",
-																borderTopRightRadius: "4px",
-																borderBottomRightRadius: "0px",
-																borderBottomLeftRadius: "6px",
-															}}
-														>
-															{ad.tier_name || "Free"}
-														</div>
+													{ad.tier_name || "Free"}{" "}
+													{/* Show tier name, default to "Free" */}
+												</div>
 
-														<Card.Img
-															variant="top"
-															src={
-																ad.media_urls && ad.media_urls.length > 0
-																	? ad.media_urls[0]
-																	: "default-image-url"
-															}
-															alt={ad.title}
-															className="cursor-pointer aspect-square object-contain"
-															onClick={() => handleAdClick(ad.id)}
-														/>
-													</div>
-													<Card.Body className="px-1 py-1">
-														<Card.Title className="mb-0 text-xs sm:text-sm">
-															{ad.title}
-														</Card.Title>
-														<Card.Text className="text-xs">
-															<span>
-																<em className="text-success">Kshs: </em>
-															</span>
-															<strong className="text-danger">
-																{ad.price
-																	? parseFloat(ad.price)
-																			.toFixed(2)
-																			.split(".")
-																			.map((part, index) => (
-																				<React.Fragment key={index}>
-																					{index === 0 ? (
-																						<span>
-																							{parseInt(
-																								part,
-																								10
-																							).toLocaleString()}
-																						</span>
-																					) : (
-																						<>
-																							<span
-																								style={{ fontSize: "12px" }}
-																							>
-																								.
-																							</span>
-																							<span>{part}</span>
-																						</>
-																					)}
-																				</React.Fragment>
-																			))
-																	: "N/A"}
-															</strong>
-														</Card.Text>
-													</Card.Body>
-												</Card>
-											</Col>
-										);
-									})}
-								</Row>
-								{hasMore && (
-									<div className="text-center mt-4">
-										<Button
-											variant="warning"
-											onClick={onLoadMore}
-											className="px-6 py-2 rounded-pill"
-										>
-											Show More
-										</Button>
-									</div>
-								)}
-							</>
-						)}
-					</Card.Body>
-				</Card>
-			</div>
+												<Card.Img
+													variant="top"
+													src={
+														ad.media_urls && ad.media_urls.length > 0
+															? ad.media_urls[0]
+															: "default-image-url"
+													}
+													alt={ad.title}
+													className="analytics-card-img-top ad-image"
+													onClick={() => handleAdClick(ad.id)} // Handle image click
+												/>
+											</div>
+											<Card.Body className="px-2 py-1">
+												<Card.Title className="mb-0 ad-title">
+													{ad.title}
+												</Card.Title>
+												<Card.Text className="price-container">
+													<span>
+														<em className="ad-price-label text-success">
+															Kshs:{" "}
+														</em>
+													</span>
+													<strong className="text-danger">
+														{ad.price
+															? parseFloat(ad.price)
+																	.toFixed(2)
+																	.split(".")
+																	.map((part, index) => (
+																		<React.Fragment key={index}>
+																			{index === 0 ? (
+																				<span className="price-integer">
+																					{parseInt(part, 10).toLocaleString()}
+																				</span>
+																			) : (
+																				<>
+																					<span style={{ fontSize: "16px" }}>
+																						.
+																					</span>
+																					<span className="price-decimal">
+																						{part}
+																					</span>
+																				</>
+																			)}
+																		</React.Fragment>
+																	))
+															: "N/A"}
+													</strong>
+												</Card.Text>
+											</Card.Body>
+										</Card>
+									</Col>
+								);
+							})}
+						</Row>
+					)}
+				</Card.Body>
+			</Card>
 		);
 	};
 
 	if (loading) {
 		return (
-			<div className="flex justify-center items-center h-screen w-full">
+			<div className="centered-loader">
 				<Spinner
 					variant="warning"
 					name="cube-grid"
@@ -717,50 +664,47 @@ const Home = () => {
 	return (
 		<>
 			<TopNavbar
+				onSidebarToggle={handleSidebarToggle}
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 				handleSearch={handleSearch}
 			/>
-			<div className="flex">
-				<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-				<div className="flex-1 bg-gray-300 font-['Fira_Sans_Extra_Condensed'] font-normal transition-all duration-300 ease-in-out">
-					<div className="w-full">
-						{!isSearching && searchResults.length === 0 && <Banner />}
-						<Container fluid className="px-0">
-							{isSearching ? (
-								<div className="flex justify-center items-center h-screen w-full">
-									<Spinner
-										variant="warning"
-										name="cube-grid"
-										style={{ width: 50, height: 50 }}
+			<div className="home-page-wrapper">
+				<Sidebar isOpen={sidebarOpen} />
+				<div className={`home-page ${sidebarOpen ? "sidebar-open" : ""}`}>
+					{!isSearching && searchResults.length === 0 && <Banner />}
+					<Container fluid>
+						{isSearching ? (
+							<div className="centered-loader">
+								<Spinner
+									variant="warning"
+									name="cube-grid"
+									style={{ width: 50, height: 50 }}
+								/>
+							</div>
+						) : searchResults.length > 0 ? (
+							<SearchResultSection
+								results={searchResults}
+								searchType={currentSearchType}
+							/>
+						) : (
+							<div className="categories-wrapper">
+								<div className="categories-overlay">
+									{categories.map((category) => (
+										<CategorySection
+											key={category.id}
+											title={category.name}
+											subcategories={category.subcategories}
+										/>
+									))}
+									<PopularAdsSection
+										ads={Object.values(ads).flat()}
+										onAdClick={handleAdClick}
 									/>
 								</div>
-							) : searchResults.length > 0 ? (
-								<SearchResultSection
-									results={displayedResults}
-									searchType={currentSearchType}
-									onLoadMore={handleLoadMore}
-									hasMore={hasMore}
-								/>
-							) : (
-								<div className="mb-8 relative z-10 -mt-0 sm:-mt-[10vh] md:-mt-[5vh] lg:-mt-[20vh] xl:-mt-[25vh]">
-									<div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-										{categories.map((category) => (
-											<CategorySection
-												key={category.id}
-												title={category.name}
-												subcategories={category.subcategories}
-											/>
-										))}
-										<PopularAdsSection
-											ads={Object.values(ads).flat()}
-											onAdClick={handleAdClick}
-										/>
-									</div>
-								</div>
-							)}
-						</Container>
-					</div>
+							</div>
+						)}
+					</Container>
 				</div>
 			</div>
 			<Footer />

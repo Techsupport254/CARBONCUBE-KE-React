@@ -2,7 +2,7 @@
   font-family: "Fira Sans Extra Condensed", sans-serif;
   font-weight: 400;
   font-style: normal;
-  background-color:black;
+  background-color: black;
   z-index: 6;
 }
 
@@ -25,8 +25,10 @@
   display: flex;
   align-items: center;
   margin-right: auto;
-  width: 100%; /* Adjust width as needed */
-  max-width: 800px; /* Ensure it doesn't get too wide */
+  width: 100%;
+  /* Adjust width as needed */
+  max-width: 800px;
+  /* Ensure it doesn't get too wide */
 }
 
 .search-bar .form-control {
@@ -59,8 +61,10 @@
 }
 
 .search-input {
-  height: 38px; /* Ensure uniform height */
-  min-width: 200px; /* Prevent it from being too small */
+  height: 38px;
+  /* Ensure uniform height */
+  min-width: 200px;
+  /* Prevent it from being too small */
 }
 
 
@@ -77,8 +81,9 @@
   .search-bar {
     width: 70%;
     max-width: 300px;
-    
+
   }
+
   .search-control {
     margin-bottom: 0.5rem;
   }

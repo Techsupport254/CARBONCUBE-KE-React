@@ -20,17 +20,11 @@
   border-radius: 15px;
   box-shadow: none;
   background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
   color: #000; /* Ensure text is readable on the gradient background */
 }
 
 
-.custom-card:hover {
-  
-  transform: scale(1.02);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(135deg, #cbcbcb, #fff69a); 
-}
+
 
 .analytics-reporting-page .card-header {
   font-weight: bold;
@@ -75,9 +69,7 @@
     
   }
 
-  .custom-card:hover {
-    transform: scale(1.00);
-  }
+
 
   .analytics-reporting-page{
     margin-top: -2px;
