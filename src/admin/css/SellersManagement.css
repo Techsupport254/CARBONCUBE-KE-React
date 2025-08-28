@@ -1,0 +1,359 @@
+/* General Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow-x: hidden; /* Prevent horizontal scroll for the entire page */
+}
+
+.sellers-management-page {
+    background-color: #E0E0E0;
+    min-height: 100vh; /* Ensure the background color covers the full height */
+    padding: 0 1rem; /* Optional: Adjust padding as needed */
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    overflow-x: hidden;
+}
+
+
+.sellers-management-page .card-header {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    font-size: 25px;
+    /* text-align: center; Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+  }
+  
+  .sellers-management-page .card-footer {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    text-align: center; /* Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+  }
+
+/* Table Styles */
+.sellers-table {
+    margin-top: 0px;
+    width: 100%;
+    table-layout: auto; /* Adjust table layout */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-header th {
+    background-color: #343a40;
+    color: #fff;
+    text-align: center; /* Center align header text */
+}
+
+/* Ensure vertical alignment of table content */
+.sellers-table td, 
+.sellers-table th {
+    vertical-align: middle; /* Vertically center the content */
+    padding: 10px; /* Optional: Add padding for better spacing */
+}
+
+/* Modal Styles */
+.modal-dialog {
+    max-width: 100%;
+    width: auto; /* Ensure modal width adjusts to content */
+}
+
+.modal-content {
+    overflow-x: hidden; /* Prevent horizontal scroll inside the modal */
+    overflow-y: auto;
+    max-height: 80vh; /* Adjust this value as needed */
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+
+
+/* Modal Header Styles */
+.modal-header {
+    background-color: #343a40; /* Dark background for header */
+    color: #fff; /* White text color */
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    font-size: 1.5rem; /* Adjust title size */
+    font-weight: 600; /* Make the title bold */
+}
+
+/* Modal Body Styles */
+.modal-body {
+    padding: 20px;
+    background-color: #E0E0E0; /* Ensure a white background for the body */
+    border-top: 1px solid #dee2e6; /* Border separating the content from the footer */
+    border-radius: 4px; /* Rounded corners */
+}
+
+/* Custom Tabs Styles */
+#seller-details-tabs .nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    display: flex;
+    justify-content: space-between; /* Ensure equal spacing */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+#seller-details-tabs .nav-item {
+    flex: 1; /* Equal width for tabs */
+    text-align: center; /* Center the tab content */
+}
+
+#seller-details-tabs .nav-link {
+    border: 2px solid #ffc107;
+    border-radius: 2.0rem;
+    padding: 10px 15px;
+    text-align: center;
+    font-weight: 600;
+    background-color: #ffc107;
+    color: #495057;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#seller-details-tabs .nav-link.active {
+    background-color: #ffffffed; /* Slightly darker yellow for active tab */
+    color: #000;
+    border-radius: 2.0rem;
+    border: 2px solid #ffc107;
+}
+
+#seller-details-tabs .nav-link:hover {
+    background-color: #fff; /* Slightly darker yellow for hover effect */
+    color: #495057;
+    border: 2px solid #ffc107;
+}
+
+#seller-details-tabs .tab-content {
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 4px;
+}
+
+.custom-tabs {
+    display: flex;
+    justify-content: space-between;
+}
+
+.custom-tabs .nav-item {
+    flex: 1; /* This will make all tabs take equal space */
+    text-align: center; /* Center align text */
+}
+
+
+/* Profile Details Layout */
+.profile-details {
+    display: flex;
+    flex-direction: column; /* Ensure columns stack vertically */
+    gap: 200px; /* Space between sections */
+}
+
+.profile-column {
+    flex: 1;
+}
+
+.profile-details p {
+    margin: 0 0 0px;
+    font-size: 1rem;
+}
+
+/* Profile Card Styles */
+.profile-cards {
+    /* display: flex; */
+    flex-wrap: wrap; /* Allows items to wrap into new rows */
+    gap: 10px; /* Space between cards */
+}
+
+.profile-card {
+    flex: 1 1 calc(50% - 20px); /* Two columns with spacing */
+    min-width: 250px; /* Minimum width for each card */
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px; /* Adjust padding for spacing inside cards */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px; /* Space below each card */
+}
+
+.profile-card p {
+    margin: 0; /* Remove default margin for paragraphs inside cards */
+}
+
+.profile-card p strong {
+    display: block;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.card-container {
+    display: grid;
+    /* grid-template-columns: repeat(3, 1fr); Two equal columns */
+    gap: 20px; /* Space between cards */
+    margin: 10px;
+}
+
+
+.orders-table .table-head th {
+    background-color: #616161;
+    color: #fff;
+}
+
+.ad-card {
+    display: flex;
+    flex-direction: column;
+    height: auto; /* Adjust height as needed */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.ad-card .card-img {
+    height: 33%; /* Image section occupies one-third of the card */
+    object-fit: cover;
+}
+
+.ad-card .card-body {
+    height: 67%; /* Content section occupies the remaining two-thirds of the card */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+.ad-card .price-container {
+    font-size: 16px;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+}
+
+.ad-card .price-decimal {
+    font-size: 14px; /* Adjust font size for decimal part */
+    margin-left: 2px;
+}
+
+.ad-title {
+    white-space: nowrap; /* Prevents the text from wrapping to a new line */
+    overflow: hidden;    /* Hides any text that overflows the container */
+    text-overflow: ellipsis; /* Adds ellipsis (...) for overflowing text */
+    display: block; /* Ensures the element respects block-level overflow settings */
+}
+
+
+#button {
+    border-radius: 1.5rem;
+}
+
+.reviews-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem; /* Adds spacing between review cards */
+    justify-content: center; /* Center the grid items */
+    padding: 1rem; /* Optional: Adds padding around the grid */
+}
+
+.review-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    background: linear-gradient(135deg,  #cbcbcb, #fff69a); /* Gradient from two colors */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.review-card:hover {
+    background: linear-gradient(135deg, #fff69a, #cbcbcb);
+}
+
+.review-comment {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.review-ad {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+.reviewer-name {
+    font-size: 14px;
+    color: #495057;
+}
+
+.custom-card-seller {
+    border: none;
+    border-radius: 15px;
+    box-shadow: none;
+    background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    color: #000; /* Ensure text is readable on the gradient background */
+  }
+  
+  
+  .custom-card-seller:hover {
+    /* transform: translateY(-5px); */
+    /* transform: scale(1.02); */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #cbcbcb, #fff69a); /* Gradient from two colors */
+  }
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+
+    .sellers-management-page {
+        padding: 5px;
+        padding-top: 10px;
+        margin-top: -5px;
+    }
+    #seller-details-tabs .nav-link {
+        font-size: 0.9rem; /* Adjust font size for smaller screens */
+    }
+
+    .modal-body {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
+
+    .profile-card {
+        flex: 1 1 100%; /* Stack cards in a single column */
+    }
+
+    .reviews-container {
+        grid-template-columns: 1fr; /* Single column on small screens */
+    }
+
+    .custom-tabs .nav-tabs {
+        flex-direction: column;
+        align-items: center; /* Center the tabs in the column layout */
+    }
+
+    .custom-tabs .nav-item {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .card-container {
+        grid-template-columns: 1fr; /* Single column for small screens */
+    }
+
+    #seller-details-tabs .nav-item {
+        flex: 1; /* Ensures each tab takes up equal width */
+    }
+}

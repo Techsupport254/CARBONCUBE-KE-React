@@ -1,0 +1,123 @@
+.notifications-page {
+    background-color: #E0E0E0; /* Light grey background color */
+    height: 100vh; /* Ensure full height of the viewport */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.notification-card-wrapper {
+    border-radius: 12px; /* Rounded corners for the big card */
+    border: 1px solid #ddd; /* Light border for separation */
+    height: calc(100vh - 4rem); /* Adjust height to fit within viewport */
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden; /* Prevent overflow in the wrapper */
+}
+
+.notification-card-wrapper .big-card-header {
+    background-color: #616161; /* Header background color */
+    color: #fff; /* White text color */
+    padding: 1rem; /* Padding for header */
+    font-size: 25px; /* Font size for header */
+    font-weight: bold; /* Bold text */
+    flex-shrink: 0; /* Prevent shrinking of the header */
+}
+
+.notification-card-wrapper .big-card-body {
+    padding: 1.5rem; /* Padding for card body */
+    flex: 1; /* Allow the body to grow and shrink */
+    overflow-y: auto; /* Enable vertical scrolling within the body */
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-card-wrapper .big-card-footer {
+    background-color: #616161; /* Footer background color */
+    color: #fff; /* White text color */
+    padding: 1rem; /* Padding for footer */
+    font-size: 25px; /* Font size for footer */
+    font-weight: bold; /* Bold text */
+    text-align: center; /* Center text alignment */
+    flex-shrink: 0; /* Prevent shrinking of the footer */
+}
+
+.notification-card-wrapper .notification-card {
+    background-color: #e0e0e0; /* White background for cards */
+    border-radius: 12px; /* Rounded corners for cards */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+    border: 1px solid #ddd; /* Light border for separation */
+    margin-bottom: 1rem; /* Space between cards */
+}
+
+.notification-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Darker shadow on hover */
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.notification-card .card-body {
+    padding: 1.5rem; /* Increased padding for better spacing */
+}
+
+.notification-card .card-title {
+    font-size: 1.2rem; /* Slightly larger title for emphasis */
+    font-weight: 600; /* Semi-bold title text */
+    color: #333; /* Dark text color for better readability */
+    margin-bottom: 1rem; /* Space below the title */
+}
+
+.notification-card .badge {
+    font-size: 0.9rem; /* Adjust font size for badges */
+    font-weight: 500; /* Medium weight for badge text */
+    border-radius: 12px; /* Rounded corners for badges */
+    padding: 0.4rem 0.6rem; /* Padding for badges */
+}
+
+.order-id {
+    font-size: 1.1rem; /* Adjust font size for order ID */
+    font-weight: 700; /* Bold order ID text */
+    transition: color 0.3s ease; /* Smooth color transition */
+    display: inline-block; /* Make the span inline-block for margin */
+    margin-right: 1rem; /* Space between order ID and badge */
+}
+
+.card-text {
+    font-size: 1rem; /* Slightly smaller text for card content */
+    color: #555; /* Lighter text color for readability */
+}
+
+.text-muted {
+    font-size: 15px;
+}
+
+.order-id.processing {
+    color: #ffc107; /* Yellow for processing */
+}
+
+.order-id.on-transit {
+    color: #17a2b8; /* Teal for on-transit */
+}
+
+.order-id.delivered {
+    color: #28a745; /* Green for delivered */
+}
+
+.status-icon {
+    font-size: 2.0rem; /* Adjust size of status icons */
+}
+
+.status-icon.processing {
+    color: #ffc107; /* Yellow for processing icon */
+}
+
+.status-icon.on-transit {
+    color: #17a2b8; /* Teal for on-transit icon */
+}
+
+.status-icon.delivered {
+    color: #28a745; /* Green for delivered icon */
+}

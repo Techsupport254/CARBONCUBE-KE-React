@@ -1,0 +1,63 @@
+/* Orders Management Page Styles */
+.content-management-page {
+  background-color: #E0E0E0;
+  min-height: 100vh; /* Ensure the background color covers the full height */
+  padding: 0 1rem; /* Optional: Adjust padding as needed */
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  font-family: "Fira Sans Extra Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  overflow-x: hidden;
+}
+
+.section {
+  margin-top: 35px;
+}
+
+.faqs-table th, .faqs-table td {
+  vertical-align: middle;
+  gap: 20px;
+}
+
+.fa-edit, .fa-trash-alt {
+  margin-right: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.content-management-page .card-header {
+  background-color: #616161; /* Secondary variant */
+  font-weight: bold;
+  font-size: 25px;
+  /* text-align: center; Center text */
+  padding: 1rem; /* Adjust padding as needed */
+  color: #fff;
+}
+
+.content-management-page .card-footer {
+  background-color: #616161; /* Secondary variant */
+  font-weight: bold;
+  text-align: center; /* Center text */
+  padding: 1rem; /* Adjust padding as needed */
+  color: #fff;
+}
+
+.banner-body{
+  background-color: #E0E0E0;
+}
+
+@media (max-width: 768px) {
+  .content-management-page {
+    padding: 5px;
+    padding-top: 10px;
+  }
+
+  .section {
+    margin-top: 52px;
+  }
+}

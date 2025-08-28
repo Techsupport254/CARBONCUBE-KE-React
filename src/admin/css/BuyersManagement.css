@@ -1,0 +1,159 @@
+/* General Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow-x: hidden; /* Prevent horizontal scroll for the entire page */
+}
+
+/* General page styles */
+.buyers-management-page {
+    background-color: #E0E0E0;
+    min-height: 100vh; /* Ensure the background color covers the full height */
+    padding: 0 1rem; /* Optional: Adjust padding as needed */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    overflow-x: hidden;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.container-fluid {
+    flex: 1;
+    overflow-y: auto; /* Allow scrolling within this container */
+}
+
+/* Table styles */
+.buyers-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.buyers-table thead {
+    background-color: #616161;
+    color: #fff;
+}
+
+.buyers-table tbody tr {
+    transition: all 0.2s;
+}
+
+.buyers-table tbody td {
+  vertical-align: middle;
+}
+
+.buyers-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+.buyers-management-page .card-header {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    font-size: 25px;
+    /* text-align: center; Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+  }
+  
+  .buyers-management-page .card-footer {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    text-align: center; /* Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+  }
+
+/* Modal styles */
+.modal-header, .modal-footer {
+    background-color: #343a40;
+    color: #fff;
+}
+
+.modal-title {
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 20px;
+    background-color: #E0E0E0;
+}
+
+
+
+.buyer-details {
+    /* display: flex; */
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.buyer-detail-item {
+    flex: 1 1 45%;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.buyer-detail-item strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.order-container {
+    margin-top: 20px;
+  }
+
+  .table-responsive .table-head {
+    background-color: #616161;
+  }
+
+  .table-responsive .table-row td {
+    vertical-align: middle;
+  }
+  
+  .sub-table {
+    margin-top: 10px;
+    background-color: #f8f9fa;
+  }
+  
+  .sub-table th, .sub-table td {
+    text-align: center  ;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  #button {
+    border-radius: 1.5rem;
+  }
+  
+  @media (max-width: 576px) {
+    .order-container table {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .buyers-management-page {
+      padding: 5px;
+      padding-top: 10px;
+      margin-top : -5px;
+    }
+  }
+  

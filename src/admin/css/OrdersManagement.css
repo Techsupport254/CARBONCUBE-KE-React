@@ -1,0 +1,180 @@
+/* General Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow-x: hidden; /* Prevent horizontal scroll for the entire page */
+}
+
+/* Orders Management Page Styles */
+.orders-management-page {
+    background-color: #E0E0E0;
+    min-height: 100vh; /* Ensure the background color covers the full height */
+    padding: 0 1rem; /* Optional: Adjust padding as needed */
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    overflow-x: hidden;
+}
+
+.orders-management-page .card-header {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    font-size: 20px;
+    /* text-align: center; Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+}
+  
+  .orders-management-page .card-footer {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    text-align: center; /* Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+  }
+
+
+  .card-body {
+    padding: 0%;
+  }
+.modal .modal-header {
+    background-color: #616161;
+    padding: 10px;
+}
+
+.modal .modal-footer {
+    background-color: #616161;
+}
+
+
+  .modal-body .card-header {
+    background-color: #616161; /* Secondary variant */
+    color: #fff;
+  }
+
+
+/* Table Styles */
+.orders-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0px;
+}
+
+.search-container {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
+
+.search-container .form-control {
+    width: 100%; /* Adjusts the width to 70% */
+    display: block; /* Ensures the form control takes the specified width */
+}
+
+.form-control::placeholder {
+    font-style: italic;
+}
+
+
+/* Ensure vertical alignment of table content */
+.orders-table td, 
+.orders-table th {
+    vertical-align: middle; /* Vertically center the content */
+    padding: 10px; /* Optional: Add padding for better spacing */
+}
+
+#button {
+    border-radius: 1.5rem;
+    margin: 0%;
+  }
+
+.form-select-admin {
+    vertical-align: middle;
+    padding: 0 !important; /* Ensure there's no padding affecting the display */
+    min-width: 100px; /* Set a minimum width to accommodate shorter status text */
+    width: auto; /* Allow the width to adjust based on content */
+    height: 40px; /* Uniform height for status display */
+    text-align: center; /* Center the text horizontally */
+}
+
+
+.table-header th {
+    background-color: #f8f9fa;
+}
+
+.table-responsive .table-head th {
+    background-color: #616161;
+    color: #fff;
+}
+
+/* Order Details Styles */
+.order-details {
+    /* margin-bottom: 20px; */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.order-detail-item {
+    margin-bottom: 10px;
+    flex: 1 1 calc(50% - 20px); /* Two columns with gap adjustment */
+    box-sizing: border-box;
+    padding: 10px; /* Add some padding for better spacing */
+    border: 1px solid #ddd; /* Optional: add a border for better visibility */
+    border-radius: 5px; /* Optional: rounded corners */
+    background-color: #f9f9f9; /* Optional: background color */
+}
+
+.order-detail-item strong {
+    display: block; /* Ensures the label is on its own line */
+}
+
+/* Ad Container Styles */
+.ad-container {
+    margin-top: 10px;
+    white-space: nowrap
+}
+
+/* Sub-Table Styles */
+.sub-table {
+    margin-top: 10px;
+}
+
+.sub-table.d-none {
+    display: none;
+}
+
+.price-label {
+    font-size: 12px;
+}
+
+@media screen and (max-width: 767px) {
+    .orders-management-page {
+        padding-left: 0;
+        padding-right: 5px;
+        margin-top : -15px;
+    }
+
+    /* Scroll snap container */
+    .orders-table-container {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        display: flex;
+        /* scroll-padding: 50%; */
+    }
+
+    /* Scroll snap items */
+    .orders-table th, .orders-table td {
+        scroll-snap-align: start;
+        min-width: 200px; /* Adjust as needed */
+    }
+}

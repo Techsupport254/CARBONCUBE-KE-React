@@ -1,0 +1,199 @@
+.ads-details-page{
+  background-color: #e0e0e0;
+  font-family: "Fira Sans Extra Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  overflow-x: hidden;
+}
+
+.main-content {
+  margin-left: 0;
+  transition: margin-left 0.3s ease-in-out;
+  margin-top: 60px;
+}
+
+.sidebar-open .main-content {
+  margin-left: 250px; /* Adjust based on your sidebar width */
+}
+
+.ad-details-page {
+  padding: 20px;
+}
+
+.ad-details {
+  background-color: #fbfbfb;
+}
+
+.ad-details img {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.related-ads-title {
+  margin-top: 40px;
+  font-weight: bold;
+}
+
+.related-ads .card {
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.related-ads .card:hover {
+  transform: translateY(-10px);
+}
+
+.ad-price {
+  font-size: 1.8rem;
+  color: #ff6633;
+  font-weight: bold;
+}
+
+.link-hover:hover {
+text-decoration: underline;
+color: #0056b3; /* You can adjust the hover color */
+transform: scale(1.01);
+}
+
+@media screen and (max-width: 767px) {
+.ads-details-page {
+  margin-top: -15px;
+}
+}
+
+.sweetalert-modal .modal-content {
+  background: transparent;
+  border: none;
+}
+
+.sweetalert-container {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+  animation: fadeUp 0.4s ease;
+}
+
+.sweetalert-icon {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto;
+  border-radius: 50%;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px #ffc107;
+}
+
+.sweetalert-textarea {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  transition: 0.3s ease;
+}
+
+.sweetalert-textarea:focus {
+  outline: none;
+  border-color: #28a745;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+}
+
+.sweetalert-confirm-btn {
+  background-color: #ffc107 !important;
+  color: #000000;
+  border: none;
+  border-radius: 50px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  /* box-shadow: 0 0 15px #ffc107; */
+  transition: 0.3s ease;
+}
+
+.sweetalert-confirm-btn:hover {
+  background-color: #ffc107 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px #ffc107;
+}
+
+.sweetalert-cancel-btn {
+  background-color: #ff0000 !important;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 500;
+  transition: 0.3s ease;
+}
+
+.sweetalert-cancel-btn:hover {
+  background-color: #ff0000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px #ff0000;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fancy-button.btn {
+  border: 2px solid #212529;
+  background-color: transparent;
+  color: #212529;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  border-radius: 50rem;
+  appearance: none; /* Standard property for compatibility */
+  -webkit-appearance: none; /* 🚫 Prevent default styles} */
+}
+
+.fancy-button:hover {
+  background-color: #ffc107;
+  color: #212529;
+  border-color: #212529;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5);
+  transform: translateY(-2px);
+}
+
+.fancy-button.btn:active,
+.fancy-button.btn:focus,
+.fancy-button.btn:focus:active {
+  background-color: #ffc107 !important;
+  border-color: #212529 !important;
+  color: #212529 !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5) !important;
+  outline: none !important;
+}
+
+
+/* 🔒 Optional extra: remove blue highlight on iOS/Android */
+.fancy-button::-moz-focus-inner {
+  border: 0;
+}
+
+.fancy-button:focus {
+  outline: none;
+}
+
+/* Optional: style disabled state */
+.fancy-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+

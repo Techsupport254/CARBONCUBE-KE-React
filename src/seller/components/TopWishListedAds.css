@@ -1,0 +1,55 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  /* margin-bottom: 0.5rem; */
+}
+
+.analytics-card-body {
+  flex: 1;
+  overflow: hidden;
+  height: fit-content;
+  padding: 2px;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.analytics-card-body .card-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+
+}
+
+.card-subtitle {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  font-size: 0.875rem;
+}
+
+.analytics-price-container {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  margin-top: 0rem;
+}
+
+.analytics-ad-price-label {
+  font-style: italic;
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.analytics-price-decimal {
+  font-size: 0.75rem;
+  vertical-align: super;
+}
+
+
+.analytics-card-img-top {
+  height: 150px; /* Adjust the height to fit your design */
+  object-fit: cover; /* Ensure the image covers the card area without distortion */
+  border-bottom: 1px solid #ddd; /* Optional: Add a border for a cleaner look */
+}
+

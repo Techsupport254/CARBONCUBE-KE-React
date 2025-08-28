@@ -1,0 +1,47 @@
+.navbar {
+  font-family: "Fira Sans Extra Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  background-color:black;
+  z-index: 6;
+}
+
+.navbar-dark .navbar-brand {
+  color: #ffc107;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  color: #fff;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+  color: #ffc107 !important;
+  text-decoration: underline;
+}
+
+.navbar .nav-link {
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+
+.dropdown-filter .dropdown-menu {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 0.25rem;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    width: 70%;
+    max-width: 300px;
+    
+  }
+  .search-control {
+    margin-bottom: 0.5rem;
+  }
+}

@@ -1,0 +1,271 @@
+.home-page-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.home-page {
+    background-color: #e0e0e0;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    flex-grow: 1;
+    /* This allows the content section to take up all remaining space */
+    /* padding-top: 56px; */
+    /* Adjust based on your navbar height */
+    transition: margin-left 0.3s ease-in-out;
+    position: relative;
+    margin-right: 200px;
+    margin-left: 200px;
+}
+
+
+.sidebar-open {
+    margin-left: 250px;
+    /* Adjust based on your sidebar width */
+}
+
+
+.categories-overlay {
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+    margin-bottom: 3rem;
+    margin-top: -35vh;
+    /* Start from half banner height (70vh/2 = 35vh) */
+    /* Pull categories up into the banner area like Amazon */
+}
+
+.section {
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Semi-transparent white */
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.section .category-header,
+.section .popular-ads-header,
+.section-search .card-header {
+    background-color: rgba(51, 51, 51, 0.8);
+    /* Semi-transparent dark */
+    color: white;
+    padding: 0.75rem 1rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.section .cat-body {
+    background-color: transparent;
+    border-style: none;
+}
+
+.subcategory-section {
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    /* More opaque white */
+    border-radius: 8px;
+}
+
+.ad-card {
+    /* border: none; */
+    overflow: hidden;
+    height: 100%;
+    background-color: white;
+    border-radius: 8px;
+}
+
+.ad-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.ad-image {
+    object-fit: contain;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 5 / 3.5;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ad-details h4 {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.ad-details p {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+}
+
+.ad-rating {
+    margin-bottom: 0.75rem;
+}
+
+
+.footer {
+    background-color: #333;
+    color: white;
+    padding: 0.5rem 0;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    bottom: 0;
+    /* Ensures the footer is positioned at the bottom */
+    width: 100%;
+    /* position: relative;
+    z-index: 1; */
+
+    /* border: 2px solid  red; */
+
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer h5 {
+    color: #ffc107;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+    color: #ffc107;
+}
+
+.centered-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+}
+
+.social-media-links {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    /* Use flexbox for horizontal layout */
+    gap: 15px;
+    /* Space between icons */
+}
+
+.social-media-links li {
+    margin: 0;
+    /* Remove margin from list items */
+}
+
+.social-media-links a {
+    color: white;
+    /* Change color to white for visibility */
+    text-decoration: none;
+    font-size: 1.5rem;
+    /* Adjust icon size */
+}
+
+.social-media-links a:hover {
+    color: #ffc107;
+    /* Optional hover color */
+}
+
+.lorem {
+    position: relative;
+
+}
+
+
+
+/* For screens with max width 767px (mobile devices) */
+@media (max-width: 767px) {
+    .home-page {
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 0;
+        /* Increase slightly if needed */
+        padding-right: 0;
+        /* padding-top: 56px; */
+        /* Adjust based on your navbar height */
+        width: 100%;
+        /* Make sure the content stays within screen width */
+        overflow-x: hidden;
+        /* Prevent horizontal scrolling */
+    }
+
+    .sidebar-open {
+        margin-left: 0;
+    }
+
+    .categories-overlay {
+        position: relative;
+        padding-top: 15px;
+        margin-left: -50px;
+        margin-right: -50px;
+        margin-top: -42rem;
+        z-index: 4;
+    }
+
+    .categories-overlay .footer {
+        font-size: 0.75rem;
+        padding-left: 100px;
+    }
+
+    .section {
+        margin: 10px;
+    }
+
+    .section .category-header h4,
+    .section .popular-ads-header h3,
+    .section-search .card-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .subcategory-section .card-footer h5 {
+        font-size: 1rem;
+    }
+}
+
+/* For screens between 768px and 991px (small tablets and larger mobile devices) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .home-page {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        margin-left: 0;
+        /* Ensure no extra margins */
+        margin-right: 0;
+        /* padding-top: 56px; */
+        /* Adjust based on your navbar height */
+    }
+}
+
+/* For screens with a min width of 992px (large tablets and desktops) */
+@media (min-width: 992px) {
+    .home-page {
+        padding-left: 2rem;
+        padding-right: 2rem;
+        margin-left: 200px;
+        margin-right: 200px;
+        /* padding-top: 56px; */
+        /* Adjust based on your navbar height */
+    }
+}
+
+/* Adjust layout space for larger screens (1200px and up) */
+@media (min-width: 1200px) {
+    .home-page {
+        margin-left: 200px;
+        margin-right: 200px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .lorem {
+        margin-top: 1300px;
+    }
+}
+
+/* Adjust the margin for screens between 992px and 1199px */
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .lorem {
+        margin-top: 350px;
+    }
+}

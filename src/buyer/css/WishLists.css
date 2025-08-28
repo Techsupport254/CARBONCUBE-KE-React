@@ -1,0 +1,22 @@
+.wish_lists-page {
+    background-color: #e0e0e0;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: 60px;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+.wish_list-body {
+    background-color: #ededed;
+    text-align: start;
+}
+
+@media screen and (max-width: 767px) {
+    .wish_lists-page h2 {
+        text-align: center;
+    }
+}

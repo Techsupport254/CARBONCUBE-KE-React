@@ -1,0 +1,240 @@
+/* Existing styles */
+.banner {
+    width: 100%;
+    height: 70vh;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.carousel-image {
+    width: 100%;
+    height: 70vh;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* Prevents repeating */
+    background-size: cover;
+    /* Scales image to cover the container */
+    position: relative;
+}
+
+
+.carousel-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    /* Adjust this value for the size of the gradient */
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #e0e0e0 100%);
+    /* Change #f0f0f0 to your page's background color */
+    z-index: 5;
+}
+
+.banner .content {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1400px, 100vw);
+    padding-bottom: 100px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2;
+    /* Ensures content is above the gradient */
+}
+
+.banner .content h1 {
+    font-family: 'ICA Rubrik';
+    font-size: 16em;
+    line-height: 1em;
+    color: #25283B;
+    position: relative;
+    z-index: 2;
+}
+
+.banner .content h1::after {
+    position: absolute;
+    inset: 0 0 0 0;
+    content: attr(data-content);
+    z-index: 2;
+    -webkit-text-stroke: 2px #d2d2d2;
+    color: transparent;
+}
+
+.banner .content .author {
+    font-family: Poppins;
+    text-align: right;
+    max-width: 200px;
+    z-index: 2;
+}
+
+.banner .content h2 {
+    font-size: 3em;
+    z-index: 2;
+}
+
+/* New styles for transparent carousel indicators */
+.carousel-indicators {
+    bottom: 10px;
+    /* Adjust positioning if needed */
+}
+
+.carousel-indicators li {
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Adjust transparency and color as needed */
+}
+
+.carousel-indicators .active {
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Adjust transparency and color for active indicator */
+}
+
+/* Make carousel navigation buttons visible */
+.carousel-control-prev,
+.carousel-control-next {
+    opacity: 1 !important;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 20px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: brightness(0) invert(1);
+    /* Make arrows white */
+    width: 30px;
+    height: 30px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.premium-ads-overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Aligns images in the center vertically */
+    gap: 20px;
+    height: 50%;
+    /* Make the overlay occupy the upper half of the banner */
+    padding-bottom: 0;
+    /* Remove any padding that pushes images lower */
+    position: absolute;
+    /* Ensure it's positioned over the banner */
+    z-index: 10;
+    background-color: transparent;
+    /* Set background to transparent */
+    width: 100%;
+    top: 0;
+    /* Position the overlay at the top */
+    flex-basis: 2/3;
+}
+
+.ad-image-container {
+    width: 250px;
+    /* Adjust size as needed */
+    height: 250px;
+    /* Ensure a uniform square */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.premium-ad-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease-in-out;
+}
+
+.premium-ad-image:hover {
+    transform: scale(1.1);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .premium-ads-overlay {
+        gap: 15px;
+        /* Reduce gap on smaller screens */
+        padding-bottom: 0;
+        /* Adjust padding for mobile */
+    }
+
+    .ad-image-container {
+        width: 80px;
+        /* Smaller size on mobile */
+        height: 80px;
+    }
+
+    .ad-image-container p {
+        padding: 2px 0;
+    }
+
+    .premium-ad-image {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .premium-ads-overlay {
+        gap: 10px;
+        /* Even smaller gap on very small screens */
+        padding-bottom: 0;
+    }
+
+    .ad-image-container {
+        width: 60px;
+        /* Further reduce size */
+        height: 60px;
+    }
+}
+
+@media screen and (max-width: 1023px) {
+    .banner {
+        height: 40vh;
+    }
+
+    .banner .content h1 {
+        text-align: center;
+        width: 100%;
+        font-size: 7em;
+    }
+
+    .banner .content .author {
+        color: #fff;
+        padding: 20px;
+        text-shadow: 0 10px 20px #000;
+        z-index: 2;
+        width: 100%;
+        text-align: center;
+        padding: 0 30px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .banner .content h1 {
+        font-size: 5em;
+    }
+
+    .carousel-image {
+        background-size: contain;
+        height: 30vh;
+        margin-top: -22px;
+        /* z-index: 3; */
+    }
+}

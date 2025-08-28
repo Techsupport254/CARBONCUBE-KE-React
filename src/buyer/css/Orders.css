@@ -1,0 +1,66 @@
+.section {
+    margin-top: 56px;
+}
+
+.section .table-container {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Status background should cover the entire status text properly */
+.form-select {
+    padding: 0 !important; /* Ensure there's no padding affecting the display */
+    min-width: 100px; /* Set a minimum width to accommodate shorter status text */
+    width: auto; /* Allow the width to adjust based on content */
+    height: 40px; /* Uniform height for status display */
+    text-align: center; /* Center the text horizontally */
+    background-color: inherit; /* Use inherited background color */
+    color: inherit; /* Use inherited text color */
+    line-height: 40px; /* Vertical centering */
+    border: none; /* Remove the border to make the status stand out */
+    pointer-events: none; /* Ensure the dropdown is disabled properly */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Ensure any overflow is hidden */
+    text-overflow: ellipsis; /* Add ellipsis for overflowed text if needed */
+}
+
+/* Make sure it works responsively on smaller screens */
+@media screen and (max-width: 767px) {
+    .form-select {
+        width: 100% !important; /* On smaller screens, make sure it spans the full width */
+        text-align: center; /* Keep text centered */
+        font-size: 13px;
+    }
+}
+
+
+.transparent-table {
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Transparent border for light effect */
+}
+
+.transparent-table th,
+.transparent-table td {
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.1) !important; /* Make the borders partially transparent */
+    color: inherit; /* Ensure text color is inherited from parent or set it to a visible color */
+}
+
+.transparent-table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05); /* Slight transparency for striping */
+}
+
+@media screen and (max-width: 767px) {
+    .orders-management-page {
+        /* margin: 0; */
+        margin-left: 5px;
+    }
+
+    .section {
+        margin-top: 56px;
+    }
+
+    .section .orders-header {
+        padding: 10px;
+    }
+}

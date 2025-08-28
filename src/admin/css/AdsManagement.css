@@ -1,0 +1,416 @@
+.ads-management-page {
+  background-color: #E0E0E0;
+  min-height: 100vh; /* Ensure the background color covers the full height */
+  padding: 0 1rem; /* Optional: Adjust padding as needed */
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  padding-top: 56px;
+  font-family: "Fira Sans Extra Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  overflow-x: hidden;
+}
+
+.container-fluid, .row {
+    overflow: visible;
+}
+
+
+.card-img-top {
+    height: 200px;
+    object-fit: contain;
+}
+
+.card {
+    position: relative;
+}
+
+#button {
+    border-radius: 1.5rem;
+}
+
+.custom-button {
+    background-color: #ffc107;
+    border: none;
+    color: black;
+}
+
+.custom-button:hover {
+    background-color: #d4d4d4de; /* Slightly darker shade for hover effect */
+    color: black;
+}
+
+.delete-icon {
+    position: absolute;
+    right: 10px;
+    padding: 10px;
+    cursor: pointer;
+    color: #dc3545; /* Red color for delete icon */
+    font-size: 1.25rem;
+}
+
+.delete-icon:hover {
+    color: #c82333; /* Darker red for hover */
+}
+
+.restore-icon {
+    position: absolute;
+    right: 10px;
+    padding: 10px;
+    cursor: pointer;
+    color: #02751b; /* Red color for delete icon */
+    font-size: 1.25rem;
+}
+
+.chill-body{
+    background-color: #f1f1f1;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-container .search-input {
+    padding-right: 2.5rem; /* Adjust to make room for the icon */
+    width: 100%;
+}
+
+.search-container .form-control {
+    margin-bottom: 0px;
+    border: 1px solid #333;
+}
+
+.dropdown-filter .filter-toggle {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #333;
+    margin-bottom: 16px;
+}
+  
+.dropdown-filter .filter-toggle.active-category {
+    background-color: #ffc107;
+    color: #000;
+    border: 1px solid #ffc107;
+}
+
+  .dropdown-filter .dropdown-toggle {
+    height: 40px;
+    width: auto;
+    justify-content: center;
+  }
+  
+  .dropdown-filter .filter-icon {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #333;
+  }
+  
+  .dropdown-filter .filter-icon:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+  }
+  
+  .dropdown-filter .dropdown-menu {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 0.25rem;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .dropdown-menu .dropdown-item {
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.3s;
+  }
+  
+  .dropdown-menu .dropdown-item:hover {
+    background-color: #ffc107;
+    color: #000;
+  }
+
+
+  .subcategory-item {
+    padding-left: 20px; /* Indent subcategories */
+    color: #6c757d; /* Lighter color for subcategories */
+}
+  
+
+.dropdown-menu {
+    position: relative;
+  }
+  
+  .dropdown-submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    z-index: 1000;
+    background-color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 160px;
+  }
+  
+  .dropdown-item:hover .dropdown-submenu {
+    display: block;
+  }
+  
+  .dropdown-item {
+    position: relative;
+    padding: 8px 16px;
+  }
+  
+
+.card-body {
+    position: relative;
+}
+
+.btn-notify {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+.ad-details {
+    flex-wrap: wrap;
+    gap: 20px; /* Adjust as needed */
+}
+
+.ad-detail-item {
+    margin-bottom: 5px;
+    flex: 1 1 calc(50% - 20px); /* Two columns with gap adjustment */
+    box-sizing: border-box;
+    padding-bottom: 10px; /* Add some padding for better spacing */
+    border: 1px solid #ddd; /* Optional: add a border for better visibility */
+    border-radius: 5px; /* Optional: rounded corners */
+    background-color: #f9f9f9; /* Optional: background color */
+}
+
+.ad-detail-item p{
+    margin-bottom: 0px;
+}
+
+
+.rating-stars {
+    display: inline-flex;
+}
+
+.rating-star {
+    color: rgb(189, 189, 189); /* Default star color */
+}
+
+.rating-star.filled {
+    color: #ffc107; /* Filled star color */
+}
+
+.price-container {
+    font-size: 16px;
+}
+
+.price-decimal {
+    font-size: 0.75em;
+    vertical-align: top;
+}
+.reviews-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.rating-stars .rating-star {
+    color: #ffc107; /* Gold color for filled stars */
+    margin-right: 2px;
+}
+
+.rating-stars .rating-star.empty {
+    color: #e4e5e9; /* Gray color for empty stars */
+}
+
+.rating-stars .rating-star.half-filled {
+    color: #ffc107;
+    position: relative;
+}
+
+.rating-stars .rating-star.half-filled:before {
+    content: '\f005';
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: 0;
+    width: 50%;
+    overflow: hidden;
+    color: #ffc107; /* Gold color for half-filled stars */
+}
+
+#reviews{
+    margin-bottom: 0px;
+}
+
+.review-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.review-comment, .reviewer-name {
+    margin: 0;
+}
+
+.star-rating .star {
+    color: #FF9800; /* Gold color for filled stars */
+    margin-right: 2px;
+}
+
+.star-rating .star.empty {
+    color: #e4e5e9; /* Gray color for empty stars */
+}
+
+.star-rating .star.half-filled {
+    color: #FF9800;
+    position: relative;
+}
+
+.star-rating .star.half-filled:before {
+    content: '\f005';
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: 0;
+    width: 50%;
+    overflow: hidden;
+    color: #FF9800; /* Gold color for half-filled stars */
+}
+
+.star-rating .star.filled {
+    color: #FF9800;
+}
+
+.ad-price-label {
+    font-size: 15px;
+}
+
+.card-header {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    font-size: 20px;
+    /* text-align: center; Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+}
+
+.card-footer {
+    background-color: #616161; /* Secondary variant */
+    font-weight: bold;
+    text-align: center; /* Center text */
+    padding: 1rem; /* Adjust padding as needed */
+    color: #fff;
+}
+
+.card-body {
+    padding: 0%;
+}
+
+.modal .modal-header {
+    background-color: #616161;
+    padding: 10px;
+}
+
+.modal .modal-footer {
+    background-color: #616161;
+}
+
+.modal-body .card-header {
+    background-color: #616161; /* Secondary variant */
+    color: #fff;
+}
+/* Center the loading container in the middle of the page */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* Full viewport height */
+    background-color: #f5f5f5; /* Light background for contrast */
+}
+
+.dots-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px; /* Space between dots and text */
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background-color: #3498db; /* Blue color for dots */
+    border-radius: 50%;
+    margin: 0 6px;
+    animation: zoom 1.5s ease-in-out infinite, rotate 1.5s linear infinite;
+}
+
+@keyframes zoom {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.5);
+    }
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    color: #333; /* Darker text color */
+    font-weight: bold;
+}
+
+
+
+/* Responsive styles */
+.search-input {
+    width: 100%; /* Default to full width on smaller screens */
+}
+
+/* Smartphones (max-width: 767.98px) */
+@media (max-width: 767px) {
+    .search-input {
+        width: 75%; /* 75% width on smartphones */
+    }
+
+    .ads-management-page{
+        margin-top: -10px;
+    }
+}
+
+/* Tablets (max-width: 991px) */
+@media (max-width: 991px) and (min-width: 768px) {
+    .search-input {
+        width: 50%; /* 50% width on tablets */
+    }
+
+}
+
+/* Desktops and larger screens (max-width: no limit) */
+@media (min-width: 992px) {
+    .search-input {
+        width: 50%; /* 50% width on desktops */
+    }
+}

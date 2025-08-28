@@ -1,0 +1,130 @@
+/* General container and card styling */
+.categories-management-page {
+    background-color: #e0e0e0; /* Light background color for the page */
+    min-height: 100vh; /* Ensure the background color covers the full height */
+    padding: 0 1rem; /* Optional: Adjust padding as needed */
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    overflow-x: hidden;
+}
+
+.modal {
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.category-card {
+    background-color: #fdfdfd; /* Slightly off-white background for list items */
+    border: 1px solid #e0e0e0; /* Light grey border for cards */
+    border-radius: 8px;
+    margin: 10px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.category-card:hover {
+    transform: scale(1.05); /* Slight zoom on hover */
+}
+
+/* Card header and footer */
+.categories-management-page .card-header {
+    background-color: #616161; /* Dark background */
+    color: #ffffff; /* White text */
+    border-radius: 8px;
+}
+
+
+.categories-management-page .card-footer {
+    background-color: #616161; /* Dark background */
+    color: #ffffff; /* White text */
+    border-radius: 8px;
+}
+
+.categories-management-page .custom-card{
+    margin-top: 20px;
+}
+.card-footer button {
+    color: #000000;
+    font-weight: 600;
+}
+
+.search-container .form-control {
+    border-radius: 25px;
+    border: 1px solid #ced4da;
+    box-shadow: none;
+}
+
+.search-container .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Subcategory list styling */
+.subcategory-item {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: #495057; /* Darker grey text for subcategories */
+}
+
+/* Button styling */
+button {
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button.ml-2 {
+    margin-left: 10px;
+}
+
+/* Modal styling */
+.modal-header,
+.modal-footer {
+    background-color: #343a40; /* Dark header and footer */
+    color: #ffffff; /* White text */
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 10px 20px 20px 20px;
+}
+
+.modal-footer button {
+    border-radius: 25px;
+}
+
+.centered-loader {
+    display: flex;
+    justify-content: center;  
+    align-items: center;      /* Vertically center */
+    position: fixed;          /* Keep it fixed on the screen */
+    top: 0;
+    left: 0;
+    width: 100vw;             /* Full viewport width */
+    height: 100vh;            /* Full viewport height */
+    min-height: 100vh;        /* Ensure full height */
+    min-width: 100vw;         /* Ensure full width */
+    background-color: transparent; /* Optional background overlay */
+    z-index: 9999;            /* Ensure it overlays other content */
+}
+
+@media screen and (max-width: 767px) {
+    .categories-management-page {
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    .categories-management-page .custom-card {
+        margin-top: 10px;
+    }
+}

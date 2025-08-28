@@ -1,0 +1,93 @@
+{
+	"name": "Carbon Cube Kenya - Kenya's Trusted Digital Marketplace",
+	"short_name": "Carbon Cube Kenya",
+	"description": "Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#ffc107",
+	"orientation": "portrait-primary",
+	"scope": "/",
+	"lang": "en",
+	"dir": "ltr",
+	"categories": ["shopping", "business", "marketplace"],
+	"icons": [
+		{
+			"src": "favicon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		},
+		{
+			"src": "favicon-96x96.png",
+			"sizes": "96x96",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "logo192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "logo512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "web-app-manifest-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "web-app-manifest-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Browse Products",
+			"short_name": "Products",
+			"description": "Browse all products on Carbon Cube Kenya",
+			"url": "/ads",
+			"icons": [
+				{
+					"src": "logo192.png",
+					"sizes": "192x192"
+				}
+			]
+		},
+		{
+			"name": "Seller Dashboard",
+			"short_name": "Seller",
+			"description": "Access your seller dashboard",
+			"url": "/seller/ads",
+			"icons": [
+				{
+					"src": "logo192.png",
+					"sizes": "192x192"
+				}
+			]
+		}
+	],
+	"screenshots": [
+		{
+			"src": "logo.png",
+			"sizes": "1280x720",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Carbon Cube Kenya Marketplace"
+		}
+	]
+}
