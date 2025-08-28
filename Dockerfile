@@ -9,7 +9,7 @@ RUN npm install
 
 # Copy the entire app and build it
 COPY . .
-ARG REACT_APP_BACKEND_URL=https://carboncube-ke.com
+ARG REACT_APP_BACKEND_URL=https://carboncube-ke.com/api
 ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
 RUN npm run build
 

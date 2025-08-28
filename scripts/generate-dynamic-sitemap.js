@@ -117,12 +117,27 @@ async function fetchCategoriesAndSubcategories() {
 		console.log("📡 Fetching categories and subcategories...");
 
 		const [categoriesResponse, subcategoriesResponse] = await Promise.all([
-			axios.get(`${API_BASE_URL}/buyer/categories`),
-			axios.get(`${API_BASE_URL}/buyer/subcategories`),
+			axios
+				.get(`${API_BASE_URL}/buyer/categories`)
+				.catch(() => ({ data: [] })),
+			axios
+				.get(`${API_BASE_URL}/buyer/subcategories`)
+				.catch(() => ({ data: [] })),
 		]);
 
-		const categories = categoriesResponse.data;
-		const subcategories = subcategoriesResponse.data;
+		const categoriesRaw = categoriesResponse.data;
+		const subcategoriesRaw = subcategoriesResponse.data;
+
+		const categories = Array.isArray(categoriesRaw)
+			? categoriesRaw
+			: Array.isArray(categoriesRaw?.categories)
+			? categoriesRaw.categories
+			: [];
+		const subcategories = Array.isArray(subcategoriesRaw)
+			? subcategoriesRaw
+			: Array.isArray(subcategoriesRaw?.subcategories)
+			? subcategoriesRaw.subcategories
+			: [];
 
 		console.log(
 			`✅ Found ${categories.length} categories and ${subcategories.length} subcategories`
@@ -139,7 +154,7 @@ async function fetchCategoriesAndSubcategories() {
 function generateCategoryUrls(categories) {
 	const categoryUrls = [];
 
-	categories.forEach((category) => {
+	(Array.isArray(categories) ? categories : []).forEach((category) => {
 		categoryUrls.push({
 			path: `/categories/${category.id}`,
 			lastmod: new Date().toISOString().split("T")[0],
@@ -158,7 +173,7 @@ function generateCategoryUrls(categories) {
 function generateSubcategoryUrls(subcategories, categories) {
 	const subcategoryUrls = [];
 
-	subcategories.forEach((subcategory) => {
+	(Array.isArray(subcategories) ? subcategories : []).forEach((subcategory) => {
 		const category = categories.find(
 			(cat) => cat.id === subcategory.category_id
 		);
