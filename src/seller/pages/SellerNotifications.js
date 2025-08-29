@@ -59,7 +59,24 @@ const SellerNotifications = () => {
 
 	useEffect(() => {
 		if (sellerId) {
-			const consumer = createConsumer(`ws://localhost:3000/cable`);
+			// For production, WebSocket connections should use the base domain (not /api)
+			const getWebSocketUrl = () => {
+				if (process.env.REACT_APP_BACKEND_URL?.includes("/api")) {
+					// Remove /api suffix for WebSocket connections
+					return (
+						process.env.REACT_APP_BACKEND_URL.replace("/api", "").replace(
+							"http",
+							"ws"
+						) + "/cable"
+					);
+				}
+				return `${
+					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
+					"ws://localhost:3001"
+				}/cable`;
+			};
+
+			const consumer = createConsumer(getWebSocketUrl());
 			const subscription = consumer.subscriptions.create(
 				{ channel: "NotificationsChannel", seller_id: sellerId },
 				{

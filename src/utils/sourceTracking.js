@@ -255,8 +255,9 @@ class SourceTrackingService {
 	}
 
 	collectMetadata() {
-		// Generate or retrieve device fingerprint
-		const deviceFingerprint = this.generateDeviceFingerprint();
+		// Use persistent device identifier from deviceFingerprint util
+		const deviceInfo = getDeviceFingerprint();
+		const deviceFingerprint = deviceInfo?.hash;
 
 		// Generate or retrieve session ID
 		const sessionId = this.getSessionId();
@@ -320,36 +321,7 @@ class SourceTrackingService {
 		return null;
 	}
 
-	generateDeviceFingerprint() {
-		// Create a unique device fingerprint based on multiple factors
-		const components = [
-			navigator.userAgent,
-			navigator.language,
-			window.screen.width + "x" + window.screen.height,
-			window.screen.colorDepth,
-			new Date().getTimezoneOffset(),
-			navigator.hardwareConcurrency || "unknown",
-			navigator.deviceMemory || "unknown",
-			navigator.maxTouchPoints || "unknown",
-			navigator.platform,
-			window.devicePixelRatio || "unknown",
-		];
-
-		// Create a hash of the components
-		const fingerprint = components.join("|");
-		return this.hashString(fingerprint);
-	}
-
-	hashString(str) {
-		let hash = 0;
-		if (str.length === 0) return hash.toString();
-		for (let i = 0; i < str.length; i++) {
-			const char = str.charCodeAt(i);
-			hash = (hash << 5) - hash + char;
-			hash = hash & hash; // Convert to 32-bit integer
-		}
-		return Math.abs(hash).toString(36);
-	}
+	// Deprecated: legacy generator removed in favor of persistent UUID in deviceFingerprint util
 
 	getSessionId() {
 		let sessionId = sessionStorage.getItem("tracking_session_id");

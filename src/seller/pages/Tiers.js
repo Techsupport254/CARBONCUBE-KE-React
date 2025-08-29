@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {
-	Row,
-	Col,
-	Button,
-	Accordion,
-	Container,
-	Card,
-	Modal,
-} from "react-bootstrap";
-import Spinner from "react-spinkit";
 import { useNavigate } from "react-router-dom";
 import MpesaPaymentGuide from "../components/MpesaPaymentGuide";
 import FeatureComparisonTable from "../components/FeatureComparisonTable";
@@ -102,196 +92,387 @@ const TierPage = () => {
 
 	if (loading) {
 		return (
-			<div className="centered-loader">
-				<Spinner
-					variant="warning"
-					name="cube-grid"
-					style={{ width: 100, height: 100 }}
-				/>
-				{/* <p className="mt-3">Loading tiers, please wait...</p> */}
+			<div className="min-h-[40vh] flex items-center justify-center">
+				<div className="h-12 w-12 animate-spin rounded-full border-4 border-yellow-400 border-t-transparent"></div>
 			</div>
 		);
 	}
 
 	if (error) {
 		return (
-			<Container className="text-center my-5">
-				<h2 className="text-danger">Error</h2>
-				<p>{error}</p>
-			</Container>
+			<div className="container mx-auto px-4 text-center my-12">
+				<h2 className="text-red-600 text-2xl font-semibold mb-2">Error</h2>
+				<p className="text-gray-700">{error}</p>
+			</div>
 		);
 	}
 
 	return (
-		<div className="pricing-page px-0 py-0">
+		<div className="px-0 py-0">
 			{/* Top Navbar Minimal */}
-			<Navbar mode="seller" showSearch={false} showCategories={false} />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
 			{/* Hero Section */}
-			<section className="hero-section text-center mb-1 mb-lg-5 custom-card">
-				<Container>
-					<h1 className="display-4 fw-bold">
-						Choose the Perfect Plan for Your Business
+			<section
+				className="relative overflow-hidden py-12 text-gray-900"
+				style={{ backgroundColor: "#ffc107" }}
+			>
+				{/* Subtle background pattern */}
+				<div className="position-absolute top-0 start-0 w-100 h-100 opacity-50">
+					<div
+						style={{
+							background:
+								"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.1) 35px, rgba(0,0,0,.1) 70px)",
+							width: "100%",
+							height: "100%",
+						}}
+					></div>
+				</div>
+				<div className="container max-w-7xl mx-auto px-4 text-center relative">
+					<div className="flex justify-center mb-3">
+						<div className="bg-gray-900 rounded-full p-3">
+							<svg
+								width="32"
+								height="32"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								className="text-warning"
+							>
+								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+							</svg>
+						</div>
+					</div>
+					<h1 className="text-4xl md:text-5xl font-extrabold mb-3">
+						Tiers & Pricing
 					</h1>
-					<p className="lead">
-						Whether you're just starting out or ready to scale, we have a plan
-						that fits your needs. Explore our tiered options below.
+					<p className="text-lg md:text-xl mb-4">
+						Choose the Perfect Plan for Your Business
 					</p>
-
+					<p className="mb-6 text-sm opacity-75">
+						Whether you're just starting out or ready to scale, we have a plan
+						that fits your needs
+					</p>
 					{/* Show only if seller is logged in */}
 					{isSellerLoggedIn && (
-						<Button
+						<button
 							onClick={() => navigate("/seller/ads")}
-							className="btn btn-dark mt-4 rounded-pill"
+							className="inline-flex items-center gap-2 rounded-full bg-gray-900 text-white px-5 py-3 shadow"
 						>
-							Back to Home
-						</Button>
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+							>
+								<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+							</svg>
+							<span>Back to Home</span>
+						</button>
 					)}
-				</Container>
+				</div>
 			</section>
 
 			{/* Pricing Section */}
-			<section className="pricing-section p-2">
-				<Container>
-					<Row className="mb-4">
+			<section className="p-4">
+				<div className="container max-w-7xl mx-auto px-2">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
 						{tiers
-							.slice() // Create a shallow copy of the array to avoid mutating the original state
-							.sort((a, b) => a.id - b.id) // Sort tiers by ascending ID
+							.slice()
+							.sort((a, b) => a.id - b.id)
 							.map((tier) => (
-								<Col
-									lg={3}
-									md={6}
-									sm={12}
-									key={tier.id}
-									className="p-0 p-lg-2 mb-3"
-								>
-									<Card
-										className={`tier-box h-100 d-flex flex-column ${
-											selectedTier === tier.id ? "selected-tier" : ""
+								<div key={tier.id} className="h-full">
+									<div
+										role="button"
+										tabIndex={0}
+										onClick={() => setSelectedTier(tier.id)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ")
+												setSelectedTier(tier.id);
+										}}
+										className={`flex h-full flex-col justify-between rounded-2xl border bg-white shadow-md p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 ${
+											selectedTier === tier.id
+												? "ring-2 ring-blue-500 bg-blue-50 border-blue-500"
+												: "border-gray-200"
 										}`}
 									>
-										<Card.Body className="flex-grow-1 d-flex flex-column justify-content-between">
-											<div>
-												<Card.Title className="tier-title text-secondary">
+										<div>
+											<div className="mb-2 flex items-center justify-between">
+												<h3 className="text-xl font-bold text-gray-800">
 													{tier.name}
-												</Card.Title>
-												<Card.Subtitle className="tier-description mb-3">
+												</h3>
+												<span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
 													Ads:{" "}
 													{tier.name === "Premium" ? (
-														<span style={{ fontSize: "1.2rem" }}>∞</span>
+														<span style={{ fontSize: "1.05rem" }}>∞</span>
 													) : (
 														tier.ads_limit
 													)}
-												</Card.Subtitle>
-												<ul className="tier-features list-unstyled mb-3">
-													{(tier.tier_features || []).map((feature) => (
-														<li key={feature.id}>✔ {feature.feature_name}</li>
-													))}
-												</ul>
-												<div className="pricing-details text-center">
-													{tier.id !== 1 ? ( // Only render pricing if the tier is not the free tier
-														(tier.tier_pricings || []).map((pricing) => (
-															<div key={pricing.id} className="pricing-option">
-																<span>
-																	<strong>{pricing.duration_months}</strong>{" "}
-																	months:
-																	<em className="ad-price-label text-success">
-																		{" "}
-																		Kshs:{" "}
-																	</em>
-																	<strong
-																		style={{ fontSize: "17px" }}
-																		className="text-danger ms-1"
-																	>
-																		{pricing.price
-																			? parseFloat(pricing.price)
-																					.toFixed(2)
-																					.split(".")
-																					.map((part, index) => (
-																						<React.Fragment key={index}>
-																							{index === 0 ? (
-																								<span>
-																									{parseInt(
-																										part,
-																										10
-																									).toLocaleString()}
-																								</span> // Integer part with commas
-																							) : (
-																								<>
-																									<span
-																										style={{ fontSize: "16px" }}
-																									>
-																										.
-																									</span>
-																									<span className="price-decimal">
-																										{part}
-																									</span>
-																								</>
-																							)}
-																						</React.Fragment>
-																					))
-																			: "N/A"}
-																	</strong>
-																</span>
-															</div>
-														))
-													) : (
-														<p className="text-center text-muted">Free Tier</p> // Message for the free tier
-													)}
+												</span>
+											</div>
+											<p className="text-sm text-gray-600 mb-3">
+												Choose the plan that fits your needs.
+											</p>
+											<ul className="list-none mb-3 space-y-1">
+												{(tier.tier_features || []).map((feature) => (
+													<li key={feature.id} className="flex items-center">
+														<svg
+															width="16"
+															height="16"
+															viewBox="0 0 24 24"
+															fill="currentColor"
+															className="text-green-600 mr-2"
+														>
+															<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+														</svg>
+														{feature.feature_name}
+													</li>
+												))}
+											</ul>
+											<div className="text-center">
+												{tier.id !== 1 ? (
+													(tier.tier_pricings || []).map((pricing) => (
+														<div
+															key={pricing.id}
+															className="text-base font-medium my-2"
+														>
+															<span>
+																<strong>{pricing.duration_months}</strong>{" "}
+																months:
+																<em className="text-green-600"> Kshs: </em>
+																<strong className="text-red-600 ml-1 text-lg">
+																	{pricing.price
+																		? parseFloat(pricing.price)
+																				.toFixed(2)
+																				.split(".")
+																				.map((part, index) => (
+																					<React.Fragment key={index}>
+																						{index === 0 ? (
+																							<span>
+																								{parseInt(
+																									part,
+																									10
+																								).toLocaleString()}
+																							</span>
+																						) : (
+																							<>
+																								<span className="text-base">
+																									.
+																								</span>
+																								<span>{part}</span>
+																							</>
+																						)}
+																					</React.Fragment>
+																				))
+																		: "N/A"}
+																</strong>
+															</span>
+														</div>
+													))
+												) : (
+													<p className="text-center text-gray-500">Free Tier</p>
+												)}
+												<div className="mt-4">
+													<button
+														onClick={(e) => {
+															e.stopPropagation();
+															setSelectedTier(tier.id);
+														}}
+														className={`w-full inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+															selectedTier === tier.id
+																? "bg-blue-600 text-white hover:bg-blue-700"
+																: "bg-gray-900 text-white hover:bg-black"
+														}
+														}`}
+													>
+														Select {tier.name}
+													</button>
 												</div>
 											</div>
-										</Card.Body>
-									</Card>
-								</Col>
+										</div>
+									</div>
+								</div>
 							))}
-					</Row>
-					<MpesaPaymentGuide />
-				</Container>
+					</div>
+				</div>
 			</section>
+
+			{/* Mpesa Payment Guide */}
+			<MpesaPaymentGuide />
 
 			{/* Feature Breakdown */}
 			<FeatureComparisonTable />
 
 			{/* FAQs Section */}
-			<section className="faqs my-5">
-				<Container>
-					<h2 className="text-center mb-4">Frequently Asked Questions</h2>
-					<Accordion>
-						<Accordion.Item eventKey="0">
-							<Accordion.Header>
-								What happens if I upgrade or downgrade my tier?
-							</Accordion.Header>
-							<Accordion.Body>
-								When you upgrade or downgrade, your billing will be adjusted
-								accordingly. Your features will change to match the selected
-								tier.
-							</Accordion.Body>
-						</Accordion.Item>
-						<Accordion.Item eventKey="1">
-							<Accordion.Header>Can I change my tier anytime?</Accordion.Header>
-							<Accordion.Body>
-								Yes, you can change your tier anytime. We provide flexibility so
-								you can choose what fits your evolving needs.
-							</Accordion.Body>
-						</Accordion.Item>
-					</Accordion>
-				</Container>
+			<section className="py-12 bg-gray-100">
+				<div className="container max-w-7xl mx-auto px-4">
+					<div className="text-center mb-5">
+						<div className="d-flex justify-content-center mb-3">
+							<div className="bg-warning rounded-circle p-3">
+								<svg
+									width="32"
+									height="32"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									className="text-dark"
+								>
+									<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+								</svg>
+							</div>
+						</div>
+						<h2 className="fw-bold text-dark mb-3">
+							Frequently Asked Questions
+						</h2>
+						<p className="text-muted fs-5">
+							Everything you need to know about our pricing tiers
+						</p>
+					</div>
+					<div className="space-y-4">
+						{/* FAQ Item 1 */}
+						<div className="bg-white rounded-lg shadow-md overflow-hidden">
+							<button
+								className="w-full bg-blue-600 text-white px-6 py-4 text-left flex items-center justify-between hover:bg-blue-700 transition-colors duration-200"
+								onClick={() => {
+									const content = document.getElementById("faq-content-1");
+									content.classList.toggle("hidden");
+									const icon = document.getElementById("faq-icon-1");
+									icon.classList.toggle("rotate-180");
+								}}
+							>
+								<div className="flex items-center">
+									<svg
+										width="20"
+										height="20"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										className="mr-3"
+									>
+										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+									</svg>
+									<span className="font-semibold">
+										What happens if I upgrade or downgrade my tier?
+									</span>
+								</div>
+								<svg
+									id="faq-icon-1"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									className="transform transition-transform duration-200"
+								>
+									<path d="M7 10l5 5 5-5z" />
+								</svg>
+							</button>
+							<div
+								id="faq-content-1"
+								className="hidden bg-gray-50 px-6 py-4 border-t border-gray-200"
+							>
+								<p className="text-gray-700 leading-relaxed">
+									When you upgrade or downgrade, your billing will be adjusted
+									accordingly. Your features will change to match the selected
+									tier. Any unused portion of your current billing cycle will be
+									credited to your account, and new charges will be prorated
+									based on the remaining days in your billing cycle.
+								</p>
+							</div>
+						</div>
+
+						{/* FAQ Item 2 */}
+						<div className="bg-white rounded-lg shadow-md overflow-hidden">
+							<button
+								className="w-full bg-gray-800 text-white px-6 py-4 text-left flex items-center justify-between hover:bg-gray-900 transition-colors duration-200"
+								onClick={() => {
+									const content = document.getElementById("faq-content-2");
+									content.classList.toggle("hidden");
+									const icon = document.getElementById("faq-icon-2");
+									icon.classList.toggle("rotate-180");
+								}}
+							>
+								<div className="flex items-center">
+									<svg
+										width="20"
+										height="20"
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										className="mr-3"
+									>
+										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+									</svg>
+									<span className="font-semibold">
+										Can I change my tier anytime?
+									</span>
+								</div>
+								<svg
+									id="faq-icon-2"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									className="transform transition-transform duration-200"
+								>
+									<path d="M7 10l5 5 5-5z" />
+								</svg>
+							</button>
+							<div
+								id="faq-content-2"
+								className="hidden bg-gray-50 px-6 py-4 border-t border-gray-200"
+							>
+								<p className="text-gray-700 leading-relaxed">
+									Yes, you can change your tier anytime. We provide flexibility
+									so you can choose what fits your evolving needs. Changes take
+									effect immediately, and you'll have access to all features
+									included in your new tier right away.
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
 			</section>
 
 			{/* Call to Action */}
-			<section className="cta text-center py-5">
-				<Container>
-					<h2>Ready to Get Started?</h2>
-					<p>Choose your plan and start growing your business today!</p>
-					<Button
-						variant="secondary rounded-pill"
-						size="lg"
-						className="px-5"
+			<section
+				className="py-5 text-dark position-relative overflow-hidden"
+				style={{ backgroundColor: "#ffc107" }}
+			>
+				{/* Subtle background pattern */}
+				<div className="position-absolute top-0 start-0 w-100 h-100 opacity-50">
+					<div
+						style={{
+							background:
+								"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.1) 35px, rgba(0,0,0,.1) 70px)",
+							width: "100%",
+							height: "100%",
+						}}
+					></div>
+				</div>
+				<div className="container max-w-7xl mx-auto px-4 text-center position-relative">
+					<div className="d-flex justify-content-center mb-3">
+						<div className="bg-dark rounded-circle p-3">
+							<svg
+								width="32"
+								height="32"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								className="text-warning"
+							>
+								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+							</svg>
+						</div>
+					</div>
+					<h2 className="display-5 fw-bold mb-3">Ready to Get Started?</h2>
+					<p className="lead mb-4 fs-5">
+						Choose your plan and start growing your business today!
+					</p>
+					<button
+						className="inline-flex items-center gap-2 rounded-full bg-gray-900 text-white px-5 py-3 shadow"
 						onClick={() => handleSelectTier(selectedTier)}
 					>
-						Select Your Plan
-					</Button>
-				</Container>
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+						</svg>
+						<span>Select Your Plan</span>
+					</button>
+				</div>
 			</section>
 
 			<Footer />

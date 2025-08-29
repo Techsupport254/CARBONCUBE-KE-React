@@ -5,6 +5,7 @@ import {
 } from "../utils/clickEventLogger";
 import TopNavBarMinimal from "../components/TopNavBarMinimal";
 import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "/api";
 
@@ -31,6 +32,11 @@ const DeviceFingerprint = () => {
 	const [showErrorModal, setShowErrorModal] = useState(false);
 	const [successMessage, setSuccessMessage] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
+	const [storageStatus, setStorageStatus] = useState({
+		cookie: false,
+		localStorage: false,
+		indexedDB: "checking",
+	});
 
 	useEffect(() => {
 		const initializeFingerprint = async () => {
@@ -63,6 +69,65 @@ const DeviceFingerprint = () => {
 
 		initializeFingerprint();
 	}, []);
+
+	// Check which stores currently hold the device ID
+	useEffect(() => {
+		const checkStores = async () => {
+			try {
+				const cookieHas = (() => {
+					try {
+						return document.cookie.includes("device_uuid_v1=");
+					} catch (_) {
+						return false;
+					}
+				})();
+				let lsHas = false;
+				try {
+					lsHas = !!localStorage.getItem("device_uuid_v1");
+				} catch (_) {
+					lsHas = false;
+				}
+				const idbHas = await (async () => {
+					try {
+						const req = indexedDB.open("carbon_device", 1);
+						const db = await new Promise((resolve) => {
+							req.onupgradeneeded = () => {
+								const rdb = req.result;
+								if (!rdb.objectStoreNames.contains("kv"))
+									rdb.createObjectStore("kv");
+							};
+							req.onsuccess = () => resolve(req.result);
+							req.onerror = () => resolve(null);
+						});
+						if (!db) return false;
+						const value = await new Promise((resolve) => {
+							const tx = db.transaction("kv", "readonly");
+							const store = tx.objectStore("kv");
+							const getReq = store.get("device_uuid_v1");
+							getReq.onsuccess = () => resolve(getReq.result || null);
+							getReq.onerror = () => resolve(null);
+						});
+						return !!value;
+					} catch (_) {
+						return false;
+					}
+				})();
+
+				setStorageStatus({
+					cookie: cookieHas,
+					localStorage: lsHas,
+					indexedDB: idbHas,
+				});
+			} catch (_) {
+				setStorageStatus({
+					cookie: false,
+					localStorage: false,
+					indexedDB: false,
+				});
+			}
+		};
+		checkStores();
+	}, [deviceInfo?.hash]);
 
 	const checkExistingRequest = async (deviceHash) => {
 		try {
@@ -252,7 +317,7 @@ const DeviceFingerprint = () => {
 	return (
 		<div className="min-h-screen bg-white flex flex-col">
 			{/* Header */}
-			<TopNavBarMinimal />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
 			{/* Main Content */}
 			<div className="flex-grow py-12">
@@ -461,12 +526,49 @@ const DeviceFingerprint = () => {
 								<tbody className="divide-y divide-gray-200">
 									<tr>
 										<td className="px-6 py-4 text-sm font-medium text-gray-700">
-											Device Hash
+											Device ID (UUID)
 										</td>
 										<td className="px-6 py-4">
 											<code className="text-xs text-gray-800 break-all font-mono bg-gray-50 px-2 py-1 rounded">
 												{deviceInfo.hash}
 											</code>
+											<div className="mt-2 flex flex-wrap gap-2 text-xs">
+												<span
+													className={`inline-flex items-center px-2 py-0.5 rounded-full border ${
+														storageStatus.cookie
+															? "bg-green-50 text-green-700 border-green-200"
+															: "bg-gray-50 text-gray-600 border-gray-200"
+													}`}
+												>
+													Cookie {storageStatus.cookie ? "ok" : "missing"}
+												</span>
+												<span
+													className={`inline-flex items-center px-2 py-0.5 rounded-full border ${
+														storageStatus.localStorage
+															? "bg-green-50 text-green-700 border-green-200"
+															: "bg-gray-50 text-gray-600 border-gray-200"
+													}`}
+												>
+													LocalStorage{" "}
+													{storageStatus.localStorage ? "ok" : "missing"}
+												</span>
+												<span
+													className={`inline-flex items-center px-2 py-0.5 rounded-full border ${
+														storageStatus.indexedDB === "checking"
+															? "bg-yellow-50 text-yellow-700 border-yellow-200"
+															: storageStatus.indexedDB
+															? "bg-green-50 text-green-700 border-green-200"
+															: "bg-gray-50 text-gray-600 border-gray-200"
+													}`}
+												>
+													IndexedDB{" "}
+													{storageStatus.indexedDB === "checking"
+														? "checking"
+														: storageStatus.indexedDB
+														? "ok"
+														: "missing"}
+												</span>
+											</div>
 										</td>
 										<td className="px-6 py-4">
 											<button

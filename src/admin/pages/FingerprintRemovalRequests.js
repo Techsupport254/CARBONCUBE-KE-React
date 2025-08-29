@@ -565,7 +565,7 @@ const FingerprintRemovalRequests = () => {
 											</h4>
 											<div className="space-y-2">
 												<p>
-													<span className="font-medium">Device Hash:</span>
+													<span className="font-medium">Device ID (UUID):</span>
 												</p>
 												<code className="block text-sm bg-gray-100 p-3 rounded-xl break-all">
 													{selectedRequest.identifier_value}

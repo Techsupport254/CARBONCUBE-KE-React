@@ -63,11 +63,12 @@ const AboutUs = () => {
 					className="py-5 text-dark position-relative overflow-hidden"
 					style={{ backgroundColor: "#ffc107" }}
 				>
-					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-10">
+					{/* Subtle background pattern */}
+					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-50">
 						<div
 							style={{
 								background:
-									"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px)",
+									"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.1) 35px, rgba(0,0,0,.1) 70px)",
 								width: "100%",
 								height: "100%",
 							}}

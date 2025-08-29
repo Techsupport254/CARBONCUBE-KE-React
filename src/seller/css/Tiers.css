@@ -1,9 +1,10 @@
 /* General Styling */
 body {
-  
+
   line-height: 1.6;
   color: #333;
-  background-color: #f4f4f9; /* Subtle light grey background for better readability */
+  background-color: #f4f4f9;
+  /* Subtle light grey background for better readability */
   margin: 0;
   padding: 0;
 }
@@ -17,7 +18,8 @@ body {
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
+  background: linear-gradient(135deg, #fff69a, #cbcbcb);
+  /* Gradient from two colors */
   color: black;
   padding: 80px 20px;
   text-align: center;
@@ -42,7 +44,8 @@ body {
   border: 1px solid #000000;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); /* Modern shadow effect */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  /* Modern shadow effect */
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
   padding: 20px;
   height: 100%;
@@ -52,8 +55,10 @@ body {
 }
 
 .pricing-section .tier-box:hover {
-  transform: translateY(-10px); /* Lift effect on hover */
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* More pronounced shadow */
+  transform: translateY(-10px);
+  /* Lift effect on hover */
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+  /* More pronounced shadow */
 }
 
 .pricing-section .tier-box.selected {
@@ -172,7 +177,8 @@ body {
   text-align: center;
 }
 
-.comparison-table th, .comparison-table td {
+.comparison-table th,
+.comparison-table td {
   padding: 15px;
   border: 1px solid #ddd;
 }
@@ -199,24 +205,55 @@ body {
   margin-bottom: 20px;
 }
 
-.accordion-button {
-  background: #000000 !important;
+.faq-accordion .accordion-button {
+  background: #007bff !important;
   color: white !important;
   font-weight: bold;
-  border-radius: 5px;
+  border-radius: 8px !important;
+  border: none !important;
+  padding: 1rem 1.25rem !important;
 }
 
-.accordion-button:not(.collapsed) {
-  background: #007bff !important;
+.faq-accordion .accordion-button:not(.collapsed) {
+  background: #0056b3 !important;
+  color: white !important;
+  box-shadow: none !important;
 }
 
-.accordion-body {
-  background: #f8f9fa;
+.faq-accordion .accordion-button:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+.faq-accordion .accordion-button::after {
+  filter: brightness(0) invert(1);
+}
+
+.faq-accordion .accordion-body {
+  background: #f8f9fa !important;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 1.5rem !important;
+}
+
+.faq-accordion .accordion-item {
+  border: none !important;
+  margin-bottom: 1rem;
+}
+
+.faq-accordion .accordion-item:last-child .accordion-header .accordion-button {
+  background: #343a40 !important;
+}
+
+.faq-accordion .accordion-item:last-child .accordion-header .accordion-button:not(.collapsed) {
+  background: #495057 !important;
 }
 
 /* CTA Section */
 .cta {
-  background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
+  background: linear-gradient(135deg, #fff69a, #cbcbcb);
+  /* Gradient from two colors */
   color: black;
   padding: 40px 20px;
   border-radius: 10px 10px 0 0;
@@ -242,25 +279,29 @@ body {
 
 /* Add this in your CSS */
 .selected-tier {
-  border: 2px solid #007bff; /* Blue border for the selected card */
-  background-color: #e3f2fd; /* Light blue background for selected card */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slight shadow for selected card */
+  border: 2px solid #007bff;
+  /* Blue border for the selected card */
+  background-color: #e3f2fd;
+  /* Light blue background for selected card */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Slight shadow for selected card */
 }
 
 .selected-tier .tier-title {
-  color: #007bff; /* Change title color to blue for selected tier */
+  color: #007bff;
+  /* Change title color to blue for selected tier */
 }
 
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero-section h1 {
-      font-size: 2rem;
+    font-size: 2rem;
   }
 
   .pricing-section .tier-box {
-      margin-bottom: 20px;
-      padding: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
   }
 
   .tier-title {
@@ -272,23 +313,24 @@ body {
   }
 
   .feature-box {
-      margin-bottom: 20px;
+    margin-bottom: 20px;
   }
 
   .cta {
-      padding: 30px 15px;
+    padding: 30px 15px;
   }
 
   .cta h2 {
-      font-size: 1.5rem;
+    font-size: 1.5rem;
   }
 
   .cta p {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 
-  .comparison-table th, .comparison-table td {
-      font-size: 0.8rem;
-      padding: 10px;
+  .comparison-table th,
+  .comparison-table td {
+    font-size: 0.8rem;
+    padding: 10px;
   }
 }

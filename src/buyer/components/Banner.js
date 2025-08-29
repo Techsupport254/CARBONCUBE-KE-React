@@ -78,9 +78,7 @@ const Banner = () => {
 
 		const fetchPremiumAds = async () => {
 			try {
-				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/ads`
-				);
+				const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/ads`);
 
 				if (!response.ok) {
 					throw new Error("Failed to fetch ads");

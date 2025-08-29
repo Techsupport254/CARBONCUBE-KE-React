@@ -9,16 +9,36 @@ const SubcategorySection = ({
 	onAdClick,
 	onSubcategoryClick,
 	isLoading = false,
+	errorMessage,
+	onRetry,
 }) => {
-	const displayedAds = ads.slice(0, 4);
+	const displayedAds = Array.isArray(ads) ? ads.slice(0, 4) : [];
 
 	return (
-		<Card className="h-full bg-white/90 rounded-lg flex flex-col">
+		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh]">
 			<Card.Body className="p-1 sm:p-1.5 flex-grow flex flex-col justify-between">
-				{/* Always render 2x2 grid */}
+				{!isLoading && errorMessage && (
+					<div className="mb-1 p-1 bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center justify-between">
+						<span className="text-[11px] sm:text-xs">{errorMessage}</span>
+						{onRetry && (
+							<button
+								onClick={onRetry}
+								className="text-[11px] px-2 py-0.5 rounded bg-yellow-200 hover:bg-yellow-300"
+							>
+								Retry
+							</button>
+						)}
+					</div>
+				)}
+				{/* Always render 2x2 grid with fixed dimensions */}
 				<div
 					className="grid grid-cols-2 grid-rows-2 gap-1 sm:gap-1.5 h-full"
-					style={{ alignItems: "stretch", justifyItems: "stretch" }}
+					style={{
+						alignItems: "stretch",
+						justifyItems: "stretch",
+						minHeight: "20vh",
+						gridTemplateRows: "1fr 1fr",
+					}}
 				>
 					{Array.from({ length: 4 }).map((_, i) => {
 						const ad = displayedAds[i];
@@ -35,14 +55,6 @@ const SubcategorySection = ({
 										style={{ border: `2px solid ${borderColor}` }}
 									>
 										<div className="flex flex-col h-full">
-											{/* Tier label */}
-											{/* <div
-												className="text-dark px-1 text-xs rounded"
-												style={{ backgroundColor: borderColor }}
-											>
-												{ad.tier_name}
-											</div> */}
-
 											{/* Ad image */}
 											<Card.Img
 												variant="top"
@@ -96,14 +108,27 @@ const SubcategorySection = ({
 							);
 						}
 
-						// Skeleton placeholder slot
+						// Empty slot that maintains consistent sizing
 						return (
-							<div key={`skeleton-${i}`} className="h-full w-full">
+							<div key={`slot-${i}`} className="h-full w-full min-h-[8vh]">
 								<div className="h-full w-full rounded-lg overflow-hidden">
-									<div className="h-full w-full animate-pulse border-2 border-gray-200 rounded-lg flex flex-col">
-										<div className="w-full h-auto aspect-square bg-gray-200" />
-										<div className="px-2 py-1 bg-white">
-											<div className="h-3 bg-gray-200 rounded w-3/4" />
+									<div className="h-full w-full border-2 border-gray-200 rounded-lg flex flex-col bg-gray-50">
+										<div className="w-full h-auto aspect-square bg-gray-100 flex items-center justify-center min-h-[6vh]">
+											{isLoading ? (
+												<div className="animate-pulse bg-gray-200 w-full h-full rounded" />
+											) : (
+												<div className="text-gray-300 text-xs text-center">
+													<div className="font-medium">Empty</div>
+													<div className="text-[10px]">slot</div>
+												</div>
+											)}
+										</div>
+										<div className="px-2 py-1 bg-white flex-grow flex items-center justify-center min-h-[2vh]">
+											{isLoading ? (
+												<div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse" />
+											) : (
+												<div className="h-3 bg-gray-100 rounded w-3/4" />
+											)}
 										</div>
 									</div>
 								</div>

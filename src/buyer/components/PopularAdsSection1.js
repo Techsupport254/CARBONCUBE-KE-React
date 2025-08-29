@@ -2,7 +2,13 @@ import React from "react";
 import { Card } from "react-bootstrap";
 import { getBorderColor } from "../utils/sellerTierUtils";
 
-const PopularAdsSection = ({ ads, onAdClick, isLoading = false }) => {
+const PopularAdsSection = ({
+	ads,
+	onAdClick,
+	isLoading = false,
+	errorMessage,
+	onRetry,
+}) => {
 	// Debug: Log the ads data
 	console.log("PopularAdsSection received ads:", ads?.length || 0);
 	if (ads && ads.length > 0) {
@@ -72,8 +78,68 @@ const PopularAdsSection = ({ ads, onAdClick, isLoading = false }) => {
 		);
 	}
 
+	// Error state
+	if (!isLoading && errorMessage) {
+		return (
+			<Card className="bg-white mb-8 mx-0 shadow-2xl border-0 rounded-2xl overflow-hidden">
+				<Card.Header className="w-full flex justify-between items-center bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white px-4 sm:px-6 py-4 sm:py-5 shadow-xl">
+					<div className="flex items-center space-x-3">
+						<div className="w-10 h-10 bg-white/25 rounded-full" />
+						<div>
+							<h3 className="mb-0 font-bold text-lg sm:text-xl md:text-2xl">
+								Best Sellers
+							</h3>
+							<p className="text-xs sm:text-sm opacity-90 mb-0">
+								Top Rated Products
+							</p>
+						</div>
+					</div>
+				</Card.Header>
+				<Card.Body className="p-4 sm:p-6">
+					<div className="flex items-center justify-between p-3 bg-yellow-100 text-yellow-800 rounded border border-yellow-200">
+						<span className="text-sm">{errorMessage}</span>
+						{onRetry && (
+							<button
+								onClick={onRetry}
+								className="text-xs px-2 py-1 rounded bg-yellow-200 hover:bg-yellow-300"
+							>
+								Retry
+							</button>
+						)}
+					</div>
+				</Card.Body>
+			</Card>
+		);
+	}
+
+	// Empty state
+	if (!isLoading && (!ads || ads.length === 0)) {
+		return (
+			<Card className="bg-white mb-8 mx-0 shadow-2xl border-0 rounded-2xl overflow-hidden">
+				<Card.Header className="w-full flex justify-between items-center bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white px-4 sm:px-6 py-4 sm:py-5 shadow-xl">
+					<div className="flex items-center space-x-3">
+						<div className="w-10 h-10 bg-white/25 rounded-full" />
+						<div>
+							<h3 className="mb-0 font-bold text-lg sm:text-xl md:text-2xl">
+								Best Sellers
+							</h3>
+							<p className="text-xs sm:text-sm opacity-90 mb-0">
+								Top Rated Products
+							</p>
+						</div>
+					</div>
+				</Card.Header>
+				<Card.Body className="p-4 sm:p-6">
+					<div className="text-center text-gray-500 py-8">
+						<p>No popular products available at the moment.</p>
+					</div>
+				</Card.Body>
+			</Card>
+		);
+	}
+
 	return (
-		<Card className="bg-white mb-8 mx-0 shadow-2xl border-0 rounded-2xl overflow-hidden">
+		<Card className="bg-white mb-8 mx-0 shadow-2xl border-0 rounded-2xl overflow-hidden min-h-[30vh]">
 			<Card.Header className="w-full flex justify-between items-center bg-gradient-to-r from-yellow-400 via-yellow-500 to-orange-500 text-white px-4 sm:px-6 py-4 sm:py-5 shadow-xl">
 				<div className="flex items-center space-x-3">
 					<div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center shadow-lg">

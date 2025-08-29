@@ -1,6 +1,12 @@
 import React from "react";
 
-const PopularAdsSection = ({ ads = [], onAdClick, isLoading = false }) => {
+const PopularAdsSection = ({
+	ads = [],
+	onAdClick,
+	isLoading = false,
+	errorMessage,
+	onRetry,
+}) => {
 	// Get the first 8 ads from the flattened ads array
 	const popularProducts = ads.slice(0, 8).map((ad, index) => ({
 		id: ad.id,
@@ -37,6 +43,38 @@ const PopularAdsSection = ({ ads = [], onAdClick, isLoading = false }) => {
 								<div className="mt-2 h-3 w-3/4 bg-gray-200 rounded animate-pulse" />
 							</div>
 						))}
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Error state
+	if (!isLoading && errorMessage) {
+		return (
+			<div className="w-full border-2 border-gray-200 rounded-2xl overflow-hidden">
+				<div className="w-full bg-secondary text-white p-2 shadow-xl flex">
+					<div className="w-1/2 flex items-center space-x-3">
+						<div className="w-10 h-10 bg-white/25 rounded-full flex items-center justify-center shadow-lg" />
+						<div>
+							<h3 className="mb-0 font-bold text-xl sm:text-2xl">
+								Best Sellers
+							</h3>
+							<p className="text-sm opacity-90 mb-0">Popular Products</p>
+						</div>
+					</div>
+				</div>
+				<div className="p-4">
+					<div className="flex items-center justify-between p-3 bg-yellow-100 text-yellow-800 rounded border border-yellow-200">
+						<span className="text-sm">{errorMessage}</span>
+						{onRetry && (
+							<button
+								onClick={onRetry}
+								className="text-xs px-2 py-1 rounded bg-yellow-200 hover:bg-yellow-300"
+							>
+								Retry
+							</button>
+						)}
 					</div>
 				</div>
 			</div>
@@ -82,7 +120,7 @@ const PopularAdsSection = ({ ads = [], onAdClick, isLoading = false }) => {
 	}
 
 	return (
-		<div className="w-full border-2 border-gray-200 rounded-2xl overflow-hidden">
+		<div className="w-full border-2 border-gray-200 rounded-2xl overflow-hidden min-h-[30vh]">
 			{/* Header */}
 			<div className="w-full bg-secondary text-white p-2 md:p-3 shadow-xl flex">
 				<div className="w-1/2 flex items-center space-x-3">

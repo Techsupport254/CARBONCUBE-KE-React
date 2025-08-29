@@ -1,6 +1,184 @@
 // Device fingerprinting utility for identifying internal users
 // This creates a unique fingerprint based on device characteristics
 
+// Cookie helpers for redundant persistence
+const COOKIE_NAME = "device_uuid_v1";
+const COOKIE_MAX_AGE_DAYS = 730; // ~2 years
+
+const getCookie = (name) => {
+	try {
+		const match = document.cookie.match(
+			new RegExp("(^| )" + name + "=([^;]+)")
+		);
+		return match ? decodeURIComponent(match[2]) : null;
+	} catch (_) {
+		return null;
+	}
+};
+
+const setCookie = (name, value, days = COOKIE_MAX_AGE_DAYS) => {
+	try {
+		const expires = new Date(
+			Date.now() + days * 24 * 60 * 60 * 1000
+		).toUTCString();
+		document.cookie = `${name}=${encodeURIComponent(
+			value
+		)}; expires=${expires}; path=/; SameSite=Lax`;
+	} catch (_) {}
+};
+
+// IndexedDB helpers for durable backup of the device UUID
+const IDB_DB_NAME = "carbon_device";
+const IDB_STORE = "kv";
+const IDB_KEY = "device_uuid_v1";
+
+const idbOpen = () =>
+	new Promise((resolve) => {
+		try {
+			const req = indexedDB.open(IDB_DB_NAME, 1);
+			req.onupgradeneeded = () => {
+				const db = req.result;
+				if (!db.objectStoreNames.contains(IDB_STORE)) {
+					db.createObjectStore(IDB_STORE);
+				}
+			};
+			req.onsuccess = () => resolve(req.result);
+			req.onerror = () => resolve(null);
+		} catch (_) {
+			resolve(null);
+		}
+	});
+
+const idbGet = async (key) => {
+	try {
+		const db = await idbOpen();
+		if (!db) return null;
+		return await new Promise((resolve) => {
+			const tx = db.transaction(IDB_STORE, "readonly");
+			const store = tx.objectStore(IDB_STORE);
+			const req = store.get(key);
+			req.onsuccess = () => resolve(req.result || null);
+			req.onerror = () => resolve(null);
+		});
+	} catch (_) {
+		return null;
+	}
+};
+
+const idbSet = async (key, value) => {
+	try {
+		const db = await idbOpen();
+		if (!db) return false;
+		return await new Promise((resolve) => {
+			const tx = db.transaction(IDB_STORE, "readwrite");
+			const store = tx.objectStore(IDB_STORE);
+			const req = store.put(value, key);
+			req.onsuccess = () => resolve(true);
+			req.onerror = () => resolve(false);
+		});
+	} catch (_) {
+		return false;
+	}
+};
+
+// Generate or load a persistent per-device UUID (scoped to this browser profile)
+const getOrCreateDeviceId = () => {
+	try {
+		const storageKey = "device_uuid_v1";
+		// 1) Try cookie first (survives localStorage/sessionStorage clears if cookies remain)
+		let deviceId = getCookie(COOKIE_NAME);
+		if (deviceId) {
+			try {
+				if (!localStorage.getItem(storageKey))
+					localStorage.setItem(storageKey, deviceId);
+			} catch (_) {}
+			// backfill IDB asynchronously
+			idbSet(IDB_KEY, deviceId);
+			return deviceId;
+		}
+
+		// 2) Fallback to localStorage
+		deviceId = localStorage.getItem(storageKey);
+		if (!deviceId) {
+			if (window.crypto && typeof window.crypto.randomUUID === "function") {
+				deviceId = window.crypto.randomUUID();
+			} else {
+				const bytes =
+					window.crypto && window.crypto.getRandomValues
+						? window.crypto.getRandomValues(new Uint8Array(16))
+						: Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+				bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+				bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant
+				const toHex = (n) => n.toString(16).padStart(2, "0");
+				deviceId =
+					toHex(bytes[0]) +
+					toHex(bytes[1]) +
+					toHex(bytes[2]) +
+					toHex(bytes[3]) +
+					"-" +
+					toHex(bytes[4]) +
+					toHex(bytes[5]) +
+					"-" +
+					toHex(bytes[6]) +
+					toHex(bytes[7]) +
+					"-" +
+					toHex(bytes[8]) +
+					toHex(bytes[9]) +
+					"-" +
+					toHex(bytes[10]) +
+					toHex(bytes[11]) +
+					toHex(bytes[12]) +
+					toHex(bytes[13]) +
+					toHex(bytes[14]) +
+					toHex(bytes[15]);
+			}
+			try {
+				localStorage.setItem(storageKey, deviceId);
+			} catch (_) {}
+			setCookie(COOKIE_NAME, deviceId);
+			idbSet(IDB_KEY, deviceId);
+		}
+		// Ensure cookie exists if only localStorage had it
+		setCookie(COOKIE_NAME, deviceId);
+		// Ensure IDB holds a copy
+		idbSet(IDB_KEY, deviceId);
+		return deviceId;
+	} catch (e) {
+		const fallback =
+			"dev-" +
+			Date.now().toString(36) +
+			"-" +
+			Math.random().toString(36).slice(2, 10);
+		try {
+			localStorage.setItem("device_uuid_v1", fallback);
+		} catch (_) {}
+		setCookie(COOKIE_NAME, fallback);
+		idbSet(IDB_KEY, fallback);
+		return fallback;
+	}
+};
+
+// Background recovery: if both cookie and localStorage are missing but IndexedDB has the ID,
+// restore silently to maintain stability across clears.
+(async () => {
+	try {
+		let lsVal = null;
+		try {
+			lsVal = localStorage.getItem("device_uuid_v1");
+		} catch (_) {}
+		const ckVal = getCookie(COOKIE_NAME);
+		if (!lsVal && !ckVal) {
+			const saved = await idbGet(IDB_KEY);
+			if (saved) {
+				try {
+					localStorage.setItem("device_uuid_v1", saved);
+				} catch (_) {}
+				setCookie(COOKIE_NAME, saved);
+			}
+		}
+	} catch (_) {}
+})();
+
 export const generateDeviceFingerprint = () => {
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d");
@@ -148,15 +326,25 @@ export const generateDeviceFingerprint = () => {
 	const uniqueFingerprintString = JSON.stringify(uniqueDeviceFingerprint);
 	const advancedFingerprintString = JSON.stringify(advancedHardwareFingerprint);
 
-	// Use the advanced hardware fingerprint approach
-	const hash = simpleHash(advancedFingerprintString);
+	// Primary identifier: persistent per-device UUID
+	const deviceId = getOrCreateDeviceId();
 
 	return {
 		fingerprint: fingerprint,
-		hash: hash,
+		// Use persistent UUID as the primary identifier
+		hash: deviceId,
+		id: deviceId,
 		string: fingerprintString,
 		uniqueString: uniqueFingerprintString,
 	};
+};
+
+// Helper: detect UUID-like value
+const isUuidLike = (value) => {
+	if (!value || typeof value !== "string") return false;
+	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+		value
+	);
 };
 
 // Simple hash function
@@ -308,6 +496,13 @@ export const storeFingerprint = (fingerprint) => {
 // Main function to get or generate fingerprint
 export const getDeviceFingerprint = () => {
 	let fingerprint = getStoredFingerprint();
+
+	// Migrate legacy fingerprints to UUID-based if needed
+	if (fingerprint && (!fingerprint.hash || !isUuidLike(fingerprint.hash))) {
+		const regenerated = generateDeviceFingerprint();
+		storeFingerprint(regenerated);
+		return regenerated;
+	}
 
 	if (!fingerprint) {
 		fingerprint = generateDeviceFingerprint();

@@ -15,6 +15,10 @@ import PrivacyPolicy from "./components/Privacy";
 // Analytics Tracking Components
 import MatomoTracker from "./components/MatomoTracker";
 import GoogleAnalyticsTracker from "./components/GoogleAnalyticsTracker";
+import {
+	getDeviceFingerprint,
+	isInternalUser,
+} from "./utils/deviceFingerprint";
 
 // Test Component
 import AnalyticsTest from "./components/AnalyticsTest";
@@ -61,6 +65,7 @@ import SalesDashboard from "./sales/pages/SalesDashboard";
 function App() {
 	const [userRole, setUserRole] = useState(null); // For storing user role
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [excludeTracking, setExcludeTracking] = useState(false);
 
 	useEffect(() => {
 		const token = sessionStorage.getItem("token");
@@ -69,6 +74,36 @@ function App() {
 			setUserRole(role);
 			setIsAuthenticated(true);
 		}
+	}, []);
+
+	useEffect(() => {
+		// Determine if this device should be excluded from analytics trackers
+		(async () => {
+			try {
+				const fp = getDeviceFingerprint();
+				if (isInternalUser(fp)) {
+					setExcludeTracking(true);
+					return;
+				}
+				const API_URL = process.env.REACT_APP_BACKEND_URL || "/api";
+				const resp = await fetch(
+					`${API_URL}/internal_user_exclusions/check/${fp.hash}`
+				);
+				if (resp.ok) {
+					const data = await resp.json();
+					if (
+						(data && data.status === "approved") ||
+						data?.is_excluded === true
+					) {
+						setExcludeTracking(true);
+						return;
+					}
+				}
+				setExcludeTracking(false);
+			} catch (_) {
+				setExcludeTracking(false);
+			}
+		})();
 	}, []);
 
 	const handleLogin = (token, user) => {
@@ -111,8 +146,8 @@ function App() {
 	return (
 		<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
 			{/* Analytics Tracking Components */}
-			<MatomoTracker />
-			<GoogleAnalyticsTracker />
+			{!excludeTracking && <MatomoTracker />}
+			{!excludeTracking && <GoogleAnalyticsTracker />}
 
 			<Routes>
 				<Route path="/ads/:adId" element={<AdDetails />} />

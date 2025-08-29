@@ -72,26 +72,26 @@ const Home = () => {
 				// Add timeout for mobile devices
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-				
+
 				const [categoryResponse, subcategoryResponse] = await Promise.all([
 					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`, {
 						signal: controller.signal,
 						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
+							Accept: "application/json",
+							"Content-Type": "application/json",
 						},
 					}),
 					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`, {
 						signal: controller.signal,
 						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
+							Accept: "application/json",
+							"Content-Type": "application/json",
 						},
 					}),
 				]);
-				
+
 				clearTimeout(timeoutId);
-				
+
 				if (!categoryResponse.ok || !subcategoryResponse.ok) {
 					throw new Error("Failed to fetch categories/subcategories");
 				}
@@ -108,12 +108,14 @@ const Home = () => {
 				setCategories(categoriesWithSubcategories);
 			} catch (err) {
 				console.error("Categories Fetch Error:", err);
-				
+
 				// Handle specific error types
-				if (err.name === 'AbortError') {
+				if (err.name === "AbortError") {
 					setCategoriesError("Request timeout - please check your connection");
-				} else if (err.message.includes('Failed to fetch')) {
-					setCategoriesError("Network error - please check your internet connection");
+				} else if (err.message.includes("Failed to fetch")) {
+					setCategoriesError(
+						"Network error - please check your internet connection"
+					);
 				} else {
 					setCategoriesError("Failed to load categories");
 				}
@@ -125,34 +127,57 @@ const Home = () => {
 		// Fetch ads
 		const fetchAds = async () => {
 			try {
+				setIsLoadingAds(true);
+				setAdsError(null);
+
 				// Add timeout for mobile devices
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout for ads
-				
+
 				const adResponse = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=500`,
 					{
 						signal: controller.signal,
 						headers: {
-							Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
+							Accept: "application/json",
+							"Content-Type": "application/json",
 						},
 					}
 				);
-				
+
 				clearTimeout(timeoutId);
-				
-				if (!adResponse.ok) throw new Error("Failed to fetch ads");
+
+				if (!adResponse.ok) {
+					const errorText = await adResponse.text();
+					console.error("Ads response error:", errorText);
+					throw new Error(
+						`Failed to fetch ads: ${adResponse.status} ${adResponse.statusText}`
+					);
+				}
+
 				const adData = await adResponse.json();
-				setAds(adData);
+
+				// Organize ads by subcategory ID
+				const organizedAds = {};
+				if (Array.isArray(adData)) {
+					adData.forEach((ad) => {
+						if (ad.subcategory_id) {
+							if (!organizedAds[ad.subcategory_id]) {
+								organizedAds[ad.subcategory_id] = [];
+							}
+							organizedAds[ad.subcategory_id].push(ad);
+						}
+					});
+				}
+
+				setAds(organizedAds);
 			} catch (err) {
 				console.error("Ads Fetch Error:", err);
-				
+
 				// Handle specific error types
-				if (err.name === 'AbortError') {
+				if (err.name === "AbortError") {
 					setAdsError("Request timeout - please check your connection");
-				} else if (err.message.includes('Failed to fetch')) {
+				} else if (err.message.includes("Failed to fetch")) {
 					setAdsError("Network error - please check your internet connection");
 				} else {
 					setAdsError("Failed to load ads");
@@ -443,73 +468,100 @@ const Home = () => {
 													{adsError}
 												</div>
 											)}
-											{categories
-												.filter((category) => {
-													// Check if this category has any ads by looking at its subcategories
-													const hasAds = category.subcategories.some(
-														(subcategory) => {
-															return (
-																ads[subcategory.id] &&
-																ads[subcategory.id].length > 0
-															);
-														}
-													);
-													return hasAds;
-												})
-												.map((category) => {
-													// Function to shuffle an array
-													const shuffleArray = (array) => {
-														return array
-															.map((value) => ({ value, sort: Math.random() }))
-															.sort((a, b) => a.sort - b.sort)
-															.map(({ value }) => value);
-													};
 
-													// Filter subcategories that have ads
-													const subcategoriesWithAds =
-														category.subcategories.filter((subcategory) => {
-															return (
-																ads[subcategory.id] &&
-																ads[subcategory.id].length > 0
-															);
-														});
-
-													// Shuffle the subcategories that have ads before slicing
-													const randomizedSubcategories = shuffleArray(
-														subcategoriesWithAds
-													).slice(0, 4);
-
-													// Only render if we have subcategories with ads
-													if (randomizedSubcategories.length === 0) {
-														return null;
-													}
-
-													return (
-														<CategorySection
-															key={category.id}
-															title={category.name}
-															randomizedSubcategories={randomizedSubcategories}
-															ads={ads}
-															handleAdClick={handleAdClick}
-															handleSubcategoryClick={handleSubcategoryClick}
+											{/* Loading state for categories and ads */}
+											{!isSearching &&
+												(isLoadingCategories || isLoadingAds) && (
+													<div className="mb-8 flex justify-center items-center">
+														<Spinner
+															variant="warning"
+															name="cube-grid"
+															style={{ width: 50, height: 50 }}
 														/>
-													);
-												})}
-											{isLoadingCategories && (
-												<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
-													{Array.from({ length: 4 }).map((_, idx) => (
-														<div
-															key={idx}
-															className="h-48 bg-gray-200 animate-pulse rounded"
-														/>
-													))}
-												</div>
+														<span className="ml-3 text-gray-600">
+															Loading categories and products...
+														</span>
+													</div>
+												)}
+
+											{/* Categories Section - Always show when not searching */}
+											{!isSearching &&
+												categories.length > 0 &&
+												Object.keys(ads).length === 0 &&
+												!isLoadingAds && (
+													<div className="mb-8 p-4 bg-blue-50 text-blue-800 rounded text-center">
+														<span className="text-gray-600">
+															Categories loaded, loading products...
+														</span>
+													</div>
+												)}
+
+											{!isSearching &&
+												categories.length > 0 &&
+												Object.keys(ads).length > 0 && (
+													<>
+														{categories.map((category) => {
+															// Function to shuffle an array
+															const shuffleArray = (array) => {
+																return array
+																	.map((value) => ({
+																		value,
+																		sort: Math.random(),
+																	}))
+																	.sort((a, b) => a.sort - b.sort)
+																	.map(({ value }) => value);
+															};
+
+															// Get all subcategories for this category
+															const allSubcategories =
+																category.subcategories || [];
+
+															// If no subcategories, skip this category
+															if (allSubcategories.length === 0) {
+																return null;
+															}
+
+															// Shuffle and take first 4 subcategories
+															const randomizedSubcategories = shuffleArray(
+																allSubcategories
+															).slice(0, 4);
+
+															return (
+																<CategorySection
+																	key={category.id}
+																	title={category.name}
+																	randomizedSubcategories={
+																		randomizedSubcategories
+																	}
+																	ads={ads}
+																	handleAdClick={handleAdClick}
+																	handleSubcategoryClick={
+																		handleSubcategoryClick
+																	}
+																/>
+															);
+														})}
+														{isLoadingCategories && (
+															<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+																{Array.from({ length: 4 }).map((_, idx) => (
+																	<div
+																		key={idx}
+																		className="h-48 bg-gray-200 animate-pulse rounded"
+																	/>
+																))}
+															</div>
+														)}
+													</>
+												)}
+
+											{/* Popular Ads Section - Always show when not searching */}
+											{!isSearching && (
+												<PopularAdsSection
+													ads={flattenedAds}
+													onAdClick={handleAdClick}
+													isLoading={isLoadingAds}
+												/>
 											)}
-											<PopularAdsSection
-												ads={flattenedAds}
-												onAdClick={handleAdClick}
-												isLoading={isLoadingAds}
-											/>
 										</div>
 									</div>
 								</div>

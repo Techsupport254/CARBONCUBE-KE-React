@@ -10,9 +10,11 @@ const SearchResultSection = ({
 	hasMore,
 	onLoadMore,
 	isLoading = false,
+	errorMessage,
+	onRetry,
 }) => {
 	return (
-		<div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+		<div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 min-h-[30vh]">
 			<Card className="mb-4 mt-2 mx-0">
 				<Card.Header className="flex justify-between items-center px-3 py-2">
 					<h3 className="mb-0 text-sm sm:text-base md:text-lg">
@@ -28,6 +30,21 @@ const SearchResultSection = ({
 					</Button>
 				</Card.Header>
 				<Card.Body className="p-2">
+					{!isLoading && errorMessage && (
+						<div className="flex items-center justify-between p-2 mb-2 bg-yellow-100 text-yellow-800 rounded border border-yellow-200">
+							<span className="text-xs sm:text-sm">{errorMessage}</span>
+							{onRetry && (
+								<Button
+									variant="warning"
+									size="sm"
+									onClick={onRetry}
+									className="text-xs"
+								>
+									Retry
+								</Button>
+							)}
+						</div>
+					)}
 					{isLoading ? (
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3 lg:gap-4">
 							{Array.from({ length: 12 }).map((_, i) => (
