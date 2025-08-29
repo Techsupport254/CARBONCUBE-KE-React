@@ -8,7 +8,7 @@ import {
 	faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
 import Sidebar from "../components/Sidebar";
-import TopNavbar from "../components/TopNavbar";
+import Navbar from "../../components/Navbar";
 
 const FingerprintRemovalRequests = () => {
 	const [requests, setRequests] = useState([]);
@@ -182,7 +182,7 @@ const FingerprintRemovalRequests = () => {
 			<div className="d-flex">
 				<Sidebar />
 				<div className="flex-grow-1">
-					<TopNavbar />
+					<Navbar mode="admin" showSearch={false} showCategories={false} />
 					<div className="flex justify-center items-center h-screen">
 						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
 					</div>
@@ -195,7 +195,7 @@ const FingerprintRemovalRequests = () => {
 		<div className="d-flex">
 			<Sidebar />
 			<div className="flex-grow-1">
-				<TopNavbar />
+				<Navbar mode="admin" showSearch={false} showCategories={false} />
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 					{/* Header */}
 					<div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">

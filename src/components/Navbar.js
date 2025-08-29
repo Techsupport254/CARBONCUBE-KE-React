@@ -312,15 +312,7 @@ const Navbar = ({
 	};
 
 	const getNavigationLinks = () => {
-		if (mode === "minimal") {
-			return [
-				{ href: "/seller/tiers", label: "Tiers & Pricing" },
-				{ href: "/terms-and-conditions", label: "Terms & Conditions" },
-				{ href: "/privacy", label: "Privacy Policy" },
-				{ href: "/about-us", label: "About Us" },
-				{ href: "/contact-us", label: "Contact Us" },
-			];
-		}
+		// In minimal mode, do not inject public links into the user dropdown.
 
 		if (!isLoggedIn) {
 			return [
@@ -629,11 +621,11 @@ const Navbar = ({
 								<hr className="my-2 border-gray-200" />
 								<button
 									onClick={handleLogout}
-									className="flex items-center w-full px-3 sm:px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200 text-sm"
+									className="flex items-center w-full px-3 sm:px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors duration-200 text-sm"
 								>
 									<FontAwesomeIcon
 										icon={faSignOutAlt}
-										className="mr-2 w-3 h-3 sm:w-4 sm:h-4"
+										className="mr-2 w-3 h-3 sm:w-4 sm:h-4 text-red-600"
 									/>
 									Sign Out
 								</button>
@@ -908,6 +900,23 @@ const Navbar = ({
 											</button>
 										</div>
 									)}
+
+								{/* Logout for logged-in users (mobile) */}
+								{isLoggedIn && mode !== "minimal" && (
+									<>
+										<hr className="my-2 border-gray-700" />
+										<button
+											onClick={handleLogout}
+											className="flex items-center w-full px-4 py-3 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200 text-sm text-left"
+										>
+											<FontAwesomeIcon
+												icon={faSignOutAlt}
+												className="mr-3 w-4 h-4"
+											/>
+											Sign Out
+										</button>
+									</>
+								)}
 							</div>
 						</div>
 					</div>

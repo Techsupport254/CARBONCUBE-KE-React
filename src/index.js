@@ -5,16 +5,28 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
 import sourceTrackingService from "./utils/sourceTracking";
+import {
+	getDeviceFingerprint,
+	isInternalUser,
+} from "./utils/deviceFingerprint";
 
 // Track the visit for analytics at the root level
-sourceTrackingService
-	.trackVisit()
-	.then((result) => {
-		// Source tracking completed silently
-	})
-	.catch((error) => {
-		console.error("Source tracking failed:", error);
-	});
+(() => {
+	const fingerprint = getDeviceFingerprint();
+	if (isInternalUser(fingerprint)) {
+		// Skip tracking for whitelisted/internal users
+		return;
+	}
+
+	sourceTrackingService
+		.trackVisit()
+		.then((result) => {
+			// Source tracking completed silently
+		})
+		.catch((error) => {
+			console.error("Source tracking failed:", error);
+		});
+})();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

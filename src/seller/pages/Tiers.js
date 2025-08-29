@@ -13,7 +13,7 @@ import Spinner from "react-spinkit";
 import { useNavigate } from "react-router-dom";
 import MpesaPaymentGuide from "../components/MpesaPaymentGuide";
 import FeatureComparisonTable from "../components/FeatureComparisonTable";
-import TopNavBarMinimal from "../../components/TopNavBarMinimal"; // Adjust path if necessary
+import Navbar from "../../components/Navbar"; // Unified navbar
 import "../css/Tiers.css";
 import Footer from "../../components/Footer"; // Adjust path if necessary
 import { jwtDecode } from "jwt-decode";
@@ -125,10 +125,10 @@ const TierPage = () => {
 	return (
 		<div className="pricing-page px-0 py-0">
 			{/* Top Navbar Minimal */}
-			<TopNavBarMinimal />
+			<Navbar mode="seller" showSearch={false} showCategories={false} />
 
 			{/* Hero Section */}
-			<section className="hero-section text-center mb-1 mb-lg-5 custom-card mt-3">
+			<section className="hero-section text-center mb-1 mb-lg-5 custom-card">
 				<Container>
 					<h1 className="display-4 fw-bold">
 						Choose the Perfect Plan for Your Business

@@ -10,7 +10,7 @@ import {
 	GraphUp,
 	Shield,
 } from "react-bootstrap-icons";
-import TopNavBarMinimal from "./TopNavBarMinimal";
+import Navbar from "./Navbar";
 import Footer from "./Footer";
 import AboutUsImage from "./assets/about-us.jpg";
 import "./AboutUs.css"; // Assuming you have a CSS file for custom styles
@@ -53,11 +53,11 @@ const AboutUs = () => {
 
 	return (
 		<>
-			<TopNavBarMinimal />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
 			{/* Add padding-top to prevent navbar overlay */}
 
-			<div style={{ paddingTop: "68px" }} className="aboutus-container">
+			<div className="aboutus-container">
 				{/* Enhanced Hero Banner */}
 				<section
 					className="py-5 text-dark position-relative overflow-hidden"
@@ -84,10 +84,10 @@ const AboutUs = () => {
 						<Button
 							variant="dark"
 							size="lg"
-							className="rounded-pill px-4 py-2 shadow"
+							className="rounded-pill px-4 py-2 shadow d-inline-flex align-items-center gap-2"
 						>
-							<Shop className="me-2" size={16} />
-							Explore Marketplace
+							<Shop size={16} />
+							<span>Explore Marketplace</span>
 						</Button>
 					</Container>
 				</section>

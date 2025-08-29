@@ -36,8 +36,8 @@ import { MdSearch, MdLink } from "react-icons/md";
 import Spinner from "react-spinkit";
 
 // Import new components
+import Navbar from "../../components/Navbar";
 import {
-	TopNavbar,
 	Sidebar,
 	CategoryClickEvents,
 	DashboardCard,
@@ -1091,7 +1091,7 @@ function SalesDashboard() {
 	if (loading) {
 		return (
 			<>
-				<TopNavbar />
+				<Navbar mode="sales" showSearch={false} showCategories={false} />
 				<div
 					className="d-flex justify-content-center align-items-center"
 					style={{
@@ -1113,7 +1113,7 @@ function SalesDashboard() {
 	if (!analytics) {
 		return (
 			<>
-				<TopNavbar />
+				<Navbar mode="sales" showSearch={false} showCategories={false} />
 				<div
 					className="d-flex justify-content-center align-items-center"
 					style={{
@@ -1244,7 +1244,7 @@ function SalesDashboard() {
 
 	return (
 		<>
-			<TopNavbar />
+			<Navbar mode="sales" showSearch={false} showCategories={false} />
 
 			<Container fluid className="analytics-reporting-page">
 				<Row className="g-0">

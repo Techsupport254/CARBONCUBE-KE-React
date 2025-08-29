@@ -273,6 +273,52 @@ const AnalyticsModal = ({
 						/>
 					</div>
 				</div>
+				{/* Source Breakdown (when available) */}
+				{(() => {
+					const dataSource = memoizedFilteredData || analytics;
+					const dist = dataSource?.source_distribution;
+					const total = dataSource?.total_visits || 0;
+					if (!dist || total === 0) return null;
+
+					const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+
+					const formatLabel = (source) => {
+						if (source === "direct") return "Direct";
+						if (source === "facebook") return "Facebook";
+						return source;
+					};
+
+					return (
+						<div className="w-full mx-auto bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg mt-4">
+							<h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-4">
+								Source Breakdown
+							</h3>
+							<div className="space-y-3">
+								{entries.map(([source, count], index) => {
+									const pct = Math.round((count / total) * 100);
+									return (
+										<div key={index} className="space-y-1">
+											<div className="flex items-center justify-between">
+												<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
+													{formatLabel(source)}
+												</span>
+												<span className="text-sm sm:text-base font-semibold text-gray-800">
+													{count.toLocaleString()} ({pct}%)
+												</span>
+											</div>
+											<div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+												<div
+													className="h-2 sm:h-3 rounded-full transition-all duration-300 bg-blue-500"
+													style={{ width: `${pct}%` }}
+												></div>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					);
+				})()}
 			</Modal.Body>
 		</Modal>
 	);

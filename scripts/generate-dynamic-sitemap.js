@@ -117,9 +117,7 @@ async function fetchCategoriesAndSubcategories() {
 		console.log("📡 Fetching categories and subcategories...");
 
 		const [categoriesResponse, subcategoriesResponse] = await Promise.all([
-			axios
-				.get(`${API_BASE_URL}/buyer/categories`)
-				.catch(() => ({ data: [] })),
+			axios.get(`${API_BASE_URL}/buyer/categories`).catch(() => ({ data: [] })),
 			axios
 				.get(`${API_BASE_URL}/buyer/subcategories`)
 				.catch(() => ({ data: [] })),

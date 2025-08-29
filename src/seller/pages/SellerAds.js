@@ -22,7 +22,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import Spinner from "react-spinkit";
-import TopNavbar from "../components/TopNavbar";
+import Navbar from "../../components/Navbar";
 // import { Cloudinary } from 'cloudinary-core';
 // Lazy-load heavy libs instead of bundling upfront
 import "../css/SellerAds.css";
@@ -1068,7 +1068,7 @@ const SellerAds = () => {
 
 	return (
 		<>
-			<TopNavbar />
+			<Navbar mode="seller" showSearch={false} showCategories={false} />
 			<div className="ads-management-page">
 				<Container fluid className="p-0">
 					<Row>

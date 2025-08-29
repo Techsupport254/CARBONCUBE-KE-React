@@ -12,37 +12,40 @@ import {
 	XCircle,
 	Gear,
 } from "react-bootstrap-icons";
-import TopNavBarMinimal from "./TopNavBarMinimal";
+import Navbar from "./Navbar";
 import Footer from "./Footer";
 import "./Terms.css";
-import useSEO from '../hooks/useSEO';
+import useSEO from "../hooks/useSEO";
 
 const Privacy = () => {
 	// SEO Implementation
 	useSEO({
 		title: "Privacy Policy - Carbon Cube Kenya",
-		description: "Read Carbon Cube Kenya's privacy policy. Learn how we protect your data and ensure your privacy while using Kenya's trusted online marketplace.",
-		keywords: "privacy policy, Carbon Cube Kenya data protection, Kenya marketplace privacy, user data protection, GDPR compliance",
+		description:
+			"Read Carbon Cube Kenya's privacy policy. Learn how we protect your data and ensure your privacy while using Kenya's trusted online marketplace.",
+		keywords:
+			"privacy policy, Carbon Cube Kenya data protection, Kenya marketplace privacy, user data protection, GDPR compliance",
 		url: "https://carboncube-ke.com/privacy",
 		structuredData: {
 			"@context": "https://schema.org",
 			"@type": "WebPage",
-			"name": "Privacy Policy - Carbon Cube Kenya",
-			"description": "Privacy policy and data protection information for Carbon Cube Kenya marketplace",
-			"url": "https://carboncube-ke.com/privacy",
-			"dateModified": "2025-07-25",
-			"publisher": {
+			name: "Privacy Policy - Carbon Cube Kenya",
+			description:
+				"Privacy policy and data protection information for Carbon Cube Kenya marketplace",
+			url: "https://carboncube-ke.com/privacy",
+			dateModified: "2025-07-25",
+			publisher: {
 				"@type": "Organization",
-				"name": "Carbon Cube Kenya"
-			}
-		}
+				name: "Carbon Cube Kenya",
+			},
+		},
 	});
 
 	return (
 		<>
-			<TopNavBarMinimal />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
-			<div style={{ paddingTop: "68px" }} className="terms-container">
+			<div className="terms-container">
 				{/* Hero Section */}
 				<section
 					className="py-5 text-dark position-relative overflow-hidden"
@@ -71,10 +74,10 @@ const Privacy = () => {
 							variant="dark"
 							size="lg"
 							href="https://t9014769862.p.clickup-attachments.com/t9014769862/81a1cbcb-4e4f-4263-8713-4c4dc681b06c/Privacy%20Policy%20for%20CarbonCube.docx?view=open"
-							className="rounded-pill px-4 py-2 shadow"
+							className="rounded-pill px-4 py-2 shadow d-inline-flex align-items-center gap-2"
 						>
-							<Lock className="me-2" size={16} />
-							Data Protection
+							<Lock size={16} />
+							<span>Data Protection</span>
 						</Button>
 					</Container>
 				</section>

@@ -17,7 +17,7 @@ import {
 	faStarHalfAlt,
 	faStar as faStarEmpty,
 } from "@fortawesome/free-solid-svg-icons";
-import TopNavbar from "../components/TopNavbar"; // Import your TopNavbar component
+import Navbar from "../../components/Navbar"; // Unified navbar
 import Sidebar from "../components/Sidebar"; // Import your Sidebar component
 import { motion } from "framer-motion"; // For animations
 import Spinner from "react-spinkit";
@@ -153,14 +153,43 @@ const AdDetails = () => {
 		// Fetch Ad Details
 		const fetchAdDetails = async () => {
 			try {
+				// Add timeout for mobile devices and better error handling
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+				
 				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}`
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}`,
+					{
+						signal: controller.signal,
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+					}
 				);
-				if (!response.ok) throw new Error("Failed to fetch ad details");
+				
+				clearTimeout(timeoutId);
+				
+				if (!response.ok) {
+					if (response.status === 404) {
+						setError("not_found");
+						return;
+					}
+					throw new Error(`Failed to fetch ad details (status ${response.status})`);
+				}
 				const data = await response.json();
 				setAd(data);
 			} catch (error) {
-				setError("Error loading ad details.");
+				console.error("Error fetching ad details:", error);
+				
+				// Handle specific error types
+				if (error.name === 'AbortError') {
+					setError("timeout_error");
+				} else if (error.message.includes('Failed to fetch')) {
+					setError("network_error");
+				} else {
+					setError("load_error");
+				}
 			} finally {
 				setLoading(false);
 			}
@@ -169,14 +198,56 @@ const AdDetails = () => {
 		// Fetch Related Ads
 		const fetchRelatedAds = async () => {
 			try {
-				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}/related`
-				);
-				if (!response.ok) throw new Error("Failed to fetch related ads");
+				const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}/related`;
+				
+				// Add timeout for mobile devices and better error handling
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+				
+				const response = await fetch(url, {
+					signal: controller.signal,
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					},
+				});
+				
+				clearTimeout(timeoutId);
+				
+				if (!response.ok) {
+					const text = await response.text().catch(() => "<no body>");
+					console.error("Related ads fetch failed", {
+						url,
+						status: response.status,
+						statusText: response.statusText,
+						body: text,
+					});
+					
+					// Handle specific error cases
+					if (response.status === 404) {
+						console.warn("Ad not found, skipping related ads");
+						setRelatedAds([]);
+						return;
+					}
+					
+					throw new Error(
+						`Failed to fetch related ads (status ${response.status})`
+					);
+				}
+				
 				const data = await response.json();
 				setRelatedAds(data);
 			} catch (error) {
-				setError("Error fetching related ads.");
+				console.error("Error fetching related ads:", error);
+				
+				// Handle specific error types
+				if (error.name === 'AbortError') {
+					console.warn("Related ads request timed out");
+				} else if (error.message.includes('Failed to fetch')) {
+					console.warn("Network error while fetching related ads");
+				}
+				
+				setRelatedAds([]);
 			}
 		};
 
@@ -451,7 +522,7 @@ const AdDetails = () => {
 		}
 
 		try {
-			    // console.log("Sending message:", message); // Debug log
+			// console.log("Sending message:", message); // Debug log
 
 			const response = await fetch(
 				`${process.env.REACT_APP_BACKEND_URL}/buyer/conversations`,
@@ -472,7 +543,7 @@ const AdDetails = () => {
 			);
 
 			const responseData = await response.json();
-			    // console.log("Response:", responseData); // Debug log
+			// console.log("Response:", responseData); // Debug log
 
 			if (!response.ok) {
 				throw new Error(responseData.error || "Failed to create conversation");
@@ -511,7 +582,7 @@ const AdDetails = () => {
 			e.preventDefault();
 		}
 
-		    // console.log("Button clicked, adId:", adId);
+		// console.log("Button clicked, adId:", adId);
 
 		// Set local loading state for just this button
 		const revealButtonRef = e?.currentTarget;
@@ -878,18 +949,162 @@ const AdDetails = () => {
 		);
 	}
 
-	if (error) {
-		return <div className="text-center py-5 text-danger">{error}</div>;
+	if (error === "not_found") {
+		return (
+			<>
+				<Navbar
+					mode="buyer"
+					searchQuery={""}
+					setSearchQuery={() => {}}
+					handleSearch={() => {}}
+					onSidebarToggle={() => {}}
+					showSearch={true}
+					showCategories={true}
+					showUserMenu={true}
+					showCart={true}
+					showWishlist={true}
+				/>
+				<div className="container py-5 text-center">
+					<h3 className="text-muted mb-2">This ad is no longer available</h3>
+					<p className="text-secondary mb-4">
+						It may have been removed or never existed in this environment.
+					</p>
+					<Button
+						variant="warning"
+						className="text-dark rounded-pill"
+						onClick={() => navigate("/")}
+					>
+						Back to Home
+					</Button>
+				</div>
+			</>
+		);
+	}
+
+	if (error === "load_error") {
+		return (
+			<>
+				<Navbar
+					mode="buyer"
+					searchQuery={""}
+					setSearchQuery={() => {}}
+					handleSearch={() => {}}
+					onSidebarToggle={() => {}}
+					showSearch={true}
+					showCategories={true}
+					showUserMenu={true}
+					showCart={true}
+					showWishlist={true}
+				/>
+				<div className="container py-5 text-center">
+					<h3 className="text-danger mb-2">Error loading ad details.</h3>
+					<p className="text-secondary mb-4">
+						Please refresh the page or return to the homepage.
+					</p>
+					<Button
+						variant="warning"
+						className="text-dark rounded-pill"
+						onClick={() => navigate("/")}
+					>
+						Back to Home
+					</Button>
+				</div>
+			</>
+		);
+	}
+
+	if (error === "timeout_error") {
+		return (
+			<>
+				<Navbar
+					mode="buyer"
+					searchQuery={""}
+					setSearchQuery={() => {}}
+					handleSearch={() => {}}
+					onSidebarToggle={() => {}}
+					showSearch={true}
+					showCategories={true}
+					showUserMenu={true}
+					showCart={true}
+					showWishlist={true}
+				/>
+				<div className="container py-5 text-center">
+					<h3 className="text-warning mb-2">Request Timeout</h3>
+					<p className="text-secondary mb-4">
+						The request took too long to complete. This might be due to a slow connection.
+					</p>
+					<Button
+						variant="warning"
+						className="text-dark rounded-pill me-2"
+						onClick={() => window.location.reload()}
+					>
+						Retry
+					</Button>
+					<Button
+						variant="outline-secondary"
+						className="rounded-pill"
+						onClick={() => navigate("/")}
+					>
+						Back to Home
+					</Button>
+				</div>
+			</>
+		);
+	}
+
+	if (error === "network_error") {
+		return (
+			<>
+				<Navbar
+					mode="buyer"
+					searchQuery={""}
+					setSearchQuery={() => {}}
+					handleSearch={() => {}}
+					onSidebarToggle={() => {}}
+					showSearch={true}
+					showCategories={true}
+					showUserMenu={true}
+					showCart={true}
+					showWishlist={true}
+				/>
+				<div className="container py-5 text-center">
+					<h3 className="text-danger mb-2">Network Error</h3>
+					<p className="text-secondary mb-4">
+						Unable to connect to the server. Please check your internet connection.
+					</p>
+					<Button
+						variant="warning"
+						className="text-dark rounded-pill me-2"
+						onClick={() => window.location.reload()}
+					>
+						Retry
+					</Button>
+					<Button
+						variant="outline-secondary"
+						className="rounded-pill"
+						onClick={() => navigate("/")}
+					>
+						Back to Home
+					</Button>
+				</div>
+			</>
+		);
 	}
 
 	return (
 		<>
 			{/* Top Navbar */}
-			<TopNavbar
-				onSidebarToggle={handleSidebarToggle}
+			<Navbar
+				mode="buyer"
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 				handleSearch={handleSearch}
+				onSidebarToggle={handleSidebarToggle}
+				showSearch={true}
+				showCategories={true}
+				showUserMenu={true}
+				showCart={true}
+				showWishlist={true}
 			/>
 			<div className="ads-details-page">
 				<Container fluid>
@@ -1243,100 +1458,119 @@ const AdDetails = () => {
 
 									{/* Related Ads */}
 									<h3 className="related-ads-title mb-3">Related Ads</h3>
-									<Row className="related-ads">
-										{relatedAds.slice(0, 4).map((relatedAd) => {
-											const borderColor = getBorderColor(relatedAd.seller_tier);
-											return (
-												<Col
-													key={relatedAd.id}
-													xs={6}
-													md={3}
-													className="mb-2 mb-lg-4 p-1"
-												>
-													<Card
-														onClick={() => handleAdClick(relatedAd.id)}
-														style={{ border: `2px solid ${borderColor}` }}
+									{Array.isArray(relatedAds) && relatedAds.length > 0 ? (
+										<Row className="related-ads">
+											{relatedAds.slice(0, 4).map((relatedAd) => {
+												const borderColor = getBorderColor(
+													relatedAd.seller_tier
+												);
+												return (
+													<Col
+														key={relatedAd.id}
+														xs={6}
+														md={3}
+														className="mb-2 mb-lg-4 p-1"
 													>
-														<div style={{ position: "relative" }}>
-															<div
-																className="tier-label text-dark"
-																style={{
-																	position: "absolute",
-																	top: "0px",
-																	right: "-1px",
-																	padding: "2px 6px",
-																	fontSize: "12px",
-																	backgroundColor: borderColor,
-																	borderTopLeftRadius: "0px",
-																	borderTopRightRadius: "2px",
-																	borderBottomRightRadius: "0px",
-																	borderBottomLeftRadius: "4px",
-																	zIndex: 20,
-																}}
-															>
-																{relatedAd.tier_name}
+														<Card
+															onClick={() => handleAdClick(relatedAd.id)}
+															style={{ border: `2px solid ${borderColor}` }}
+														>
+															<div style={{ position: "relative" }}>
+																<div
+																	className="tier-label text-dark"
+																	style={{
+																		position: "absolute",
+																		top: "0px",
+																		right: "-1px",
+																		padding: "2px 6px",
+																		fontSize: "12px",
+																		backgroundColor: borderColor,
+																		borderTopLeftRadius: "0px",
+																		borderTopRightRadius: "2px",
+																		borderBottomRightRadius: "0px",
+																		borderBottomLeftRadius: "4px",
+																		zIndex: 20,
+																	}}
+																>
+																	{relatedAd.tier_name}
+																</div>
+																<Card.Img
+																	className="ad-image"
+																	variant="top"
+																	src={
+																		relatedAd.first_media_url
+																			? relatedAd.first_media_url
+																					.replace(/\n/g, "")
+																					.trim()
+																			: Array.isArray(relatedAd.media_urls) &&
+																			  relatedAd.media_urls.length > 0
+																			? relatedAd.media_urls[0]
+																					.replace(/\n/g, "")
+																					.trim()
+																			: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
+																	}
+																	loading="lazy"
+																	onError={(e) => {
+																		e.target.src =
+																			"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+																	}}
+																/>
 															</div>
-															<Card.Img
-																className="ad-image"
-																variant="top"
-																src={
-																	relatedAd.media_urls[0] || "default-image-url"
-																}
-																alt={relatedAd.title}
-															/>
-														</div>
 
-														<Card.Body className="px-2 py-2">
-															<Card.Title className="mb-1 ad-title">
-																{relatedAd.title}
-															</Card.Title>
-															<Card.Text>
-																<span
-																	className="text-success"
-																	style={{ fontSize: "15px" }}
-																>
-																	<em>Kshs: </em>
-																</span>
-																<strong
-																	style={{ fontSize: "20px" }}
-																	className="text-danger"
-																>
-																	{relatedAd.price
-																		? Number(relatedAd.price)
-																				.toFixed(2)
-																				.split(".")
-																				.map((part, index) => (
-																					<React.Fragment key={index}>
-																						{index === 0 ? (
-																							<span className="price-integer">
-																								{parseInt(
-																									part,
-																									10
-																								).toLocaleString()}
-																							</span>
-																						) : (
-																							<>
-																								<span
-																									style={{ fontSize: "16px" }}
-																								>
-																									.
+															<Card.Body className="px-2 py-2">
+																<Card.Title className="mb-1 ad-title">
+																	{relatedAd.title}
+																</Card.Title>
+																<Card.Text>
+																	<span
+																		className="text-success"
+																		style={{ fontSize: "15px" }}
+																	>
+																		<em>Kshs: </em>
+																	</span>
+																	<strong
+																		style={{ fontSize: "20px" }}
+																		className="text-danger"
+																	>
+																		{relatedAd.price
+																			? Number(relatedAd.price)
+																					.toFixed(2)
+																					.split(".")
+																					.map((part, index) => (
+																						<React.Fragment key={index}>
+																							{index === 0 ? (
+																								<span className="price-integer">
+																									{parseInt(
+																										part,
+																										10
+																									).toLocaleString()}
 																								</span>
-																								<span className="price-decimal">
-																									{part}
-																								</span>
-																							</>
-																						)}
-																					</React.Fragment>
-																				))
-																		: "N/A"}
-																</strong>
-															</Card.Text>
-														</Card.Body>
-													</Card>
-												</Col>
-											);
-										})}
-									</Row>
+																							) : (
+																								<>
+																									<span
+																										style={{ fontSize: "16px" }}
+																									>
+																										.
+																									</span>
+																									<span className="price-decimal">
+																										{part}
+																									</span>
+																								</>
+																							)}
+																						</React.Fragment>
+																					))
+																			: "N/A"}
+																	</strong>
+																</Card.Text>
+															</Card.Body>
+														</Card>
+													</Col>
+												);
+											})}
+										</Row>
+									) : (
+										<p className="text-muted">No related ads to display.</p>
+									)}
 								</div>
 							</div>
 						</Col>

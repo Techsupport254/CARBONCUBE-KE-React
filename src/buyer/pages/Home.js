@@ -42,8 +42,12 @@ const Home = () => {
 	const [categories, setCategories] = useState([]);
 	const [ads, setAds] = useState({});
 	// const [allAds, setAllAds] = useState({});
-	// Removed separate page-level loading state to allow banner skeleton to render
-	const [error, setError] = useState(null);
+	// Loading and error states
+	const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+	const [isLoadingAds, setIsLoadingAds] = useState(true);
+	const [categoriesError, setCategoriesError] = useState(null);
+	const [adsError, setAdsError] = useState(null);
+	const [error, setError] = useState(null); // search error only
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
@@ -62,57 +66,105 @@ const Home = () => {
 	useSEO(seoData);
 
 	useEffect(() => {
-		const fetchCategoriesAndAds = async () => {
+		// Fetch categories and subcategories
+		const fetchCategories = async () => {
 			try {
-				// Fetch categories and subcategories without authentication
+				// Add timeout for mobile devices
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+				
 				const [categoryResponse, subcategoryResponse] = await Promise.all([
-					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`),
-					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`),
+					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`, {
+						signal: controller.signal,
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+					}),
+					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`, {
+						signal: controller.signal,
+						headers: {
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+					}),
 				]);
-
-				if (!categoryResponse.ok || !subcategoryResponse.ok)
+				
+				clearTimeout(timeoutId);
+				
+				if (!categoryResponse.ok || !subcategoryResponse.ok) {
 					throw new Error("Failed to fetch categories/subcategories");
-
+				}
 				const [categoryData, subcategoryData] = await Promise.all([
 					categoryResponse.json(),
 					subcategoryResponse.json(),
 				]);
-
-				// Structure categories with subcategories
 				const categoriesWithSubcategories = categoryData.map((category) => ({
 					...category,
 					subcategories: subcategoryData.filter(
 						(sub) => sub.category_id === category.id
 					),
 				}));
-
 				setCategories(categoriesWithSubcategories);
-
-				// ✅ Fetch all ads with pagination
-				const adResponse = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=500`,
-					{
-						headers: {
-							Authorization: `Bearer ${sessionStorage.getItem("token")}`,
-						},
-					}
-				);
-
-				if (!adResponse.ok) throw new Error("Failed to fetch ads");
-
-				const adData = await adResponse.json();
-
-				// ✅ Ensure ads are grouped correctly
-				setAds(adData);
-			} catch (error) {
-				console.error("Fetch Error:", error);
-				setError("Error fetching data");
+			} catch (err) {
+				console.error("Categories Fetch Error:", err);
+				
+				// Handle specific error types
+				if (err.name === 'AbortError') {
+					setCategoriesError("Request timeout - please check your connection");
+				} else if (err.message.includes('Failed to fetch')) {
+					setCategoriesError("Network error - please check your internet connection");
+				} else {
+					setCategoriesError("Failed to load categories");
+				}
 			} finally {
-				// no-op: banner handles its own loading state
+				setIsLoadingCategories(false);
 			}
 		};
 
-		fetchCategoriesAndAds();
+		// Fetch ads
+		const fetchAds = async () => {
+			try {
+				// Add timeout for mobile devices
+				const controller = new AbortController();
+				const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout for ads
+				
+				const adResponse = await fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=500`,
+					{
+						signal: controller.signal,
+						headers: {
+							Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+							'Accept': 'application/json',
+							'Content-Type': 'application/json',
+						},
+					}
+				);
+				
+				clearTimeout(timeoutId);
+				
+				if (!adResponse.ok) throw new Error("Failed to fetch ads");
+				const adData = await adResponse.json();
+				setAds(adData);
+			} catch (err) {
+				console.error("Ads Fetch Error:", err);
+				
+				// Handle specific error types
+				if (err.name === 'AbortError') {
+					setAdsError("Request timeout - please check your connection");
+				} else if (err.message.includes('Failed to fetch')) {
+					setAdsError("Network error - please check your internet connection");
+				} else {
+					setAdsError("Failed to load ads");
+				}
+				setAds({});
+			} finally {
+				setIsLoadingAds(false);
+			}
+		};
+
+		fetchCategories();
+		fetchAds();
 	}, []);
 
 	const location = useLocation();
@@ -303,9 +355,7 @@ const Home = () => {
 		setHasMore(results.length > RESULTS_PER_PAGE);
 	};
 
-	if (error) {
-		return <div>{error}</div>;
-	}
+	// Do not early-return on error; show alerts inline instead
 
 	return (
 		<>
@@ -377,6 +427,22 @@ const Home = () => {
 								<div className="mb-8 relative z-10">
 									<div className="max-w-7xl mx-auto px-0">
 										<div className="mx-0 sm:mx-4 md:mx-6 lg:mx-8 xl:mx-10 2xl:mx-12">
+											{/* Inline alerts */}
+											{error && (
+												<div className="mb-3 p-3 bg-red-100 text-red-800 rounded">
+													{error}
+												</div>
+											)}
+											{categoriesError && (
+												<div className="mb-3 p-3 bg-yellow-100 text-yellow-800 rounded">
+													{categoriesError}
+												</div>
+											)}
+											{adsError && (
+												<div className="mb-3 p-3 bg-yellow-100 text-yellow-800 rounded">
+													{adsError}
+												</div>
+											)}
 											{categories
 												.filter((category) => {
 													// Check if this category has any ads by looking at its subcategories
@@ -429,9 +495,20 @@ const Home = () => {
 														/>
 													);
 												})}
+											{isLoadingCategories && (
+												<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+													{Array.from({ length: 4 }).map((_, idx) => (
+														<div
+															key={idx}
+															className="h-48 bg-gray-200 animate-pulse rounded"
+														/>
+													))}
+												</div>
+											)}
 											<PopularAdsSection
 												ads={flattenedAds}
 												onAdClick={handleAdClick}
+												isLoading={isLoadingAds}
 											/>
 										</div>
 									</div>

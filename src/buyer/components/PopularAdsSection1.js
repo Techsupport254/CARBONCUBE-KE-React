@@ -141,11 +141,12 @@ const PopularAdsSection = ({ ads, onAdClick, isLoading = false }) => {
 													variant="top"
 													src={
 														imageUrl
-															? "https://picsum.photos/300/300?random=" + ad.id
-															: "https://via.placeholder.com/300x300/FF6B6B/FFFFFF?text=Test+Image"
+															? imageUrl.replace(/\n/g, "").trim()
+															: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
 													}
 													alt={ad.title || "Product Image"}
 													className="object-contain w-full h-full cursor-pointer transition-all duration-300 group-hover:scale-110"
+													loading="lazy"
 													onClick={() => onAdClick(ad.id)}
 													onLoad={(e) => {
 														console.log(
@@ -159,9 +160,9 @@ const PopularAdsSection = ({ ads, onAdClick, isLoading = false }) => {
 															`Image failed to load for ad ${ad.id}:`,
 															e.target.src
 														);
-														// Use a placeholder image as fallback
+														// Use a data URI as fallback to prevent infinite loops
 														e.target.src =
-															"https://via.placeholder.com/300x300/FF6B6B/FFFFFF?text=Error+Loading";
+															"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
 														e.target.style.opacity = "1";
 													}}
 												/>

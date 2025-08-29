@@ -14,36 +14,39 @@ import {
 	Gear,
 } from "react-bootstrap-icons";
 import "./Terms.css";
-import TopNavBarMinimal from "./TopNavBarMinimal";
+import Navbar from "./Navbar";
 import Footer from "./Footer";
-import useSEO from '../hooks/useSEO';
+import useSEO from "../hooks/useSEO";
 
 const Terms = () => {
 	// SEO Implementation
 	useSEO({
 		title: "Terms & Conditions - Carbon Cube Kenya",
-		description: "Read Carbon Cube Kenya's terms and conditions. Understand the legal agreement governing your use of Kenya's trusted online marketplace platform.",
-		keywords: "terms and conditions, Carbon Cube Kenya legal, Kenya marketplace terms, user agreement, platform terms",
+		description:
+			"Read Carbon Cube Kenya's terms and conditions. Understand the legal agreement governing your use of Kenya's trusted online marketplace platform.",
+		keywords:
+			"terms and conditions, Carbon Cube Kenya legal, Kenya marketplace terms, user agreement, platform terms",
 		url: "https://carboncube-ke.com/terms-and-conditions",
 		structuredData: {
 			"@context": "https://schema.org",
 			"@type": "WebPage",
-			"name": "Terms & Conditions - Carbon Cube Kenya",
-			"description": "Legal terms and conditions for using Carbon Cube Kenya marketplace",
-			"url": "https://carboncube-ke.com/terms-and-conditions",
-			"dateModified": "2025-07-25",
-			"publisher": {
+			name: "Terms & Conditions - Carbon Cube Kenya",
+			description:
+				"Legal terms and conditions for using Carbon Cube Kenya marketplace",
+			url: "https://carboncube-ke.com/terms-and-conditions",
+			dateModified: "2025-07-25",
+			publisher: {
 				"@type": "Organization",
-				"name": "Carbon Cube Kenya"
-			}
-		}
+				name: "Carbon Cube Kenya",
+			},
+		},
 	});
 
 	return (
 		<>
-			<TopNavBarMinimal />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
-			<div style={{ paddingTop: "68px" }} className="terms-container">
+			<div className="terms-container">
 				{/* Hero Section */}
 				<section
 					className="py-5 text-dark position-relative overflow-hidden"
@@ -72,10 +75,10 @@ const Terms = () => {
 							variant="dark"
 							size="lg"
 							href="https://t9014769862.p.clickup-attachments.com/t9014769862/dff490a5-61d4-4306-ad6e-3088913b328b/CarbonCube%20Terms%20and%20Conditions.docx?view=open"
-							className="rounded-pill px-4 py-2 shadow"
+							className="rounded-pill px-4 py-2 shadow d-inline-flex align-items-center gap-2"
 						>
-							<Shield className="me-2" size={16} />
-							Legal Document
+							<Shield size={16} />
+							<span>Legal Document</span>
 						</Button>
 					</Container>
 				</section>

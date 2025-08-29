@@ -4,10 +4,10 @@ import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import TopNavBarMinimal from "./TopNavBarMinimal";
+import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
 import "./LoginForm.css";
-import useSEO from '../hooks/useSEO';
+import useSEO from "../hooks/useSEO";
 
 const LoginForm = ({ onLogin }) => {
 	const [identifier, setIdentifier] = useState("");
@@ -19,22 +19,24 @@ const LoginForm = ({ onLogin }) => {
 	// SEO Implementation
 	useSEO({
 		title: "Login - Carbon Cube Kenya",
-		description: "Sign in to your Carbon Cube Kenya account. Access your buyer or seller dashboard on Kenya's trusted online marketplace.",
-		keywords: "login Carbon Cube Kenya, sign in, marketplace login, Kenya online shopping, seller login",
+		description:
+			"Sign in to your Carbon Cube Kenya account. Access your buyer or seller dashboard on Kenya's trusted online marketplace.",
+		keywords:
+			"login Carbon Cube Kenya, sign in, marketplace login, Kenya online shopping, seller login",
 		url: "https://carboncube-ke.com/login",
 		structuredData: {
 			"@context": "https://schema.org",
 			"@type": "WebPage",
-			"name": "Login - Carbon Cube Kenya",
-			"description": "Sign in to your Carbon Cube Kenya account",
-			"url": "https://carboncube-ke.com/login",
-			"mainEntity": {
+			name: "Login - Carbon Cube Kenya",
+			description: "Sign in to your Carbon Cube Kenya account",
+			url: "https://carboncube-ke.com/login",
+			mainEntity: {
 				"@type": "WebApplication",
-				"name": "Carbon Cube Kenya Login",
-				"applicationCategory": "BusinessApplication",
-				"operatingSystem": "Web Browser"
-			}
-		}
+				name: "Carbon Cube Kenya Login",
+				applicationCategory: "BusinessApplication",
+				operatingSystem: "Web Browser",
+			},
+		},
 	});
 
 	// AlertModal states
@@ -130,7 +132,7 @@ const LoginForm = ({ onLogin }) => {
 
 	return (
 		<>
-			<TopNavBarMinimal />
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
 			<Container fluid className="login-container">
 				<Row

@@ -97,6 +97,7 @@ const SearchResultSection = ({
 														}
 														alt={ad.title}
 														className="cursor-pointer aspect-square object-contain"
+														loading="lazy"
 														onClick={() => handleAdClick(ad.id)}
 														onLoad={(e) => {
 															e.target.style.opacity = "1";
