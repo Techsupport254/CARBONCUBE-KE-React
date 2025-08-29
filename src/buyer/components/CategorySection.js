@@ -28,7 +28,7 @@ const CategorySection = ({
 		  }));
 
 	return (
-		<Card className="mb-4 mx-0 shadow-xl rounded-lg border-2 border-red-500">
+		<Card className="mb-4 mx-0 shadow-xl rounded-lg ">
 			<Card.Header className="bg-secondary text-white rounded-t-lg flex justify-start shadow-md">
 				<h4 className="m-0 font-bold text-sm sm:text-base md:text-lg">
 					{title}

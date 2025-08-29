@@ -58,6 +58,25 @@ const AnalyticsModal = ({
 	void growthRate; // linter: acknowledge variable
 	void trend; // linter: acknowledge variable
 
+	// Get trend data once to avoid multiple function calls
+	const trendData = generateTrendData();
+
+	// Debug logging
+	console.log("=== AnalyticsModal DEBUG ===");
+	console.log("selectedCard:", selectedCard);
+	console.log("dateFilter:", dateFilter);
+	console.log("timestamps length:", timestamps?.length || 0);
+	console.log("trendData:", trendData);
+	console.log("trendData.labels:", trendData?.labels);
+	console.log("trendData.data:", trendData?.data);
+
+	// Ensure we have valid data for the chart
+	const chartLabels = trendData?.labels || [];
+	const chartData = trendData?.data || [];
+
+	// If no data, show a message or fallback
+	const hasData = chartLabels.length > 0 && chartData.length > 0;
+
 	// Removed unused helper functions
 
 	return (
@@ -106,12 +125,12 @@ const AnalyticsModal = ({
 									onChange={(e) => onDateFilterChange(e.target.value)}
 									className="w-full sm:w-auto px-3 py-2 pr-8 bg-white bg-opacity-30 text-gray-800 border border-white border-opacity-30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 appearance-none cursor-pointer"
 								>
-									<option value="all">All Time</option>
-									<option value="today">Today</option>
 									<option value="week">Last 7 Days</option>
+									<option value="today">Today</option>
 									<option value="month">Last 30 Days</option>
 									<option value="year">Last Year</option>
 									<option value="custom">Custom Range</option>
+									<option value="all">All Time</option>
 								</select>
 								{/* Custom dropdown arrow */}
 								<div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -154,7 +173,7 @@ const AnalyticsModal = ({
 							<button
 								className="w-full sm:w-auto px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-20 rounded-md transition-all duration-200 font-medium"
 								onClick={() => {
-									onDateFilterChange("all");
+									onDateFilterChange("week");
 									onCustomStartDateChange("");
 									onCustomEndDateChange("");
 								}}
@@ -205,72 +224,82 @@ const AnalyticsModal = ({
 									? "Performance over the last 12 months"
 									: dateFilter === "custom"
 									? "Performance for selected period"
-									: "Performance over the last 30 days"}
+									: "Performance across all available data"}
 							</p>
 						</div>
 					</div>
 
 					{/* Big Chart */}
 					<div className="h-64 sm:h-80 lg:h-96 w-full">
-						<Bar
-							data={{
-								labels: generateTrendData().labels,
-								datasets: [
-									{
-										label: selectedCard?.title || "Data",
-										data: generateTrendData().data.map((value) =>
-											Math.round(value)
-										),
-										backgroundColor: "rgba(59, 130, 246, 0.8)",
-										borderColor: "rgba(59, 130, 246, 1)",
-										borderWidth: 2,
-										borderRadius: 8,
-										hoverBackgroundColor: "rgba(59, 130, 246, 1)",
-									},
-								],
-							}}
-							options={{
-								responsive: true,
-								maintainAspectRatio: false,
-								plugins: {
-									legend: {
-										display: false,
-									},
-									tooltip: {
-										backgroundColor: "rgba(0, 0, 0, 0.8)",
-										titleColor: "white",
-										bodyColor: "white",
-										borderRadius: 8,
-										displayColors: false,
-									},
-								},
-								scales: {
-									y: {
-										beginAtZero: true,
-										grid: {
-											color: "rgba(0, 0, 0, 0.1)",
+						{hasData ? (
+							<Bar
+								data={{
+									labels: chartLabels,
+									datasets: [
+										{
+											label: selectedCard?.title || "Data",
+											data: chartData.map((value) => Math.round(value)),
+											backgroundColor: "rgba(59, 130, 246, 0.8)",
+											borderColor: "rgba(59, 130, 246, 1)",
+											borderWidth: 2,
+											borderRadius: 8,
+											hoverBackgroundColor: "rgba(59, 130, 246, 1)",
 										},
-										ticks: {
-											color: "rgba(0, 0, 0, 0.6)",
-											font: {
-												size: 12,
-											},
-										},
-									},
-									x: {
-										grid: {
+									],
+								}}
+								options={{
+									responsive: true,
+									maintainAspectRatio: false,
+									plugins: {
+										legend: {
 											display: false,
 										},
-										ticks: {
-											color: "rgba(0, 0, 0, 0.6)",
-											font: {
-												size: 12,
+										tooltip: {
+											backgroundColor: "rgba(0, 0, 0, 0.8)",
+											titleColor: "white",
+											bodyColor: "white",
+											borderRadius: 8,
+											displayColors: false,
+										},
+									},
+									scales: {
+										y: {
+											beginAtZero: true,
+											grid: {
+												color: "rgba(0, 0, 0, 0.1)",
+											},
+											ticks: {
+												color: "rgba(0, 0, 0, 0.6)",
+												font: {
+													size: 12,
+												},
+											},
+										},
+										x: {
+											grid: {
+												display: false,
+											},
+											ticks: {
+												color: "rgba(0, 0, 0, 0.6)",
+												font: {
+													size: 12,
+												},
 											},
 										},
 									},
-								},
-							}}
-						/>
+								}}
+							/>
+						) : (
+							<div className="flex items-center justify-center h-full text-gray-500">
+								<div className="text-center">
+									<div className="text-4xl mb-2">📊</div>
+									<div className="text-lg font-medium">No data available</div>
+									<div className="text-sm">
+										Select a different date range or check the data source
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 				{/* Source Breakdown (when available) */}

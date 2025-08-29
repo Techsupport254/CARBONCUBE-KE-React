@@ -1,6 +1,7 @@
 export { default as TopNavbar } from "./TopNavbar";
 export { default as Sidebar } from "./Sidebar";
 export { default as CategoryClickEvents } from "./CategoryClickEvents";
+export { default as CategoryPerformanceTable } from "./CategoryPerformanceTable";
 export { default as DashboardCard } from "./DashboardCard";
 export { default as DashboardCharts } from "./DashboardCharts";
 export { default as SourceTrackingCards } from "./SourceTrackingCards";

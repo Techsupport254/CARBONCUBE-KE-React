@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
-// Bootstrap CSS removed - using Tailwind CSS instead
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Container, Row, Col, Card } from "react-bootstrap";
+import { Pie } from "react-chartjs-2";
 import "./dashboard.css";
 
 // Trending icons removed with visitor metrics
@@ -45,18 +46,8 @@ import {
 	AnalyticsModal,
 	SourceTrackingModal,
 } from "../components";
-
-// Import newly created components
-import DashboardHeader from "../components/DashboardHeader";
-import MetricsGrid from "../components/MetricsGrid";
-import SellerAnalyticsSection from "../components/SellerAnalyticsSection";
-import SourceAnalyticsSection from "../components/SourceAnalyticsSection";
-import SourceAnalyticsRow from "../components/SourceAnalyticsRow";
-import DeviceAnalyticsSection from "../components/DeviceAnalyticsSection";
-import UTMSection from "../components/UTMSection";
-import UTMCampaignTrackingSection from "../components/UTMCampaignTrackingSection";
-import LoadingSpinner from "../components/LoadingSpinner";
-import ErrorState from "../components/ErrorState";
+import UTMCampaignURLGenerator from "../../components/UTMCampaignURLGenerator";
+import UTMCampaignTracking from "../../components/UTMCampaignTracking";
 
 // Import helper functions
 // Removed unused dashboard helper imports
@@ -1458,71 +1449,826 @@ function SalesDashboard() {
 	};
 
 	if (loading) {
-		return <LoadingSpinner />;
+		return (
+			<>
+				<Navbar mode="sales" showSearch={false} showCategories={false} />
+				<div
+					className="d-flex justify-content-center align-items-center"
+					style={{
+						minHeight: "100vh",
+						background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+						fontFamily: '"Fira Sans Extra Condensed", sans-serif',
+					}}
+				>
+					<Spinner
+						variant="warning"
+						name="cube-grid"
+						style={{ width: 100, height: 100 }}
+					/>
+				</div>
+			</>
+		);
 	}
 
 	if (!analytics) {
-		return <ErrorState />;
+		return (
+			<>
+				<Navbar mode="sales" showSearch={false} showCategories={false} />
+				<div
+					className="d-flex justify-content-center align-items-center"
+					style={{
+						minHeight: "100vh",
+						background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+						fontFamily: '"Fira Sans Extra Condensed", sans-serif',
+					}}
+				>
+					<div
+						className="text-center p-5"
+						style={{
+							background: "rgba(255, 255, 255, 0.9)",
+							backdropFilter: "blur(10px)",
+							borderRadius: "20px",
+							border: "1px solid rgba(255, 255, 255, 0.2)",
+							boxShadow: "0 8px 32px rgba(0, 0, 0, 0.1)",
+							maxWidth: "500px",
+							width: "90%",
+						}}
+					>
+						<div className="mb-4">
+							<div
+								className="d-flex justify-content-center align-items-center mx-auto"
+								style={{
+									width: "80px",
+									height: "80px",
+									background: "linear-gradient(135deg, #ffc107, #ff9800)",
+									borderRadius: "50%",
+									boxShadow: "0 4px 15px rgba(255, 193, 7, 0.3)",
+								}}
+							>
+								<svg
+									width="40"
+									height="40"
+									fill="currentColor"
+									viewBox="0 0 16 16"
+									style={{ color: "#000" }}
+								>
+									<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+									<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+								</svg>
+							</div>
+						</div>
+						<h4 className="mb-3 fw-bold" style={{ color: "#333" }}>
+							Failed to Load Analytics
+						</h4>
+						<p className="mb-4" style={{ color: "#666", fontSize: "1.1rem" }}>
+							Unable to fetch dashboard data. Please try refreshing the page.
+						</p>
+						<button
+							className="btn fw-bold px-4 py-2"
+							style={{
+								background: "linear-gradient(135deg, #ffc107, #ff9800)",
+								border: "none",
+								borderRadius: "25px",
+								color: "#000",
+								boxShadow: "0 4px 15px rgba(255, 193, 7, 0.3)",
+								transition: "all 0.3s ease",
+							}}
+							onMouseEnter={(e) => {
+								e.target.style.transform = "translateY(-2px)";
+								e.target.style.boxShadow = "0 6px 20px rgba(255, 193, 7, 0.4)";
+							}}
+							onMouseLeave={(e) => {
+								e.target.style.transform = "translateY(0)";
+								e.target.style.boxShadow = "0 4px 15px rgba(255, 193, 7, 0.3)";
+							}}
+							onClick={() => window.location.reload()}
+						>
+							<svg
+								width="16"
+								height="16"
+								fill="currentColor"
+								viewBox="0 0 16 16"
+								className="me-2"
+							>
+								<path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+								<path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+							</svg>
+							Refresh Page
+						</button>
+					</div>
+				</div>
+			</>
+		);
 	}
+
+	// Use filtered data for renewal rate calculation if available
+	const dataSource = memoizedFilteredData || analytics;
+	// Removed unused renewalRate calculation
+
+	const pieData = {
+		labels: ["Active Subscriptions", "Inactive Subscriptions"],
+		datasets: [
+			{
+				label: "Sellers",
+				data: [
+					analytics.subscription_countdowns,
+					analytics.without_subscription,
+				],
+				backgroundColor: ["#4caf50", "#f44336"],
+				borderColor: ["#fff", "#fff"],
+				borderWidth: 2,
+			},
+		],
+	};
+
+	// Removed unused barData config
+
+	const buyerAdClickBarData = {
+		labels: ["Cummulative Ad Clicks"],
+		datasets: [
+			{
+				label: "Total Ad Clicks",
+				data: [analytics.buyer_ad_clicks],
+				backgroundColor: "rgba(54, 162, 235, 0.6)",
+				borderColor: "rgba(54, 162, 235, 1)",
+				borderWidth: 1,
+			},
+		],
+	};
+
+	// Removed unused buyerAdClickBarOptions
+
+	// Removed unused barOptions
 
 	return (
 		<>
 			<Navbar mode="sales" showSearch={false} showCategories={false} />
 
-			<div className="min-h-screen bg-gray-50 ">
-				<div className="flex flex-col xl:flex-row">
-					{/* Sidebar - Full width on mobile, fixed width on larger screens */}
-					<Sidebar />
+			<Container fluid className="analytics-reporting-page">
+				<Row className="g-0">
+					<Col xs={12} md={2} className="pe-3">
+						<Sidebar />
+					</Col>
 
-					{/* Main Content Area - Responsive padding and width with max-width constraint */}
-					<div className="flex-1 min-w-0">
-						<div className="max-w-7xl mx-auto p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6">
-							<DashboardHeader />
-							<MetricsGrid
-								analytics={analytics}
-								onCardClick={({ title, value }) => {
-									setSelectedCard({ title, value });
-									setDateFilter("week");
-									setCustomStartDate("");
-									setCustomEndDate("");
-									setShowModal(true);
-								}}
-							/>
-							<SellerAnalyticsSection analytics={analytics} />
+					<Col xs={12} md={10}>
+						<div className="content-area">
+							<div className="d-flex justify-content-between align-items-center mb-4 bg-secondary p-3 text-white rounded">
+								<h2 className="mb-0">Overview</h2>
+								<span className="fw-semibold">Hello, Sales Team</span>
+							</div>
+							<Row className="g-3">
+								{[
+									{ title: "Total Sellers", value: analytics.total_sellers },
+									{ title: "Total Buyers", value: analytics.total_buyers },
+									{ title: "Total Reviews", value: analytics.total_reviews },
+									{ title: "Total Ads", value: analytics.total_ads },
+									{
+										title: "Total Wishlists",
+										value: analytics.total_ads_wish_listed,
+									},
+									{
+										title: "Total Ads Clicks",
+										value: analytics.total_ads_clicks,
+									},
+									{
+										title: "Total Click Reveals",
+										value: analytics.total_reveal_clicks || 0,
+									},
+								].map(({ title, value }, index) => (
+									<DashboardCard
+										key={index}
+										title={title}
+										value={value}
+										onClick={() => {
+											setSelectedCard({ title, value });
+											setDateFilter("week");
+											setCustomStartDate("");
+											setCustomEndDate("");
+											setShowModal(true);
+										}}
+									/>
+								))}
+							</Row>
+
+							<Row className="g-6">
+								<h3 className="pt-5 fw-bold">Seller related </h3>
+								<DashboardCharts
+									pieData={pieData}
+									buyerAdClickBarData={buyerAdClickBarData}
+									analytics={analytics}
+								/>
+							</Row>
 							<CategoryPerformanceTable categories={categories} />
-							<SourceAnalyticsSection
-								sourceAnalytics={sourceAnalytics}
-								memoizedFilteredSourceData={memoizedFilteredSourceData}
-								onSourceCardClick={(card) => {
-									setSelectedSourceCard(card);
-									setSourceDateFilter("all");
-									setSourceCustomStartDate("");
-									setSourceCustomEndDate("");
-									setShowSourceModal(true);
-								}}
-							/>
+
+							<Row className="mt-4 g-4 mb-5">
+								<Col xs={12}>
+									<h3 className="pt-1 fw-bold pb-3">
+										Source Tracking Analytics
+									</h3>
+								</Col>
+								<SourceTrackingCards
+									sourceAnalytics={sourceAnalytics}
+									memoizedFilteredSourceData={memoizedFilteredSourceData}
+									onSourceCardClick={(card) => {
+										setSelectedSourceCard(card);
+										setSourceDateFilter("all");
+										setSourceCustomStartDate("");
+										setSourceCustomEndDate("");
+										setShowSourceModal(true);
+									}}
+								/>
+							</Row>
+
+							{/* Unique Visitor Metrics Row
+							<Row className="mt-4 g-4 mb-5">
+								<Col xs={12}>
+									<h4 className="pt-1 fw-bold pb-3">
+										Visitor Engagement Metrics
+									</h4>
+								</Col>
+								<VisitorEngagementMetrics
+									memoizedFilteredSourceData={memoizedFilteredSourceData}
+									onVisitorMetricClick={(metric) => {
+										setSelectedVisitorMetric(metric);
+										setShowVisitorModal(true);
+									}}
+								/>
+							</Row> */}
+
 							{/* UTM Campaign Tracking */}
-							<UTMCampaignTrackingSection sourceAnalytics={sourceAnalytics} />
+							{sourceAnalytics && (
+								<Row className="mt-4 g-4 mb-5">
+									<Col xs={12}>
+										<UTMCampaignTracking
+											utmData={sourceAnalytics}
+											className="custom-card"
+										/>
+									</Col>
+								</Row>
+							)}
+
 							{/* Detailed Source Analytics - Split into Left (Table) and Right (Pie Chart) */}
-							<SourceAnalyticsRow
-								sourceAnalytics={sourceAnalytics}
-								getSourceIcon={getSourceIcon}
-								getSourceTrend={getSourceTrend}
-								getSourceBrandColor={getSourceBrandColor}
-							/>
+							<Row className="mt-4 g-4 mb-5">
+								{/* Detailed Source Analytics - Split into Left (Table) and Right (Pie Chart) */}
+								<Col xs={12} lg={6}>
+									<Card className="p-3 shadow-sm custom-card h-100">
+										<Card.Header className="text-center fw-bold">
+											Source Analytics Table
+										</Card.Header>
+										<Card.Body>
+											<div className="table-responsive">
+												<table className="table table-hover">
+													<thead className="table-light">
+														<tr>
+															<th>Source</th>
+															<th>Visits</th>
+															<th>Percentage</th>
+															<th>Trend</th>
+														</tr>
+													</thead>
+													<tbody>
+														{sourceAnalytics.top_sources &&
+														sourceAnalytics.top_sources.length > 0 ? (
+															sourceAnalytics.top_sources.map(
+																([source, count], index) => {
+																	const percentage =
+																		sourceAnalytics.total_visits > 0
+																			? (
+																					(count /
+																						sourceAnalytics.total_visits) *
+																					100
+																			  ).toFixed(1)
+																			: 0;
+																	const isFacebook = source === "facebook";
+																	return (
+																		<tr key={index}>
+																			<td>
+																				<div className="d-flex align-items-center">
+																					<div
+																						className="me-2"
+																						style={{ fontSize: "18px" }}
+																					>
+																						{getSourceIcon(source)}
+																					</div>
+																					<span className="text-capitalize fw-medium">
+																						{source === "direct"
+																							? "Direct"
+																							: source === "facebook"
+																							? "Facebook"
+																							: source}
+																					</span>
+																				</div>
+																			</td>
+																			<td>
+																				<span className="fw-bold text-primary">
+																					{count.toLocaleString()}
+																				</span>
+																			</td>
+																			<td>
+																				<div className="d-flex align-items-center">
+																					<div
+																						className="progress me-2"
+																						style={{
+																							width: "60px",
+																							height: "6px",
+																						}}
+																					>
+																						<div
+																							className={`progress-bar ${
+																								isFacebook
+																									? "bg-primary"
+																									: "bg-primary"
+																							}`}
+																							style={{
+																								width: `${percentage}%`,
+																							}}
+																						></div>
+																					</div>
+																					<span className="text-muted small">
+																						{percentage}%
+																					</span>
+																				</div>
+																			</td>
+																			<td>
+																				<span className="badge bg-success">
+																					{getSourceTrend(source)}
+																				</span>
+																			</td>
+																		</tr>
+																	);
+																}
+															)
+														) : (
+															<tr>
+																<td
+																	colSpan="4"
+																	className="text-center text-muted py-4"
+																>
+																	No source data available
+																</td>
+															</tr>
+														)}
+													</tbody>
+												</table>
+											</div>
+										</Card.Body>
+									</Card>
+								</Col>
+
+								{/* Right Column - Pie Chart */}
+								<Col xs={12} lg={6}>
+									<Card className="p-3 shadow-sm custom-card h-100">
+										<Card.Header className="text-center fw-bold">
+											Source Distribution Chart
+										</Card.Header>
+										<Card.Body>
+											{sourceAnalytics.top_sources &&
+											sourceAnalytics.top_sources.length > 0 ? (
+												<div className="d-flex justify-content-center">
+													<Pie
+														data={{
+															labels: sourceAnalytics.top_sources.map(
+																([source]) =>
+																	source === "direct"
+																		? "Direct"
+																		: source === "facebook"
+																		? "Facebook"
+																		: source.charAt(0).toUpperCase() +
+																		  source.slice(1)
+															),
+															datasets: [
+																{
+																	data: sourceAnalytics.top_sources.map(
+																		([, count]) => count
+																	),
+																	backgroundColor:
+																		sourceAnalytics.top_sources.map(
+																			([source]) => getSourceBrandColor(source)
+																		),
+																	borderColor: "#fff",
+																	borderWidth: 2,
+																},
+															],
+														}}
+														options={{
+															responsive: true,
+															maintainAspectRatio: false,
+															plugins: {
+																legend: {
+																	position: "bottom",
+																	labels: {
+																		padding: 20,
+																		usePointStyle: true,
+																	},
+																},
+															},
+														}}
+														height={300}
+													/>
+												</div>
+											) : (
+												<div className="text-center text-muted py-5">
+													No source data available
+												</div>
+											)}
+										</Card.Body>
+									</Card>
+								</Col>
+							</Row>
+
 							{/* Device Analytics Section */}
-							<DeviceAnalyticsSection
-								analytics={analytics}
-								getDeviceIcon={getDeviceIcon}
-								getBrowserIcon={getBrowserIcon}
-								getOSIcon={getOSIcon}
-							/>
+							{analytics?.device_analytics && (
+								<Row className="mt-4 g-4">
+									<Col xs={12}>
+										<h3 className="pt-1 fw-bold pb-3">
+											Device & Browser Analytics
+										</h3>
+									</Col>
+
+									{/* Device Types - Table and Chart */}
+									<Col xs={12} lg={6}>
+										<Card className="p-3 shadow-sm custom-card h-100">
+											<Card.Header className="text-center fw-bold">
+												Device Types
+											</Card.Header>
+											<Card.Body>
+												<Row>
+													{/* Table */}
+													<Col xs={12} md={6}>
+														<div className="table-responsive">
+															<table className="table table-sm">
+																<thead>
+																	<tr>
+																		<th>Device</th>
+																		<th>Visits</th>
+																		<th>%</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	{Object.entries(
+																		analytics.device_analytics.device_types ||
+																			{}
+																	).map(([device, count]) => {
+																		const percentage =
+																			analytics.device_analytics.total_devices >
+																			0
+																				? (
+																						(count /
+																							analytics.device_analytics
+																								.total_devices) *
+																						100
+																				  ).toFixed(1)
+																				: 0;
+																		return (
+																			<tr key={device}>
+																				<td className="text-capitalize small">
+																					<div className="d-flex align-items-center">
+																						<div
+																							className="me-2"
+																							style={{ fontSize: "16px" }}
+																						>
+																							{getDeviceIcon(device)}
+																						</div>
+																						<span>{device}</span>
+																					</div>
+																				</td>
+																				<td className="fw-bold small">
+																					{count}
+																				</td>
+																				<td className="small">{percentage}%</td>
+																			</tr>
+																		);
+																	})}
+																</tbody>
+															</table>
+														</div>
+													</Col>
+
+													{/* Pie Chart */}
+													<Col xs={12} md={6}>
+														{Object.keys(
+															analytics.device_analytics.device_types || {}
+														).length > 0 ? (
+															<Pie
+																data={{
+																	labels: Object.keys(
+																		analytics.device_analytics.device_types ||
+																			{}
+																	).map(
+																		(device) =>
+																			device.charAt(0).toUpperCase() +
+																			device.slice(1)
+																	),
+																	datasets: [
+																		{
+																			data: Object.values(
+																				analytics.device_analytics
+																					.device_types || {}
+																			),
+																			backgroundColor: [
+																				"#3B82F6",
+																				"#10B981",
+																				"#F59E0B",
+																				"#EF4444",
+																				"#8B5CF6",
+																			],
+																			borderColor: "#fff",
+																			borderWidth: 2,
+																		},
+																	],
+																}}
+																options={{
+																	responsive: true,
+																	maintainAspectRatio: false,
+																	plugins: {
+																		legend: {
+																			position: "bottom",
+																			labels: {
+																				padding: 10,
+																				usePointStyle: true,
+																				font: { size: 10 },
+																			},
+																		},
+																	},
+																}}
+																height={200}
+															/>
+														) : (
+															<div className="text-center text-muted py-4">
+																No device data available
+															</div>
+														)}
+													</Col>
+												</Row>
+											</Card.Body>
+										</Card>
+									</Col>
+
+									{/* Top Browsers - Table and Chart */}
+									<Col xs={12} lg={6}>
+										<Card className="p-3 shadow-sm custom-card h-100">
+											<Card.Header className="text-center fw-bold">
+												Top Browsers
+											</Card.Header>
+											<Card.Body>
+												<Row>
+													{/* Table */}
+													<Col xs={12} md={6}>
+														<div className="table-responsive">
+															<table className="table table-sm">
+																<thead>
+																	<tr>
+																		<th>Browser</th>
+																		<th>Visits</th>
+																		<th>%</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	{Object.entries(
+																		analytics.device_analytics.browsers || {}
+																	)
+																		.sort(([, a], [, b]) => b - a)
+																		.slice(0, 5)
+																		.map(([browser, count]) => {
+																			const percentage =
+																				analytics.device_analytics
+																					.total_devices > 0
+																					? (
+																							(count /
+																								analytics.device_analytics
+																									.total_devices) *
+																							100
+																					  ).toFixed(1)
+																					: 0;
+																			return (
+																				<tr key={browser}>
+																					<td className="small">
+																						<div className="d-flex align-items-center">
+																							<div
+																								className="me-2"
+																								style={{ fontSize: "16px" }}
+																							>
+																								{getBrowserIcon(browser)}
+																							</div>
+																							<span>{browser}</span>
+																						</div>
+																					</td>
+																					<td className="fw-bold small">
+																						{count}
+																					</td>
+																					<td className="small">
+																						{percentage}%
+																					</td>
+																				</tr>
+																			);
+																		})}
+																</tbody>
+															</table>
+														</div>
+													</Col>
+
+													{/* Pie Chart */}
+													<Col xs={12} md={6}>
+														{Object.keys(
+															analytics.device_analytics.browsers || {}
+														).length > 0 ? (
+															<Pie
+																data={{
+																	labels: Object.entries(
+																		analytics.device_analytics.browsers || {}
+																	)
+																		.sort(([, a], [, b]) => b - a)
+																		.slice(0, 5)
+																		.map(([browser]) => browser),
+																	datasets: [
+																		{
+																			data: Object.entries(
+																				analytics.device_analytics.browsers ||
+																					{}
+																			)
+																				.sort(([, a], [, b]) => b - a)
+																				.slice(0, 5)
+																				.map(([, count]) => count),
+																			backgroundColor: [
+																				"#10B981",
+																				"#3B82F6",
+																				"#F59E0B",
+																				"#EF4444",
+																				"#8B5CF6",
+																			],
+																			borderColor: "#fff",
+																			borderWidth: 2,
+																		},
+																	],
+																}}
+																options={{
+																	responsive: true,
+																	maintainAspectRatio: false,
+																	plugins: {
+																		legend: {
+																			position: "bottom",
+																			labels: {
+																				padding: 10,
+																				usePointStyle: true,
+																				font: { size: 10 },
+																			},
+																		},
+																	},
+																}}
+																height={200}
+															/>
+														) : (
+															<div className="text-center text-muted py-4">
+																No browser data available
+															</div>
+														)}
+													</Col>
+												</Row>
+											</Card.Body>
+										</Card>
+									</Col>
+
+									{/* Operating Systems - Table and Chart */}
+									<Col xs={12} lg={6}>
+										<Card className="p-3 shadow-sm custom-card h-100">
+											<Card.Header className="text-center fw-bold">
+												Operating Systems
+											</Card.Header>
+											<Card.Body>
+												<Row>
+													{/* Table */}
+													<Col xs={12} md={6}>
+														<div className="table-responsive">
+															<table className="table table-sm">
+																<thead>
+																	<tr>
+																		<th>OS</th>
+																		<th>Visits</th>
+																		<th>%</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	{Object.entries(
+																		analytics.device_analytics
+																			.operating_systems || {}
+																	)
+																		.sort(([, a], [, b]) => b - a)
+																		.slice(0, 5)
+																		.map(([os, count]) => {
+																			const percentage =
+																				analytics.device_analytics
+																					.total_devices > 0
+																					? (
+																							(count /
+																								analytics.device_analytics
+																									.total_devices) *
+																							100
+																					  ).toFixed(1)
+																					: 0;
+																			return (
+																				<tr key={os}>
+																					<td className="small">
+																						<div className="d-flex align-items-center">
+																							<div
+																								className="me-2"
+																								style={{ fontSize: "16px" }}
+																							>
+																								{getOSIcon(os)}
+																							</div>
+																							<span>{os}</span>
+																						</div>
+																					</td>
+																					<td className="fw-bold small">
+																						{count}
+																					</td>
+																					<td className="small">
+																						{percentage}%
+																					</td>
+																				</tr>
+																			);
+																		})}
+																</tbody>
+															</table>
+														</div>
+													</Col>
+
+													{/* Pie Chart */}
+													<Col xs={12} md={6}>
+														{Object.keys(
+															analytics.device_analytics.operating_systems || {}
+														).length > 0 ? (
+															<Pie
+																data={{
+																	labels: Object.entries(
+																		analytics.device_analytics
+																			.operating_systems || {}
+																	)
+																		.sort(([, a], [, b]) => b - a)
+																		.slice(0, 5)
+																		.map(([os]) => os),
+																	datasets: [
+																		{
+																			data: Object.entries(
+																				analytics.device_analytics
+																					.operating_systems || {}
+																			)
+																				.sort(([, a], [, b]) => b - a)
+																				.slice(0, 5)
+																				.map(([, count]) => count),
+																			backgroundColor: [
+																				"#F59E0B",
+																				"#3B82F6",
+																				"#10B981",
+																				"#EF4444",
+																				"#8B5CF6",
+																			],
+																			borderColor: "#fff",
+																			borderWidth: 2,
+																		},
+																	],
+																}}
+																options={{
+																	responsive: true,
+																	maintainAspectRatio: false,
+																	plugins: {
+																		legend: {
+																			position: "bottom",
+																			labels: {
+																				padding: 10,
+																				usePointStyle: true,
+																				font: { size: 10 },
+																			},
+																		},
+																	},
+																}}
+																height={200}
+															/>
+														) : (
+															<div className="text-center text-muted py-4">
+																No OS data available
+															</div>
+														)}
+													</Col>
+												</Row>
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
+							)}
+
 							{/* UTM URL Generator Section */}
-							<UTMSection />
+							<Row className="mt-4 g-4 mb-5">
+								<Col xs={12}>
+									<UTMCampaignURLGenerator
+										baseUrl={window.location.origin}
+										onUrlGenerated={(url) => {}}
+									/>
+								</Col>
+							</Row>
 						</div>
-					</div>
-				</div>
-			</div>
+					</Col>
+				</Row>
+			</Container>
 
 			{/* Analytics Detail Modal */}
 			<AnalyticsModal

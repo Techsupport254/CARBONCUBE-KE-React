@@ -161,6 +161,7 @@ class SourceTrackingService {
 			"127.0.0.1",
 			"0.0.0.0",
 			"::1",
+			"localhost",
 			"carboncube-ke.com",
 			"www.carboncube-ke.com",
 			"carboncube.com",

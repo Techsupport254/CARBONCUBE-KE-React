@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 // Trending icons removed
@@ -17,44 +17,99 @@ const SourceTrackingModal = ({
 	memoizedFilteredSourceData,
 	sourceAnalytics,
 }) => {
+	// Ensure the modal reflects the current filter when it opens
+	useEffect(() => {
+		console.log(
+			"SourceTrackingModal - show:",
+			show,
+			"sourceDateFilter:",
+			sourceDateFilter
+		);
+
+		// Debug logging for data analysis
+		if (show) {
+			console.log("=== MODAL OPENED - DATA ANALYSIS ===");
+			console.log("memoizedFilteredSourceData:", memoizedFilteredSourceData);
+			console.log(
+				"source_distribution keys:",
+				Object.keys(memoizedFilteredSourceData?.source_distribution || {})
+			);
+			console.log(
+				"source_distribution values:",
+				Object.values(memoizedFilteredSourceData?.source_distribution || {})
+			);
+			console.log("Total visits:", memoizedFilteredSourceData?.total_visits);
+
+			// Log each source with count
+			Object.entries(
+				memoizedFilteredSourceData?.source_distribution || {}
+			).forEach(([source, count]) => {
+				console.log(`Source: ${source} = ${count} visits`);
+			});
+			console.log("=== END DATA ANALYSIS ===");
+		}
+
+		if (show && sourceDateFilter !== "week") {
+			console.log("Resetting to week filter");
+			// Reset to week filter when modal opens
+			onSourceDateFilterChange("week");
+			onSourceCustomStartDateChange("");
+			onSourceCustomEndDateChange("");
+		}
+	}, [
+		show,
+		sourceDateFilter,
+		onSourceDateFilterChange,
+		onSourceCustomStartDateChange,
+		onSourceCustomEndDateChange,
+	]);
+
 	if (!selectedSourceCard) return null;
 	// Growth rate calculation removed
 
 	const getSourceBrandColor = (source) => {
-		switch ((source || "").toLowerCase()) {
-			case "facebook":
-				return "#1877F2";
-			case "instagram":
-				return "#E4405F";
-			case "twitter":
-				return "#1DA1F2";
-			case "linkedin":
-				return "#0A66C2";
-			case "youtube":
-				return "#FF0000";
-			case "tiktok":
-				return "#000000";
-			case "snapchat":
-				return "#FFFC00";
-			case "pinterest":
-				return "#BD081C";
-			case "reddit":
-				return "#FF4500";
-			case "whatsapp":
-				return "#25D366";
-			case "telegram":
-				return "#0088CC";
-			case "google":
-				return "#4285F4";
-			case "bing":
-				return "#0078D4";
-			case "yahoo":
-				return "#720E9E";
-			case "direct":
-				return "#6B7280";
-			default:
-				return "#6366F1";
+		// Common social media and search engine colors
+		const sourceColors = {
+			facebook: "#1877F2",
+			instagram: "#E4405F",
+			twitter: "#1DA1F2",
+			linkedin: "#0A66C2",
+			youtube: "#FF0000",
+			tiktok: "#000000",
+			snapchat: "#FFFC00",
+			pinterest: "#BD081C",
+			reddit: "#FF4500",
+			whatsapp: "#25D366",
+			telegram: "#0088CC",
+			google: "#4285F4",
+			bing: "#0078D4",
+			yahoo: "#720E9E",
+			direct: "#6B7280",
+		};
+
+		// Return predefined color or generate a consistent color for unknown sources
+		return (
+			sourceColors[(source || "").toLowerCase()] ||
+			generateConsistentColor(source)
+		);
+	};
+
+	// Generate consistent colors for unknown sources
+	const generateConsistentColor = (source) => {
+		if (!source) return "#6366F1";
+
+		// Simple hash function to generate consistent colors
+		let hash = 0;
+		for (let i = 0; i < source.length; i++) {
+			hash = source.charCodeAt(i) + ((hash << 5) - hash);
 		}
+
+		// Generate a pleasant color from the hash
+		const hue = Math.abs(hash) % 360;
+		const saturation = 60 + (Math.abs(hash) % 20); // 60-80%
+		const lightness = 45 + (Math.abs(hash) % 15); // 45-60%
+
+		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 	};
 
 	const trendData = generateSourceTrackingTrendData();
@@ -116,12 +171,12 @@ const SourceTrackingModal = ({
 									onChange={(e) => onSourceDateFilterChange(e.target.value)}
 									className="w-full sm:w-auto px-3 py-2 pr-8 bg-white bg-opacity-30 text-gray-800 border border-white border-opacity-30 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 appearance-none cursor-pointer"
 								>
-									<option value="all">All Time</option>
-									<option value="today">Today</option>
 									<option value="week">Last 7 Days</option>
+									<option value="today">Today</option>
 									<option value="month">Last 30 Days</option>
 									<option value="year">Last Year</option>
 									<option value="custom">Custom Range</option>
+									<option value="all">All Time</option>
 								</select>
 								<div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
 									<svg
@@ -165,7 +220,7 @@ const SourceTrackingModal = ({
 							<button
 								className="w-full sm:w-auto px-4 py-2 text-sm text-white hover:bg-white hover:bg-opacity-20 rounded-md transition-all duration-200 font-medium"
 								onClick={() => {
-									onSourceDateFilterChange("all");
+									onSourceDateFilterChange("week");
 									onSourceCustomStartDateChange("");
 									onSourceCustomEndDateChange("");
 								}}
@@ -209,12 +264,12 @@ const SourceTrackingModal = ({
 									: sourceDateFilter === "week"
 									? "Performance over the last 7 days"
 									: sourceDateFilter === "month"
-									? "Performance over the last 4 weeks"
+									? "Performance over the last 30 days"
 									: sourceDateFilter === "year"
 									? "Performance over the last 12 months"
 									: sourceDateFilter === "custom"
 									? "Performance for selected period"
-									: "Performance over the last 30 days"}
+									: "Performance across all available data"}
 							</p>
 						</div>
 					</div>
@@ -299,8 +354,7 @@ const SourceTrackingModal = ({
 										const utmData =
 											memoizedFilteredSourceData?.utm_source_distribution || {};
 										return Object.entries(utmData)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([source, count], index) => {
 												const total = Object.values(utmData).reduce(
 													(sum, v) => sum + v,
@@ -334,8 +388,7 @@ const SourceTrackingModal = ({
 										const utmData =
 											memoizedFilteredSourceData?.utm_medium_distribution || {};
 										return Object.entries(utmData)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([medium, count], index) => {
 												const total = Object.values(utmData).reduce(
 													(sum, v) => sum + v,
@@ -370,8 +423,7 @@ const SourceTrackingModal = ({
 											memoizedFilteredSourceData?.utm_campaign_distribution ||
 											{};
 										return Object.entries(utmData)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([campaign, count], index) => {
 												const total = Object.values(utmData).reduce(
 													(sum, v) => sum + v,
@@ -382,9 +434,11 @@ const SourceTrackingModal = ({
 												return (
 													<div key={index} className="space-y-2 sm:space-y-3">
 														<div className="flex items-center justify-between">
-															<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
-																{campaign.replace(/_/g, " ")}
-															</span>
+															<div className="flex items-center">
+																<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
+																	{campaign.replace(/_/g, " ")}
+																</span>
+															</div>
 															<span className="text-sm sm:text-base font-semibold text-gray-800">
 																{count.toLocaleString()} ({percentage}%)
 															</span>
@@ -443,38 +497,38 @@ const SourceTrackingModal = ({
 												);
 											});
 									} else {
-										return Object.entries(
+										// Show ALL sources sorted by value (highest to lowest)
+										const allSources = Object.entries(
 											memoizedFilteredSourceData?.source_distribution || {}
-										)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
-											.map(([source, count], index) => {
-												const total =
-													memoizedFilteredSourceData?.total_visits || 0;
-												const percentage =
-													total > 0 ? Math.round((count / total) * 100) : 0;
-												return (
-													<div key={index} className="space-y-2 sm:space-y-3">
-														<div className="flex items-center justify-between">
-															<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
-																{source}
-															</span>
-															<span className="text-sm sm:text-base font-semibold text-gray-800">
-																{count.toLocaleString()} ({percentage}%)
-															</span>
-														</div>
-														<div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
-															<div
-																className="h-2 sm:h-3 rounded-full transition-all duration-300"
-																style={{
-																	width: `${percentage}%`,
-																	backgroundColor: getSourceBrandColor(source),
-																}}
-															></div>
-														</div>
+										).sort(([, a], [, b]) => b - a); // Sort by count descending
+
+										return allSources.map(([source, count], index) => {
+											const total =
+												memoizedFilteredSourceData?.total_visits || 0;
+											const percentage =
+												total > 0 ? Math.round((count / total) * 100) : 0;
+											return (
+												<div key={index} className="space-y-2 sm:space-y-3">
+													<div className="flex items-center justify-between">
+														<span className="text-sm sm:text-base font-medium text-gray-700 capitalize">
+															{source}
+														</span>
+														<span className="text-sm sm:text-base font-semibold text-gray-800">
+															{count.toLocaleString()} ({percentage}%)
+														</span>
 													</div>
-												);
-											});
+													<div className="w-full bg-gray-200 rounded-full h-2 sm:h-3">
+														<div
+															className="h-2 sm:h-3 rounded-full transition-all duration-300"
+															style={{
+																width: `${percentage}%`,
+																backgroundColor: getSourceBrandColor(source),
+															}}
+														></div>
+													</div>
+												</div>
+											);
+										});
 									}
 								})()}
 							</div>
@@ -498,14 +552,13 @@ const SourceTrackingModal = ({
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										Top UTM Sources
+										All UTM Sources
 									</h5>
 									<div className="space-y-3">
 										{Object.entries(
 											memoizedFilteredSourceData?.utm_source_distribution || {}
 										)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([source, count], index) => {
 												const total = Object.values(
 													memoizedFilteredSourceData?.utm_source_distribution ||
@@ -537,14 +590,13 @@ const SourceTrackingModal = ({
 
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										Top UTM Mediums
+										All UTM Mediums
 									</h5>
 									<div className="space-y-3">
 										{Object.entries(
 											memoizedFilteredSourceData?.utm_medium_distribution || {}
 										)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([medium, count], index) => {
 												const total = Object.values(
 													memoizedFilteredSourceData?.utm_medium_distribution ||
@@ -576,15 +628,14 @@ const SourceTrackingModal = ({
 
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										Top UTM Campaigns
+										All UTM Campaigns
 									</h5>
 									<div className="space-y-3">
 										{Object.entries(
 											memoizedFilteredSourceData?.utm_campaign_distribution ||
 												{}
 										)
-											.sort(([, a], [, b]) => b - a)
-											.slice(0, 5)
+											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([campaign, count], index) => {
 												const total = Object.values(
 													memoizedFilteredSourceData?.utm_campaign_distribution ||

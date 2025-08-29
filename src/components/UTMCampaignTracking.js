@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Row, Col, Badge, ProgressBar } from "react-bootstrap";
+import { Card, Row, Col, Badge } from "react-bootstrap";
 import {
 	FaFacebook,
 	FaInstagram,
@@ -396,16 +396,22 @@ const UTMCampaignTracking = ({
 															<td className="fs-8 fs-md-7">
 																<div className="d-flex align-items-center">
 																	<div
-																		className="progress me-2"
+																		className="me-2"
 																		style={{
 																			width: "60px",
 																			height: "6px",
+																			backgroundColor: "#e5e7eb",
+																			borderRadius: "3px",
+																			overflow: "hidden",
 																		}}
 																	>
-																		<ProgressBar
-																			now={percentage}
-																			className="bg-success"
-																			style={{ height: "6px" }}
+																		<div
+																			style={{
+																				width: `${percentage}%`,
+																				height: "100%",
+																				backgroundColor: "#10b981",
+																				borderRadius: "3px",
+																			}}
 																		/>
 																	</div>
 																	<span className="small text-muted fs-8 fs-md-7">

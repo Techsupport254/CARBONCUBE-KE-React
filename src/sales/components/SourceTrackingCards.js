@@ -11,57 +11,73 @@ const SourceTrackingCards = ({
 		return <div className="text-center">Loading source analytics...</div>;
 	}
 
-	const socialSources = [
-		"facebook",
-		"whatsapp",
-		"telegram",
-		"twitter",
-		"instagram",
-		"linkedin",
-		"youtube",
-		"tiktok",
-		"snapchat",
-		"pinterest",
-		"reddit",
-	];
+	// Dynamically get all available sources from the data
+	const allAvailableSources = Object.keys(
+		memoizedFilteredSourceData?.source_distribution || {}
+	);
 
-	const socialVisits = socialSources.reduce((total, source) => {
-		return total + (sourceAnalytics?.source_distribution?.[source] || 0);
+	// Filter out 'direct' as it's handled separately
+	const nonDirectSources = allAvailableSources.filter(
+		(source) => source !== "direct"
+	);
+
+	// Calculate total visits for all non-direct sources
+	const totalNonDirectVisits = nonDirectSources.reduce((total, source) => {
+		return (
+			total + (memoizedFilteredSourceData?.source_distribution?.[source] || 0)
+		);
 	}, 0);
 
-	const searchEngineSources = ["google", "bing", "yahoo"];
-	const searchEngineVisits = searchEngineSources.reduce((total, source) => {
-		return total + (sourceAnalytics?.source_distribution?.[source] || 0);
-	}, 0);
+	// Get the top performing source
+	const getTopSource = () => {
+		if (nonDirectSources.length === 0) return { name: "", count: 0 };
+
+		const topSource = nonDirectSources.reduce((top, source) => {
+			const currentCount =
+				memoizedFilteredSourceData?.source_distribution?.[source] || 0;
+			const topCount =
+				memoizedFilteredSourceData?.source_distribution?.[top] || 0;
+			return currentCount > topCount ? source : top;
+		}, nonDirectSources[0]);
+
+		return {
+			name: topSource,
+			count: memoizedFilteredSourceData?.source_distribution?.[topSource] || 0,
+		};
+	};
+
+	const topSource = getTopSource();
 
 	const cards = [
 		{
 			title: "Total Page Visits",
-			value: sourceAnalytics?.total_visits || 0,
-			data: sourceAnalytics?.daily_visits || {},
+			value: memoizedFilteredSourceData?.total_visits || 0,
+			data: memoizedFilteredSourceData?.daily_visits || {},
 			icon: <FaChartBar />,
 			color: "text-primary",
 		},
 		{
-			title: "Social Media Visits",
-			value: socialVisits,
-			data: sourceAnalytics?.source_distribution || {},
-			sources: socialSources,
+			title: "External Sources",
+			value: totalNonDirectVisits,
+			data: memoizedFilteredSourceData?.source_distribution || {},
+			sources: nonDirectSources,
 			icon: <FaFacebook />,
 			color: "text-info",
 		},
 		{
 			title: "Direct Visits",
-			value: sourceAnalytics?.source_distribution?.direct || 0,
-			data: { direct: sourceAnalytics?.source_distribution?.direct || 0 },
+			value: memoizedFilteredSourceData?.source_distribution?.direct || 0,
+			data: {
+				direct: memoizedFilteredSourceData?.source_distribution?.direct || 0,
+			},
 			icon: <FaLink />,
 			color: "text-warning",
 		},
 		{
-			title: "Search Engine Visits",
-			value: searchEngineVisits,
-			data: sourceAnalytics?.source_distribution || {},
-			sources: searchEngineSources,
+			title: "Top Source",
+			value: topSource.count,
+			data: memoizedFilteredSourceData?.source_distribution || {},
+			sources: nonDirectSources.length > 0 ? [topSource.name] : [],
 			icon: <FaSearch />,
 			color: "text-success",
 		},
@@ -85,13 +101,15 @@ const SourceTrackingCards = ({
 						</h3>
 						<small className="text-muted">
 							{card.title === "Total Page Visits"
-								? "All time"
-								: card.title === "Social Media Visits"
-								? "Combined social traffic"
+								? "Filtered by time period"
+								: card.title === "External Sources"
+								? `Combined traffic from ${nonDirectSources.length} sources`
 								: card.title === "Direct Visits"
 								? "Direct traffic"
-								: card.title === "Search Engine Visits"
-								? "Organic search"
+								: card.title === "Top Source"
+								? nonDirectSources.length > 0
+									? `Most popular: ${topSource.name}`
+									: "No external sources"
 								: "Analytics"}
 						</small>
 					</div>
