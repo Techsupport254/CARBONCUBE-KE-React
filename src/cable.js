@@ -18,6 +18,8 @@ const getWebSocketUrl = () => {
 	}/cable`;
 };
 
-const consumer = createConsumer(getWebSocketUrl());
+const cable = createConsumer(
+  `${process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://') || 'ws://localhost:3001'}/cable`
+);
 
-export default consumer;
+export default cable;
