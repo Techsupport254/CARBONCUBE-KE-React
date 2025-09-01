@@ -198,7 +198,7 @@ const PopularAdsSection = ({
 													backgroundColor: borderColor,
 												}}
 											>
-												{ad.tier_name}
+												{ad.seller_tier_name || "Free"}
 											</div>
 
 											{/* Product image */}

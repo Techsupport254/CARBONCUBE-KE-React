@@ -156,36 +156,38 @@ const AdDetails = () => {
 				// Add timeout for mobile devices and better error handling
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-				
+
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}`,
 					{
 						signal: controller.signal,
 						headers: {
-							'Accept': 'application/json',
-							'Content-Type': 'application/json',
+							Accept: "application/json",
+							"Content-Type": "application/json",
 						},
 					}
 				);
-				
+
 				clearTimeout(timeoutId);
-				
+
 				if (!response.ok) {
 					if (response.status === 404) {
 						setError("not_found");
 						return;
 					}
-					throw new Error(`Failed to fetch ad details (status ${response.status})`);
+					throw new Error(
+						`Failed to fetch ad details (status ${response.status})`
+					);
 				}
 				const data = await response.json();
 				setAd(data);
 			} catch (error) {
 				console.error("Error fetching ad details:", error);
-				
+
 				// Handle specific error types
-				if (error.name === 'AbortError') {
+				if (error.name === "AbortError") {
 					setError("timeout_error");
-				} else if (error.message.includes('Failed to fetch')) {
+				} else if (error.message.includes("Failed to fetch")) {
 					setError("network_error");
 				} else {
 					setError("load_error");
@@ -199,21 +201,21 @@ const AdDetails = () => {
 		const fetchRelatedAds = async () => {
 			try {
 				const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}/related`;
-				
+
 				// Add timeout for mobile devices and better error handling
 				const controller = new AbortController();
 				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-				
+
 				const response = await fetch(url, {
 					signal: controller.signal,
 					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
+						Accept: "application/json",
+						"Content-Type": "application/json",
 					},
 				});
-				
+
 				clearTimeout(timeoutId);
-				
+
 				if (!response.ok) {
 					const text = await response.text().catch(() => "<no body>");
 					console.error("Related ads fetch failed", {
@@ -222,31 +224,31 @@ const AdDetails = () => {
 						statusText: response.statusText,
 						body: text,
 					});
-					
+
 					// Handle specific error cases
 					if (response.status === 404) {
 						console.warn("Ad not found, skipping related ads");
 						setRelatedAds([]);
 						return;
 					}
-					
+
 					throw new Error(
 						`Failed to fetch related ads (status ${response.status})`
 					);
 				}
-				
+
 				const data = await response.json();
 				setRelatedAds(data);
 			} catch (error) {
 				console.error("Error fetching related ads:", error);
-				
+
 				// Handle specific error types
-				if (error.name === 'AbortError') {
+				if (error.name === "AbortError") {
 					console.warn("Related ads request timed out");
-				} else if (error.message.includes('Failed to fetch')) {
+				} else if (error.message.includes("Failed to fetch")) {
 					console.warn("Network error while fetching related ads");
 				}
-				
+
 				setRelatedAds([]);
 			}
 		};
@@ -1031,7 +1033,8 @@ const AdDetails = () => {
 				<div className="container py-5 text-center">
 					<h3 className="text-warning mb-2">Request Timeout</h3>
 					<p className="text-secondary mb-4">
-						The request took too long to complete. This might be due to a slow connection.
+						The request took too long to complete. This might be due to a slow
+						connection.
 					</p>
 					<Button
 						variant="warning"
@@ -1070,7 +1073,8 @@ const AdDetails = () => {
 				<div className="container py-5 text-center">
 					<h3 className="text-danger mb-2">Network Error</h3>
 					<p className="text-secondary mb-4">
-						Unable to connect to the server. Please check your internet connection.
+						Unable to connect to the server. Please check your internet
+						connection.
 					</p>
 					<Button
 						variant="warning"
@@ -1139,7 +1143,7 @@ const AdDetails = () => {
 														zIndex: 2,
 													}}
 												>
-													{ad.tier_name || "Free"}{" "}
+													{ad.seller_tier_name || "Free"}{" "}
 													{/* Show tier name, default to "Free" */}
 												</div>
 
@@ -1492,7 +1496,7 @@ const AdDetails = () => {
 																		zIndex: 20,
 																	}}
 																>
-																	{relatedAd.tier_name}
+																	{relatedAd.seller_tier_name || "Free"}
 																</div>
 																<Card.Img
 																	className="ad-image"

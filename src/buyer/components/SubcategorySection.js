@@ -12,7 +12,11 @@ const SubcategorySection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	const displayedAds = Array.isArray(ads) ? ads.slice(0, 4) : [];
+	// Sort ads by quantity (descending) and take first 4
+	const sortedAds = Array.isArray(ads)
+		? [...ads].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+		: [];
+	const displayedAds = sortedAds.slice(0, 4);
 
 	return (
 		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh]">
@@ -51,9 +55,16 @@ const SubcategorySection = ({
 									className="h-full w-full flex items-stretch relative group"
 								>
 									<Card
-										className="h-full w-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col"
+										className="h-full w-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col relative"
 										style={{ border: `2px solid ${borderColor}` }}
 									>
+										{/* Tier badge */}
+										<div
+											className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-medium text-white rounded z-10"
+											style={{ backgroundColor: borderColor }}
+										>
+											{ad.seller_tier_name || "Free"}
+										</div>
 										<div className="flex flex-col h-full">
 											{/* Ad image */}
 											<Card.Img
@@ -111,27 +122,7 @@ const SubcategorySection = ({
 						// Empty slot that maintains consistent sizing
 						return (
 							<div key={`slot-${i}`} className="h-full w-full min-h-[8vh]">
-								<div className="h-full w-full rounded-lg overflow-hidden">
-									<div className="h-full w-full border-2 border-gray-200 rounded-lg flex flex-col bg-gray-50">
-										<div className="w-full h-auto aspect-square bg-gray-100 flex items-center justify-center min-h-[6vh]">
-											{isLoading ? (
-												<div className="animate-pulse bg-gray-200 w-full h-full rounded" />
-											) : (
-												<div className="text-gray-300 text-xs text-center">
-													<div className="font-medium">Empty</div>
-													<div className="text-[10px]">slot</div>
-												</div>
-											)}
-										</div>
-										<div className="px-2 py-1 bg-white flex-grow flex items-center justify-center min-h-[2vh]">
-											{isLoading ? (
-												<div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse" />
-											) : (
-												<div className="h-3 bg-gray-100 rounded w-3/4" />
-											)}
-										</div>
-									</div>
-								</div>
+								{/* Completely empty slot */}
 							</div>
 						);
 					})}

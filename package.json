@@ -47,9 +47,13 @@
 		"start": "GENERATE_SOURCEMAP=false PORT=3000 react-scripts --no-warnings start",
 		"build": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run generate-sitemap",
 		"build:prod": "CI=true GENERATE_SOURCEMAP=false react-scripts --no-warnings build",
+		"build:analyze": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run analyze-bundle",
+		"build:optimized": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run optimize-assets",
 		"serve": "serve -s build -l 3000",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
+		"analyze-bundle": "npx webpack-bundle-analyzer build/static/js/*.js",
+		"optimize-assets": "node scripts/optimize-assets.js",
 		"generate-favicons": "node scripts/generate-favicons.js",
 		"generate-icons": "node scripts/generate-icons.js",
 		"generate-sitemap": "node scripts/generate-sitemap.js",
@@ -57,7 +61,9 @@
 		"generate-enhanced-sitemap": "node scripts/generate-enhanced-sitemap.js",
 		"generate-true-dynamic-sitemap": "node scripts/generate-true-dynamic-sitemap.js",
 		"generate-public-dynamic-sitemap": "node scripts/generate-public-dynamic-sitemap.js",
-		"test-api": "node scripts/test-api-connection.js"
+		"test-api": "node scripts/test-api-connection.js",
+		"lighthouse": "npx lighthouse https://carboncube-ke.com --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'",
+		"performance-test": "npm run lighthouse && node scripts/analyze-performance.js"
 	},
 	"eslintConfig": {
 		"extends": [
@@ -83,6 +89,12 @@
 		"favicons": "^7.2.0",
 		"postcss": "^8.5.6",
 		"sharp": "^0.34.3",
-		"tailwindcss": "^3.4.17"
+		"tailwindcss": "^3.4.17",
+		"webpack-bundle-analyzer": "^4.10.1",
+		"lighthouse": "^12.6.1",
+		"imagemin": "^8.0.1",
+		"imagemin-webp": "^8.0.0",
+		"imagemin-mozjpeg": "^10.0.0",
+		"imagemin-pngquant": "^9.0.2"
 	}
 }

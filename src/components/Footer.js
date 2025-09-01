@@ -203,6 +203,7 @@ const Footer = () => (
 										target="_blank"
 										rel="noopener noreferrer"
 										className="social-link bg-primary bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center"
+										aria-label="LinkedIn"
 										style={{ width: "40px", height: "40px" }}
 									>
 										<FontAwesomeIcon icon={faLinkedinIn} size="sm" />
@@ -212,6 +213,7 @@ const Footer = () => (
 										target="_blank"
 										rel="noopener noreferrer"
 										className="social-link bg-success bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center"
+										aria-label="WhatsApp"
 										style={{ width: "40px", height: "40px" }}
 									>
 										<FontAwesomeIcon icon={faWhatsapp} size="sm" />
@@ -221,6 +223,7 @@ const Footer = () => (
 										target="_blank"
 										rel="noopener noreferrer"
 										className="social-link bg-danger bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center"
+										aria-label="Instagram"
 										style={{ width: "40px", height: "40px" }}
 									>
 										<FontAwesomeIcon icon={faInstagram} size="sm" />
@@ -230,6 +233,7 @@ const Footer = () => (
 										target="_blank"
 										rel="noopener noreferrer"
 										className="social-link bg-info bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center"
+										aria-label="Facebook"
 										style={{ width: "40px", height: "40px" }}
 									>
 										<FontAwesomeIcon icon={faFacebook} size="sm" />

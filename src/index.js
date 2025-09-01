@@ -9,6 +9,26 @@ import {
 	getDeviceFingerprint,
 	isInternalUser,
 } from "./utils/deviceFingerprint";
+import {
+	registerServiceWorker,
+	optimizeFontLoading,
+	optimizeCriticalPath,
+	checkPerformanceBudget,
+	logMemoryUsage,
+} from "./utils/performance";
+
+// Performance monitoring
+const reportWebVitalsWithDetails = (metric) => {
+	// Only log if metric is defined
+	if (metric && process.env.NODE_ENV === "development") {
+		console.log("Web Vitals:", metric);
+	}
+
+	// Send to analytics if metric is defined
+	if (metric) {
+		reportWebVitals(metric);
+	}
+};
 
 // Track the visit for analytics at the root level (respect backend exclusion)
 (async () => {
@@ -41,6 +61,29 @@ import {
 	});
 })();
 
+// Performance optimizations
+const initializePerformanceOptimizations = () => {
+	// Optimize font loading
+	optimizeFontLoading();
+
+	// Optimize critical rendering path
+	optimizeCriticalPath();
+
+	// Register service worker for caching
+	registerServiceWorker();
+
+	// Check performance budget after page load
+	window.addEventListener("load", () => {
+		setTimeout(() => {
+			checkPerformanceBudget();
+			logMemoryUsage();
+		}, 1000);
+	});
+};
+
+// Initialize performance optimizations
+initializePerformanceOptimizations();
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
 	<React.StrictMode>
@@ -48,7 +91,5 @@ root.render(
 	</React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// Performance monitoring with detailed reporting
+reportWebVitalsWithDetails();

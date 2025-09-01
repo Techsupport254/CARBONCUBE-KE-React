@@ -78,7 +78,9 @@ const Banner = () => {
 
 		const fetchPremiumAds = async () => {
 			try {
-				const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/ads`);
+				const response = await fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads`
+				);
 
 				if (!response.ok) {
 					throw new Error("Failed to fetch ads");
@@ -177,7 +179,7 @@ const Banner = () => {
 		<div className="w-full max-w-7xl mx-auto text-center overflow-visible relative z-1">
 			{isLoading ? (
 				<div className="w-full mx-auto px-0">
-					<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-b-xl animate-pulse h-56 sm:h-72 md:h-96 lg:h-[28rem] xl:h-[34rem]"></div>
+					<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-b-xl animate-pulse aspect-[16/9]"></div>
 				</div>
 			) : images.length > 0 ? (
 				<Carousel
@@ -194,6 +196,12 @@ const Banner = () => {
 									src={src}
 									alt={`Banner ${index + 1}`}
 									className="w-full h-auto object-contain"
+									loading={index === 0 ? "eager" : "lazy"}
+									decoding="async"
+									fetchpriority={index === 0 ? "high" : "auto"}
+									sizes="100vw"
+									width="1600"
+									height="900"
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 								{/* Add overlay for the last banner */}
@@ -221,6 +229,11 @@ const Banner = () => {
 															src={adImage}
 															alt={ad.title}
 															className="w-full h-full object-contain rounded-2xl transition-transform duration-500 group-hover:scale-110"
+															loading="lazy"
+															decoding="async"
+															sizes="(max-width: 640px) 128px, (max-width: 1024px) 192px, 256px"
+															width="256"
+															height="192"
 														/>
 													</div>
 

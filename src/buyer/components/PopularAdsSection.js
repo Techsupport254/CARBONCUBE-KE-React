@@ -7,8 +7,11 @@ const PopularAdsSection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	// Get the first 8 ads from the flattened ads array
-	const popularProducts = ads.slice(0, 8).map((ad, index) => ({
+	// Sort ads by quantity (descending) and get the first 8
+	const sortedAds = Array.isArray(ads)
+		? [...ads].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+		: [];
+	const popularProducts = sortedAds.slice(0, 8).map((ad, index) => ({
 		id: ad.id,
 		name: ad.title || `Product ${index + 1}`,
 		image:
@@ -111,7 +114,7 @@ const PopularAdsSection = ({
 					</div>
 				</div>
 				<div className="p-4">
-					<div className="text-center text-gray-500 py-8">
+					<div className="text-center text-gray-500">
 						<p>No popular products available at the moment.</p>
 					</div>
 				</div>
@@ -120,7 +123,7 @@ const PopularAdsSection = ({
 	}
 
 	return (
-		<div className="w-full border-2 border-gray-200 rounded-2xl overflow-hidden min-h-[30vh]">
+		<div className="w-full border-2 border-gray-200 rounded-2xl overflow-hidden">
 			{/* Header */}
 			<div className="w-full bg-secondary text-white p-2 md:p-3 shadow-xl flex">
 				<div className="w-1/2 flex items-center space-x-3">

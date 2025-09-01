@@ -28,11 +28,18 @@ const CategorySection = ({
 		  }));
 
 	return (
-		<Card className="mb-4 mx-0 shadow-xl rounded-lg ">
-			<Card.Header className="bg-secondary text-white rounded-t-lg flex justify-start shadow-md">
+		<Card className="mx-0 shadow-xl rounded-lg">
+			<Card.Header
+				className="bg-secondary text-white rounded-t-lg flex justify-between items-center shadow-md cursor-pointer hover:bg-yellow-600 transition-colors duration-200"
+				onClick={() =>
+					handleSubcategoryClick && handleSubcategoryClick("All", title)
+				}
+				title={`View all ${title} subcategories`}
+			>
 				<h4 className="m-0 font-bold text-sm sm:text-base md:text-lg">
 					{title}
 				</h4>
+				<div className="text-xs opacity-75 hover:opacity-100">View All →</div>
 			</Card.Header>
 			<Card.Body className="bg-transparent p-0 min-h-[30vh]">
 				{!isLoading && errorMessage && (
@@ -76,13 +83,8 @@ const CategorySection = ({
 								</div>
 							) : subcategory.isEmpty ? (
 								// Empty state placeholder that maintains size
-								<div className="h-full w-full rounded-lg bg-white/90 border-2 border-dashed border-gray-200 flex items-center justify-center">
-									<div className="text-center text-gray-400">
-										<div className="text-xs sm:text-sm font-medium">
-											No items
-										</div>
-										<div className="text-[10px] sm:text-xs">available</div>
-									</div>
+								<div className="h-full w-full">
+									{/* Empty slot - completely invisible, just maintains layout */}
 								</div>
 							) : (
 								<SubcategorySection
@@ -96,13 +98,6 @@ const CategorySection = ({
 						</div>
 					))}
 				</div>
-				{!isLoading &&
-					(!randomizedSubcategories || randomizedSubcategories.length === 0) &&
-					!errorMessage && (
-						<div className="p-3 text-center text-gray-500 text-xs sm:text-sm">
-							No items available in this category yet.
-						</div>
-					)}
 			</Card.Body>
 		</Card>
 	);

@@ -680,9 +680,13 @@ const Navbar = ({
 							}}
 						>
 							<img
-								src={`${process.env.PUBLIC_URL}/logo.png`}
+								src={`${process.env.PUBLIC_URL}/favicon.svg`}
 								alt="Carboncube Logo"
 								className="h-6 w-6 sm:h-8 sm:w-8"
+								width="32"
+								height="32"
+								loading="eager"
+								decoding="sync"
 							/>
 							<span className="font-bold text-lg sm:text-xl text-white">
 								ARBONCUBE

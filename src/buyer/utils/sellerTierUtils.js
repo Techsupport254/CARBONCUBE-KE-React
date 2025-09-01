@@ -9,10 +9,10 @@
  */
 export const getBorderColor = (tierId) => {
 	const tierColors = {
-		1: "#F0FFF0", // Free (Blue)
-		2: "#FF5733", // Basic (Red-Orange)
-		3: "#28A745", // Standard (Bright Green)
-		4: "#FFC107", // Premium (Gold-like yellow)
+		1: "#6B7280", // Free (Gray)
+		2: "#3B82F6", // Basic (Blue)
+		3: "#10B981", // Standard (Green)
+		4: "#F59E0B", // Premium (Gold/Amber)
 	};
-	return tierColors[tierId] || "transparent"; // No border color for Free tier
+	return tierColors[tierId] || "#6B7280"; // Default to gray for unknown tiers
 };

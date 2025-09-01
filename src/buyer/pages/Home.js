@@ -45,6 +45,13 @@ const Home = () => {
 	// Loading and error states
 	const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 	const [isLoadingAds, setIsLoadingAds] = useState(true);
+
+	// Force loading state for styling - remove this when done
+	// Comment out the lines below to stop the forced loading
+	useEffect(() => {
+		setIsLoadingCategories(false);
+		setIsLoadingAds(false);
+	}, []);
 	const [categoriesError, setCategoriesError] = useState(null);
 	const [adsError, setAdsError] = useState(null);
 	const [error, setError] = useState(null); // search error only
@@ -135,7 +142,7 @@ const Home = () => {
 				const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout for ads
 
 				const adResponse = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=500`,
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=200`,
 					{
 						signal: controller.signal,
 						headers: {
@@ -216,7 +223,7 @@ const Home = () => {
 		// Only trigger search if we have actual search parameters
 		// Ignore other parameters like 'from', 'utm_source', etc.
 		const hasSearchParams =
-			query ||
+			(query && query.trim() !== "") ||
 			(category && category !== "All") ||
 			(subcategory && subcategory !== "All");
 
@@ -229,10 +236,17 @@ const Home = () => {
 
 		const fetchSearchResults = async () => {
 			setIsSearching(true);
+			setError(null); // Clear previous errors
 			try {
 				const searchQuery = query || "";
 				const searchCategory = category || "All";
 				const searchSubcategory = subcategory || "All";
+
+				console.log("Searching for:", {
+					searchQuery,
+					searchCategory,
+					searchSubcategory,
+				});
 
 				const response = await fetch(
 					`${
@@ -251,15 +265,26 @@ const Home = () => {
 					}
 				);
 
-				if (!response.ok) throw new Error("Failed to fetch search results");
+				if (!response.ok) {
+					const errorText = await response.text();
+					throw new Error(
+						`Search failed: ${response.status} ${response.statusText} - ${errorText}`
+					);
+				}
 
 				const results = await response.json();
+				console.log("Search results:", results);
+
 				if (!results || results.length === 0) {
 					setSearchResults([]);
 					setDisplayedResults([]);
+					setError(
+						`No results found for "${searchQuery}". Try searching for: filter, pump, or battery`
+					);
 				} else {
 					setSearchResults(results);
 					initializeDisplayedResults(results);
+					setError(null); // Clear any previous errors
 				}
 
 				if (searchQuery.trim()) {
@@ -272,8 +297,14 @@ const Home = () => {
 
 				await logAdSearch(searchQuery, searchCategory, searchSubcategory);
 			} catch (error) {
-				console.error(error);
-				setError("Error searching ads");
+				console.error("Search error:", error);
+				if (error.message.includes("Failed to fetch")) {
+					setError(
+						"Unable to connect to search service. Please check your connection."
+					);
+				} else {
+					setError(error.message);
+				}
 				setSearchResults([]);
 			} finally {
 				setIsSearching(false);
@@ -384,11 +415,6 @@ const Home = () => {
 
 	return (
 		<>
-			{/* <TopNavbar
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-				handleSearch={handleSearch}
-			/> */}
 			<Navbar
 				mode="buyer"
 				searchQuery={searchQuery}
@@ -449,7 +475,7 @@ const Home = () => {
 									onLoadMore={handleLoadMore}
 								/>
 							) : (
-								<div className="mb-8 relative z-10">
+								<div className="relative z-10">
 									<div className="max-w-7xl mx-auto px-0">
 										<div className="mx-0 sm:mx-4 md:mx-6 lg:mx-8 xl:mx-10 2xl:mx-12">
 											{/* Inline alerts */}
@@ -472,15 +498,20 @@ const Home = () => {
 											{/* Loading state for categories and ads */}
 											{!isSearching &&
 												(isLoadingCategories || isLoadingAds) && (
-													<div className="mb-8 flex justify-center items-center">
-														<Spinner
-															variant="warning"
-															name="cube-grid"
-															style={{ width: 50, height: 50 }}
-														/>
-														<span className="ml-3 text-gray-600">
-															Loading categories and products...
-														</span>
+													<div className="flex justify-center items-center min-h-[60vh] w-full bg-gray-50 rounded-lg">
+														<div className="text-center">
+															<Spinner
+																variant="warning"
+																name="cube-grid"
+																style={{ width: 60, height: 60 }}
+															/>
+															<div className="mt-4 text-gray-600 font-medium">
+																Loading categories and products...
+															</div>
+															<div className="mt-2 text-gray-500 text-sm">
+																Please wait while we fetch the latest products
+															</div>
+														</div>
 													</div>
 												)}
 
@@ -500,7 +531,40 @@ const Home = () => {
 												categories.length > 0 &&
 												Object.keys(ads).length > 0 && (
 													<>
-														{categories.map((category) => {
+														{(() => {
+															// Filter categories that have ads
+															const categoriesWithAds = categories.filter(
+																(category) => {
+																	const allSubcategories =
+																		category.subcategories || [];
+																	if (allSubcategories.length === 0)
+																		return false;
+
+																	const subcategoriesWithAds =
+																		allSubcategories.filter(
+																			(subcategory) =>
+																				ads[subcategory.id] &&
+																				Array.isArray(ads[subcategory.id]) &&
+																				ads[subcategory.id].length > 0
+																		);
+																	return subcategoriesWithAds.length > 0;
+																}
+															);
+
+															// If no categories have ads, show empty state
+															if (categoriesWithAds.length === 0) {
+																return (
+																	<div className="mb-8 p-8 bg-blue-50 text-center rounded-lg">
+																		<div className="text-gray-600 text-lg mb-2">
+																			No products available at the moment
+																		</div>
+																		<div className="text-gray-500 text-sm">
+																			Please check back later for new listings
+																		</div>
+																	</div>
+																);
+															}
+
 															// Function to shuffle an array
 															const shuffleArray = (array) => {
 																return array
@@ -512,35 +576,60 @@ const Home = () => {
 																	.map(({ value }) => value);
 															};
 
-															// Get all subcategories for this category
-															const allSubcategories =
-																category.subcategories || [];
+															return categoriesWithAds.map((category) => {
+																// Get all subcategories for this category
+																const allSubcategories =
+																	category.subcategories || [];
 
-															// If no subcategories, skip this category
-															if (allSubcategories.length === 0) {
-																return null;
-															}
+																// If no subcategories, skip this category
+																if (allSubcategories.length === 0) {
+																	return null;
+																}
 
-															// Shuffle and take first 4 subcategories
-															const randomizedSubcategories = shuffleArray(
-																allSubcategories
-															).slice(0, 4);
+																// Check if any subcategory has ads
+																const subcategoriesWithAds =
+																	allSubcategories.filter(
+																		(subcategory) =>
+																			ads[subcategory.id] &&
+																			Array.isArray(ads[subcategory.id]) &&
+																			ads[subcategory.id].length > 0
+																	);
 
-															return (
-																<CategorySection
-																	key={category.id}
-																	title={category.name}
-																	randomizedSubcategories={
-																		randomizedSubcategories
-																	}
-																	ads={ads}
-																	handleAdClick={handleAdClick}
-																	handleSubcategoryClick={
-																		handleSubcategoryClick
-																	}
-																/>
-															);
-														})}
+																// If no subcategories have ads, skip this category
+																if (subcategoriesWithAds.length === 0) {
+																	return null;
+																}
+
+																// Sort subcategories by number of ads (descending) and take first 4
+																const sortedSubcategories =
+																	subcategoriesWithAds.sort((a, b) => {
+																		const aCount = ads[a.id]
+																			? ads[a.id].length
+																			: 0;
+																		const bCount = ads[b.id]
+																			? ads[b.id].length
+																			: 0;
+																		return bCount - aCount; // Descending order
+																	});
+																const randomizedSubcategories =
+																	sortedSubcategories.slice(0, 4);
+
+																return (
+																	<CategorySection
+																		key={category.id}
+																		title={category.name}
+																		randomizedSubcategories={
+																			randomizedSubcategories
+																		}
+																		ads={ads}
+																		handleAdClick={handleAdClick}
+																		handleSubcategoryClick={
+																			handleSubcategoryClick
+																		}
+																	/>
+																);
+															});
+														})()}
 														{isLoadingCategories && (
 															<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
 																{Array.from({ length: 4 }).map((_, idx) => (
