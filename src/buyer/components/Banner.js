@@ -15,36 +15,41 @@ const carouselStyles = {
 		height: "100%",
 	},
 	carouselControl: {
-		backgroundColor: "rgba(0, 0, 0, 0.5)",
-		border: "none",
+		backgroundColor: "rgba(255, 255, 255, 0.15)",
+		backdropFilter: "blur(10px)",
+		border: "1px solid rgba(255, 255, 255, 0.2)",
 		borderRadius: "50%",
-		width: "32px",
-		height: "32px",
+		width: "48px",
+		height: "48px",
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
 		zIndex: 15,
+		transition: "all 0.3s ease",
 	},
 	carouselControlPrev: {
-		left: "5px",
+		left: "20px",
 		top: "50%", // Center vertically
 		transform: "translateY(-50%)",
 	},
 	carouselControlNext: {
-		right: "5px",
+		right: "20px",
 		top: "50%", // Center vertically
 		transform: "translateY(-50%)",
 	},
 	carouselIndicator: {
-		backgroundColor: "rgba(255, 255, 255, 0.7)",
-		border: "none",
-		width: "8px",
-		height: "8px",
+		backgroundColor: "rgba(255, 255, 255, 0.4)",
+		border: "1px solid rgba(255, 255, 255, 0.2)",
+		width: "12px",
+		height: "12px",
 		borderRadius: "50%",
-		margin: "0 2px",
+		margin: "0 4px",
+		transition: "all 0.3s ease",
 	},
 	carouselIndicatorActive: {
 		backgroundColor: "white",
+		transform: "scale(1.2)",
+		boxShadow: "0 0 20px rgba(255, 255, 255, 0.5)",
 	},
 };
 
@@ -116,12 +121,13 @@ const Banner = () => {
 			const screenWidth = window.innerWidth;
 
 			// Responsive control sizes
-			const controlSize = screenWidth < 768 ? 28 : screenWidth < 1024 ? 32 : 40;
+			const controlSize = screenWidth < 768 ? 40 : screenWidth < 1024 ? 44 : 48;
 			const controlPosition =
-				screenWidth < 768 ? 3 : screenWidth < 1024 ? 5 : 10;
-			const indicatorSize = screenWidth < 768 ? 6 : screenWidth < 1024 ? 8 : 12;
+				screenWidth < 768 ? 10 : screenWidth < 1024 ? 15 : 20;
+			const indicatorSize =
+				screenWidth < 768 ? 10 : screenWidth < 1024 ? 11 : 12;
 			const indicatorMargin =
-				screenWidth < 768 ? 1 : screenWidth < 1024 ? 2 : 4;
+				screenWidth < 768 ? 3 : screenWidth < 1024 ? 4 : 4;
 
 			carouselControls.forEach((control, index) => {
 				Object.assign(control.style, {
@@ -205,66 +211,40 @@ const Banner = () => {
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 
-								{/* Banner Text Overlay - Centered */}
-								<div className="absolute inset-0 flex items-center justify-center z-10">
-									<div className="text-center px-4 sm:px-6 md:px-8">
-										<h1 className="text-white font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl drop-shadow-2xl leading-tight">
-											BUY TOP
-											<br />
-											QUALITY TOOLS
-											<br />
-											ONLINE
-										</h1>
-									</div>
-								</div>
-								{/* Add overlay for the last banner */}
-								{index === images.length - 1 && premiumAds.length > 0 && (
-									<div className="flex justify-center items-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 absolute z-10 w-full top-[10%] px-0">
-										{premiumAds.map((ad, adIndex) => {
-											const adImage = ad.first_media_url
-												? ad.first_media_url
-												: ad.media_urls[0] || "default-image-url";
+								{/* Banner Text Overlay - Centered - Only on last banner */}
+								{index === images.length - 1 && (
+									<div className="absolute inset-0 flex items-center justify-center z-10">
+										{/* Animated light streaks background */}
+										<div className="absolute inset-0 overflow-hidden">
+											<div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 opacity-90"></div>
+											{/* Light streaks */}
+											<div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"></div>
+											<div
+												className="absolute top-1/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-pulse"
+												style={{ animationDelay: "0.5s" }}
+											></div>
+											<div
+												className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent animate-pulse"
+												style={{ animationDelay: "1s" }}
+											></div>
+											<div
+												className="absolute top-2/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"
+												style={{ animationDelay: "1.5s" }}
+											></div>
+											<div
+												className="absolute top-3/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-pulse"
+												style={{ animationDelay: "2s" }}
+											></div>
+										</div>
 
-											return (
-												<div
-													key={ad.id}
-													className="group relative w-32 h-40 sm:w-36 sm:h-44 md:w-40 md:h-48 lg:w-44 lg:h-52 xl:w-48 xl:h-56 rounded-3xl overflow-hidden shadow-2xl bg-white transform transition-all duration-500 hover:scale-110 hover:-translate-y-2"
-													style={{
-														animationDelay: `${adIndex * 0.2}s`,
-													}}
-												>
-													{/* Gradient overlay */}
-													<div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-													{/* Product image */}
-													<div className="w-full h-3/4 p-2 sm:p-3 md:p-4">
-														<img
-															src={adImage}
-															alt={ad.title}
-															className="w-full h-full object-contain rounded-2xl transition-transform duration-500 group-hover:scale-110"
-															loading="lazy"
-															decoding="async"
-															sizes="(max-width: 640px) 128px, (max-width: 1024px) 192px, 256px"
-															width="256"
-															height="192"
-														/>
-													</div>
-
-													{/* Company name section */}
-													<div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 via-gray-800/80 to-transparent p-2 sm:p-3 md:p-4">
-														<div className="text-center">
-															<p className="text-white font-bold text-xs sm:text-sm md:text-base text-center drop-shadow-lg mb-1">
-																{ad.seller.enterprise_name}
-															</p>
-															<div className="w-6 sm:w-8 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-														</div>
-													</div>
-
-													{/* Shine effect */}
-													<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-												</div>
-											);
-										})}
+										<div className="text-center px-4 sm:px-6 md:px-8 relative z-20">
+											<h1 className="text-white font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-2xl leading-tight mb-4">
+												CARBON CUBE
+											</h1>
+											<p className="text-white/90 font-medium text-lg sm:text-xl md:text-2xl lg:text-3xl drop-shadow-xl">
+												Premium Tools & Equipment
+											</p>
+										</div>
 									</div>
 								)}
 							</div>
