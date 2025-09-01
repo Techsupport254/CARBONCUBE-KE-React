@@ -204,6 +204,19 @@ const Banner = () => {
 									height="900"
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
+
+								{/* Banner Text Overlay - Centered */}
+								<div className="absolute inset-0 flex items-center justify-center z-10">
+									<div className="text-center px-4 sm:px-6 md:px-8">
+										<h1 className="text-white font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl drop-shadow-2xl leading-tight">
+											BUY TOP
+											<br />
+											QUALITY TOOLS
+											<br />
+											ONLINE
+										</h1>
+									</div>
+								</div>
 								{/* Add overlay for the last banner */}
 								{index === images.length - 1 && premiumAds.length > 0 && (
 									<div className="flex justify-center items-center gap-2 sm:gap-4 md:gap-6 lg:gap-8 absolute z-10 w-full top-[10%] px-0">
