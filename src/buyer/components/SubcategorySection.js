@@ -12,15 +12,28 @@ const SubcategorySection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	// Sort ads by quantity (descending) and take first 4
+	// Sort ads by quantity (descending), then by created_at (descending) for stable sorting, and take first 4
 	const sortedAds = Array.isArray(ads)
-		? [...ads].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+		? [...ads].sort((a, b) => {
+			const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
+			if (quantityDiff !== 0) return quantityDiff;
+			// If quantities are equal, sort by created_at for stable ordering
+			return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+		})
 		: [];
 	const displayedAds = sortedAds.slice(0, 4);
+	
+	// Debug logging for Accessories subcategory
+	if (subcategory === "Accessories") {
+		console.log(`Accessories subcategory - Total ads: ${ads?.length || 0}, Displayed ads: ${displayedAds.length}`);
+		displayedAds.forEach((ad, i) => {
+			console.log(`  ${i + 1}. ${ad.title} - Quantity: ${ad.quantity}`);
+		});
+	}
 
 	return (
-		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh]">
-			<Card.Body className="p-1 sm:p-1.5 flex-grow flex flex-col justify-between">
+		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh] border border-gray-100">
+			<Card.Body className="p-2 sm:p-2.5 flex-grow flex flex-col justify-between">
 				{!isLoading && errorMessage && (
 					<div className="mb-1 p-1 bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center justify-between">
 						<span className="text-[11px] sm:text-xs">{errorMessage}</span>
@@ -36,7 +49,7 @@ const SubcategorySection = ({
 				)}
 				{/* Always render 2x2 grid with fixed dimensions */}
 				<div
-					className="grid grid-cols-2 grid-rows-2 gap-1 sm:gap-1.5 h-full"
+					className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-2.5 h-full"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",

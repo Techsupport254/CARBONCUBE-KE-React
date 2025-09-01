@@ -27,7 +27,7 @@ export default function AnalyticsTest() {
 		try {
 			if (window.gtag) {
 				trackGAEvent("test_event", "Analytics Test", "GA Test Button", 1);
-				addTestResult("Google Analytics", "✅ SUCCESS", "Event sent to GA");
+				addTestResult("Google Analytics", "SUCCESS", "Event sent to GA");
 			} else {
 				addTestResult("Google Analytics", "❌ FAILED", "gtag not found");
 			}
@@ -45,7 +45,7 @@ export default function AnalyticsTest() {
 					"Matomo Test Button",
 					1
 				);
-				addTestResult("Matomo", "✅ SUCCESS", "Event sent to Matomo");
+				addTestResult("Matomo", "SUCCESS", "Event sent to Matomo");
 			} else {
 				addTestResult("Matomo", "❌ FAILED", "_mtm not found");
 			}
@@ -57,7 +57,7 @@ export default function AnalyticsTest() {
 	const testPageView = () => {
 		try {
 			trackPageView("Analytics Test Page", "/analytics-test");
-			addTestResult("Page View", "✅ SUCCESS", "Page view tracked");
+			addTestResult("Page View", "SUCCESS", "Page view tracked");
 		} catch (error) {
 			addTestResult("Page View", "❌ ERROR", error.message);
 		}
@@ -69,7 +69,7 @@ export default function AnalyticsTest() {
 				"test_interaction",
 				"Test interaction from test component"
 			);
-			addTestResult("User Interaction", "✅ SUCCESS", "Interaction tracked");
+			addTestResult("User Interaction", "SUCCESS", "Interaction tracked");
 		} catch (error) {
 			addTestResult("User Interaction", "❌ ERROR", error.message);
 		}
@@ -78,7 +78,7 @@ export default function AnalyticsTest() {
 	const testButtonClick = () => {
 		try {
 			trackButtonClick("test_button", "/analytics-test");
-			addTestResult("Button Click", "✅ SUCCESS", "Button click tracked");
+			addTestResult("Button Click", "SUCCESS", "Button click tracked");
 		} catch (error) {
 			addTestResult("Button Click", "❌ ERROR", error.message);
 		}
@@ -87,7 +87,7 @@ export default function AnalyticsTest() {
 	const testFormSubmission = () => {
 		try {
 			trackFormSubmission("test_form", true);
-			addTestResult("Form Submission", "✅ SUCCESS", "Form submission tracked");
+			addTestResult("Form Submission", "SUCCESS", "Form submission tracked");
 		} catch (error) {
 			addTestResult("Form Submission", "❌ ERROR", error.message);
 		}
@@ -283,7 +283,7 @@ export default function AnalyticsTest() {
 								marginLeft: "5px",
 							}}
 						>
-							{window.gtag ? "✅ Loaded" : "❌ Not Loaded"}
+							{window.gtag ? "Loaded" : "❌ Not Loaded"}
 						</span>
 					</div>
 					<div>
@@ -294,7 +294,7 @@ export default function AnalyticsTest() {
 								marginLeft: "5px",
 							}}
 						>
-							{window._mtm ? "✅ Loaded" : "❌ Not Loaded"}
+							{window._mtm ? "Loaded" : "❌ Not Loaded"}
 						</span>
 					</div>
 				</div>

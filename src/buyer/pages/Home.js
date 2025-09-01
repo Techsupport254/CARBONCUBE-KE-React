@@ -576,59 +576,62 @@ const Home = () => {
 																	.map(({ value }) => value);
 															};
 
-															return categoriesWithAds.map((category) => {
-																// Get all subcategories for this category
-																const allSubcategories =
-																	category.subcategories || [];
+															return categoriesWithAds.map(
+																(category, index) => {
+																	// Get all subcategories for this category
+																	const allSubcategories =
+																		category.subcategories || [];
 
-																// If no subcategories, skip this category
-																if (allSubcategories.length === 0) {
-																	return null;
-																}
+																	// If no subcategories, skip this category
+																	if (allSubcategories.length === 0) {
+																		return null;
+																	}
 
-																// Check if any subcategory has ads
-																const subcategoriesWithAds =
-																	allSubcategories.filter(
-																		(subcategory) =>
-																			ads[subcategory.id] &&
-																			Array.isArray(ads[subcategory.id]) &&
-																			ads[subcategory.id].length > 0
+																	// Check if any subcategory has ads
+																	const subcategoriesWithAds =
+																		allSubcategories.filter(
+																			(subcategory) =>
+																				ads[subcategory.id] &&
+																				Array.isArray(ads[subcategory.id]) &&
+																				ads[subcategory.id].length > 0
+																		);
+
+																	// If no subcategories have ads, skip this category
+																	if (subcategoriesWithAds.length === 0) {
+																		return null;
+																	}
+
+																	// Sort subcategories by number of ads (descending) and take first 4
+																	const sortedSubcategories =
+																		subcategoriesWithAds.sort((a, b) => {
+																			const aCount = ads[a.id]
+																				? ads[a.id].length
+																				: 0;
+																			const bCount = ads[b.id]
+																				? ads[b.id].length
+																				: 0;
+																			return bCount - aCount; // Descending order
+																		});
+																	const randomizedSubcategories =
+																		sortedSubcategories.slice(0, 4);
+
+																	return (
+																		<div key={category.id} className="mb-8">
+																			<CategorySection
+																				title={category.name}
+																				randomizedSubcategories={
+																					randomizedSubcategories
+																				}
+																				ads={ads}
+																				handleAdClick={handleAdClick}
+																				handleSubcategoryClick={
+																					handleSubcategoryClick
+																				}
+																			/>
+																		</div>
 																	);
-
-																// If no subcategories have ads, skip this category
-																if (subcategoriesWithAds.length === 0) {
-																	return null;
 																}
-
-																// Sort subcategories by number of ads (descending) and take first 4
-																const sortedSubcategories =
-																	subcategoriesWithAds.sort((a, b) => {
-																		const aCount = ads[a.id]
-																			? ads[a.id].length
-																			: 0;
-																		const bCount = ads[b.id]
-																			? ads[b.id].length
-																			: 0;
-																		return bCount - aCount; // Descending order
-																	});
-																const randomizedSubcategories =
-																	sortedSubcategories.slice(0, 4);
-
-																return (
-																	<CategorySection
-																		key={category.id}
-																		title={category.name}
-																		randomizedSubcategories={
-																			randomizedSubcategories
-																		}
-																		ads={ads}
-																		handleAdClick={handleAdClick}
-																		handleSubcategoryClick={
-																			handleSubcategoryClick
-																		}
-																	/>
-																);
-															});
+															);
 														})()}
 														{isLoadingCategories && (
 															<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">

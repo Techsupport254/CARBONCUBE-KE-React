@@ -82,7 +82,7 @@ const AdDetails = () => {
 					setIsLoadingSellerAds(false);
 				});
 		}
-	}, [ad, showShopModal]); // ✅ Do NOT destructure ad.seller_id directly here
+	}, [ad, showShopModal]); // Do NOT destructure ad.seller_id directly here
 
 	const handleShowModal = async () => {
 		setShowModal(true);
@@ -705,10 +705,10 @@ const AdDetails = () => {
 			if (response.status === 201) {
 				setAlertModalConfig({
 					isVisible: true,
-					icon: "success", // ✅ show the success icon
+					icon: "success", // show the success icon
 					title: "Added to Wishlist!",
 					message: "The ad has been successfully added to your wishlist.",
-					confirmText: "Awesome", // ✅ single confirm button
+					confirmText: "Awesome", // single confirm button
 					showCancel: false, // ❌ no cancel button
 					onConfirm: () =>
 						setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),

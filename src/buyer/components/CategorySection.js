@@ -28,9 +28,9 @@ const CategorySection = ({
 		  }));
 
 	return (
-		<Card className="mx-0 shadow-xl rounded-lg">
+		<Card className="mx-0 shadow-xl rounded-lg border-0">
 			<Card.Header
-				className="bg-secondary text-white rounded-t-lg flex justify-between items-center shadow-md cursor-pointer hover:bg-yellow-600 transition-colors duration-200"
+				className="bg-secondary text-white rounded-t-lg flex justify-between items-center shadow-md cursor-pointer hover:bg-yellow-600 transition-colors duration-200 px-4 py-3"
 				onClick={() =>
 					handleSubcategoryClick && handleSubcategoryClick("All", title)
 				}
@@ -56,7 +56,7 @@ const CategorySection = ({
 					</div>
 				)}
 				<div
-					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 h-full"
+					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 h-full"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
@@ -67,7 +67,7 @@ const CategorySection = ({
 					{subcategoriesToDisplay.map((subcategory) => (
 						<div
 							key={subcategory.id}
-							className="h-full p-0.5 flex flex-1 min-w-0"
+							className="h-full p-0.5 flex flex-1 min-w-0 gap-4"
 						>
 							{isLoading ? (
 								<div className="h-full w-full rounded-lg bg-white/90">

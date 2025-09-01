@@ -780,7 +780,7 @@ const SellerAds = () => {
 				),
 			}));
 
-			// ✅ Trigger AlertModal
+			// Trigger AlertModal
 			setAlertModalMessage("Image has been deleted successfully.");
 			setAlertModalConfig({
 				icon: "success",

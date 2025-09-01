@@ -138,7 +138,7 @@ async function fetchCategoriesAndSubcategories() {
 			: [];
 
 		console.log(
-			`✅ Found ${categories.length} categories and ${subcategories.length} subcategories`
+			`Found ${categories.length} categories and ${subcategories.length} subcategories`
 		);
 
 		return { categories, subcategories };
@@ -369,13 +369,13 @@ async function generateDynamicSitemap() {
 		const sitemapXML = generateSitemapXML(allUrls);
 		const sitemapPath = path.join(publicDir, "sitemap.xml");
 		fs.writeFileSync(sitemapPath, sitemapXML);
-		console.log(`✅ Sitemap generated: ${sitemapPath}`);
+		console.log(`Sitemap generated: ${sitemapPath}`);
 
 		// Generate robots.txt
 		const robotsTxt = generateRobotsTxt();
 		const robotsPath = path.join(publicDir, "robots.txt");
 		fs.writeFileSync(robotsPath, robotsTxt);
-		console.log(`✅ Robots.txt generated: ${robotsPath}`);
+		console.log(`Robots.txt generated: ${robotsPath}`);
 
 		// Generate sitemap index (if needed for multiple sitemaps)
 		const sitemapIndexXML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -388,7 +388,7 @@ async function generateDynamicSitemap() {
 
 		const sitemapIndexPath = path.join(publicDir, "sitemap-index.xml");
 		fs.writeFileSync(sitemapIndexPath, sitemapIndexXML);
-		console.log(`✅ Sitemap index generated: ${sitemapIndexPath}`);
+		console.log(`Sitemap index generated: ${sitemapIndexPath}`);
 
 		// Generate URL list for reference
 		const urlList = allUrls
@@ -396,7 +396,7 @@ async function generateDynamicSitemap() {
 			.join("\n");
 		const urlListPath = path.join(publicDir, "urls.txt");
 		fs.writeFileSync(urlListPath, urlList);
-		console.log(`✅ URL list generated: ${urlListPath}`);
+		console.log(`URL list generated: ${urlListPath}`);
 
 		console.log("\n🎉 Dynamic sitemap generation completed successfully!");
 		console.log(`📁 Files generated in: ${publicDir}`);

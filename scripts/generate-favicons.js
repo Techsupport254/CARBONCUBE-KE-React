@@ -52,7 +52,7 @@ async function generateFavicons() {
 		// Generate favicons
 		const response = await favicons(sourceLogo, configuration);
 
-		console.log("✅ Favicons generated successfully!");
+		console.log("Favicons generated successfully!");
 
 		// Create output directory if it doesn't exist
 		const outputDir = path.join(__dirname, "../public");

@@ -34,7 +34,7 @@ function BuyerSignUpPage({ onSignup }) {
 		sector_id: "",
 		education_id: "",
 		employment_id: "",
-		county_id: "", // ✅ Add this
+		county_id: "", // Add this
 		sub_county_id: "",
 	});
 	const [errors, setErrors] = useState({});
@@ -103,7 +103,7 @@ function BuyerSignUpPage({ onSignup }) {
 	const [submittingSignup, setSubmittingSignup] = useState(false);
 	const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-	// ✅ Place this AFTER state declarations
+	// Place this AFTER state declarations
 	const hasFocusedError = React.useRef(false);
 
 	useEffect(() => {
@@ -115,7 +115,7 @@ function BuyerSignUpPage({ onSignup }) {
 			if (el && el.scrollIntoView) {
 				el.scrollIntoView({ behavior: "smooth", block: "center" });
 				el.focus();
-				hasFocusedError.current = true; // ✅ prevent repeated focusing
+				hasFocusedError.current = true; // prevent repeated focusing
 			}
 		}
 	}, [errors]);
