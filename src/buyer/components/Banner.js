@@ -92,11 +92,26 @@ const Banner = () => {
 				}
 
 				const ads = await response.json();
-				// Filter for ads with `seller_tier` === 4
+				// Filter ads by tier priority: Premium (4) → Standard (3) → Basic (2) → Free (1)
 				const premium = ads.filter((ad) => ad.seller_tier === 4);
+				const standard = ads.filter((ad) => ad.seller_tier === 3);
+				const basic = ads.filter((ad) => ad.seller_tier === 2);
+				const free = ads.filter((ad) => ad.seller_tier === 1);
+
+				// Build display ads array following tier hierarchy
+				let displayAds = [...premium];
+				if (displayAds.length < 3) {
+					displayAds = [...displayAds, ...standard];
+				}
+				if (displayAds.length < 3) {
+					displayAds = [...displayAds, ...basic];
+				}
+				if (displayAds.length < 3) {
+					displayAds = [...displayAds, ...free];
+				}
 
 				// Shuffle and pick 3 random ads
-				const shuffled = premium.sort(() => 0.5 - Math.random());
+				const shuffled = displayAds.sort(() => 0.5 - Math.random());
 
 				setPremiumAds(shuffled.slice(0, 3));
 			} catch (error) {

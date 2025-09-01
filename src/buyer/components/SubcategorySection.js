@@ -12,28 +12,32 @@ const SubcategorySection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	// Sort ads by quantity (descending), then by created_at (descending) for stable sorting, and take first 4
+	// Sort ads by tier priority (Premium → Standard → Basic → Free), then by quantity, then by created_at
+	// The backend already sends ads sorted by tier priority, but we ensure proper ordering here too
 	const sortedAds = Array.isArray(ads)
 		? [...ads].sort((a, b) => {
+				// First priority: Complete tier hierarchy (Premium 4 → Standard 3 → Basic 2 → Free 1)
+				const tierA = a.seller_tier || 1; // Default to Free if no tier
+				const tierB = b.seller_tier || 1;
+
+				// Higher tier number = higher priority (Premium 4 > Standard 3 > Basic 2 > Free 1)
+				if (tierA !== tierB) {
+					return tierB - tierA;
+				}
+
+				// Second priority: quantity (descending)
 				const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
 				if (quantityDiff !== 0) return quantityDiff;
-				// If quantities are equal, sort by created_at for stable ordering
+
+				// Third priority: created_at (descending) for stable ordering
 				return new Date(b.created_at || 0) - new Date(a.created_at || 0);
 		  })
 		: [];
+
+	// Take first 4 ads (this will be Premium → Standard → Basic → Free to fill remaining slots)
 	const displayedAds = sortedAds.slice(0, 4);
 
-	// Debug logging for Accessories subcategory
-	if (subcategory === "Accessories") {
-		console.log(
-			`Accessories subcategory - Total ads: ${
-				ads?.length || 0
-			}, Displayed ads: ${displayedAds.length}`
-		);
-		displayedAds.forEach((ad, i) => {
-			console.log(`  ${i + 1}. ${ad.title} - Quantity: ${ad.quantity}`);
-		});
-	}
+	// Debug logging removed for cleaner console
 
 	return (
 		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh] border border-gray-100">

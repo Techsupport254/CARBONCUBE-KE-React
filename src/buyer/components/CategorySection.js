@@ -12,7 +12,7 @@ const CategorySection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	// Ensure we always have 4 subcategory slots to maintain grid structure
+	// Ensure we always have exactly 4 subcategory slots to maintain grid structure
 	const subcategoriesToDisplay = isLoading
 		? Array.from({ length: 4 }).map((_, idx) => ({
 				id: `loading-${idx}`,
@@ -20,7 +20,7 @@ const CategorySection = ({
 				isPlaceholder: true,
 		  }))
 		: randomizedSubcategories && randomizedSubcategories.length > 0
-		? randomizedSubcategories
+		? randomizedSubcategories.slice(0, 4) // Limit to exactly 4 subcategories
 		: Array.from({ length: 4 }).map((_, idx) => ({
 				id: `empty-${idx}`,
 				name: "",
@@ -56,12 +56,11 @@ const CategorySection = ({
 					</div>
 				)}
 				<div
-					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 h-full"
+					className="grid grid-cols-4 gap-3 h-full"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
 						minHeight: "30vh",
-						gridTemplateRows: "1fr",
 					}}
 				>
 					{subcategoriesToDisplay.map((subcategory) => (
