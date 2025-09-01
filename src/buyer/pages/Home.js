@@ -164,6 +164,10 @@ const Home = () => {
 
 				const adData = await adResponse.json();
 
+				// Debug logging for API response
+				console.log("API Response - Total ads received:", adData?.length || 0);
+				console.log("API Response - Sample ads:", adData?.slice(0, 3));
+
 				// Organize ads by subcategory ID
 				const organizedAds = {};
 				if (Array.isArray(adData)) {
@@ -176,6 +180,10 @@ const Home = () => {
 						}
 					});
 				}
+
+				// Debug logging for organized ads
+				console.log("Organized ads by subcategory:", organizedAds);
+				console.log("Accessories subcategory_id (3) ads count:", organizedAds[3]?.length || 0);
 
 				setAds(organizedAds);
 			} catch (err) {

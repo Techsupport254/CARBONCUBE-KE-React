@@ -15,17 +15,21 @@ const SubcategorySection = ({
 	// Sort ads by quantity (descending), then by created_at (descending) for stable sorting, and take first 4
 	const sortedAds = Array.isArray(ads)
 		? [...ads].sort((a, b) => {
-			const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
-			if (quantityDiff !== 0) return quantityDiff;
-			// If quantities are equal, sort by created_at for stable ordering
-			return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-		})
+				const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
+				if (quantityDiff !== 0) return quantityDiff;
+				// If quantities are equal, sort by created_at for stable ordering
+				return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+		  })
 		: [];
 	const displayedAds = sortedAds.slice(0, 4);
-	
+
 	// Debug logging for Accessories subcategory
 	if (subcategory === "Accessories") {
-		console.log(`Accessories subcategory - Total ads: ${ads?.length || 0}, Displayed ads: ${displayedAds.length}`);
+		console.log(
+			`Accessories subcategory - Total ads: ${
+				ads?.length || 0
+			}, Displayed ads: ${displayedAds.length}`
+		);
 		displayedAds.forEach((ad, i) => {
 			console.log(`  ${i + 1}. ${ad.title} - Quantity: ${ad.quantity}`);
 		});
