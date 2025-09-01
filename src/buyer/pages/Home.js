@@ -80,7 +80,7 @@ const Home = () => {
 			try {
 				// Add timeout for mobile devices
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+				const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout
 
 				const [categoryResponse, subcategoryResponse] = await Promise.all([
 					fetch(`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`, {
@@ -145,7 +145,7 @@ const Home = () => {
 
 				// Add timeout for mobile devices
 				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for ads
+				const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for ads
 
 				const adResponse = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=200&balanced=true`,
