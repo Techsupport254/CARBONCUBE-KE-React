@@ -3,50 +3,30 @@
 
 # ==== ALLOW ALL SEARCH ENGINES ====
 User-agent: *
-# ==== BLOCK PRIVATE/SENSITIVE AREAS ====
-# Admin areas - completely block from all crawlers
-Disallow: /admin/
-Disallow: /admin/*
-# User authentication and account areas
-Disallow: /auth/
-Disallow: /auth/*
-# Private seller areas
-Disallow: /seller/
-Disallow: /seller/*
-Allow: /seller-signup
-Allow: /seller/tiers
-# Private buyer areas
-Disallow: /buyer/
-Disallow: /buyer/*
-Allow: /buyer-signup
-# Private rider areas
-Disallow: /rider/
-Disallow: /rider/*
-# API endpoints (prevent indexing of raw JSON)
-Disallow: /api/
-Disallow: /api/*
-# Payment and transaction pages
-Disallow: /payments/
-Disallow: /payments/*
-# Search tracking and analytics
-Disallow: /ad_searches
-Disallow: /click_events
-# WebSocket connections
-Disallow: /cable
-Disallow: /cable/*
-# Development and health check endpoints
-Disallow: /up
-Disallow: /rails/
 
-# ==== ALLOW PUBLIC AREAS ====
+# ==== ALLOW PUBLIC AREAS (IMPORTANT FOR SEO) ====
+# Homepage and main landing pages
+Allow: /
+Allow: /home
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /help
+Allow: /faq
+
 # Public product listings
 Allow: /ads
 Allow: /ads/*
+Allow: /products
+Allow: /products/*
+
 # Public categories and navigation
 Allow: /categories
 Allow: /categories/*
 Allow: /subcategories
 Allow: /subcategories/*
+
 # Public information pages
 Allow: /banners
 Allow: /counties
@@ -57,6 +37,68 @@ Allow: /educations
 Allow: /employments
 Allow: /tiers
 Allow: /document_types
+
+# Public signup pages (important for SEO)
+Allow: /seller-signup
+Allow: /buyer-signup
+Allow: /signup
+Allow: /register
+Allow: /login
+
+# ==== BLOCK PRIVATE/SENSITIVE AREAS ====
+# Admin areas - completely block from all crawlers
+Disallow: /admin/
+Disallow: /admin/*
+
+# User authentication and account areas (but allow signup/login pages)
+Disallow: /auth/
+Disallow: /auth/*
+Allow: /auth/login
+Allow: /auth/signup
+Allow: /auth/register
+
+# Private seller areas (but allow public pages)
+Disallow: /seller/
+Disallow: /seller/*
+Allow: /seller-signup
+Allow: /seller/tiers
+Allow: /seller/public-profile
+
+# Private buyer areas (but allow public pages)
+Disallow: /buyer/
+Disallow: /buyer/*
+Allow: /buyer-signup
+Allow: /buyer/public-profile
+
+# Private rider areas
+Disallow: /rider/
+Disallow: /rider/*
+
+# API endpoints (prevent indexing of raw JSON)
+Disallow: /api/
+Disallow: /api/*
+
+# Payment and transaction pages
+Disallow: /payments/
+Disallow: /payments/*
+Disallow: /checkout
+Disallow: /cart
+
+# Search tracking and analytics
+Disallow: /ad_searches
+Disallow: /click_events
+Disallow: /analytics
+Disallow: /tracking
+
+# WebSocket connections
+Disallow: /cable
+Disallow: /cable/*
+
+# Development and health check endpoints
+Disallow: /up
+Disallow: /rails/
+Disallow: /health
+Disallow: /status
 
 # ==== CRAWL DELAY ====
 # Prevent aggressive crawling that could slow down your site
@@ -70,12 +112,18 @@ Sitemap: https://carboncube-ke.com/sitemap.xml
 # Google Bot - allow more frequent crawling
 User-agent: Googlebot
 Crawl-delay: 1
+Allow: /
+Allow: /home
+Allow: /about
+Allow: /contact
 Allow: /ads
 Allow: /ads/*
 Allow: /categories
 Allow: /categories/*
 Allow: /subcategories
 Allow: /subcategories/*
+Allow: /seller-signup
+Allow: /buyer-signup
 Disallow: /admin/
 Disallow: /seller/
 Disallow: /buyer/
@@ -86,12 +134,18 @@ Disallow: /api/
 # Bing Bot
 User-agent: Bingbot
 Crawl-delay: 2
+Allow: /
+Allow: /home
+Allow: /about
+Allow: /contact
 Allow: /ads
 Allow: /ads/*
 Allow: /categories
 Allow: /categories/*
 Allow: /subcategories
 Allow: /subcategories/*
+Allow: /seller-signup
+Allow: /buyer-signup
 Disallow: /admin/
 Disallow: /seller/
 Disallow: /buyer/
