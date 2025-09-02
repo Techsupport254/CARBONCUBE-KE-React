@@ -19,38 +19,7 @@ const SourceTrackingModal = ({
 }) => {
 	// Ensure the modal reflects the current filter when it opens
 	useEffect(() => {
-		console.log(
-			"SourceTrackingModal - show:",
-			show,
-			"sourceDateFilter:",
-			sourceDateFilter
-		);
-
-		// Debug logging for data analysis
-		if (show) {
-			console.log("=== MODAL OPENED - DATA ANALYSIS ===");
-			console.log("memoizedFilteredSourceData:", memoizedFilteredSourceData);
-			console.log(
-				"source_distribution keys:",
-				Object.keys(memoizedFilteredSourceData?.source_distribution || {})
-			);
-			console.log(
-				"source_distribution values:",
-				Object.values(memoizedFilteredSourceData?.source_distribution || {})
-			);
-			console.log("Total visits:", memoizedFilteredSourceData?.total_visits);
-
-			// Log each source with count
-			Object.entries(
-				memoizedFilteredSourceData?.source_distribution || {}
-			).forEach(([source, count]) => {
-				console.log(`Source: ${source} = ${count} visits`);
-			});
-			console.log("=== END DATA ANALYSIS ===");
-		}
-
 		if (show && sourceDateFilter !== "week") {
-			console.log("Resetting to week filter");
 			// Reset to week filter when modal opens
 			onSourceDateFilterChange("week");
 			onSourceCustomStartDateChange("");

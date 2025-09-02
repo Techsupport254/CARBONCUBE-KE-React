@@ -5,25 +5,21 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
 import sourceTrackingService from "./utils/sourceTracking";
-import {
-	getDeviceFingerprint,
-	isInternalUser,
-} from "./utils/deviceFingerprint";
+import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import {
 	registerServiceWorker,
 	optimizeFontLoading,
 	optimizeCriticalPath,
 	checkPerformanceBudget,
 	logMemoryUsage,
+	optimizeCSSDelivery,
+	optimizeJavaScriptLoading,
+	fixPreloadLinks,
+	managePreloadLinks,
 } from "./utils/performance";
 
 // Performance monitoring
 const reportWebVitalsWithDetails = (metric) => {
-	// Only log if metric is defined
-	if (metric && process.env.NODE_ENV === "development") {
-		console.log("Web Vitals:", metric);
-	}
-
 	// Send to analytics if metric is defined
 	if (metric) {
 		reportWebVitals(metric);
@@ -63,11 +59,20 @@ const reportWebVitalsWithDetails = (metric) => {
 
 // Performance optimizations
 const initializePerformanceOptimizations = () => {
+	// Manage preload links with enhanced monitoring
+	managePreloadLinks();
+
+	// Optimize CSS delivery first
+	optimizeCSSDelivery();
+
 	// Optimize font loading
 	optimizeFontLoading();
 
 	// Optimize critical rendering path
 	optimizeCriticalPath();
+
+	// Optimize JavaScript loading
+	optimizeJavaScriptLoading();
 
 	// Register service worker for caching
 	registerServiceWorker();
@@ -77,6 +82,8 @@ const initializePerformanceOptimizations = () => {
 		setTimeout(() => {
 			checkPerformanceBudget();
 			logMemoryUsage();
+			// Fix preload links again after page load
+			fixPreloadLinks();
 		}, 1000);
 	});
 };

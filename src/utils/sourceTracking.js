@@ -428,7 +428,7 @@ class SourceTrackingService {
 	generateSocialShareUrls(pageUrl, title, description) {
 		const encodedUrl = encodeURIComponent(pageUrl);
 		const encodedTitle = encodeURIComponent(title);
-		const encodedDescription = encodeURIComponent(description);
+		// Note: encodedDescription variable removed as it was unused
 
 		return {
 			facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,

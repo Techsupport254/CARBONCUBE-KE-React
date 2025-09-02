@@ -97,9 +97,7 @@ function BuyerSignUpPage({ onSignup }) {
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [otpSent, setOtpSent] = useState(false);
 	const [otpCode, setOtpCode] = useState("");
-	const [emailVerified, setEmailVerified] = useState(false);
 	const [submittingSignup, setSubmittingSignup] = useState(false);
 	const [verifyingOtp, setVerifyingOtp] = useState(false);
 
@@ -189,7 +187,7 @@ function BuyerSignUpPage({ onSignup }) {
 					fullname: formData.fullname,
 				});
 
-				setOtpSent(true);
+				// Note: OTP sent state removed as it was unused
 				nextStep(); // move to step 3
 			} catch (error) {
 				const serverErrors = {};
@@ -229,7 +227,7 @@ function BuyerSignUpPage({ onSignup }) {
 			);
 
 			if (res.data.verified) {
-				setEmailVerified(true);
+				// Note: Email verified state removed as it was unused
 				setErrors({});
 
 				const cleanedData = Object.fromEntries(

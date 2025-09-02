@@ -218,11 +218,20 @@ export const generateHomeSEO = (categories = []) => {
 			contactType: "customer service",
 			availableLanguage: "English",
 			areaServed: "KE",
+			telephone: "+254713270764",
+			email: "info@carboncube-ke.com",
 		},
 		address: {
 			"@type": "PostalAddress",
+			streetAddress: "9th Floor, CMS Africa, Kilimani",
+			addressLocality: "Nairobi",
+			addressRegion: "Nairobi",
 			addressCountry: "KE",
+			postalCode: "00100",
 		},
+		foundingDate: "2023",
+		numberOfEmployees: "2-10",
+		industry: "Internet Marketplace Platforms",
 	};
 
 	// Local business structured data
@@ -232,14 +241,31 @@ export const generateHomeSEO = (categories = []) => {
 		name: SITE_CONFIG.name,
 		description: SITE_CONFIG.description,
 		url: SITE_CONFIG.url,
+		telephone: "+254713270764",
+		email: "info@carboncube-ke.com",
+		image: SITE_CONFIG.logo,
 		address: {
 			"@type": "PostalAddress",
+			streetAddress: "9th Floor, CMS Africa, Kilimani",
+			addressLocality: "Nairobi",
+			addressRegion: "Nairobi",
 			addressCountry: "KE",
+			postalCode: "00100",
 		},
+		geo: {
+			"@type": "GeoCoordinates",
+			latitude: -1.2921,
+			longitude: 36.8219,
+		},
+		openingHours: "Mo-Su 00:00-23:59",
+		priceRange: "$$",
+		currenciesAccepted: "KES",
+		paymentAccepted: "Cash, Credit Card, Mobile Money",
 		areaServed: {
 			"@type": "Country",
 			name: "Kenya",
 		},
+		serviceType: "Online Marketplace",
 	};
 
 	return {
@@ -260,27 +286,68 @@ export const generateHomeSEO = (categories = []) => {
 export const generateProductSEO = (ad) => {
 	if (!ad) return {};
 
-	const title = `${ad.title} - Buy Online in Kenya | Carbon Cube Kenya`;
-	const description =
-		ad.description?.substring(0, 160) ||
-		`Buy ${ad.title} from verified seller on Carbon Cube Kenya. Secure shopping with trusted seller verification.`;
-	const keywords = `${ad.title}, ${ad.category?.name || ""}, ${
-		ad.subcategory?.name || ""
-	}, online shopping Kenya, Carbon Cube Kenya, verified seller`;
-	const image = ad.media?.[0] || SITE_CONFIG.logo;
+	// Enhanced title with more context
+	const title = `${ad.title} - ${ad.brand || "Product"} | ${
+		ad.category_name || "Category"
+	} | Carbon Cube Kenya`;
+
+	// Enhanced description with more details
+	const description = ad.description
+		? `${ad.description.substring(0, 140)}...`
+		: `Buy ${ad.title} from verified seller ${
+				ad.seller_enterprise_name || ad.seller_name || "on Carbon Cube Kenya"
+		  }. ${
+				ad.condition === "brand_new" ? "Brand new" : "Quality"
+		  } product with secure shopping.`;
+
+	// Enhanced keywords with more relevant terms
+	const keywords = [
+		ad.title,
+		ad.brand,
+		ad.manufacturer,
+		ad.category_name,
+		ad.subcategory_name,
+		ad.condition === "brand_new" ? "brand new" : "used",
+		"online shopping Kenya",
+		"Carbon Cube Kenya",
+		"verified seller",
+		"secure marketplace",
+		"Kenya ecommerce",
+	]
+		.filter(Boolean)
+		.join(", ");
+
+	const image = ad.media_urls?.[0] || ad.first_media_url || SITE_CONFIG.logo;
 	const url = `${SITE_CONFIG.url}/ads/${ad.id}`;
 
-	// Product structured data
+	// Enhanced Product structured data
 	const productStructuredData = {
 		"@context": "https://schema.org",
 		"@type": "Product",
 		name: ad.title,
 		description: ad.description,
-		image: ad.media || [image],
+		image: ad.media_urls || [image],
 		brand: {
 			"@type": "Brand",
-			name: ad.brand || SITE_CONFIG.name,
+			name: ad.brand || ad.manufacturer || SITE_CONFIG.name,
 		},
+		manufacturer: {
+			"@type": "Organization",
+			name: ad.manufacturer || ad.brand || SITE_CONFIG.name,
+		},
+		category: ad.category_name,
+		additionalProperty: [
+			{
+				"@type": "PropertyValue",
+				name: "Condition",
+				value: ad.condition === "brand_new" ? "New" : "Used",
+			},
+			{
+				"@type": "PropertyValue",
+				name: "Seller Tier",
+				value: ad.seller_tier_name || "Standard",
+			},
+		],
 		offers: {
 			"@type": "Offer",
 			price: ad.price,
@@ -289,29 +356,35 @@ export const generateProductSEO = (ad) => {
 				.toISOString()
 				.split("T")[0],
 			availability:
-				ad.status === "active"
+				ad.quantity > 0
 					? "https://schema.org/InStock"
 					: "https://schema.org/OutOfStock",
 			seller: {
 				"@type": "Organization",
-				name: ad.seller?.business_name || SITE_CONFIG.name,
+				name: ad.seller_enterprise_name || ad.seller_name || SITE_CONFIG.name,
+				url: `${SITE_CONFIG.url}/seller/${ad.seller_id}`,
 			},
 			url: url,
+			itemCondition:
+				ad.condition === "brand_new"
+					? "https://schema.org/NewCondition"
+					: "https://schema.org/UsedCondition",
 		},
-		aggregateRating: ad.average_rating
-			? {
-					"@type": "AggregateRating",
-					ratingValue: ad.average_rating,
-					reviewCount: ad.review_count || 0,
-					bestRating: 5,
-					worstRating: 1,
-			  }
-			: undefined,
-		category: ad.category?.name,
+		aggregateRating:
+			ad.rating || ad.mean_rating || ad.average_rating
+				? {
+						"@type": "AggregateRating",
+						ratingValue: ad.rating || ad.mean_rating || ad.average_rating,
+						reviewCount:
+							ad.review_count || ad.reviews_count || ad.total_reviews || 0,
+						bestRating: 5,
+						worstRating: 1,
+				  }
+				: undefined,
 		url: url,
 	};
 
-	// Breadcrumb structured data
+	// Enhanced Breadcrumb structured data with better URL handling
 	const breadcrumbStructuredData = {
 		"@context": "https://schema.org",
 		"@type": "BreadcrumbList",
@@ -325,17 +398,19 @@ export const generateProductSEO = (ad) => {
 			{
 				"@type": "ListItem",
 				position: 2,
-				name: ad.category?.name || "Categories",
-				item: ad.category
-					? `${SITE_CONFIG.url}/categories/${ad.category.id}`
+				name: ad.category_name || "Categories",
+				item: ad.category_id
+					? `${SITE_CONFIG.url}/categories/${ad.category_id}`
 					: `${SITE_CONFIG.url}/categories`,
 			},
 			{
 				"@type": "ListItem",
 				position: 3,
-				name: ad.subcategory?.name || ad.category?.name || "Products",
-				item: ad.subcategory
-					? `${SITE_CONFIG.url}/subcategories/${ad.subcategory.id}`
+				name: ad.subcategory_name || ad.category_name || "Products",
+				item: ad.subcategory_id
+					? `${SITE_CONFIG.url}/subcategories/${ad.subcategory_id}`
+					: ad.category_id
+					? `${SITE_CONFIG.url}/categories/${ad.category_id}`
 					: url,
 			},
 			{
@@ -356,6 +431,15 @@ export const generateProductSEO = (ad) => {
 		type: "product",
 		structuredData: productStructuredData,
 		additionalStructuredData: [breadcrumbStructuredData],
+		// Additional SEO data for better categorization
+		category: ad.category_name,
+		subcategory: ad.subcategory_name,
+		brand: ad.brand,
+		manufacturer: ad.manufacturer,
+		condition: ad.condition,
+		price: ad.price,
+		currency: "KES",
+		availability: ad.quantity > 0 ? "in stock" : "out of stock",
 	};
 };
 
@@ -515,7 +599,11 @@ export const generateAboutPageSEO = () => {
 			foundingDate: "2024",
 			address: {
 				"@type": "PostalAddress",
+				streetAddress: "9th Floor, CMS Africa, Kilimani",
+				addressLocality: "Nairobi",
+				addressRegion: "Nairobi",
 				addressCountry: "KE",
+				postalCode: "00100",
 			},
 		},
 	};
@@ -554,6 +642,8 @@ export const generateContactPageSEO = () => {
 				contactType: "customer service",
 				availableLanguage: "English",
 				areaServed: "KE",
+				telephone: "+254713270764",
+				email: "info@carboncube-ke.com",
 			},
 		},
 	};

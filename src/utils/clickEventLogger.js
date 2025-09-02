@@ -86,8 +86,7 @@ export const logClickEvent = async (
 			return false;
 		}
 
-		const result = await response.json();
-
+		// Note: result variable removed as it was unused
 		return true;
 	} catch (error) {
 		console.error("Error logging click event:", error);

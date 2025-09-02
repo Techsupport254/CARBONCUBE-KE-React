@@ -3,7 +3,7 @@ import { Card, Col, Row } from "react-bootstrap";
 import "./TopWishListedAds.css";
 
 const TopWishListedAds = ({ data }) => {
-	// console.log("Data received in TopWishListedAds component:", data);  // Log the data to inspect
+	// Log the data to inspect
 
 	return (
 		<Row>

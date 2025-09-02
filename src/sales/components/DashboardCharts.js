@@ -3,21 +3,7 @@ import { Col, Card } from "react-bootstrap";
 import { Pie, Bar } from "react-chartjs-2";
 
 const DashboardCharts = ({ pieData, buyerAdClickBarData, analytics }) => {
-	const barOptions = {
-		responsive: true,
-		plugins: {
-			legend: { display: false },
-		},
-		scales: {
-			y: {
-				beginAtZero: true,
-				max: 100,
-				ticks: {
-					callback: (value) => `${value}%`,
-				},
-			},
-		},
-	};
+	// Note: barOptions removed as it was unused
 
 	const buyerAdClickBarOptions = {
 		responsive: true,

@@ -49,7 +49,6 @@ function SellerSignUpPage({ onSignup }) {
 	const [profilePreviewURL, setProfilePreviewURL] = useState(null);
 	const navigate = useNavigate();
 	const [subCounties, setSubCounties] = useState([]);
-	const [showPilotNotice, setShowPilotNotice] = useState(false);
 	const [options, setOptions] = useState({ age_groups: [], counties: [] });
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
@@ -160,9 +159,7 @@ function SellerSignUpPage({ onSignup }) {
 
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [otpSent, setOtpSent] = useState(false);
 	const [otpCode, setOtpCode] = useState("");
-	const [emailVerified, setEmailVerified] = useState(false);
 	const [submittingSignup, setSubmittingSignup] = useState(false);
 	const [verifyingOtp, setVerifyingOtp] = useState(false);
 
@@ -258,7 +255,7 @@ function SellerSignUpPage({ onSignup }) {
 					fullname: formData.fullname,
 				});
 
-				setOtpSent(true);
+				// Note: OTP sent state removed as it was unused
 				nextStep(); // go to step 3 (OTP verification)
 			} catch (error) {
 				setErrors({ email: "Failed to send OTP. Try again later." });
@@ -285,7 +282,7 @@ function SellerSignUpPage({ onSignup }) {
 			);
 
 			if (res.data.verified) {
-				setEmailVerified(true);
+				// Note: Email verified state removed as it was unused
 				setErrors({});
 
 				const formDataToSend = new FormData();
@@ -362,7 +359,7 @@ function SellerSignUpPage({ onSignup }) {
 							cancelText: "",
 							showCancel: false,
 							onConfirm: () => {
-								setShowPilotNotice(true);
+								// Note: Pilot notice state removed as it was unused
 								navigate("/");
 							},
 						});

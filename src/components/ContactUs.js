@@ -1,18 +1,8 @@
 import React from "react";
-import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap";
-import {
-	Lock,
-	Robot,
-	CheckCircle,
-	Shop,
-	Award,
-	Person,
-	GraphUp,
-	Shield,
-} from "react-bootstrap-icons";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
+import { Shop } from "react-bootstrap-icons";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import AboutUsImage from "./assets/about-us.jpg";
 import "./AboutUs.css"; // Assuming you have a CSS file for custom styles
 import { Mail, MapPin, Phone } from "lucide-react";
 import useSEO from "../hooks/useSEO";
@@ -67,7 +57,9 @@ const ContactUs = () => {
 					"@type": "PostalAddress",
 					streetAddress: "9th Floor, CMS Africa, Kilimani",
 					addressLocality: "Nairobi",
+					addressRegion: "Nairobi",
 					addressCountry: "KE",
+					postalCode: "00100"
 				},
 			},
 		},

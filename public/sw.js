@@ -2,44 +2,45 @@ const CACHE_NAME = 'carbon-cube-v1';
 const STATIC_CACHE = 'carbon-cube-static-v1';
 const DYNAMIC_CACHE = 'carbon-cube-dynamic-v1';
 
-// Files to cache immediately - using more flexible paths
+// Files to cache immediately
 const STATIC_FILES = [
   '/',
-  '/manifest.json',
+  '/static/js/main.js',
+  '/static/css/main.css',
+  '/optimized-banners/banner-01-2xl.webp',
+  '/optimized-banners/banner-02-2xl.webp',
+  '/optimized-banners/banner-03-2xl.webp',
+  '/optimized-banners/banner-04-2xl.webp',
+  '/optimized-banners/banner-05-2xl.webp',
   '/favicon.ico',
-  '/logo192.png',
-  '/logo512.png'
+  '/manifest.json'
 ];
 
 // Install event - cache static files
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
         console.log('Caching static files');
-        // Cache files individually to handle failures gracefully
-        const cachePromises = STATIC_FILES.map(url => 
-          cache.add(url).catch(err => {
-            console.warn('Failed to cache:', url, err);
-            return null;
-          })
+        // Use addAll with error handling for individual files
+        return Promise.allSettled(
+          STATIC_FILES.map(url => 
+            cache.add(url).catch(error => {
+              console.log(`Failed to cache ${url}:`, error);
+              return null; // Continue with other files
+            })
+          )
         );
-        return Promise.all(cachePromises);
       })
-      .then(() => {
-        console.log('Service Worker installed');
-        return self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('Service Worker installation failed:', error);
+      .catch((error) => {
+        console.log('Cache install failed:', error);
       })
   );
+  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
@@ -52,17 +53,11 @@ self.addEventListener('activate', (event) => {
           })
         );
       })
-      .then(() => {
-        console.log('Service Worker activated');
-        return self.clients.claim();
-      })
-      .catch(error => {
-        console.error('Service Worker activation failed:', error);
-      })
   );
+  self.clients.claim();
 });
 
-// Fetch event - serve from cache or network
+// Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -72,80 +67,102 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip chrome-extension requests
-  if (url.protocol === 'chrome-extension:') {
+  // Skip chrome-extension and other non-http requests
+  if (!url.protocol.startsWith('http')) {
     return;
   }
 
-  // Skip localhost development requests
-  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  // Handle API requests
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Clone the response
+          const responseClone = response.clone();
+          
+          // Cache successful API responses
+          if (response.status === 200) {
+            caches.open(DYNAMIC_CACHE)
+              .then((cache) => {
+                cache.put(request, responseClone);
+              });
+          }
+          
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cached version if available
+          return caches.match(request);
+        })
+    );
     return;
   }
 
-  // Handle different types of requests
-  if (url.pathname.startsWith('/static/')) {
-    // Static assets - cache first strategy
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
-  } else if (url.pathname.startsWith('/api/')) {
-    // API requests - network first strategy
-    event.respondWith(networkFirst(request, DYNAMIC_CACHE));
-  } else {
-    // HTML pages - network first strategy
-    event.respondWith(networkFirst(request, DYNAMIC_CACHE));
+  // Handle image requests
+  if (request.destination === 'image') {
+    event.respondWith(
+      caches.match(request)
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+          
+          return fetch(request)
+            .then((response) => {
+              // Cache successful image responses
+              if (response.status === 200) {
+                const responseClone = response.clone();
+                caches.open(DYNAMIC_CACHE)
+                  .then((cache) => {
+                    cache.put(request, responseClone);
+                  });
+              }
+              return response;
+            });
+        })
+    );
+    return;
   }
+
+  // Handle static files
+  event.respondWith(
+    caches.match(request)
+      .then((response) => {
+        if (response) {
+          return response;
+        }
+        
+        return fetch(request)
+          .then((response) => {
+            // Don't cache non-successful responses
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            
+            // Cache successful responses
+            const responseClone = response.clone();
+            caches.open(DYNAMIC_CACHE)
+              .then((cache) => {
+                cache.put(request, responseClone);
+              });
+            
+            return response;
+          });
+      })
+  );
 });
 
-// Cache first strategy
-async function cacheFirst(request, cacheName) {
-  try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-    }
-    return networkResponse;
-  } catch (error) {
-    console.log('Cache first strategy failed:', error);
-    return new Response('Network error', { status: 503 });
-  }
-}
-
-// Network first strategy
-async function networkFirst(request, cacheName) {
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, networkResponse.clone());
-    }
-    return networkResponse;
-  } catch (error) {
-    console.log('Network first strategy failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    return new Response('Network error', { status: 503 });
-  }
-}
-
-// Background sync for offline actions
+// Background sync for offline functionality
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
-    console.log('Background sync triggered');
     event.waitUntil(doBackgroundSync());
   }
 });
 
 async function doBackgroundSync() {
   try {
-    // Handle any pending offline actions
-    console.log('Processing background sync...');
+    // Perform background sync tasks
+    console.log('Background sync completed');
   } catch (error) {
     console.error('Background sync failed:', error);
   }
@@ -153,56 +170,30 @@ async function doBackgroundSync() {
 
 // Push notification handling
 self.addEventListener('push', (event) => {
-  console.log('Push notification received');
-  
-  const options = {
-    body: event.data ? event.data.text() : 'New notification from Carbon Cube',
-    icon: '/logo192.png',
-    badge: '/logo192.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'explore',
-        title: 'View',
-        icon: '/logo192.png'
-      },
-      {
-        action: 'close',
-        title: 'Close',
-        icon: '/logo192.png'
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: 1
       }
-    ]
-  };
+    };
 
-  event.waitUntil(
-    self.registration.showNotification('Carbon Cube Kenya', options)
-  );
-});
-
-// Notification click handling
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked');
-  
-  event.notification.close();
-
-  if (event.action === 'explore') {
     event.waitUntil(
-      clients.openWindow('/')
+      self.registration.showNotification(data.title, options)
     );
   }
 });
 
-// Message handling for communication with main thread
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+// Notification click handling
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
   
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
-  }
+  event.waitUntil(
+    clients.openWindow('/')
+  );
 });

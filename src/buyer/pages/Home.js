@@ -258,12 +258,6 @@ const Home = () => {
 				const searchCategory = category || "All";
 				const searchSubcategory = subcategory || "All";
 
-				console.log("Searching for:", {
-					searchQuery,
-					searchCategory,
-					searchSubcategory,
-				});
-
 				const response = await fetch(
 					`${
 						process.env.REACT_APP_BACKEND_URL
@@ -289,7 +283,6 @@ const Home = () => {
 				}
 
 				const results = await response.json();
-				console.log("Search results:", results);
 
 				if (!results || results.length === 0) {
 					setSearchResults([]);
@@ -448,7 +441,7 @@ const Home = () => {
 				<div className={`${sidebarOpen ? "block" : "hidden"} md:block`}>
 					<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
 				</div>
-				<div className="flex-1 bg-gray-300 font-['Fira_Sans_Extra_Condensed'] font-normal transition-all duration-300 ease-in-out">
+				<div className="flex-1 bg-gray-300 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{!isSearching && searchResults.length === 0 && <Banner />}
 						<div
@@ -672,17 +665,7 @@ const Home = () => {
 																);
 															}
 
-															// Function to shuffle an array
-															const shuffleArray = (array) => {
-																return array
-																	.map((value) => ({
-																		value,
-																		sort: Math.random(),
-																	}))
-																	.sort((a, b) => a.sort - b.sort)
-																	.map(({ value }) => value);
-															};
-
+															// Note: shuffleArray function removed as it was unused
 															return categoriesWithAds.map(
 																(category, index) => {
 																	// Get all subcategories for this category

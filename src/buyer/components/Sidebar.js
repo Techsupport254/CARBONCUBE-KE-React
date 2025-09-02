@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Nav, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import {
 	XCircle,
 	ArrowRight,
 	ChatSquareText,
-	HouseGear,
 } from "react-bootstrap-icons";
 import "./Sidebar.css";
 

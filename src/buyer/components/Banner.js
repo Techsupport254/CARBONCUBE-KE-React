@@ -1,13 +1,45 @@
 import React, { useEffect, useState } from "react";
-// import "./Banner.css"; // Removed CSS import
 import Carousel from "react-bootstrap/Carousel";
+import OptimizedImage from "../../components/OptimizedImage";
 
-// Import local banner images as fallback
-import banner1 from "../../assets/banners/banner-01.jpg";
-import banner2 from "../../assets/banners/banner-02.jpg";
-import banner3 from "../../assets/banners/banner-03.jpg";
-import banner4 from "../../assets/banners/banner-04.jpg";
-import banner5 from "../../assets/banners/banner-05.jpg";
+// Optimized banner images with responsive sources
+const optimizedBanners = [
+	{
+		src: "/optimized-banners/banner-01-2xl.webp",
+		fallback: "/optimized-banners/banner-01-2xl.jpg",
+		alt: "Banner 1",
+		width: 1600,
+		height: 900,
+	},
+	{
+		src: "/optimized-banners/banner-02-2xl.webp",
+		fallback: "/optimized-banners/banner-02-2xl.jpg",
+		alt: "Banner 2",
+		width: 1600,
+		height: 900,
+	},
+	{
+		src: "/optimized-banners/banner-03-2xl.webp",
+		fallback: "/optimized-banners/banner-03-2xl.jpg",
+		alt: "Banner 3",
+		width: 1600,
+		height: 900,
+	},
+	{
+		src: "/optimized-banners/banner-04-2xl.webp",
+		fallback: "/optimized-banners/banner-04-2xl.jpg",
+		alt: "Banner 4",
+		width: 1600,
+		height: 900,
+	},
+	{
+		src: "/optimized-banners/banner-05-2xl.webp",
+		fallback: "/optimized-banners/banner-05-2xl.jpg",
+		alt: "Banner 5",
+		width: 1600,
+		height: 900,
+	},
+];
 
 // Custom styles for carousel controls
 const carouselStyles = {
@@ -29,12 +61,12 @@ const carouselStyles = {
 	},
 	carouselControlPrev: {
 		left: "20px",
-		top: "50%", // Center vertically
+		top: "50%",
 		transform: "translateY(-50%)",
 	},
 	carouselControlNext: {
 		right: "20px",
-		top: "50%", // Center vertically
+		top: "50%",
 		transform: "translateY(-50%)",
 	},
 	carouselIndicator: {
@@ -53,148 +85,29 @@ const carouselStyles = {
 	},
 };
 
-// Fallback banner images
-const fallbackBanners = [banner1, banner2, banner3, banner4, banner5];
-
 const Banner = () => {
-	const [images, setImages] = useState([]);
-	const [premiumAds, setPremiumAds] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		// Use fallback images and preload them before showing
-		setImages(fallbackBanners);
-		setIsLoading(true);
+		// Preload optimized images
+		const preloadImages = async () => {
+			const imagePromises = optimizedBanners.map((banner) => {
+				return new Promise((resolve) => {
+					const img = new Image();
+					img.onload = () => resolve();
+					img.onerror = () => resolve();
+					img.src = banner.src;
+				});
+			});
 
-		const preload = (srcs) =>
-			Promise.all(
-				srcs.map(
-					(src) =>
-						new Promise((resolve) => {
-							const img = new Image();
-							img.onload = () => resolve();
-							img.onerror = () => resolve();
-							img.src = src;
-						})
-				)
-			);
-
-		preload(fallbackBanners).then(() => setIsLoading(false));
-
-		const fetchPremiumAds = async () => {
-			try {
-				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads`
-				);
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch ads");
-				}
-
-				const ads = await response.json();
-				// Filter ads by tier priority: Premium (4) → Standard (3) → Basic (2) → Free (1)
-				const premium = ads.filter((ad) => ad.seller_tier === 4);
-				const standard = ads.filter((ad) => ad.seller_tier === 3);
-				const basic = ads.filter((ad) => ad.seller_tier === 2);
-				const free = ads.filter((ad) => ad.seller_tier === 1);
-
-				// Build display ads array following tier hierarchy
-				let displayAds = [...premium];
-				if (displayAds.length < 3) {
-					displayAds = [...displayAds, ...standard];
-				}
-				if (displayAds.length < 3) {
-					displayAds = [...displayAds, ...basic];
-				}
-				if (displayAds.length < 3) {
-					displayAds = [...displayAds, ...free];
-				}
-
-				// Shuffle and pick 3 random ads
-				const shuffled = displayAds.sort(() => 0.5 - Math.random());
-
-				setPremiumAds(shuffled.slice(0, 3));
-			} catch (error) {
-				console.error("Error fetching premium ads:", error);
-			}
+			await Promise.all(imagePromises);
+			setIsLoading(false);
 		};
 
-		fetchPremiumAds();
+		preloadImages();
+
+		// Note: Premium ads functionality removed as it was unused
 	}, []);
-
-	// Apply custom styles to carousel controls
-	useEffect(() => {
-		const applyCarouselStyles = () => {
-			const carouselControls = document.querySelectorAll(
-				".carousel-control-prev, .carousel-control-next"
-			);
-			const carouselIndicators = document.querySelectorAll(
-				".carousel-indicators button"
-			);
-
-			// Get screen width for responsive sizing
-			const screenWidth = window.innerWidth;
-
-			// Responsive control sizes
-			const controlSize = screenWidth < 768 ? 40 : screenWidth < 1024 ? 44 : 48;
-			const controlPosition =
-				screenWidth < 768 ? 10 : screenWidth < 1024 ? 15 : 20;
-			const indicatorSize =
-				screenWidth < 768 ? 10 : screenWidth < 1024 ? 11 : 12;
-			const indicatorMargin =
-				screenWidth < 768 ? 3 : screenWidth < 1024 ? 4 : 4;
-
-			carouselControls.forEach((control, index) => {
-				Object.assign(control.style, {
-					...carouselStyles.carouselControl,
-					width: `${controlSize}px`,
-					height: `${controlSize}px`,
-				});
-
-				if (index === 0) {
-					Object.assign(control.style, {
-						...carouselStyles.carouselControlPrev,
-						left: `${controlPosition}px`,
-					});
-				} else {
-					Object.assign(control.style, {
-						...carouselStyles.carouselControlNext,
-						right: `${controlPosition}px`,
-					});
-				}
-			});
-
-			carouselIndicators.forEach((indicator, index) => {
-				Object.assign(indicator.style, {
-					...carouselStyles.carouselIndicator,
-					width: `${indicatorSize}px`,
-					height: `${indicatorSize}px`,
-					margin: `0 ${indicatorMargin}px`,
-				});
-				if (indicator.classList.contains("active")) {
-					Object.assign(
-						indicator.style,
-						carouselStyles.carouselIndicatorActive
-					);
-				}
-			});
-		};
-
-		// Apply styles after a short delay to ensure carousel is rendered
-		const timer = setTimeout(applyCarouselStyles, 100);
-
-		// Add resize listener for responsive updates
-		const handleResize = () => {
-			applyCarouselStyles();
-		};
-
-		window.addEventListener("resize", handleResize);
-
-		return () => {
-			clearTimeout(timer);
-			window.removeEventListener("resize", handleResize);
-		};
-	}, [images.length]);
 
 	return (
 		<div className="w-full max-w-7xl mx-auto text-center overflow-visible relative z-1">
@@ -202,7 +115,7 @@ const Banner = () => {
 				<div className="w-full mx-auto px-0">
 					<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-b-xl animate-pulse aspect-[16/9]"></div>
 				</div>
-			) : images.length > 0 ? (
+			) : optimizedBanners.length > 0 ? (
 				<Carousel
 					interval={5000}
 					pause={false}
@@ -210,55 +123,46 @@ const Banner = () => {
 					controls={true}
 					indicators={true}
 				>
-					{images.map((src, index) => (
+					{optimizedBanners.map((banner, index) => (
 						<Carousel.Item key={index}>
 							<div className="w-full relative flex justify-center">
-								<img
-									src={src}
-									alt={`Banner ${index + 1}`}
+								<OptimizedImage
+									src={banner.src}
+									alt={banner.alt}
+									width={banner.width}
+									height={banner.height}
 									className="w-full h-auto object-contain"
 									loading={index === 0 ? "eager" : "lazy"}
-									decoding="async"
-									fetchpriority={index === 0 ? "high" : "auto"}
+									priority={index === 0}
+									responsive={true}
 									sizes="100vw"
-									width="1600"
-									height="900"
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 
-								{/* Banner Text Overlay - Centered - Only on last banner */}
-								{index === images.length - 1 && (
+								{/* Banner Text Overlay - Centered in first half of banner - Only on last banner */}
+								{index === optimizedBanners.length - 1 && (
 									<div className="absolute inset-0 flex items-center justify-center z-10">
-										{/* Animated light streaks background */}
-										<div className="absolute inset-0 overflow-hidden">
-											<div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 opacity-90"></div>
-											{/* Light streaks */}
-											<div className="absolute top-1/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"></div>
-											<div
-												className="absolute top-1/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-pulse"
-												style={{ animationDelay: "0.5s" }}
-											></div>
-											<div
-												className="absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent animate-pulse"
-												style={{ animationDelay: "1s" }}
-											></div>
-											<div
-												className="absolute top-2/3 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent animate-pulse"
-												style={{ animationDelay: "1.5s" }}
-											></div>
-											<div
-												className="absolute top-3/4 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent animate-pulse"
-												style={{ animationDelay: "2s" }}
-											></div>
-										</div>
-
-										<div className="text-center px-4 sm:px-6 md:px-8 relative z-20">
-											<h1 className="text-white font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-2xl leading-tight mb-4">
-												CARBON CUBE
-											</h1>
-											<p className="text-white/90 font-medium text-lg sm:text-xl md:text-2xl lg:text-3xl drop-shadow-xl">
-												Premium Tools & Equipment
-											</p>
+										<div className="text-center text-white transform -translate-y-1/3">
+											<div className="bg-black bg-opacity-40 backdrop-blur-md rounded-3xl px-10 py-8 border border-white border-opacity-30 shadow-2xl max-w-2xl mx-4">
+												<h1 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-2xl bg-gradient-to-r from-white via-yellow-100 to-orange-100 bg-clip-text text-transparent">
+													Carbon Cube
+												</h1>
+												<div className="w-32 h-1.5 bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 mx-auto mb-6 rounded-full shadow-lg"></div>
+												<p className="text-xl md:text-2xl font-semibold drop-shadow-lg text-gray-50 leading-relaxed">
+													Premium Automotive Parts & Accessories
+												</p>
+												<div className="mt-6 flex justify-center space-x-3">
+													<div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-md"></div>
+													<div
+														className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-md"
+														style={{ animationDelay: "0.2s" }}
+													></div>
+													<div
+														className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-md"
+														style={{ animationDelay: "0.4s" }}
+													></div>
+												</div>
+											</div>
 										</div>
 									</div>
 								)}

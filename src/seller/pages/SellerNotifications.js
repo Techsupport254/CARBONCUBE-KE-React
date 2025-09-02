@@ -30,8 +30,7 @@ const SellerNotifications = () => {
 						}
 					);
 
-					// console.log('Response Status:', response.status);
-					// console.log('Response Headers:', response.headers);
+								// Response Status and Headers
 
 					if (!response.ok) {
 						throw new Error(
@@ -40,7 +39,7 @@ const SellerNotifications = () => {
 					}
 
 					const data = await response.json();
-					// console.log('Fetched Seller ID Data:', data);
+					// Fetched Seller ID Data
 					setSellerId(data.seller_id);
 				} catch (error) {
 					console.error("Error fetching seller ID:", error);

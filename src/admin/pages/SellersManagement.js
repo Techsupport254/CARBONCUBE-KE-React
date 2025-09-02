@@ -51,7 +51,7 @@ const SellersManagement = () => {
 				}
 
 				const data = await response.json();
-				// console.log('Fetched sellers:', data); // Add this line
+				// Fetched sellers data
 				data.sort((a, b) => a.id - b.id);
 				setSellers(data);
 			} catch (error) {

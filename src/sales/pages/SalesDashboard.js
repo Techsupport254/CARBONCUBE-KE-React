@@ -32,16 +32,12 @@ import {
 } from "react-icons/fa";
 import { SiGoogle, SiBrave } from "react-icons/si";
 import { MdSearch, MdLink } from "react-icons/md";
-import Spinner from "react-spinkit";
 
 // Import new components
 import Navbar from "../../components/Navbar";
 import {
 	Sidebar,
 	CategoryPerformanceTable,
-	DashboardCard,
-	DashboardCharts,
-	SourceTrackingCards,
 	AnalyticsModal,
 	SourceTrackingModal,
 } from "../components";
@@ -401,7 +397,7 @@ function SalesDashboard() {
 			reveal_clicks_with_timestamps: filteredData.revealClicks,
 			category_click_events: analytics.category_click_events || [], // Keep original for now
 		};
-	}, [dateFilter, customStartDate, customEndDate, analytics, getDateRange]);
+	}, [dateFilter, analytics, getDateRange]);
 
 	// Memoized filtered source data for source tracking modal
 	const memoizedFilteredSourceData = useMemo(() => {
@@ -490,13 +486,7 @@ function SalesDashboard() {
 			new_visitors: filteredNewVisitors,
 			avg_visits_per_visitor: filteredAvgVisitsPerVisitor,
 		};
-	}, [
-		sourceDateFilter,
-		sourceCustomStartDate,
-		sourceCustomEndDate,
-		sourceAnalytics,
-		getSourceDateRange,
-	]);
+	}, [sourceDateFilter, sourceAnalytics, getSourceDateRange]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -853,7 +843,6 @@ function SalesDashboard() {
 					// If data spans more than 30 days, group by weeks or months
 					if (totalDays > 30) {
 						// Group by months for better visualization
-						const months = [];
 						let currentDate = new Date(earliestDate);
 						currentDate.setDate(1); // Start of month
 

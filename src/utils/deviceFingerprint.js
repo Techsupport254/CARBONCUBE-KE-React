@@ -296,35 +296,11 @@ export const generateDeviceFingerprint = () => {
 		hardwareConcurrency: fingerprint.hardwareConcurrency,
 	};
 
-	// Advanced hardware fingerprint using GPU and CPU characteristics
-	const advancedHardwareFingerprint = {
-		// Screen characteristics (hardware-specific)
-		screenArea: fingerprint.screenWidth * fingerprint.screenHeight,
-		screenRatio:
-			Math.round((fingerprint.screenWidth / fingerprint.screenHeight) * 100) /
-			100,
-
-		// CPU characteristics (hardware-specific)
-		cpuCores: fingerprint.hardwareConcurrency,
-		deviceMemory: fingerprint.deviceMemory || 0,
-
-		// GPU characteristics (hardware-specific) - Most reliable for device identification
-		gpuVendor: fingerprint.webglVendor || "unknown",
-		gpuRenderer: fingerprint.webglRenderer || "unknown",
-		gpuVersion: fingerprint.webglVersion || "unknown",
-
-		// Touch capability (hardware-specific)
-		touchCapable: fingerprint.maxTouchPoints > 0,
-		maxTouchPoints: fingerprint.maxTouchPoints,
-
-		// Additional hardware characteristics
-		colorDepth: fingerprint.screenColorDepth,
-		pixelDepth: fingerprint.screenPixelDepth,
-	};
+	// Note: advancedHardwareFingerprint variable removed as it was unused
 
 	const fingerprintString = JSON.stringify(fingerprint);
 	const uniqueFingerprintString = JSON.stringify(uniqueDeviceFingerprint);
-	const advancedFingerprintString = JSON.stringify(advancedHardwareFingerprint);
+	// Note: advancedFingerprintString variable removed as it was unused
 
 	// Primary identifier: persistent per-device UUID
 	const deviceId = getOrCreateDeviceId();
@@ -347,75 +323,9 @@ const isUuidLike = (value) => {
 	);
 };
 
-// Simple hash function
-const simpleHash = (str) => {
-	let hash = 0;
-	if (str.length === 0) return hash;
-	for (let i = 0; i < str.length; i++) {
-		const char = str.charCodeAt(i);
-		hash = (hash << 5) - hash + char;
-		hash = hash & hash; // Convert to 32-bit integer
-	}
-	return Math.abs(hash).toString(36);
-};
+// Note: simpleHash function removed as it was unused
 
-// Get available fonts (basic detection)
-const getAvailableFonts = () => {
-	const testString = "mmmmmmmmmmlli";
-	const testSize = "72px";
-	const h = document.getElementsByTagName("body")[0];
-	const s = document.createElement("span");
-	s.style.fontSize = testSize;
-	s.innerHTML = testString;
-	const defaultWidth = {};
-	const defaultHeight = {};
-
-	// Get default dimensions
-	for (const font of ["monospace", "sans-serif", "serif"]) {
-		s.style.fontFamily = font;
-		h.appendChild(s);
-		defaultWidth[font] = s.offsetWidth;
-		defaultHeight[font] = s.offsetHeight;
-		h.removeChild(s);
-	}
-
-	// Test specific fonts
-	const fonts = [
-		"Arial",
-		"Verdana",
-		"Helvetica",
-		"Times New Roman",
-		"Courier New",
-		"Georgia",
-		"Palatino",
-		"Garamond",
-		"Bookman",
-		"Comic Sans MS",
-		"Trebuchet MS",
-		"Arial Black",
-		"Impact",
-		"Lucida Console",
-	];
-
-	const detectedFonts = [];
-
-	for (const font of fonts) {
-		s.style.fontFamily = `${font}, monospace`;
-		h.appendChild(s);
-		const width = s.offsetWidth;
-		const height = s.offsetHeight;
-		h.removeChild(s);
-
-		if (
-			width !== defaultWidth.monospace ||
-			height !== defaultHeight.monospace
-		) {
-			detectedFonts.push(font);
-		}
-	}
-
-	return detectedFonts.join(",");
-};
+// Note: getAvailableFonts function removed as it was unused
 
 // Check if device matches internal user patterns
 export const isInternalUser = (fingerprint) => {

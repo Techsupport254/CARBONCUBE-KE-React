@@ -15,7 +15,6 @@ import {
 	faCog,
 	faChartBar,
 	faUsers,
-	faMotorcycle,
 	faBox,
 	faEnvelope,
 	faList,
@@ -312,14 +311,6 @@ const Navbar = ({
 	};
 
 	const getNavigationLinks = () => {
-		// In minimal mode, do not inject public links into the user dropdown.
-
-		if (!isLoggedIn) {
-			return [
-				{ href: "/login", label: "Login" },
-				{ href: "/buyer/signup", label: "Sign Up" },
-			];
-		}
 
 		// Role-specific navigation mirrored from Sidebars
 		switch (userRole) {

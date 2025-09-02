@@ -61,15 +61,6 @@ const AnalyticsModal = ({
 	// Get trend data once to avoid multiple function calls
 	const trendData = generateTrendData();
 
-	// Debug logging
-	console.log("=== AnalyticsModal DEBUG ===");
-	console.log("selectedCard:", selectedCard);
-	console.log("dateFilter:", dateFilter);
-	console.log("timestamps length:", timestamps?.length || 0);
-	console.log("trendData:", trendData);
-	console.log("trendData.labels:", trendData?.labels);
-	console.log("trendData.data:", trendData?.data);
-
 	// Ensure we have valid data for the chart
 	const chartLabels = trendData?.labels || [];
 	const chartData = trendData?.data || [];

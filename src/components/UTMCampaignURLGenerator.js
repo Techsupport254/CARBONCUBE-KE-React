@@ -1,15 +1,6 @@
 import React, { useState } from "react";
 import { Card, Row, Col, Button, Toast, ToastContainer } from "react-bootstrap";
-import {
-	FaFacebook,
-	FaInstagram,
-	FaEnvelope,
-	FaAd,
-	FaWrench,
-	FaCopy,
-	FaExternalLinkAlt,
-} from "react-icons/fa";
-import { SiGoogle } from "react-icons/si";
+import { FaWrench, FaCopy, FaExternalLinkAlt } from "react-icons/fa";
 import PropTypes from "prop-types";
 
 const UTMCampaignURLGenerator = ({
@@ -70,7 +61,6 @@ const UTMCampaignURLGenerator = ({
 					</div>
 				</Card.Header>
 				<Card.Body className="p-3 p-md-4">
-
 					{/* Custom UTM Builder */}
 					{showBuilder && (
 						<div className={showTemplates ? "border-top pt-4 pt-md-5" : ""}>

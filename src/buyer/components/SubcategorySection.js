@@ -40,24 +40,26 @@ const SubcategorySection = ({
 	// Debug logging removed for cleaner console
 
 	return (
-		<Card className="h-full bg-white/90 rounded-lg flex flex-col min-h-[30vh] border border-gray-100">
-			<Card.Body className="p-2 sm:p-2.5 flex-grow flex flex-col justify-between">
+		<Card className="h-full bg-white/90 rounded-lg flex flex-col border border-gray-100">
+			<Card.Body className="p-0 flex-grow flex flex-col justify-between">
 				{!isLoading && errorMessage && (
-					<div className="mb-1 p-1 bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center justify-between">
-						<span className="text-[11px] sm:text-xs">{errorMessage}</span>
+					<div className="mb-0.5 p-0.5 sm:p-0.5 md:p-1 bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center justify-between">
+						<span className="text-[10px] sm:text-xs md:text-sm">
+							{errorMessage}
+						</span>
 						{onRetry && (
 							<button
 								onClick={onRetry}
-								className="text-[11px] px-2 py-0.5 rounded bg-yellow-200 hover:bg-yellow-300"
+								className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-1 md:px-1.5 py-0.5 rounded bg-yellow-200 hover:bg-yellow-300"
 							>
 								Retry
 							</button>
 						)}
 					</div>
 				)}
-				{/* Always render 2x2 grid with fixed dimensions */}
+				{/* Responsive grid: 2x2 ads on all screen sizes */}
 				<div
-					className="grid grid-cols-2 grid-rows-2 gap-2 sm:gap-2.5 h-full"
+					className="grid grid-cols-2 grid-rows-2 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 h-full p-0.5 sm:p-1 md:p-1.5"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
@@ -79,10 +81,14 @@ const SubcategorySection = ({
 										className="h-full w-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col relative"
 										style={{ border: `2px solid ${borderColor}` }}
 									>
-										{/* Tier badge */}
+										{/* Tier badge - smaller tag-like design */}
 										<div
-											className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px] font-medium text-white rounded z-10"
+											className="absolute top-0.5 left-0.5 px-1 py-0.5 text-[7px] sm:text-[8px] md:text-[9px] font-medium text-white rounded-full z-10 shadow-sm"
 											style={{ backgroundColor: borderColor }}
+											role="status"
+											aria-label={`${
+												ad.seller_tier_name || "Free"
+											} tier product`}
 										>
 											{ad.seller_tier_name || "Free"}
 										</div>
@@ -119,9 +125,9 @@ const SubcategorySection = ({
 											/>
 
 											{/* Ad title - now inside the card */}
-											<div className="px-2 py-1 bg-white">
+											<div className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white">
 												<h6
-													className="text-xs sm:text-[13px] font-medium text-gray-800 text-center w-full truncate cursor-pointer hover:text-blue-600 transition-colors duration-200"
+													className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-800 text-center w-full truncate cursor-pointer hover:text-blue-600 transition-colors duration-200"
 													onClick={() => onAdClick(ad.id)}
 												>
 													{ad.title}
@@ -142,7 +148,10 @@ const SubcategorySection = ({
 
 						// Empty slot that maintains consistent sizing
 						return (
-							<div key={`slot-${i}`} className="h-full w-full min-h-[8vh]">
+							<div
+								key={`slot-${i}`}
+								className="h-full w-full min-h-[8vh] sm:min-h-[10vh] md:min-h-[12vh] lg:min-h-[14vh]"
+							>
 								{/* Completely empty slot */}
 							</div>
 						);
@@ -151,12 +160,12 @@ const SubcategorySection = ({
 			</Card.Body>
 
 			{/* Subcategory footer */}
-			<Card.Footer className="flex justify-start border-t border-gray-200 bg-gray-50 px-2 py-1 mt-auto">
+			<Card.Footer className="flex justify-start border-t border-gray-200 bg-gray-50 px-1 sm:px-1.5 md:px-2 py-0.5 sm:py-0.5 md:py-1 mt-auto">
 				{isLoading ? (
-					<div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+					<div className="h-3 sm:h-4 md:h-5 w-16 sm:w-20 md:w-24 bg-gray-200 rounded animate-pulse" />
 				) : (
 					<h6
-						className="m-0 cursor-pointer transition-all duration-300 hover:text-blue-600 hover:translate-x-1 font-semibold text-gray-800 text-xs sm:text-sm"
+						className="m-0 cursor-pointer transition-all duration-300 hover:text-blue-600 hover:translate-x-1 font-semibold text-gray-800 text-[10px] sm:text-xs md:text-sm"
 						onClick={() => onSubcategoryClick(subcategory, categoryName)}
 					>
 						{subcategory}

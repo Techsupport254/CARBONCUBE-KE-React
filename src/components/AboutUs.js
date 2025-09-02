@@ -43,11 +43,20 @@ const AboutUs = () => {
 				contactType: "customer service",
 				availableLanguage: "English",
 				areaServed: "KE",
+				telephone: "+254713270764",
+				email: "info@carboncube-ke.com",
 			},
 			address: {
 				"@type": "PostalAddress",
+				streetAddress: "9th Floor, CMS Africa, Kilimani",
+				addressLocality: "Nairobi",
+				addressRegion: "Nairobi",
 				addressCountry: "KE",
+				postalCode: "00100",
 			},
+			foundingDate: "2023",
+			numberOfEmployees: "2-10",
+			industry: "Internet Marketplace Platforms",
 		},
 	});
 

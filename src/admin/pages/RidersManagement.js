@@ -45,7 +45,7 @@ const RidersManagement = () => {
 				}
 
 				const data = await response.json();
-				// console.log('Fetched riders:', data); // Add this line
+				// Fetched riders data
 				data.sort((a, b) => a.id - b.id);
 				setRiders(data);
 			} catch (error) {

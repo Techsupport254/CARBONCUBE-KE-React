@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faCheck,
@@ -26,12 +26,7 @@ const FingerprintRemovalRequests = () => {
 
 	const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "/api";
 
-	useEffect(() => {
-		fetchRequests();
-		fetchStats();
-	}, [filter]);
-
-	const fetchRequests = async () => {
+	const fetchRequests = useCallback(async () => {
 		try {
 			const url =
 				filter === "all"
@@ -56,9 +51,9 @@ const FingerprintRemovalRequests = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [filter, API_BASE_URL]);
 
-	const fetchStats = async () => {
+	const fetchStats = useCallback(async () => {
 		try {
 			const response = await fetch(
 				`${API_BASE_URL}/admin/internal_user_exclusions/stats`,
@@ -76,7 +71,12 @@ const FingerprintRemovalRequests = () => {
 		} catch (error) {
 			console.error("Error fetching stats:", error);
 		}
-	};
+	}, [API_BASE_URL]);
+
+	useEffect(() => {
+		fetchRequests();
+		fetchStats();
+	}, [fetchRequests, fetchStats]);
 
 	const handleApprove = async (requestId) => {
 		try {

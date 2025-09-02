@@ -22,11 +22,8 @@ const SellerAnalytics = () => {
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
-  const [showReplyModal, setShowReplyModal] = useState(false);
-  const [selectedReview, setSelectedReview] = useState(null);
-  const [replyText, setReplyText] = useState("");
   const [editingReplyId, setEditingReplyId] = useState(null);
-const [replyDraft, setReplyDraft] = useState('');
+  const [replyDraft, setReplyDraft] = useState('');
 
 
   useEffect(() => {
@@ -43,7 +40,7 @@ const [replyDraft, setReplyDraft] = useState('');
         }
 
         const data = await response.json();
-        // console.log('API Response:', data);
+        			// API Response data
 
         const validatedAnalytics = {
           tier_id: data.tier_id || 1,
@@ -84,7 +81,7 @@ const [replyDraft, setReplyDraft] = useState('');
           }
         };
 
-        // console.log('Validated Analytics:', validatedAnalytics);
+        			// Validated Analytics data
 
         setTierId(validatedAnalytics.tier_id);
         setAnalyticsData(validatedAnalytics);

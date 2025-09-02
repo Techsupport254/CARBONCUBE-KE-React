@@ -48,6 +48,12 @@ const useSEO = ({
 		updateMetaTag("description", description || defaultDescription);
 		updateMetaTag("keywords", keywords);
 		updateMetaTag("author", author);
+		updateMetaTag("robots", "index, follow");
+		updateMetaTag("language", "English");
+		updateMetaTag("geo.region", "KE");
+		updateMetaTag("geo.placename", "Kenya");
+		updateMetaTag("geo.position", "-1.2921;36.8219");
+		updateMetaTag("ICBM", "-1.2921, 36.8219");
 
 		// Open Graph tags
 		updatePropertyTag("og:type", type);
@@ -56,6 +62,15 @@ const useSEO = ({
 		updatePropertyTag("og:description", description || defaultDescription);
 		updatePropertyTag("og:image", image || defaultImage);
 		updatePropertyTag("og:site_name", siteName);
+		updatePropertyTag("og:locale", "en_US");
+
+		// Twitter Card tags
+		updatePropertyTag("twitter:card", "summary_large_image");
+		updatePropertyTag("twitter:site", "@carboncube_kenya");
+		updatePropertyTag("twitter:title", fullTitle);
+		updatePropertyTag("twitter:description", description || defaultDescription);
+		updatePropertyTag("twitter:image", image || defaultImage);
+		updatePropertyTag("twitter:image:alt", fullTitle);
 
 		// Remove any existing twitter:* tags if present
 		const twitterTags = document.querySelectorAll('meta[property^="twitter:"]');

@@ -11,12 +11,18 @@
 .DS_Store
 
 # Environment files (local only)
-.env
-.env.local
-.env.development
-.env.development.local
-.env.test.local
-.env.production.local
+.env*
+!.env.example
+
+# Additional security - ignore any files that might contain secrets
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.yml
+secrets.yaml
+credentials.yml
+credentials.yaml
 
 # Docker (local-only)
 Dockerfile.dev

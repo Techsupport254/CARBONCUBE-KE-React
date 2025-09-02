@@ -27,7 +27,7 @@ const WishList = () => {
 					throw new Error(`HTTP error! Status: ${response.status}`);
 				}
 				const data = await response.json();
-				// console.log("Fetched wish_lists data:", data); // Log the response data
+				// Log the response data
 				if (data && Array.isArray(data)) {
 					setWishLists(data);
 				} else {

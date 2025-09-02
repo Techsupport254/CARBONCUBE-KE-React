@@ -3,7 +3,6 @@ import {
 	initializeDeviceFingerprinting,
 	getDeviceInfo,
 } from "../utils/clickEventLogger";
-import TopNavBarMinimal from "../components/TopNavBarMinimal";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 
@@ -242,7 +241,7 @@ const DeviceFingerprint = () => {
 
 		try {
 			// This would typically send to your backend
-			// console.log("Whitelist request submitted:", {
+			// Whitelist request submitted
 			// 	...whitelistForm,
 			// 	deviceHash: deviceInfo.hash,
 			// 	userAgent: deviceInfo.userAgent,

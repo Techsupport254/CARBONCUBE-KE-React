@@ -13,7 +13,6 @@ import {
 	FaWhatsapp,
 	FaTelegram,
 	FaEnvelope,
-	FaAd,
 	FaChartLine,
 	FaExternalLinkAlt,
 	FaEye,

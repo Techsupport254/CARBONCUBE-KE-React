@@ -144,9 +144,11 @@ function generateStructuredData(pageType = "home") {
 		},
 		address: {
 			"@type": "PostalAddress",
-			addressCountry: "KE",
+			streetAddress: "9th Floor, CMS Africa, Kilimani",
 			addressLocality: "Nairobi",
 			addressRegion: "Nairobi",
+			addressCountry: "KE",
+			postalCode: "00100",
 		},
 		foundingDate: "2023",
 		numberOfEmployees: "2-10",

@@ -88,7 +88,7 @@ const Banner = () => {
 												: ad.media_urls[0] || "default-image-url";
 
 											{
-												/* console.log('Ad ', ad); // Debugging line */
+												/* Debugging line */
 											}
 
 											return (
