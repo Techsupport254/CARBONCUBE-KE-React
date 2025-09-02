@@ -1,263 +1,368 @@
-const fs = require('fs');
-const path = require('path');
+#!/usr/bin/env node
 
-// Performance optimization script
-class PerformanceOptimizer {
-  constructor() {
-    this.optimizations = [];
-    this.report = {
-      timestamp: Date.now(),
-      optimizations: [],
-      metrics: {},
-      recommendations: []
-    };
-  }
+/**
+ * Performance Optimizer
+ * Comprehensive performance optimization for Carbon Cube Kenya
+ */
 
-  // Add optimization to track
-  addOptimization(name, description, impact) {
-    this.optimizations.push({
-      name,
-      description,
-      impact,
-      implemented: false,
-      timestamp: Date.now()
-    });
-  }
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
 
-  // Mark optimization as implemented
-  markImplemented(name) {
-    const optimization = this.optimizations.find(opt => opt.name === name);
-    if (optimization) {
-      optimization.implemented = true;
-      optimization.implementedAt = Date.now();
+const BUILD_DIR = path.join(__dirname, "../build");
+const INDEX_HTML = path.join(BUILD_DIR, "index.html");
+
+// Performance optimization configuration
+const PERFORMANCE_CONFIG = {
+	// Critical CSS to inline
+	criticalCSS: `
+    /* Critical above-the-fold styles */
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #e0e0e0;
     }
-  }
+    #root { min-height: 100vh; }
+    .navbar { background-color: #000; padding: 0.5rem 0; }
+    .navbar-brand { color: #ffc107 !important; font-weight: bold; }
+    .search-form { position: relative; max-width: 600px; margin: 0 auto; }
+    .search-input { width: 100%; padding: 0.75rem 1rem; border: 2px solid #ffc107; border-radius: 50px; }
+    .carousel { margin-bottom: 2rem; }
+    .carousel-item img { width: 100%; height: auto; object-fit: cover; }
+    .btn-primary { background-color: #ffc107; border-color: #ffc107; color: #000; }
+    .loading { display: flex; justify-content: center; align-items: center; min-height: 200px; }
+    img { max-width: 100%; height: auto; }
+    @media (max-width: 768px) { .navbar-brand { font-size: 1.2rem; } }
+  `,
 
-  // Generate optimization report
-  generateReport() {
-    const implemented = this.optimizations.filter(opt => opt.implemented);
-    const pending = this.optimizations.filter(opt => !opt.implemented);
+	// Resources to preload
+	preload: [
+		{
+			href: "/static/css/main.css",
+			as: "style",
+			onload: "this.onload=null;this.rel='stylesheet'",
+		},
+		{ href: "/static/js/main.js", as: "script", fetchpriority: "high" },
+		{
+			href: "/optimized-banners/banner-01-desktop.webp",
+			as: "image",
+			fetchpriority: "high",
+		},
+	],
 
-    this.report = {
-      timestamp: Date.now(),
-      summary: {
-        total: this.optimizations.length,
-        implemented: implemented.length,
-        pending: pending.length,
-        implementationRate: (implemented.length / this.optimizations.length * 100).toFixed(1) + '%'
-      },
-      optimizations: {
-        implemented,
-        pending
-      },
-      recommendations: this.generateRecommendations(),
-      nextSteps: this.generateNextSteps()
-    };
+	// Resources to defer
+	defer: ["/static/js/analytics.js", "/static/js/utils.js"],
 
-    return this.report;
-  }
+	// Cache headers for different file types
+	cacheHeaders: {
+		"*.css": "public, max-age=31536000, immutable",
+		"*.js": "public, max-age=31536000, immutable",
+		"*.webp": "public, max-age=31536000, immutable",
+		"*.png": "public, max-age=31536000, immutable",
+		"*.jpg": "public, max-age=31536000, immutable",
+		"*.ico": "public, max-age=31536000, immutable",
+		"*.woff2": "public, max-age=31536000, immutable",
+		"*.woff": "public, max-age=31536000, immutable",
+	},
+};
 
-  // Generate recommendations based on PageSpeed Insights issues
-  generateRecommendations() {
-    return [
-      {
-        category: 'Render Blocking Resources',
-        priority: 'High',
-        description: 'Eliminate render-blocking resources',
-        actions: [
-          'Inline critical CSS',
-          'Defer non-critical CSS',
-          'Use preload for critical resources',
-          'Optimize CSS delivery'
-        ],
-        expectedImpact: '1,200ms improvement in FCP'
-      },
-      {
-        category: 'Image Optimization',
-        priority: 'High',
-        description: 'Optimize image delivery',
-        actions: [
-          'Convert images to WebP format',
-          'Implement responsive images',
-          'Use proper image dimensions',
-          'Implement lazy loading'
-        ],
-        expectedImpact: '2,951 KiB reduction in payload'
-      },
-      {
-        category: 'Unused CSS',
-        priority: 'Medium',
-        description: 'Remove unused CSS',
-        actions: [
-          'Purge unused CSS classes',
-          'Split CSS into critical and non-critical',
-          'Use CSS-in-JS for dynamic styles',
-          'Implement tree shaking for CSS'
-        ],
-        expectedImpact: '285 KiB reduction in CSS'
-      },
-      {
-        category: 'Unused JavaScript',
-        priority: 'Medium',
-        description: 'Remove unused JavaScript',
-        actions: [
-          'Implement tree shaking',
-          'Split code into smaller chunks',
-          'Use dynamic imports',
-          'Remove unused dependencies'
-        ],
-        expectedImpact: '272 KiB reduction in JS'
-      },
-      {
-        category: 'Accessibility',
-        priority: 'Medium',
-        description: 'Improve accessibility',
-        actions: [
-          'Fix contrast ratios',
-          'Implement proper heading hierarchy',
-          'Add ARIA labels',
-          'Ensure keyboard navigation'
-        ],
-        expectedImpact: 'Improved accessibility score'
-      }
-    ];
-  }
+function optimizePerformance() {
+	try {
+		console.log("🚀 Starting comprehensive performance optimization...");
 
-  // Generate next steps
-  generateNextSteps() {
-    return [
-      {
-        step: 1,
-        action: 'Deploy optimized images',
-        description: 'Replace original banner images with optimized WebP versions',
-        priority: 'High'
-      },
-      {
-        step: 2,
-        action: 'Implement critical CSS inlining',
-        description: 'Inline critical CSS to reduce render blocking',
-        priority: 'High'
-      },
-      {
-        step: 3,
-        action: 'Optimize bundle splitting',
-        description: 'Implement better code splitting to reduce unused JavaScript',
-        priority: 'Medium'
-      },
-      {
-        step: 4,
-        action: 'Add preconnect hints',
-        description: 'Add preconnect hints for external domains',
-        priority: 'Medium'
-      },
-      {
-        step: 5,
-        action: 'Implement service worker',
-        description: 'Deploy service worker for better caching',
-        priority: 'Medium'
-      }
-    ];
-  }
+		// Step 1: Inline critical CSS
+		inlineCriticalCSS();
 
-  // Save report to file
-  saveReport() {
-    const reportPath = path.join(__dirname, '../performance-optimization-report.json');
-    try {
-      fs.writeFileSync(reportPath, JSON.stringify(this.report, null, 2));
-      console.log('Performance optimization report saved successfully');
-      console.log(`Report saved to: ${reportPath}`);
-    } catch (error) {
-      console.error('Failed to save performance report:', error);
-    }
-  }
+		// Step 2: Optimize resource loading
+		optimizeResourceLoading();
 
-  // Print summary
-  printSummary() {
-    const report = this.generateReport();
-    
-    console.log('\n=== Performance Optimization Summary ===');
-    console.log(`Total optimizations: ${report.summary.total}`);
-    console.log(`Implemented: ${report.summary.implemented}`);
-    console.log(`Pending: ${report.summary.pending}`);
-    console.log(`Implementation rate: ${report.summary.implementationRate}`);
-    
-    console.log('\n=== Implemented Optimizations ===');
-    report.optimizations.implemented.forEach(opt => {
-      console.log(`✅ ${opt.name}: ${opt.description}`);
-    });
-    
-    console.log('\n=== Pending Optimizations ===');
-    report.optimizations.pending.forEach(opt => {
-      console.log(`⏳ ${opt.name}: ${opt.description}`);
-    });
-    
-    console.log('\n=== Recommendations ===');
-    report.recommendations.forEach(rec => {
-      console.log(`\n${rec.category} (${rec.priority} priority)`);
-      console.log(`Expected impact: ${rec.expectedImpact}`);
-      rec.actions.forEach(action => {
-        console.log(`  • ${action}`);
-      });
-    });
-  }
+		// Step 3: Add performance monitoring
+		addPerformanceMonitoring();
+
+		// Step 4: Optimize images
+		optimizeImages();
+
+		// Step 5: Add service worker for caching
+		addServiceWorker();
+
+		// Step 6: Generate performance report
+		generatePerformanceReport();
+
+		console.log("✅ Performance optimization completed successfully!");
+	} catch (error) {
+		console.error("❌ Error during performance optimization:", error.message);
+		process.exit(1);
+	}
 }
 
-// Initialize optimizer with PageSpeed Insights issues
-const optimizer = new PerformanceOptimizer();
+function inlineCriticalCSS() {
+	console.log("🎨 Inlining critical CSS...");
 
-// Add optimizations based on PageSpeed Insights report
-optimizer.addOptimization(
-  'Image Optimization',
-  'Convert banner images to WebP format with responsive sizes',
-  '2,951 KiB reduction in payload'
-);
+	let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
 
-optimizer.addOptimization(
-  'Critical CSS Inlining',
-  'Inline critical CSS to reduce render blocking',
-  '1,200ms improvement in FCP'
-);
+	// Add critical CSS inline
+	const criticalCSSInline = `<style id="critical-css">${PERFORMANCE_CONFIG.criticalCSS}</style>`;
 
-optimizer.addOptimization(
-  'Bundle Splitting',
-  'Implement better code splitting to reduce unused JavaScript',
-  '272 KiB reduction in JS'
-);
+	// Insert after title tag
+	htmlContent = htmlContent.replace(
+		/<title>.*?<\/title>/,
+		(match) => `${match}\n\t\t${criticalCSSInline}`
+	);
 
-optimizer.addOptimization(
-  'CSS Purification',
-  'Remove unused CSS classes',
-  '285 KiB reduction in CSS'
-);
+	// Replace CSS loading with preload
+	htmlContent = htmlContent.replace(
+		/<link rel="stylesheet" href="\/static\/css\/main\.[^"]+\.css">/g,
+		PERFORMANCE_CONFIG.preload
+			.filter((resource) => resource.as === "style")
+			.map(
+				(resource) =>
+					`<link rel="preload" href="${resource.href}" as="${resource.as}" onload="${resource.onload}">`
+			)
+			.join("\n\t\t")
+	);
 
-optimizer.addOptimization(
-  'Preconnect Hints',
-  'Add preconnect hints for external domains',
-  '310ms improvement in LCP'
-);
+	fs.writeFileSync(INDEX_HTML, htmlContent);
+	console.log("✅ Critical CSS inlined");
+}
 
-optimizer.addOptimization(
-  'Service Worker',
-  'Implement service worker for better caching',
-  'Improved offline experience'
-);
+function optimizeResourceLoading() {
+	console.log("📦 Optimizing resource loading...");
 
-optimizer.addOptimization(
-  'Accessibility Improvements',
-  'Fix contrast ratios and heading hierarchy',
-  'Improved accessibility score'
-);
+	let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
 
-// Mark implemented optimizations
-optimizer.markImplemented('Image Optimization');
-optimizer.markImplemented('Critical CSS Inlining');
-optimizer.markImplemented('Bundle Splitting');
-optimizer.markImplemented('Preconnect Hints');
-optimizer.markImplemented('Service Worker');
-optimizer.markImplemented('Accessibility Improvements');
+	// Add preload hints
+	const preloadHints = PERFORMANCE_CONFIG.preload
+		.filter((resource) => resource.as !== "style")
+		.map(
+			(resource) =>
+				`<link rel="preload" href="${resource.href}" as="${resource.as}" ${
+					resource.fetchpriority
+						? `fetchpriority="${resource.fetchpriority}"`
+						: ""
+				}>`
+		)
+		.join("\n\t\t");
 
-// Generate and save report
-optimizer.printSummary();
-optimizer.saveReport();
+	// Insert preload hints after critical CSS
+	htmlContent = htmlContent.replace(
+		/<style id="critical-css">.*?<\/style>/s,
+		(match) => `${match}\n\t\t${preloadHints}`
+	);
 
-module.exports = PerformanceOptimizer;
+	// Add defer to non-critical scripts
+	PERFORMANCE_CONFIG.defer.forEach((script) => {
+		htmlContent = htmlContent.replace(
+			new RegExp(
+				`<script[^>]*src="${script.replace(
+					/[.*+?^${}()|[\]\\]/g,
+					"\\$&"
+				)}"[^>]*>`
+			),
+			'<script src="$&" defer>'
+		);
+	});
+
+	fs.writeFileSync(INDEX_HTML, htmlContent);
+	console.log("✅ Resource loading optimized");
+}
+
+function addPerformanceMonitoring() {
+	console.log("📊 Adding performance monitoring...");
+
+	let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
+
+	const performanceScript = `
+		<script>
+			// Performance monitoring
+			window.addEventListener('load', function() {
+				// Core Web Vitals
+				if ('PerformanceObserver' in window) {
+					const observer = new PerformanceObserver((list) => {
+						list.getEntries().forEach((entry) => {
+							if (entry.name === 'LCP') {
+								console.log('LCP:', entry.startTime);
+								// Send to analytics
+								if (window.gtag) {
+									gtag('event', 'web_vitals', {
+										event_category: 'Web Vitals',
+										event_label: 'LCP',
+										value: Math.round(entry.startTime)
+									});
+								}
+							}
+						});
+					});
+					observer.observe({ entryTypes: ['largest-contentful-paint'] });
+				}
+				
+				// Report page load time
+				const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+				console.log('Page load time:', loadTime + 'ms');
+			});
+		</script>
+	`;
+
+	// Insert before closing body tag
+	htmlContent = htmlContent.replace(
+		"</body>",
+		`${performanceScript}\n\t</body>`
+	);
+
+	fs.writeFileSync(INDEX_HTML, htmlContent);
+	console.log("✅ Performance monitoring added");
+}
+
+function optimizeImages() {
+	console.log("🖼️  Optimizing images...");
+
+	// This will be handled by the optimize-banner-images.js script
+	console.log(
+		"✅ Image optimization (run separately with: npm run optimize-images)"
+	);
+}
+
+function addServiceWorker() {
+	console.log("🔧 Adding service worker for caching...");
+
+	const serviceWorkerContent = `
+// Service Worker for Carbon Cube Kenya
+const CACHE_NAME = 'carbon-cube-v1';
+const STATIC_CACHE = 'static-v1';
+const DYNAMIC_CACHE = 'dynamic-v1';
+
+const STATIC_ASSETS = [
+  '/',
+  '/static/css/main.css',
+  '/static/js/main.js',
+  '/optimized-banners/banner-01-desktop.webp',
+  '/optimized-banners/banner-02-desktop.webp',
+  '/optimized-banners/banner-03-desktop.webp',
+  '/optimized-banners/banner-04-desktop.webp',
+  '/optimized-banners/banner-05-desktop.webp'
+];
+
+// Install event
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+});
+
+// Fetch event
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+  
+  // Skip analytics and external requests
+  if (request.url.includes('google-analytics') || 
+      request.url.includes('googletagmanager') ||
+      request.url.includes('matomo')) {
+    return;
+  }
+  
+  event.respondWith(
+    caches.match(request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(request)
+          .then((fetchResponse) => {
+            // Cache successful responses
+            if (fetchResponse.status === 200) {
+              const responseClone = fetchResponse.clone();
+              caches.open(DYNAMIC_CACHE)
+                .then((cache) => cache.put(request, responseClone));
+            }
+            return fetchResponse;
+          });
+      })
+  );
+});
+
+// Clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+  );
+});
+`;
+
+	const swPath = path.join(BUILD_DIR, "sw.js");
+	fs.writeFileSync(swPath, serviceWorkerContent);
+
+	// Register service worker in HTML
+	let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
+	const swRegistration = `
+		<script>
+			// Register service worker
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', () => {
+					navigator.serviceWorker.register('/sw.js')
+						.then((registration) => {
+							console.log('SW registered:', registration);
+						})
+						.catch((error) => {
+							console.log('SW registration failed:', error);
+						});
+				});
+			}
+		</script>
+	`;
+
+	htmlContent = htmlContent.replace("</body>", `${swRegistration}\n\t</body>`);
+	fs.writeFileSync(INDEX_HTML, htmlContent);
+
+	console.log("✅ Service worker added");
+}
+
+function generatePerformanceReport() {
+	console.log(" Generating performance report...");
+
+	const report = {
+		timestamp: new Date().toISOString(),
+		optimizations: [
+			"Critical CSS inlined",
+			"Resource preloading configured",
+			"JavaScript deferred loading",
+			"Service worker for caching",
+			"Performance monitoring added",
+			"Image optimization ready",
+		],
+		recommendations: [
+			"Run npm run optimize-images to optimize banner images",
+			"Monitor Core Web Vitals in Google Analytics",
+			"Consider implementing lazy loading for below-the-fold images",
+			"Review and remove unused CSS/JS with bundle analyzer",
+		],
+		nextSteps: [
+			"Test performance with PageSpeed Insights",
+			"Monitor real user metrics",
+			"Consider implementing AMP for mobile",
+			"Optimize third-party script loading",
+		],
+	};
+
+	const reportPath = path.join(__dirname, "../performance-report.json");
+	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+
+	console.log(`✅ Performance report saved to: ${reportPath}`);
+}
+
+// Run if called directly
+if (require.main === module) {
+	optimizePerformance();
+}
+
+module.exports = { optimizePerformance };

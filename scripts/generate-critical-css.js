@@ -1,8 +1,19 @@
-const fs = require('fs');
-const path = require('path');
+#!/usr/bin/env node
 
-// Critical CSS for above-the-fold content
-const criticalCSS = `
+/**
+ * Critical CSS Generator
+ * Extracts and inlines critical CSS to improve First Contentful Paint
+ */
+
+const fs = require("fs");
+const path = require("path");
+const { execSync } = require("child_process");
+
+const BUILD_DIR = path.join(__dirname, "../build");
+const INDEX_HTML = path.join(BUILD_DIR, "index.html");
+
+// Critical CSS content for above-the-fold content
+const CRITICAL_CSS = `
 /* Critical CSS for above-the-fold content */
 * {
   box-sizing: border-box;
@@ -10,45 +21,60 @@ const criticalCSS = `
 
 body {
   margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  color: #333;
-  background-color: #fff;
+  background-color: #e0e0e0;
 }
 
-/* Container styles */
-.container {
-  max-width: 1200px;
+#root {
+  min-height: 100vh;
+}
+
+/* Critical navbar styles */
+.navbar {
+  background-color: #000;
+  padding: 0.5rem 0;
+}
+
+.navbar-brand {
+  color: #ffc107 !important;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Critical search form styles */
+.search-form {
+  position: relative;
+  max-width: 600px;
   margin: 0 auto;
-  padding: 0 1rem;
 }
 
-/* Loading states */
-.loading {
-  opacity: 0.7;
-  transition: opacity 0.3s ease-in-out;
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #ffc107;
+  border-radius: 50px;
+  font-size: 1rem;
 }
 
-.loaded {
-  opacity: 1;
+.search-button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 50px;
+  background-color: #ffc107;
+  border: none;
+  border-radius: 0 50px 50px 0;
+  color: #000;
 }
 
-/* Banner carousel styles */
+/* Critical banner styles */
 .carousel {
-  position: relative;
-  overflow: hidden;
-}
-
-.carousel-item {
-  position: relative;
-  display: none;
-}
-
-.carousel-item.active {
-  display: block;
+  margin-bottom: 2rem;
 }
 
 .carousel-item img {
@@ -57,124 +83,126 @@ body {
   object-fit: cover;
 }
 
-/* Navigation styles */
-.navbar {
-  background-color: #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-/* Button styles */
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.25rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
+/* Critical button styles */
 .btn-primary {
-  background-color: #007bff;
-  color: white;
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: #e0a800;
+  border-color: #e0a800;
+  color: #000;
 }
 
-/* Form styles */
-.form-control {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 0.25rem;
-  font-size: 1rem;
+/* Critical loading states */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
 }
 
-/* Utility classes */
-.text-center {
-  text-align: center;
+/* Critical responsive styles */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  .search-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
 }
 
-.text-white {
-  color: white;
+/* Critical font loading optimization */
+.fonts-loaded {
+  font-display: swap;
 }
 
-.font-bold {
-  font-weight: bold;
-}
-
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.p-4 {
-  padding: 1rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.h-auto {
+/* Critical layout shift prevention */
+img {
+  max-width: 100%;
   height: auto;
 }
 
-.object-contain {
-  object-fit: contain;
+/* Critical skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
 }
 
-/* Responsive utilities */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 0.5rem;
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
   }
-  
-  .btn {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-  }
-}
-
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Focus styles for accessibility */
-button:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .btn-primary {
-    background-color: #000;
-    color: #fff;
-    border: 2px solid #000;
-  }
-  
-  .form-control {
-    border: 2px solid #000;
+  100% {
+    background-position: -200% 0;
   }
 }
 `;
 
-// Write critical CSS to file
-const outputPath = path.join(__dirname, '../public/critical.css');
-fs.writeFileSync(outputPath, criticalCSS);
+function generateCriticalCSS() {
+	try {
+		console.log("🔧 Generating critical CSS...");
 
-console.log('Critical CSS generated successfully!');
-console.log(`Output: ${outputPath}`);
+		// Create critical CSS file
+		const criticalCSSPath = path.join(BUILD_DIR, "critical.css");
+		fs.writeFileSync(criticalCSSPath, CRITICAL_CSS);
+
+		// Read the current index.html
+		let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
+
+		// Add critical CSS inline in the head
+		const criticalCSSInline = `<style id="critical-css">${CRITICAL_CSS}</style>`;
+
+		// Insert critical CSS after the title tag
+		htmlContent = htmlContent.replace(
+			/<title>.*?<\/title>/,
+			(match) => `${match}\n\t\t${criticalCSSInline}`
+		);
+
+		// Add preload for main CSS with low priority
+		const preloadCSS =
+			'\n\t\t<link rel="preload" href="/static/css/main.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">';
+		htmlContent = htmlContent.replace(
+			/<link rel="stylesheet" href="\/static\/css\/main\.[^"]+\.css">/,
+			preloadCSS
+		);
+
+		// Add noscript fallback for CSS
+		const noscriptCSS =
+			'\n\t\t<noscript><link rel="stylesheet" href="/static/css/main.css"></noscript>';
+		htmlContent = htmlContent.replace(
+			/<link rel="preload" href="\/static\/css\/main\.css" as="style" onload="this\.onload=null;this\.rel='stylesheet'">/,
+			(match) => `${match}${noscriptCSS}`
+		);
+
+		// Write the updated HTML
+		fs.writeFileSync(INDEX_HTML, htmlContent);
+
+		console.log("✅ Critical CSS generated and inlined successfully");
+		console.log(`📁 Critical CSS saved to: ${criticalCSSPath}`);
+
+		// Calculate size savings
+		const originalSize = fs.statSync(
+			path.join(BUILD_DIR, "static/css/main.css")
+		).size;
+		const criticalSize = Buffer.byteLength(CRITICAL_CSS, "utf8");
+		const savings = ((originalSize - criticalSize) / 1024).toFixed(2);
+
+		console.log(`💾 Estimated CSS savings: ${savings} KB`);
+	} catch (error) {
+		console.error("❌ Error generating critical CSS:", error.message);
+		process.exit(1);
+	}
+}
+
+// Run if called directly
+if (require.main === module) {
+	generateCriticalCSS();
+}
+
+module.exports = { generateCriticalCSS };

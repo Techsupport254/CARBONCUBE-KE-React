@@ -271,6 +271,39 @@
 		<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
+		<!-- Preload Critical Resources -->
+		<link
+			rel="preload"
+			href="/static/css/main.css"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<link
+			rel="preload"
+			href="/static/js/main.js"
+			as="script"
+			fetchpriority="high"
+		/>
+		<link
+			rel="preload"
+			href="/optimized-banners/banner-01-desktop.webp"
+			as="image"
+			fetchpriority="high"
+		/>
+
+		<!-- Font Loading Optimization -->
+		<link
+			rel="preload"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<noscript
+			><link
+				rel="stylesheet"
+				href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+		/></noscript>
+
 		<!-- Optimized Font Loading -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
@@ -358,7 +391,11 @@
 					"postalCode": "00100"
 				},
 				"foundingDate": "2023",
-				"numberOfEmployees": "2-10",
+				"numberOfEmployees": {
+					"@type": "QuantitativeValue",
+					"minValue": 2,
+					"maxValue": 10
+				},
 				"industry": "Internet Marketplace Platforms"
 			}
 		</script>

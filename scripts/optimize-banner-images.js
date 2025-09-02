@@ -1,84 +1,198 @@
-const sharp = require('sharp');
-const fs = require('fs');
-const path = require('path');
+#!/usr/bin/env node
 
-// Configuration
-const inputDir = './Banners';
-const outputDir = './public/optimized-banners';
-const sizes = [
-  { width: 640, suffix: 'sm' },
-  { width: 768, suffix: 'md' },
-  { width: 1024, suffix: 'lg' },
-  { width: 1280, suffix: 'xl' },
-  { width: 1600, suffix: '2xl' }
-];
+/**
+ * Image Optimization Script
+ * Optimizes banner images and adds proper loading attributes
+ */
 
-// Ensure output directory exists
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
+const fs = require("fs");
+const path = require("path");
+const sharp = require("sharp");
+
+const BANNERS_DIR = path.join(__dirname, "../public/Banners");
+const OPTIMIZED_DIR = path.join(__dirname, "../public/optimized-banners");
+
+// Image optimization configuration
+const IMAGE_CONFIG = {
+	formats: ["webp", "avif"],
+	sizes: {
+		mobile: { width: 768, height: 432 },
+		tablet: { width: 1024, height: 576 },
+		desktop: { width: 1600, height: 900 },
+		"2xl": { width: 2400, height: 1350 },
+	},
+	quality: {
+		webp: 85,
+		avif: 80,
+	},
+};
+
+async function optimizeBannerImages() {
+	try {
+		console.log("🖼️  Optimizing banner images...");
+
+		// Create optimized directory if it doesn't exist
+		if (!fs.existsSync(OPTIMIZED_DIR)) {
+			fs.mkdirSync(OPTIMIZED_DIR, { recursive: true });
+		}
+
+		// Get all banner images
+		const bannerFiles = fs
+			.readdirSync(BANNERS_DIR)
+			.filter((file) => /\.(jpg|jpeg|png|webp)$/i.test(file));
+
+		console.log(`📁 Found ${bannerFiles.length} banner images to optimize`);
+
+		let totalSavings = 0;
+		let originalSize = 0;
+
+		for (const file of bannerFiles) {
+			const inputPath = path.join(BANNERS_DIR, file);
+			const baseName = path.parse(file).name;
+
+			// Get original file size
+			const stats = fs.statSync(inputPath);
+			originalSize += stats.size;
+
+			console.log(`🔄 Processing: ${file}`);
+
+			// Process each size and format
+			for (const [sizeName, dimensions] of Object.entries(IMAGE_CONFIG.sizes)) {
+				for (const format of IMAGE_CONFIG.formats) {
+					const outputFileName = `${baseName}-${sizeName}.${format}`;
+					const outputPath = path.join(OPTIMIZED_DIR, outputFileName);
+
+					try {
+						await sharp(inputPath)
+							.resize(dimensions.width, dimensions.height, {
+								fit: "cover",
+								position: "center",
+							})
+							.webp({ quality: IMAGE_CONFIG.quality.webp })
+							.toFile(outputPath);
+
+						const optimizedStats = fs.statSync(outputPath);
+						const savings = stats.size - optimizedStats.size;
+						totalSavings += savings;
+
+						console.log(
+							`  ✅ ${outputFileName} (${(optimizedStats.size / 1024).toFixed(
+								1
+							)} KB)`
+						);
+					} catch (error) {
+						console.error(
+							`  ❌ Error processing ${outputFileName}:`,
+							error.message
+						);
+					}
+				}
+			}
+		}
+
+		console.log("✅ Banner image optimization completed");
+		console.log(
+			`💾 Original size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
+		);
+		console.log(
+			`💾 Total savings: ${(totalSavings / 1024 / 1024).toFixed(2)} MB`
+		);
+
+		// Generate responsive image configuration
+		generateResponsiveImageConfig();
+	} catch (error) {
+		console.error("❌ Error optimizing banner images:", error.message);
+		process.exit(1);
+	}
 }
 
-async function optimizeImages() {
-  try {
-    console.log('Starting image optimization...');
-    
-    // Get all image files from input directory
-    const files = fs.readdirSync(inputDir).filter(file => 
-      /\.(jpg|jpeg|png)$/i.test(file)
-    );
+function generateResponsiveImageConfig() {
+	console.log("📝 Generating responsive image configuration...");
 
-    for (const file of files) {
-      const inputPath = path.join(inputDir, file);
-      const baseName = path.parse(file).name;
-      
-      console.log(`Processing ${file}...`);
+	const config = {
+		bannerImages: [
+			{
+				name: "banner-01",
+				alt: "Banner 1",
+				sizes: {
+					mobile: "/optimized-banners/banner-01-mobile.webp",
+					tablet: "/optimized-banners/banner-01-tablet.webp",
+					desktop: "/optimized-banners/banner-01-desktop.webp",
+					"2xl": "/optimized-banners/banner-01-2xl.webp",
+				},
+			},
+			{
+				name: "banner-02",
+				alt: "Banner 2",
+				sizes: {
+					mobile: "/optimized-banners/banner-02-mobile.webp",
+					tablet: "/optimized-banners/banner-02-tablet.webp",
+					desktop: "/optimized-banners/banner-02-desktop.webp",
+					"2xl": "/optimized-banners/banner-02-2xl.webp",
+				},
+			},
+			{
+				name: "banner-03",
+				alt: "Banner 3",
+				sizes: {
+					mobile: "/optimized-banners/banner-03-mobile.webp",
+					tablet: "/optimized-banners/banner-03-tablet.webp",
+					desktop: "/optimized-banners/banner-03-desktop.webp",
+					"2xl": "/optimized-banners/banner-03-2xl.webp",
+				},
+			},
+			{
+				name: "banner-04",
+				alt: "Banner 4",
+				sizes: {
+					mobile: "/optimized-banners/banner-04-mobile.webp",
+					tablet: "/optimized-banners/banner-04-tablet.webp",
+					desktop: "/optimized-banners/banner-04-desktop.webp",
+					"2xl": "/optimized-banners/banner-04-2xl.webp",
+				},
+			},
+			{
+				name: "banner-05",
+				alt: "Banner 5",
+				sizes: {
+					mobile: "/optimized-banners/banner-05-mobile.webp",
+					tablet: "/optimized-banners/banner-05-tablet.webp",
+					desktop: "/optimized-banners/banner-05-desktop.webp",
+					"2xl": "/optimized-banners/banner-05-2xl.webp",
+				},
+			},
+		],
+	};
 
-      // Create responsive images for each size
-      for (const size of sizes) {
-        const outputName = `${baseName}-${size.suffix}.webp`;
-        const outputPath = path.join(outputDir, outputName);
-        
-        // Resize and convert to WebP
-        await sharp(inputPath)
-          .resize(size.width, null, { 
-            withoutEnlargement: true,
-            fit: 'inside'
-          })
-          .webp({ 
-            quality: 80,
-            effort: 6
-          })
-          .toFile(outputPath);
-        
-        console.log(`Created ${outputName} (${size.width}px)`);
-      }
+	const configPath = path.join(__dirname, "../src/utils/imageConfig.js");
+	const configContent = `// Auto-generated responsive image configuration
+export const bannerImages = ${JSON.stringify(config.bannerImages, null, 2)};
 
-      // Create fallback JPEG versions
-      for (const size of sizes) {
-        const outputName = `${baseName}-${size.suffix}.jpg`;
-        const outputPath = path.join(outputDir, outputName);
-        
-        await sharp(inputPath)
-          .resize(size.width, null, { 
-            withoutEnlargement: true,
-            fit: 'inside'
-          })
-          .jpeg({ 
-            quality: 80,
-            progressive: true
-          })
-          .toFile(outputPath);
-        
-        console.log(`Created ${outputName} (${size.width}px)`);
-      }
-    }
+export const getResponsiveImageSrc = (imageName, size = 'desktop') => {
+  const image = bannerImages.find(img => img.name === imageName);
+  return image ? image.sizes[size] : null;
+};
 
-    console.log('Image optimization completed successfully!');
-    
-  } catch (error) {
-    console.error('Error optimizing images:', error);
-    process.exit(1);
-  }
+export const getResponsiveImageSrcSet = (imageName) => {
+  const image = bannerImages.find(img => img.name === imageName);
+  if (!image) return '';
+  
+  return Object.entries(image.sizes)
+    .map(([size, src]) => {
+      const width = size === 'mobile' ? 768 : size === 'tablet' ? 1024 : size === 'desktop' ? 1600 : 2400;
+      return \`\${src} \${width}w\`;
+    })
+    .join(', ');
+};
+`;
+
+	fs.writeFileSync(configPath, configContent);
+	console.log(`✅ Image configuration saved to: ${configPath}`);
 }
 
-optimizeImages();
+// Run if called directly
+if (require.main === module) {
+	optimizeBannerImages();
+}
+
+module.exports = { optimizeBannerImages };

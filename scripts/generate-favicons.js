@@ -75,7 +75,7 @@ async function generateFavicons() {
 
 		// Update HTML with generated favicon links
 		const htmlContent = response.html.join("\n    ");
-		console.log("\n📋 Add these HTML tags to your index.html <head> section:");
+		console.log("\n Add these HTML tags to your index.html <head> section:");
 		console.log("=".repeat(60));
 		console.log(htmlContent);
 		console.log("=".repeat(60));

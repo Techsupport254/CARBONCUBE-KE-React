@@ -55,6 +55,11 @@
 		"analyze-bundle": "npx webpack-bundle-analyzer build/static/js/*.js",
 		"optimize-assets": "node scripts/optimize-assets.js",
 		"optimize-images": "node scripts/optimize-banner-images.js && node scripts/generate-critical-css.js",
+		"optimize-performance": "node scripts/performance-optimizer.js",
+		"optimize-javascript": "node scripts/optimize-javascript.js",
+		"manage-cache": "node scripts/manage-cache.js",
+		"clear-cache": "node scripts/clear-dev-cache.js",
+		"build:performance": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run optimize-performance && npm run optimize-images && npm run manage-cache",
 		"generate-favicons": "node scripts/generate-favicons.js",
 		"generate-icons": "node scripts/generate-icons.js",
 		"generate-sitemap": "node scripts/generate-sitemap.js",
@@ -64,7 +69,8 @@
 		"generate-public-dynamic-sitemap": "node scripts/generate-public-dynamic-sitemap.js",
 		"test-api": "node scripts/test-api-connection.js",
 		"lighthouse": "npx lighthouse https://carboncube-ke.com --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'",
-		"performance-test": "npm run lighthouse && node scripts/analyze-performance.js"
+		"performance-test": "npm run lighthouse && node scripts/analyze-performance.js",
+		"analyze-performance": "node scripts/analyze-performance.js"
 	},
 	"eslintConfig": {
 		"extends": [

@@ -230,7 +230,11 @@ export const generateHomeSEO = (categories = []) => {
 			postalCode: "00100",
 		},
 		foundingDate: "2023",
-		numberOfEmployees: "2-10",
+		numberOfEmployees: {
+			"@type": "QuantitativeValue",
+			minValue: 2,
+			maxValue: 10,
+		},
 		industry: "Internet Marketplace Platforms",
 	};
 

@@ -73,7 +73,11 @@ const testStructuredData = {
 			postalCode: "00100",
 		},
 		foundingDate: "2023",
-		numberOfEmployees: "2-10",
+		numberOfEmployees: {
+			"@type": "QuantitativeValue",
+			minValue: 2,
+			maxValue: 10,
+		},
 		industry: "Internet Marketplace Platforms",
 	},
 };
@@ -174,7 +178,7 @@ function main() {
 	console.log("🔍 Validating Structured Data for Carbon Cube Kenya\n");
 
 	// Validate LocalBusiness
-	console.log("📋 LocalBusiness Validation:");
+	console.log(" LocalBusiness Validation:");
 	const localBusinessValidation = validateLocalBusiness(
 		testStructuredData.localBusiness
 	);

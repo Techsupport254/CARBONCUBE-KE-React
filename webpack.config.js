@@ -87,6 +87,13 @@ module.exports = {
 						priority: 5,
 						reuseExistingChunk: true,
 					},
+					// CSS optimization
+					styles: {
+						name: "styles",
+						test: /\.css$/,
+						chunks: "all",
+						enforce: true,
+					},
 				},
 			},
 			runtimeChunk: "single",
@@ -94,13 +101,32 @@ module.exports = {
 			// Tree shaking optimization
 			usedExports: true,
 			sideEffects: false,
+			// Module concatenation for better tree shaking
+			concatenateModules: true,
 		},
 		performance: {
 			hints: "warning",
 			maxEntrypointSize: 512000,
 			maxAssetSize: 512000,
 		},
-		// Module concatenation for better tree shaking
-		concatenateModules: true,
+		// CSS optimization
+		module: {
+			rules: [
+				{
+					test: /\.css$/,
+					use: [
+						"style-loader",
+						{
+							loader: "css-loader",
+							options: {
+								importLoaders: 1,
+								modules: false,
+							},
+						},
+						"postcss-loader",
+					],
+				},
+			],
+		},
 	}),
 };
