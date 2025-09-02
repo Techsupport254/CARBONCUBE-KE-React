@@ -42,7 +42,7 @@ async function optimizeAssets() {
 		console.log(`Optimized ${publicImages.length} images in public directory`);
 
 		// Generate WebP versions
-		console.log("🔄 Generating WebP versions...");
+		console.log("Generating WebP versions...");
 
 		const webpImages = await imagemin([`${buildPath}/**/*.{jpg,jpeg,png}`], {
 			destination: buildPath,
@@ -127,7 +127,7 @@ async function optimizeAssets() {
 		console.log(`\n📄 Optimization report saved to: ${reportPath}`);
 		console.log("\nAsset optimization completed successfully!");
 	} catch (error) {
-		console.error("❌ Error during asset optimization:", error.message);
+		console.error("Error during asset optimization:", error.message);
 	}
 }
 

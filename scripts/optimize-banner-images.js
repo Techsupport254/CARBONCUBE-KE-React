@@ -54,7 +54,7 @@ async function optimizeBannerImages() {
 			const stats = fs.statSync(inputPath);
 			originalSize += stats.size;
 
-			console.log(`🔄 Processing: ${file}`);
+			console.log(`Processing: ${file}`);
 
 			// Process each size and format
 			for (const [sizeName, dimensions] of Object.entries(IMAGE_CONFIG.sizes)) {
@@ -76,13 +76,13 @@ async function optimizeBannerImages() {
 						totalSavings += savings;
 
 						console.log(
-							`  ✅ ${outputFileName} (${(optimizedStats.size / 1024).toFixed(
+							`  ${outputFileName} (${(optimizedStats.size / 1024).toFixed(
 								1
 							)} KB)`
 						);
 					} catch (error) {
 						console.error(
-							`  ❌ Error processing ${outputFileName}:`,
+							`  Error processing ${outputFileName}:`,
 							error.message
 						);
 					}
@@ -90,7 +90,7 @@ async function optimizeBannerImages() {
 			}
 		}
 
-		console.log("✅ Banner image optimization completed");
+		console.log("Banner image optimization completed");
 		console.log(
 			`💾 Original size: ${(originalSize / 1024 / 1024).toFixed(2)} MB`
 		);
@@ -101,7 +101,7 @@ async function optimizeBannerImages() {
 		// Generate responsive image configuration
 		generateResponsiveImageConfig();
 	} catch (error) {
-		console.error("❌ Error optimizing banner images:", error.message);
+		console.error("Error optimizing banner images:", error.message);
 		process.exit(1);
 	}
 }
@@ -187,7 +187,7 @@ export const getResponsiveImageSrcSet = (imageName) => {
 `;
 
 	fs.writeFileSync(configPath, configContent);
-	console.log(`✅ Image configuration saved to: ${configPath}`);
+	console.log(`Image configuration saved to: ${configPath}`);
 }
 
 // Run if called directly

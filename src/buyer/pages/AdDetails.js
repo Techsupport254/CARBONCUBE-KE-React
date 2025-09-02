@@ -767,7 +767,7 @@ const AdDetails = () => {
 					title: "Added to Wishlist!",
 					message: "The ad has been successfully added to your wishlist.",
 					confirmText: "Awesome", // single confirm button
-					showCancel: false, // ❌ no cancel button
+					showCancel: false, // no cancel button
 					onConfirm: () =>
 						setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
 				});

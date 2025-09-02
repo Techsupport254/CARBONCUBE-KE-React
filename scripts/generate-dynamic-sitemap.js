@@ -4,12 +4,12 @@ const axios = require("axios");
 
 // Configuration
 const API_BASE_URL =
-	process.env.REACT_APP_BACKEND_URL || 
-	process.env.API_URL || 
+	process.env.REACT_APP_BACKEND_URL ||
+	process.env.API_URL ||
 	"https://carboncube-ke.com/api";
 const SITE_BASE_URL =
-	process.env.REACT_APP_SITE_URL || 
-	process.env.SITE_URL || 
+	process.env.REACT_APP_SITE_URL ||
+	process.env.SITE_URL ||
 	"https://carboncube-ke.com";
 
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
@@ -123,40 +123,60 @@ async function fetchCategoriesAndSubcategories() {
 		console.log(`📡 Subcategories API: ${API_BASE_URL}/buyer/subcategories`);
 
 		const [categoriesResponse, subcategoriesResponse] = await Promise.all([
-			axios.get(`${API_BASE_URL}/buyer/categories`, {
-				timeout: 10000,
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
-				}
-			}).catch((error) => {
-				console.error(`❌ Categories API Error: ${error.message}`);
-				console.error(`❌ Status: ${error.response?.status}`);
-				console.error(`❌ Data: ${JSON.stringify(error.response?.data)}`);
-				return { data: [] };
-			}),
-			axios.get(`${API_BASE_URL}/buyer/subcategories`, {
-				timeout: 10000,
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json'
-				}
-			}).catch((error) => {
-				console.error(`❌ Subcategories API Error: ${error.message}`);
-				console.error(`❌ Status: ${error.response?.status}`);
-				console.error(`❌ Data: ${JSON.stringify(error.response?.data)}`);
-				return { data: [] };
-			}),
+			axios
+				.get(`${API_BASE_URL}/buyer/categories`, {
+					timeout: 10000,
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+					},
+				})
+				.catch((error) => {
+					console.error(`Categories API Error: ${error.message}`);
+					console.error(`Status: ${error.response?.status}`);
+					console.error(`Data: ${JSON.stringify(error.response?.data)}`);
+					return { data: [] };
+				}),
+			axios
+				.get(`${API_BASE_URL}/buyer/subcategories`, {
+					timeout: 10000,
+					headers: {
+						Accept: "application/json",
+						"Content-Type": "application/json",
+					},
+				})
+				.catch((error) => {
+					console.error(`Subcategories API Error: ${error.message}`);
+					console.error(`Status: ${error.response?.status}`);
+					console.error(`Data: ${JSON.stringify(error.response?.data)}`);
+					return { data: [] };
+				}),
 		]);
 
-		console.log(`📡 Categories Response Status: ${categoriesResponse.status || 'N/A'}`);
-		console.log(`📡 Subcategories Response Status: ${subcategoriesResponse.status || 'N/A'}`);
+		console.log(
+			`📡 Categories Response Status: ${categoriesResponse.status || "N/A"}`
+		);
+		console.log(
+			`📡 Subcategories Response Status: ${
+				subcategoriesResponse.status || "N/A"
+			}`
+		);
 
 		const categoriesRaw = categoriesResponse.data;
 		const subcategoriesRaw = subcategoriesResponse.data;
 
-		console.log(`📡 Categories Raw Data: ${JSON.stringify(categoriesRaw).substring(0, 200)}...`);
-		console.log(`📡 Subcategories Raw Data: ${JSON.stringify(subcategoriesRaw).substring(0, 200)}...`);
+		console.log(
+			`📡 Categories Raw Data: ${JSON.stringify(categoriesRaw).substring(
+				0,
+				200
+			)}...`
+		);
+		console.log(
+			`📡 Subcategories Raw Data: ${JSON.stringify(subcategoriesRaw).substring(
+				0,
+				200
+			)}...`
+		);
 
 		const categories = Array.isArray(categoriesRaw)
 			? categoriesRaw
@@ -175,7 +195,9 @@ async function fetchCategoriesAndSubcategories() {
 
 		// If no categories found, use fallback sample data for SEO
 		if (categories.length === 0) {
-			console.log("⚠️ No categories found from API, using fallback sample data...");
+			console.log(
+				"⚠️ No categories found from API, using fallback sample data..."
+			);
 			const fallbackCategories = [
 				{ id: 1, name: "Electronics" },
 				{ id: 2, name: "Fashion" },
@@ -184,7 +206,7 @@ async function fetchCategoriesAndSubcategories() {
 				{ id: 5, name: "Sports & Outdoors" },
 				{ id: 6, name: "Books & Media" },
 				{ id: 7, name: "Health & Beauty" },
-				{ id: 8, name: "Toys & Games" }
+				{ id: 8, name: "Toys & Games" },
 			];
 			const fallbackSubcategories = [
 				{ id: 1, category_id: 1, name: "Smartphones" },
@@ -196,15 +218,18 @@ async function fetchCategoriesAndSubcategories() {
 				{ id: 7, category_id: 4, name: "Cars" },
 				{ id: 8, category_id: 4, name: "Motorcycles" },
 				{ id: 9, category_id: 5, name: "Fitness Equipment" },
-				{ id: 10, category_id: 5, name: "Outdoor Gear" }
+				{ id: 10, category_id: 5, name: "Outdoor Gear" },
 			];
-			return { categories: fallbackCategories, subcategories: fallbackSubcategories };
+			return {
+				categories: fallbackCategories,
+				subcategories: fallbackSubcategories,
+			};
 		}
 
 		return { categories, subcategories };
 	} catch (error) {
-		console.error("❌ Error fetching categories/subcategories:", error.message);
-		console.error("❌ Full error:", error);
+		console.error("Error fetching categories/subcategories:", error.message);
+		console.error("Full error:", error);
 		return { categories: [], subcategories: [] };
 	}
 }
@@ -465,7 +490,7 @@ async function generateDynamicSitemap() {
 		console.log(`🔗 Sitemap URL: ${SITE_BASE_URL}/sitemap.xml`);
 		console.log(`🤖 Robots URL: ${SITE_BASE_URL}/robots.txt`);
 	} catch (error) {
-		console.error("❌ Error generating sitemap:", error);
+		console.error("Error generating sitemap:", error);
 		process.exit(1);
 	}
 }

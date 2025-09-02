@@ -6,7 +6,7 @@ try {
 	generateDynamicSitemap();
 	console.log("Sitemap generated successfully!");
 } catch (error) {
-	console.error("❌ Error generating sitemap:", error.message);
+	console.error("Error generating sitemap:", error.message);
 	// Don't fail the build if sitemap generation fails
 	process.exit(0);
 }

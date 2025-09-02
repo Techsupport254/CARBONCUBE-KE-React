@@ -29,10 +29,10 @@ export default function AnalyticsTest() {
 				trackGAEvent("test_event", "Analytics Test", "GA Test Button", 1);
 				addTestResult("Google Analytics", "SUCCESS", "Event sent to GA");
 			} else {
-				addTestResult("Google Analytics", "❌ FAILED", "gtag not found");
+				addTestResult("Google Analytics", "FAILED", "gtag not found");
 			}
 		} catch (error) {
-			addTestResult("Google Analytics", "❌ ERROR", error.message);
+			addTestResult("Google Analytics", "ERROR", error.message);
 		}
 	};
 
@@ -47,10 +47,10 @@ export default function AnalyticsTest() {
 				);
 				addTestResult("Matomo", "SUCCESS", "Event sent to Matomo");
 			} else {
-				addTestResult("Matomo", "❌ FAILED", "_mtm not found");
+				addTestResult("Matomo", "FAILED", "_mtm not found");
 			}
 		} catch (error) {
-			addTestResult("Matomo", "❌ ERROR", error.message);
+			addTestResult("Matomo", "ERROR", error.message);
 		}
 	};
 
@@ -59,7 +59,7 @@ export default function AnalyticsTest() {
 			trackPageView("Analytics Test Page", "/analytics-test");
 			addTestResult("Page View", "SUCCESS", "Page view tracked");
 		} catch (error) {
-			addTestResult("Page View", "❌ ERROR", error.message);
+			addTestResult("Page View", "ERROR", error.message);
 		}
 	};
 
@@ -71,7 +71,7 @@ export default function AnalyticsTest() {
 			);
 			addTestResult("User Interaction", "SUCCESS", "Interaction tracked");
 		} catch (error) {
-			addTestResult("User Interaction", "❌ ERROR", error.message);
+			addTestResult("User Interaction", "ERROR", error.message);
 		}
 	};
 
@@ -80,7 +80,7 @@ export default function AnalyticsTest() {
 			trackButtonClick("test_button", "/analytics-test");
 			addTestResult("Button Click", "SUCCESS", "Button click tracked");
 		} catch (error) {
-			addTestResult("Button Click", "❌ ERROR", error.message);
+			addTestResult("Button Click", "ERROR", error.message);
 		}
 	};
 
@@ -89,7 +89,7 @@ export default function AnalyticsTest() {
 			trackFormSubmission("test_form", true);
 			addTestResult("Form Submission", "SUCCESS", "Form submission tracked");
 		} catch (error) {
-			addTestResult("Form Submission", "❌ ERROR", error.message);
+			addTestResult("Form Submission", "ERROR", error.message);
 		}
 	};
 
@@ -283,7 +283,7 @@ export default function AnalyticsTest() {
 								marginLeft: "5px",
 							}}
 						>
-							{window.gtag ? "Loaded" : "❌ Not Loaded"}
+							{window.gtag ? "Loaded" : "Not Loaded"}
 						</span>
 					</div>
 					<div>
@@ -294,7 +294,7 @@ export default function AnalyticsTest() {
 								marginLeft: "5px",
 							}}
 						>
-							{window._mtm ? "Loaded" : "❌ Not Loaded"}
+							{window._mtm ? "Loaded" : "Not Loaded"}
 						</span>
 					</div>
 				</div>

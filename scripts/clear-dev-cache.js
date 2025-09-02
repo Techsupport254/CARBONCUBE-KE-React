@@ -14,7 +14,7 @@ function clearDevelopmentCache() {
 		console.log("🧹 Clearing development cache...");
 
 		// Step 1: Clear browser cache instructions
-		console.log("\n📋 Browser Cache Clearing Instructions:");
+		console.log("\n Browser Cache Clearing Instructions:");
 		console.log("========================================");
 		console.log("1. Open Developer Tools (F12)");
 		console.log("2. Right-click the refresh button");
@@ -30,10 +30,10 @@ function clearDevelopmentCache() {
 		// Step 4: Clear node modules cache (optional)
 		clearNodeCache();
 
-		console.log("\n✅ Development cache cleared successfully!");
-		console.log("🔄 Please restart your development server");
+		console.log("\nDevelopment cache cleared successfully!");
+		console.log("Please restart your development server");
 	} catch (error) {
-		console.error("❌ Error clearing cache:", error.message);
+		console.error("Error clearing cache:", error.message);
 	}
 }
 
@@ -65,7 +65,7 @@ if ('serviceWorker' in navigator) {
 	const swClearPath = path.join(__dirname, "../public/sw-clear.js");
 	fs.writeFileSync(swClearPath, swClearScript);
 
-	console.log("✅ Service worker cache clearer created");
+	console.log("Service worker cache clearer created");
 	console.log("📁 File: public/sw-clear.js");
 	console.log("💡 Include this script in your HTML to clear SW cache");
 }
@@ -85,14 +85,14 @@ function clearBuildCache() {
 		if (fs.existsSync(dir)) {
 			try {
 				execSync(`rm -rf "${dir}"`, { stdio: "inherit" });
-				console.log(`✅ Cleared: ${dir}`);
+				console.log(`Cleared: ${dir}`);
 			} catch (error) {
 				console.log(`⚠️  Could not clear: ${dir}`);
 			}
 		}
 	});
 
-	console.log("✅ Build cache cleared");
+	console.log("Build cache cleared");
 }
 
 function clearNodeCache() {
@@ -101,12 +101,12 @@ function clearNodeCache() {
 	try {
 		// Clear npm cache
 		execSync("npm cache clean --force", { stdio: "inherit" });
-		console.log("✅ NPM cache cleared");
+		console.log("NPM cache cleared");
 
 		// Clear yarn cache if available
 		try {
 			execSync("yarn cache clean", { stdio: "inherit" });
-			console.log("✅ Yarn cache cleared");
+			console.log("Yarn cache cleared");
 		} catch (error) {
 			// Yarn not available, skip
 		}
@@ -157,7 +157,7 @@ function createCacheClearHTML() {
     </style>
 </head>
 <body>
-    <h1>🔄 Cache Management</h1>
+    <h1>Cache Management</h1>
     <p>Use these buttons to clear various caches for development:</p>
     
     <button class="button" onclick="clearServiceWorker()">Clear Service Worker</button>
@@ -179,7 +179,7 @@ function createCacheClearHTML() {
                     registrations.forEach((registration) => {
                         registration.unregister();
                     });
-                    showStatus('✅ Service worker unregistered');
+                    showStatus('Service worker unregistered');
                 });
                 
                 if ('caches' in window) {
@@ -187,7 +187,7 @@ function createCacheClearHTML() {
                         cacheNames.forEach((cacheName) => {
                             caches.delete(cacheName);
                         });
-                        showStatus('✅ Service worker caches cleared');
+                        showStatus('Service worker caches cleared');
                     });
                 }
             } else {
@@ -201,7 +201,7 @@ function createCacheClearHTML() {
                     cacheNames.forEach((cacheName) => {
                         caches.delete(cacheName);
                     });
-                    showStatus('✅ Browser cache cleared');
+                    showStatus('Browser cache cleared');
                 });
             } else {
                 showStatus('⚠️ Cache API not supported', 'error');
@@ -211,7 +211,7 @@ function createCacheClearHTML() {
         function clearAllCaches() {
             clearServiceWorker();
             clearBrowserCache();
-            showStatus('✅ All caches cleared');
+            showStatus('All caches cleared');
         }
         
         function reloadPage() {
@@ -231,7 +231,7 @@ function createCacheClearHTML() {
 	const htmlPath = path.join(__dirname, "../public/cache-clear.html");
 	fs.writeFileSync(htmlPath, htmlContent);
 
-	console.log("✅ Cache clear HTML created");
+	console.log("Cache clear HTML created");
 	console.log("📁 File: public/cache-clear.html");
 	console.log("🌐 Visit: http://localhost:3000/cache-clear.html");
 }

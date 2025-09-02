@@ -452,7 +452,7 @@ const SellerAds = () => {
 							reject(new Error(`Upload failed with status: ${xhr.status}`));
 						}
 					} catch (err) {
-						console.error("❌ Failed to parse response:", err);
+						console.error("Failed to parse response:", err);
 						reject(new Error("Invalid JSON response"));
 					}
 				};
@@ -505,7 +505,7 @@ const SellerAds = () => {
 	const handleEditAd = (adId) => {
 		// Prevent editing of deleted ads
 		if (ads.deleted.some((p) => p.id === adId)) {
-			alert("❌ You cannot edit a deleted ad.");
+			alert("You cannot edit a deleted ad.");
 			return;
 		}
 

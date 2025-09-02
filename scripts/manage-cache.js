@@ -50,7 +50,7 @@ function manageCache() {
 }
 
 function updateServiceWorker() {
-	console.log("🔄 Updating service worker with version...");
+	console.log("Updating service worker with version...");
 
 	const swContent = `
 // Service Worker for Carbon Cube Kenya - Version ${CACHE_CONFIG.version}

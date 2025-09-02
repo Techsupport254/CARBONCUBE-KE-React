@@ -27,13 +27,13 @@ function analyzePerformance() {
 		const reportPath = path.join(__dirname, "../performance-analysis.json");
 		fs.writeFileSync(reportPath, JSON.stringify(analysis, null, 2));
 
-		console.log("✅ Performance analysis completed");
+		console.log("Performance analysis completed");
 		console.log(`📁 Report saved to: ${reportPath}`);
 
 		// Display summary
 		displaySummary(analysis);
 	} catch (error) {
-		console.error("❌ Error analyzing performance:", error.message);
+		console.error("Error analyzing performance:", error.message);
 		process.exit(1);
 	}
 }

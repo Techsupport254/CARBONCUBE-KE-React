@@ -42,7 +42,7 @@ async function generateFavicons() {
 		// Check if source logo exists
 		const sourceLogo = path.join(__dirname, "../public/logo.png");
 		if (!fs.existsSync(sourceLogo)) {
-			console.error("❌ Source logo not found at:", sourceLogo);
+			console.error("Source logo not found at:", sourceLogo);
 			console.log("Please ensure logo.png exists in the public directory");
 			return;
 		}
@@ -83,7 +83,7 @@ async function generateFavicons() {
 		console.log("\n🎉 Favicon generation completed successfully!");
 		console.log("📁 All files have been saved to the public directory");
 	} catch (error) {
-		console.error("❌ Error generating favicons:", error);
+		console.error("Error generating favicons:", error);
 	}
 }
 

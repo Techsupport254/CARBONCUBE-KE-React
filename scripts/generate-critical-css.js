@@ -183,7 +183,7 @@ function generateCriticalCSS() {
 		// Write the updated HTML
 		fs.writeFileSync(INDEX_HTML, htmlContent);
 
-		console.log("✅ Critical CSS generated and inlined successfully");
+		console.log("Critical CSS generated and inlined successfully");
 		console.log(`📁 Critical CSS saved to: ${criticalCSSPath}`);
 
 		// Calculate size savings
@@ -195,7 +195,7 @@ function generateCriticalCSS() {
 
 		console.log(`💾 Estimated CSS savings: ${savings} KB`);
 	} catch (error) {
-		console.error("❌ Error generating critical CSS:", error.message);
+		console.error("Error generating critical CSS:", error.message);
 		process.exit(1);
 	}
 }

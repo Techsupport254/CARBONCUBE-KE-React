@@ -182,11 +182,11 @@ function main() {
 	const localBusinessValidation = validateLocalBusiness(
 		testStructuredData.localBusiness
 	);
-	console.log("✅ Present fields:");
+	console.log("Present fields:");
 	localBusinessValidation.present.forEach((field) => console.log(`  ${field}`));
 
 	if (localBusinessValidation.missing.length > 0) {
-		console.log("❌ Missing fields:");
+		console.log("Missing fields:");
 		localBusinessValidation.missing.forEach((field) =>
 			console.log(`  ${field}`)
 		);
@@ -201,11 +201,11 @@ function main() {
 	const organizationValidation = validateOrganization(
 		testStructuredData.organization
 	);
-	console.log("✅ Present fields:");
+	console.log("Present fields:");
 	organizationValidation.present.forEach((field) => console.log(`  ${field}`));
 
 	if (organizationValidation.missing.length > 0) {
-		console.log("❌ Missing fields:");
+		console.log("Missing fields:");
 		organizationValidation.missing.forEach((field) =>
 			console.log(`  ${field}`)
 		);
@@ -224,7 +224,7 @@ function main() {
 	console.log(JSON.stringify(testStructuredData.organization, null, 2));
 
 	console.log(
-		"\n✅ Validation complete! Copy the JSON-LD above to test in Google Rich Results Test."
+		"\nValidation complete! Copy the JSON-LD above to test in Google Rich Results Test."
 	);
 }
 

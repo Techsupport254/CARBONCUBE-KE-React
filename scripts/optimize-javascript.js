@@ -81,7 +81,7 @@ function optimizeJavaScriptLoading() {
 		// Write the updated HTML
 		fs.writeFileSync(indexPath, htmlContent);
 
-		console.log("✅ JavaScript loading optimized successfully");
+		console.log("JavaScript loading optimized successfully");
 		console.log(`📊 Total JavaScript files: ${jsFiles.length}`);
 
 		// Calculate total JavaScript size
@@ -95,7 +95,7 @@ function optimizeJavaScriptLoading() {
 			`💾 Total JavaScript size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`
 		);
 	} catch (error) {
-		console.error("❌ Error optimizing JavaScript loading:", error.message);
+		console.error("Error optimizing JavaScript loading:", error.message);
 		process.exit(1);
 	}
 }

@@ -89,9 +89,9 @@ function optimizePerformance() {
 		// Step 6: Generate performance report
 		generatePerformanceReport();
 
-		console.log("✅ Performance optimization completed successfully!");
+		console.log("Performance optimization completed successfully!");
 	} catch (error) {
-		console.error("❌ Error during performance optimization:", error.message);
+		console.error("Error during performance optimization:", error.message);
 		process.exit(1);
 	}
 }
@@ -123,7 +123,7 @@ function inlineCriticalCSS() {
 	);
 
 	fs.writeFileSync(INDEX_HTML, htmlContent);
-	console.log("✅ Critical CSS inlined");
+	console.log("Critical CSS inlined");
 }
 
 function optimizeResourceLoading() {
@@ -164,7 +164,7 @@ function optimizeResourceLoading() {
 	});
 
 	fs.writeFileSync(INDEX_HTML, htmlContent);
-	console.log("✅ Resource loading optimized");
+	console.log("Resource loading optimized");
 }
 
 function addPerformanceMonitoring() {
@@ -210,7 +210,7 @@ function addPerformanceMonitoring() {
 	);
 
 	fs.writeFileSync(INDEX_HTML, htmlContent);
-	console.log("✅ Performance monitoring added");
+	console.log("Performance monitoring added");
 }
 
 function optimizeImages() {
@@ -218,7 +218,7 @@ function optimizeImages() {
 
 	// This will be handled by the optimize-banner-images.js script
 	console.log(
-		"✅ Image optimization (run separately with: npm run optimize-images)"
+		"Image optimization (run separately with: npm run optimize-images)"
 	);
 }
 
@@ -324,7 +324,7 @@ self.addEventListener('activate', (event) => {
 	htmlContent = htmlContent.replace("</body>", `${swRegistration}\n\t</body>`);
 	fs.writeFileSync(INDEX_HTML, htmlContent);
 
-	console.log("✅ Service worker added");
+	console.log("Service worker added");
 }
 
 function generatePerformanceReport() {
@@ -357,7 +357,7 @@ function generatePerformanceReport() {
 	const reportPath = path.join(__dirname, "../performance-report.json");
 	fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
-	console.log(`✅ Performance report saved to: ${reportPath}`);
+	console.log(`Performance report saved to: ${reportPath}`);
 }
 
 // Run if called directly
