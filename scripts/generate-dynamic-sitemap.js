@@ -4,9 +4,13 @@ const axios = require("axios");
 
 // Configuration
 const API_BASE_URL =
-	process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
+	process.env.REACT_APP_BACKEND_URL || 
+	process.env.API_URL || 
+	"https://carboncube-ke.com/api";
 const SITE_BASE_URL =
-	process.env.REACT_APP_SITE_URL || "https://carboncube-ke.com";
+	process.env.REACT_APP_SITE_URL || 
+	process.env.SITE_URL || 
+	"https://carboncube-ke.com";
 
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
 console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
@@ -115,16 +119,44 @@ const staticRoutes = [
 async function fetchCategoriesAndSubcategories() {
 	try {
 		console.log("📡 Fetching categories and subcategories...");
+		console.log(`📡 Categories API: ${API_BASE_URL}/buyer/categories`);
+		console.log(`📡 Subcategories API: ${API_BASE_URL}/buyer/subcategories`);
 
 		const [categoriesResponse, subcategoriesResponse] = await Promise.all([
-			axios.get(`${API_BASE_URL}/buyer/categories`).catch(() => ({ data: [] })),
-			axios
-				.get(`${API_BASE_URL}/buyer/subcategories`)
-				.catch(() => ({ data: [] })),
+			axios.get(`${API_BASE_URL}/buyer/categories`, {
+				timeout: 10000,
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
+			}).catch((error) => {
+				console.error(`❌ Categories API Error: ${error.message}`);
+				console.error(`❌ Status: ${error.response?.status}`);
+				console.error(`❌ Data: ${JSON.stringify(error.response?.data)}`);
+				return { data: [] };
+			}),
+			axios.get(`${API_BASE_URL}/buyer/subcategories`, {
+				timeout: 10000,
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json'
+				}
+			}).catch((error) => {
+				console.error(`❌ Subcategories API Error: ${error.message}`);
+				console.error(`❌ Status: ${error.response?.status}`);
+				console.error(`❌ Data: ${JSON.stringify(error.response?.data)}`);
+				return { data: [] };
+			}),
 		]);
+
+		console.log(`📡 Categories Response Status: ${categoriesResponse.status || 'N/A'}`);
+		console.log(`📡 Subcategories Response Status: ${subcategoriesResponse.status || 'N/A'}`);
 
 		const categoriesRaw = categoriesResponse.data;
 		const subcategoriesRaw = subcategoriesResponse.data;
+
+		console.log(`📡 Categories Raw Data: ${JSON.stringify(categoriesRaw).substring(0, 200)}...`);
+		console.log(`📡 Subcategories Raw Data: ${JSON.stringify(subcategoriesRaw).substring(0, 200)}...`);
 
 		const categories = Array.isArray(categoriesRaw)
 			? categoriesRaw
@@ -141,9 +173,38 @@ async function fetchCategoriesAndSubcategories() {
 			`Found ${categories.length} categories and ${subcategories.length} subcategories`
 		);
 
+		// If no categories found, use fallback sample data for SEO
+		if (categories.length === 0) {
+			console.log("⚠️ No categories found from API, using fallback sample data...");
+			const fallbackCategories = [
+				{ id: 1, name: "Electronics" },
+				{ id: 2, name: "Fashion" },
+				{ id: 3, name: "Home & Garden" },
+				{ id: 4, name: "Automotive" },
+				{ id: 5, name: "Sports & Outdoors" },
+				{ id: 6, name: "Books & Media" },
+				{ id: 7, name: "Health & Beauty" },
+				{ id: 8, name: "Toys & Games" }
+			];
+			const fallbackSubcategories = [
+				{ id: 1, category_id: 1, name: "Smartphones" },
+				{ id: 2, category_id: 1, name: "Laptops" },
+				{ id: 3, category_id: 2, name: "Men's Clothing" },
+				{ id: 4, category_id: 2, name: "Women's Clothing" },
+				{ id: 5, category_id: 3, name: "Furniture" },
+				{ id: 6, category_id: 3, name: "Kitchen Appliances" },
+				{ id: 7, category_id: 4, name: "Cars" },
+				{ id: 8, category_id: 4, name: "Motorcycles" },
+				{ id: 9, category_id: 5, name: "Fitness Equipment" },
+				{ id: 10, category_id: 5, name: "Outdoor Gear" }
+			];
+			return { categories: fallbackCategories, subcategories: fallbackSubcategories };
+		}
+
 		return { categories, subcategories };
 	} catch (error) {
 		console.error("❌ Error fetching categories/subcategories:", error.message);
+		console.error("❌ Full error:", error);
 		return { categories: [], subcategories: [] };
 	}
 }

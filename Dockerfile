@@ -10,7 +10,11 @@ RUN npm install
 # Copy the entire app and build it
 COPY . .
 ARG REACT_APP_BACKEND_URL=https://carboncube-ke.com/api
+ARG REACT_APP_SITE_URL=https://carboncube-ke.com
 ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
+ENV REACT_APP_SITE_URL=${REACT_APP_SITE_URL}
+ENV API_URL=${REACT_APP_BACKEND_URL}
+ENV SITE_URL=${REACT_APP_SITE_URL}
 RUN npm run build
 
 # Use Nginx as the web server
