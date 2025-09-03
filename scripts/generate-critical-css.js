@@ -144,6 +144,25 @@ img {
 }
 `;
 
+function findMainCSSFile() {
+	try {
+		const cssDir = path.join(BUILD_DIR, "static/css");
+		const files = fs.readdirSync(cssDir);
+		const mainCSSFile = files.find(
+			(file) => file.startsWith("main.") && file.endsWith(".css")
+		);
+
+		if (!mainCSSFile) {
+			throw new Error("Main CSS file not found");
+		}
+
+		return path.join(cssDir, mainCSSFile);
+	} catch (error) {
+		console.error("Error finding main CSS file:", error.message);
+		return null;
+	}
+}
+
 function generateCriticalCSS() {
 	try {
 		console.log("🔧 Generating critical CSS...");
@@ -151,6 +170,16 @@ function generateCriticalCSS() {
 		// Create critical CSS file
 		const criticalCSSPath = path.join(BUILD_DIR, "critical.css");
 		fs.writeFileSync(criticalCSSPath, CRITICAL_CSS);
+
+		// Find the main CSS file dynamically
+		const mainCSSPath = findMainCSSFile();
+		if (!mainCSSPath) {
+			console.log(
+				"⚠️ Main CSS file not found, skipping size calculation and HTML modification"
+			);
+			console.log("📁 Critical CSS saved to: " + criticalCSSPath);
+			return; // Exit early if no main CSS file found
+		}
 
 		// Read the current index.html
 		let htmlContent = fs.readFileSync(INDEX_HTML, "utf8");
@@ -164,39 +193,48 @@ function generateCriticalCSS() {
 			(match) => `${match}\n\t\t${criticalCSSInline}`
 		);
 
-		// Add preload for main CSS with low priority
-		const preloadCSS =
-			'\n\t\t<link rel="preload" href="/static/css/main.css" as="style" onload="this.onload=null;this.rel=\'stylesheet\'">';
-		htmlContent = htmlContent.replace(
-			/<link rel="stylesheet" href="\/static\/css\/main\.[^"]+\.css">/,
-			preloadCSS
+		// Find the main CSS link in the HTML
+		const cssLinkMatch = htmlContent.match(
+			/<link rel="stylesheet" href="\/static\/css\/main\.[^"]+\.css">/
 		);
+		if (cssLinkMatch) {
+			const cssLink = cssLinkMatch[0];
+			const cssHref = cssLink.match(/href="([^"]+)"/)[1];
 
-		// Add noscript fallback for CSS
-		const noscriptCSS =
-			'\n\t\t<noscript><link rel="stylesheet" href="/static/css/main.css"></noscript>';
-		htmlContent = htmlContent.replace(
-			/<link rel="preload" href="\/static\/css\/main\.css" as="style" onload="this\.onload=null;this\.rel='stylesheet'">/,
-			(match) => `${match}${noscriptCSS}`
-		);
+			// Add preload for main CSS with low priority
+			const preloadCSS = `\n\t\t<link rel="preload" href="${cssHref}" as="style" onload="this.onload=null;this.rel='stylesheet'">`;
+			htmlContent = htmlContent.replace(cssLink, preloadCSS);
+
+			// Add noscript fallback for CSS
+			const noscriptCSS = `\n\t\t<noscript><link rel="stylesheet" href="${cssHref}"></noscript>`;
+			htmlContent = htmlContent.replace(
+				/<link rel="preload" href="[^"]+" as="style" onload="this\.onload=null;this\.rel='stylesheet'">/,
+				(match) => `${match}${noscriptCSS}`
+			);
+		}
 
 		// Write the updated HTML
 		fs.writeFileSync(INDEX_HTML, htmlContent);
 
 		console.log("Critical CSS generated and inlined successfully");
-		console.log(`📁 Critical CSS saved to: ${criticalCSSPath}`);
+		console.log("📁 Critical CSS saved to: " + criticalCSSPath);
 
-		// Calculate size savings
-		const originalSize = fs.statSync(
-			path.join(BUILD_DIR, "static/css/main.css")
-		).size;
-		const criticalSize = Buffer.byteLength(CRITICAL_CSS, "utf8");
-		const savings = ((originalSize - criticalSize) / 1024).toFixed(2);
+		// Calculate size savings if main CSS file exists
+		if (mainCSSPath) {
+			try {
+				const originalSize = fs.statSync(mainCSSPath).size;
+				const criticalSize = Buffer.byteLength(CRITICAL_CSS, "utf8");
+				const savings = ((originalSize - criticalSize) / 1024).toFixed(2);
 
-		console.log(`💾 Estimated CSS savings: ${savings} KB`);
+				console.log("💾 Estimated CSS savings: " + savings + " KB");
+			} catch (error) {
+				console.log("⚠️ Could not calculate size savings");
+			}
+		}
 	} catch (error) {
 		console.error("Error generating critical CSS:", error.message);
-		process.exit(1);
+		// Don't exit with error code 1, just log the error
+		console.log("⚠️ Critical CSS generation failed, but build can continue");
 	}
 }
 
