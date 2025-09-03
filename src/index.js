@@ -7,7 +7,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import sourceTrackingService from "./utils/sourceTracking";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import {
-	registerServiceWorker,
 	optimizeFontLoading,
 	optimizeCriticalPath,
 	checkPerformanceBudget,
@@ -110,7 +109,7 @@ const initializePerformanceOptimizations = () => {
 	optimizeJavaScriptLoading();
 
 	// Register service worker for caching
-	registerServiceWorker();
+	// registerServiceWorker();
 
 	// Check performance budget after page load
 	window.addEventListener("load", () => {
