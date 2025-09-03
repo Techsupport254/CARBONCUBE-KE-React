@@ -57,8 +57,43 @@ const reportWebVitalsWithDetails = (metric) => {
 	});
 })();
 
+// Cache busting for development
+const clearOldCaches = () => {
+	if ("caches" in window) {
+		caches.keys().then((cacheNames) => {
+			cacheNames.forEach((cacheName) => {
+				// Clear old service worker caches
+				if (
+					cacheName.includes("carbon-cube") ||
+					cacheName.includes("static") ||
+					cacheName.includes("dynamic")
+				) {
+					caches.delete(cacheName);
+					console.log("Cleared old cache:", cacheName);
+				}
+			});
+		});
+	}
+};
+
+// Unregister old service workers
+const unregisterOldServiceWorkers = () => {
+	if ("serviceWorker" in navigator) {
+		navigator.serviceWorker.getRegistrations().then((registrations) => {
+			registrations.forEach((registration) => {
+				registration.unregister();
+				console.log("Unregistered old service worker");
+			});
+		});
+	}
+};
+
 // Performance optimizations
 const initializePerformanceOptimizations = () => {
+	// Clear old caches first
+	clearOldCaches();
+	unregisterOldServiceWorkers();
+
 	// Manage preload links with enhanced monitoring
 	managePreloadLinks();
 
@@ -92,11 +127,7 @@ const initializePerformanceOptimizations = () => {
 initializePerformanceOptimizations();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(
-	<React.StrictMode>
-		<App />
-	</React.StrictMode>
-);
+root.render(<App />);
 
 // Performance monitoring with detailed reporting
 reportWebVitalsWithDetails();

@@ -67,10 +67,59 @@ const SourceTrackingModal = ({
 							<div>
 								<div className="text-2xl sm:text-3xl lg:text-4xl font-bold">
 									{(() => {
-										// Use the actual total visits from the backend data
-										const totalVisits =
-											memoizedFilteredSourceData?.total_visits || 0;
-										return totalVisits.toLocaleString();
+										// Calculate the correct count based on the selected card type
+										const getCardSpecificCount = () => {
+											if (!selectedSourceCard || !memoizedFilteredSourceData)
+												return 0;
+
+											if (selectedSourceCard?.title === "Total Page Visits") {
+												return memoizedFilteredSourceData.total_visits || 0;
+											} else if (
+												selectedSourceCard?.title === "External Sources"
+											) {
+												const directVisits =
+													memoizedFilteredSourceData.source_distribution
+														?.direct || 0;
+												const totalVisits =
+													memoizedFilteredSourceData.total_visits || 0;
+												return Math.max(0, totalVisits - directVisits);
+											} else if (
+												selectedSourceCard?.title === "Direct Visits"
+											) {
+												return (
+													memoizedFilteredSourceData.source_distribution
+														?.direct || 0
+												);
+											} else if (selectedSourceCard?.title === "Top Source") {
+												const allSources = Object.keys(
+													memoizedFilteredSourceData.source_distribution || {}
+												);
+												if (allSources.length === 0) return 0;
+
+												const topSource = allSources.reduce((top, source) => {
+													const currentCount =
+														memoizedFilteredSourceData.source_distribution?.[
+															source
+														] || 0;
+													const topCount =
+														memoizedFilteredSourceData.source_distribution?.[
+															top
+														] || 0;
+													return currentCount > topCount ? source : top;
+												}, allSources[0]);
+
+												return (
+													memoizedFilteredSourceData.source_distribution?.[
+														topSource
+													] || 0
+												);
+											}
+
+											return memoizedFilteredSourceData.total_visits || 0;
+										};
+
+										const cardSpecificCount = getCardSpecificCount();
+										return cardSpecificCount.toLocaleString();
 									})()}
 								</div>
 								<div className="text-blue-100 text-sm sm:text-base">
@@ -176,7 +225,7 @@ const SourceTrackingModal = ({
 				</button>
 			</Modal.Header>
 
-			<Modal.Body className="p-0 bg-gray-50">
+			<Modal.Body className="p-4 bg-gray-50">
 				<div className="w-full max-w-5xl mx-auto bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg">
 					<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 lg:mb-8 gap-4">
 						<div>
@@ -422,17 +471,95 @@ const SourceTrackingModal = ({
 												);
 											});
 									} else {
-										// Show ALL sources sorted by value (highest to lowest)
-										// Use the actual data from the backend (no filtering needed)
-										const allSources = Object.entries(
-											memoizedFilteredSourceData?.source_distribution || {}
-										).sort(([, a], [, b]) => b - a); // Sort by count descending
+										// Show sources based on the selected card type
+										let sourcesToShow = [];
 
-										return allSources.map(([source, count], index) => {
-											const total =
-												memoizedFilteredSourceData?.total_visits || 0;
-											const percentage =
-												total > 0 ? Math.round((count / total) * 100) : 0;
+										if (selectedSourceCard?.title === "Total Page Visits") {
+											// Show all sources
+											sourcesToShow = Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+											);
+										} else if (
+											selectedSourceCard?.title === "External Sources"
+										) {
+											// Show only external sources (exclude direct)
+											sourcesToShow = Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+											).filter(([source]) => source !== "direct");
+										} else if (selectedSourceCard?.title === "Direct Visits") {
+											// Show only direct visits
+											sourcesToShow = Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+											).filter(([source]) => source === "direct");
+										} else if (selectedSourceCard?.title === "Top Source") {
+											// Show top 3 sources
+											const allSources = Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+											);
+											// Sort by count descending and take top 3
+											sourcesToShow = allSources
+												.sort(([, a], [, b]) => b - a)
+												.slice(0, 3);
+										} else {
+											// Default: show all sources
+											sourcesToShow = Object.entries(
+												memoizedFilteredSourceData?.source_distribution || {}
+											);
+										}
+
+										// Sort by count descending (highest first)
+										sourcesToShow.sort(([, a], [, b]) => b - a);
+
+										return sourcesToShow.map(([source, count], index) => {
+											// Calculate percentage based on the card-specific total
+											let percentage = 0;
+											if (selectedSourceCard?.title === "External Sources") {
+												const directVisits =
+													memoizedFilteredSourceData.source_distribution
+														?.direct || 0;
+												const totalVisits =
+													memoizedFilteredSourceData.total_visits || 0;
+												const externalTotal = Math.max(
+													0,
+													totalVisits - directVisits
+												);
+												percentage =
+													externalTotal > 0
+														? Math.round((count / externalTotal) * 100)
+														: 0;
+											} else if (
+												selectedSourceCard?.title === "Direct Visits"
+											) {
+												const directTotal =
+													memoizedFilteredSourceData.source_distribution
+														?.direct || 0;
+												percentage =
+													directTotal > 0
+														? Math.round((count / directTotal) * 100)
+														: 0;
+											} else if (selectedSourceCard?.title === "Top Source") {
+												// Calculate percentage based on sum of top 3 sources
+												const top3Sources = Object.entries(
+													memoizedFilteredSourceData?.source_distribution || {}
+												)
+													.sort(([, a], [, b]) => b - a)
+													.slice(0, 3);
+												const top3Total = top3Sources.reduce(
+													(sum, [, sourceCount]) => sum + sourceCount,
+													0
+												);
+												percentage =
+													top3Total > 0
+														? Math.round((count / top3Total) * 100)
+														: 0;
+											} else {
+												// For Total Page Visits and default
+												const total =
+													memoizedFilteredSourceData?.total_visits || 0;
+												percentage =
+													total > 0 ? Math.round((count / total) * 100) : 0;
+											}
+
 											return (
 												<div key={index} className="space-y-2 sm:space-y-3">
 													<div className="flex items-center justify-between">
@@ -478,21 +605,58 @@ const SourceTrackingModal = ({
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										All UTM Sources
+										{selectedSourceCard?.title === "Top Source"
+											? "Top 3 UTM Sources"
+											: "All UTM Sources"}
 									</h5>
 									<div className="space-y-3">
-										{Object.entries(
-											memoizedFilteredSourceData?.utm_source_distribution || {}
-										)
-											.filter(([, count]) => count > 0) // Filter out zero counts
-											.sort(([, a], [, b]) => b - a) // Sort by count descending
-											.map(([source, count], index) => {
-												const total = Object.values(
-													memoizedFilteredSourceData?.utm_source_distribution ||
-														{}
-												).reduce((sum, v) => sum + v, 0);
-												const percentage =
-													total > 0 ? Math.round((count / total) * 100) : 0;
+										{(() => {
+											let utmSourcesToShow = Object.entries(
+												memoizedFilteredSourceData?.utm_source_distribution ||
+													{}
+											).filter(([, count]) => count > 0);
+
+											if (selectedSourceCard?.title === "Top Source") {
+												// Show only top 3 UTM sources
+												utmSourcesToShow = utmSourcesToShow
+													.sort(([, a], [, b]) => b - a)
+													.slice(0, 3);
+											} else {
+												// Show all UTM sources sorted by count
+												utmSourcesToShow = utmSourcesToShow.sort(
+													([, a], [, b]) => b - a
+												);
+											}
+
+											return utmSourcesToShow.map(([source, count], index) => {
+												let percentage = 0;
+												if (selectedSourceCard?.title === "Top Source") {
+													// Calculate percentage based on sum of top 3 UTM sources
+													const top3UTMSources = Object.entries(
+														memoizedFilteredSourceData?.utm_source_distribution ||
+															{}
+													)
+														.filter(([, count]) => count > 0)
+														.sort(([, a], [, b]) => b - a)
+														.slice(0, 3);
+													const top3UTMTotal = top3UTMSources.reduce(
+														(sum, [, sourceCount]) => sum + sourceCount,
+														0
+													);
+													percentage =
+														top3UTMTotal > 0
+															? Math.round((count / top3UTMTotal) * 100)
+															: 0;
+												} else {
+													// Calculate percentage based on total UTM sources
+													const total = Object.values(
+														memoizedFilteredSourceData?.utm_source_distribution ||
+															{}
+													).reduce((sum, v) => sum + v, 0);
+													percentage =
+														total > 0 ? Math.round((count / total) * 100) : 0;
+												}
+
 												return (
 													<div key={index} className="space-y-1">
 														<div className="flex items-center justify-between">
@@ -514,27 +678,65 @@ const SourceTrackingModal = ({
 														</div>
 													</div>
 												);
-											})}
+											});
+										})()}
 									</div>
 								</div>
 
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										All UTM Mediums
+										{selectedSourceCard?.title === "Top Source"
+											? "Top 3 UTM Mediums"
+											: "All UTM Mediums"}
 									</h5>
 									<div className="space-y-3">
-										{Object.entries(
-											memoizedFilteredSourceData?.utm_medium_distribution || {}
-										)
-											.filter(([, count]) => count > 0) // Filter out zero counts
-											.sort(([, a], [, b]) => b - a) // Sort by count descending
-											.map(([medium, count], index) => {
-												const total = Object.values(
-													memoizedFilteredSourceData?.utm_medium_distribution ||
-														{}
-												).reduce((sum, v) => sum + v, 0);
-												const percentage =
-													total > 0 ? Math.round((count / total) * 100) : 0;
+										{(() => {
+											let utmMediumsToShow = Object.entries(
+												memoizedFilteredSourceData?.utm_medium_distribution ||
+													{}
+											).filter(([, count]) => count > 0);
+
+											if (selectedSourceCard?.title === "Top Source") {
+												// Show only top 3 UTM mediums
+												utmMediumsToShow = utmMediumsToShow
+													.sort(([, a], [, b]) => b - a)
+													.slice(0, 3);
+											} else {
+												// Show all UTM mediums sorted by count
+												utmMediumsToShow = utmMediumsToShow.sort(
+													([, a], [, b]) => b - a
+												);
+											}
+
+											return utmMediumsToShow.map(([medium, count], index) => {
+												let percentage = 0;
+												if (selectedSourceCard?.title === "Top Source") {
+													// Calculate percentage based on sum of top 3 UTM mediums
+													const top3UTMMediums = Object.entries(
+														memoizedFilteredSourceData?.utm_medium_distribution ||
+															{}
+													)
+														.filter(([, count]) => count > 0)
+														.sort(([, a], [, b]) => b - a)
+														.slice(0, 3);
+													const top3UTMMediumTotal = top3UTMMediums.reduce(
+														(sum, [, mediumCount]) => sum + mediumCount,
+														0
+													);
+													percentage =
+														top3UTMMediumTotal > 0
+															? Math.round((count / top3UTMMediumTotal) * 100)
+															: 0;
+												} else {
+													// Calculate percentage based on total UTM mediums
+													const total = Object.values(
+														memoizedFilteredSourceData?.utm_medium_distribution ||
+															{}
+													).reduce((sum, v) => sum + v, 0);
+													percentage =
+														total > 0 ? Math.round((count / total) * 100) : 0;
+												}
+
 												return (
 													<div key={index} className="space-y-1">
 														<div className="flex items-center justify-between">
@@ -556,51 +758,94 @@ const SourceTrackingModal = ({
 														</div>
 													</div>
 												);
-											})}
+											});
+										})()}
 									</div>
 								</div>
 
 								<div>
 									<h5 className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-										All UTM Campaigns
+										{selectedSourceCard?.title === "Top Source"
+											? "Top 3 UTM Campaigns"
+											: "All UTM Campaigns"}
 									</h5>
 									<div className="space-y-3">
-										{Object.entries(
-											memoizedFilteredSourceData?.utm_campaign_distribution ||
-												{}
-										)
-											.filter(([, count]) => count > 0) // Filter out zero counts
-											.sort(([, a], [, b]) => b - a) // Sort by count descending
-											.map(([campaign, count], index) => {
-												const total = Object.values(
-													memoizedFilteredSourceData?.utm_campaign_distribution ||
-														{}
-												).reduce((sum, v) => sum + v, 0);
-												const percentage =
-													total > 0 ? Math.round((count / total) * 100) : 0;
-												return (
-													<div key={index} className="space-y-1">
-														<div className="flex items-center justify-between">
-															<span className="text-sm capitalize text-gray-700">
-																{campaign.replace(/_/g, " ")}
-															</span>
-															<span className="text-sm font-semibold text-gray-800">
-																{count.toLocaleString()} ({percentage}%)
-															</span>
-														</div>
-														<div className="w-full bg-gray-200 rounded-full h-2">
-															<div
-																className="h-2 rounded-full"
-																style={{
-																	width: `${percentage}%`,
-																	backgroundColor:
-																		getSourceBrandColor(campaign),
-																}}
-															></div>
-														</div>
-													</div>
+										{(() => {
+											let utmCampaignsToShow = Object.entries(
+												memoizedFilteredSourceData?.utm_campaign_distribution ||
+													{}
+											).filter(([, count]) => count > 0);
+
+											if (selectedSourceCard?.title === "Top Source") {
+												// Show only top 3 UTM campaigns
+												utmCampaignsToShow = utmCampaignsToShow
+													.sort(([, a], [, b]) => b - a)
+													.slice(0, 3);
+											} else {
+												// Show all UTM campaigns sorted by count
+												utmCampaignsToShow = utmCampaignsToShow.sort(
+													([, a], [, b]) => b - a
 												);
-											})}
+											}
+
+											return utmCampaignsToShow.map(
+												([campaign, count], index) => {
+													let percentage = 0;
+													if (selectedSourceCard?.title === "Top Source") {
+														// Calculate percentage based on sum of top 3 UTM campaigns
+														const top3UTMCampaigns = Object.entries(
+															memoizedFilteredSourceData?.utm_campaign_distribution ||
+																{}
+														)
+															.filter(([, count]) => count > 0)
+															.sort(([, a], [, b]) => b - a)
+															.slice(0, 3);
+														const top3UTMCampaignTotal =
+															top3UTMCampaigns.reduce(
+																(sum, [, campaignCount]) => sum + campaignCount,
+																0
+															);
+														percentage =
+															top3UTMCampaignTotal > 0
+																? Math.round(
+																		(count / top3UTMCampaignTotal) * 100
+																  )
+																: 0;
+													} else {
+														// Calculate percentage based on total UTM campaigns
+														const total = Object.values(
+															memoizedFilteredSourceData?.utm_campaign_distribution ||
+																{}
+														).reduce((sum, v) => sum + v, 0);
+														percentage =
+															total > 0 ? Math.round((count / total) * 100) : 0;
+													}
+
+													return (
+														<div key={index} className="space-y-1">
+															<div className="flex items-center justify-between">
+																<span className="text-sm capitalize text-gray-700">
+																	{campaign.replace(/_/g, " ")}
+																</span>
+																<span className="text-sm font-semibold text-gray-800">
+																	{count.toLocaleString()} ({percentage}%)
+																</span>
+															</div>
+															<div className="w-full bg-gray-200 rounded-full h-2">
+																<div
+																	className="h-2 rounded-full"
+																	style={{
+																		width: `${percentage}%`,
+																		backgroundColor:
+																			getSourceBrandColor(campaign),
+																	}}
+																></div>
+															</div>
+														</div>
+													);
+												}
+											);
+										})()}
 									</div>
 								</div>
 							</div>

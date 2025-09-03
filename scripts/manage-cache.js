@@ -52,11 +52,12 @@ function manageCache() {
 function updateServiceWorker() {
 	console.log("Updating service worker with version...");
 
+	const timestamp = Date.now();
 	const swContent = `
-// Service Worker for Carbon Cube Kenya - Version ${CACHE_CONFIG.version}
-const CACHE_VERSION = '${CACHE_CONFIG.version}';
-const STATIC_CACHE = 'carbon-cube-static-${CACHE_CONFIG.version}';
-const DYNAMIC_CACHE = 'carbon-cube-dynamic-${CACHE_CONFIG.version}';
+// Service Worker for Carbon Cube Kenya - Version ${timestamp}
+const CACHE_VERSION = '${timestamp}';
+const STATIC_CACHE = 'carbon-cube-static-${timestamp}';
+const DYNAMIC_CACHE = 'carbon-cube-dynamic-${timestamp}';
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -258,7 +259,7 @@ self.addEventListener('message', (event) => {
 	const swPath = path.join(BUILD_DIR, "sw.js");
 	fs.writeFileSync(swPath, swContent);
 
-	console.log("Service worker updated with version:", CACHE_CONFIG.version);
+	console.log("Service worker updated with version:", timestamp);
 }
 
 function updateHTMLCacheBusting() {
@@ -272,7 +273,7 @@ function updateHTMLCacheBusting() {
 		<script>
 			// Cache management for development
 			(function() {
-				const CACHE_VERSION = '${CACHE_CONFIG.version}';
+				const CACHE_VERSION = '${timestamp}';
 				
 				// Clear old caches on page load
 				if ('caches' in window) {
@@ -336,12 +337,12 @@ function updateHTMLCacheBusting() {
 			// Register service worker with version control
 			if ('serviceWorker' in navigator) {
 				window.addEventListener('load', () => {
-					navigator.serviceWorker.register('/sw.js?v=${CACHE_CONFIG.version}', {
+					navigator.serviceWorker.register('/sw.js?v=${timestamp}', {
 						scope: '/',
 						updateViaCache: 'none'
 					})
 					.then((registration) => {
-						console.log('SW registered with version:', '${CACHE_CONFIG.version}');
+						console.log('SW registered with version:', '${timestamp}');
 						
 						// Check for updates
 						registration.addEventListener('updatefound', () => {

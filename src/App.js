@@ -93,14 +93,32 @@ function App() {
 	const [userRole, setUserRole] = useState(null); // For storing user role
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [excludeTracking, setExcludeTracking] = useState(false);
+	const [isInitialized, setIsInitialized] = useState(false);
 
+	// Initialize authentication state
 	useEffect(() => {
-		const token = sessionStorage.getItem("token");
-		if (token) {
-			const role = sessionStorage.getItem("userRole"); // Use 'userRole' here
-			setUserRole(role);
-			setIsAuthenticated(true);
+		const initializeAuth = () => {
+			const token = sessionStorage.getItem("token");
+			if (token) {
+				const role = sessionStorage.getItem("userRole");
+				setUserRole(role);
+				setIsAuthenticated(true);
+			}
+			setIsInitialized(true);
+		};
+
+		// Add cache-busting parameter to prevent stale data
+		const urlParams = new URLSearchParams(window.location.search);
+		const cacheBuster = urlParams.get("v");
+
+		if (!cacheBuster) {
+			// Add cache-busting parameter if not present
+			const newUrl = new URL(window.location);
+			newUrl.searchParams.set("v", Date.now());
+			window.history.replaceState({}, "", newUrl);
 		}
+
+		initializeAuth();
 	}, []);
 
 	useEffect(() => {
@@ -149,6 +167,8 @@ function App() {
 	const handleLogout = () => {
 		sessionStorage.removeItem("token");
 		sessionStorage.removeItem("userRole");
+		sessionStorage.removeItem("userName");
+		sessionStorage.removeItem("userEmail");
 		setUserRole(null);
 		setIsAuthenticated(false);
 	};
@@ -170,6 +190,11 @@ function App() {
 		setUserRole("rider");
 		sessionStorage.setItem("userRole", "rider"); // Use 'userRole' here
 	};
+
+	// Don't render until authentication is initialized
+	if (!isInitialized) {
+		return <LoadingSpinner />;
+	}
 
 	return (
 		<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

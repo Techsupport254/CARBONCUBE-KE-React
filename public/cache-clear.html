@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Cache Clear - Carbon Cube</title>
+		<style>
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				max-width: 600px;
+				margin: 50px auto;
+				padding: 20px;
+				line-height: 1.6;
+				background-color: #f8f9fa;
+			}
+			.container {
+				background: white;
+				padding: 30px;
+				border-radius: 8px;
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			}
+			.button {
+				background: #ffc107;
+				color: #000;
+				padding: 12px 24px;
+				border: none;
+				border-radius: 6px;
+				cursor: pointer;
+				font-size: 16px;
+				margin: 10px 5px;
+				transition: background-color 0.2s;
+			}
+			.button:hover {
+				background: #e0a800;
+			}
+			.button:disabled {
+				background: #6c757d;
+				cursor: not-allowed;
+			}
+			.status {
+				margin: 20px 0;
+				padding: 15px;
+				border-radius: 6px;
+				background: #f8f9fa;
+			}
+			.success {
+				background: #d4edda;
+				color: #155724;
+			}
+			.error {
+				background: #f8d7da;
+				color: #721c24;
+			}
+			.info {
+				background: #d1ecf1;
+				color: #0c5460;
+			}
+			.progress {
+				width: 100%;
+				height: 20px;
+				background-color: #e9ecef;
+				border-radius: 10px;
+				overflow: hidden;
+				margin: 10px 0;
+			}
+			.progress-bar {
+				height: 100%;
+				background-color: #ffc107;
+				transition: width 0.3s ease;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Cache Management Tool</h1>
+			<p>
+				This tool will clear all caches and force a fresh reload of the
+				application.
+			</p>
+
+			<button class="button" onclick="clearAllCaches()">
+				Clear All Caches
+			</button>
+			<button class="button" onclick="clearServiceWorker()">
+				Clear Service Worker
+			</button>
+			<button class="button" onclick="clearBrowserCache()">
+				Clear Browser Cache
+			</button>
+			<button class="button" onclick="reloadPage()">Force Reload</button>
+
+			<div class="progress" id="progress" style="display: none">
+				<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+			</div>
+
+			<div id="status"></div>
+		</div>
+
+		<script>
+			function showStatus(message, type = "info") {
+				const status = document.getElementById("status");
+				status.innerHTML =
+					'<div class="status ' + type + '">' + message + "</div>";
+			}
+
+			function updateProgress(percent) {
+				const progress = document.getElementById("progress");
+				const progressBar = document.getElementById("progressBar");
+				progress.style.display = "block";
+				progressBar.style.width = percent + "%";
+			}
+
+			async function clearServiceWorker() {
+				showStatus("Clearing service worker...", "info");
+				updateProgress(25);
+
+				if ("serviceWorker" in navigator) {
+					try {
+						const registrations =
+							await navigator.serviceWorker.getRegistrations();
+						console.log(
+							"Found service workers to unregister:",
+							registrations.length
+						);
+						for (const registration of registrations) {
+							await registration.unregister();
+							console.log("Unregistered service worker:", registration.scope);
+						}
+						showStatus("Service worker unregistered successfully", "success");
+					} catch (error) {
+						showStatus(
+							"Error unregistering service worker: " + error.message,
+							"error"
+						);
+					}
+				} else {
+					showStatus("Service worker not supported", "info");
+				}
+
+				updateProgress(50);
+			}
+
+			async function clearBrowserCache() {
+				showStatus("Clearing browser cache...", "info");
+				updateProgress(75);
+
+				if ("caches" in window) {
+					try {
+						const cacheNames = await caches.keys();
+						console.log("Found caches to clear:", cacheNames);
+						for (const cacheName of cacheNames) {
+							await caches.delete(cacheName);
+							console.log("Cleared cache:", cacheName);
+						}
+						showStatus("Browser cache cleared successfully", "success");
+					} catch (error) {
+						showStatus(
+							"Error clearing browser cache: " + error.message,
+							"error"
+						);
+					}
+				} else {
+					showStatus("Cache API not supported", "info");
+				}
+
+				updateProgress(100);
+			}
+
+			async function clearAllCaches() {
+				showStatus("Starting cache clearing process...", "info");
+				updateProgress(0);
+
+				await clearServiceWorker();
+				await clearBrowserCache();
+
+				showStatus(
+					"All caches cleared successfully! Reloading page...",
+					"success"
+				);
+
+				setTimeout(() => {
+					window.location.reload(true);
+				}, 2000);
+			}
+
+			function reloadPage() {
+				showStatus("Force reloading page...", "info");
+				window.location.reload(true);
+			}
+
+			// Auto-clear on page load
+			window.addEventListener("load", () => {
+				setTimeout(() => {
+					showStatus(
+						'Cache management tool loaded. Click "Clear All Caches" to fix hard reload issues.',
+						"info"
+					);
+				}, 500);
+			});
+		</script>
+	</body>
+</html>

@@ -18,11 +18,16 @@ module.exports = {
 	...(isDev && {
 		devServer: {
 			hot: true,
-			liveReload: false,
+			liveReload: true,
 			watchOptions: {
-				aggregateTimeout: 300,
-				poll: 1000,
+				aggregateTimeout: 200,
+				poll: 500,
 				ignored: /node_modules/,
+			},
+			headers: {
+				"Cache-Control": "no-cache, no-store, must-revalidate",
+				Pragma: "no-cache",
+				Expires: "0",
 			},
 		},
 		optimization: {
@@ -96,37 +101,6 @@ module.exports = {
 					},
 				},
 			},
-			runtimeChunk: "single",
-			minimize: true,
-			// Tree shaking optimization
-			usedExports: true,
-			sideEffects: false,
-			// Module concatenation for better tree shaking
-			concatenateModules: true,
-		},
-		performance: {
-			hints: "warning",
-			maxEntrypointSize: 512000,
-			maxAssetSize: 512000,
-		},
-		// CSS optimization
-		module: {
-			rules: [
-				{
-					test: /\.css$/,
-					use: [
-						"style-loader",
-						{
-							loader: "css-loader",
-							options: {
-								importLoaders: 1,
-								modules: false,
-							},
-						},
-						"postcss-loader",
-					],
-				},
-			],
 		},
 	}),
 };

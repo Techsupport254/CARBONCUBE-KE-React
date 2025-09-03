@@ -1016,6 +1016,22 @@ function SalesDashboard() {
 				break;
 		}
 
+		// Normalize the data to ensure it sums up to the total count
+		const dataSum = data.reduce((sum, value) => sum + value, 0);
+		if (dataSum > 0 && Math.abs(dataSum - totalCount) > 0) {
+			// Scale the data proportionally to match the total count
+			const scaleFactor = totalCount / dataSum;
+			data = data.map((value) => Math.round(value * scaleFactor));
+
+			// Ensure the sum is exactly equal to totalCount by adjusting the largest value
+			const newSum = data.reduce((sum, value) => sum + value, 0);
+			if (newSum !== totalCount) {
+				const difference = totalCount - newSum;
+				const maxIndex = data.indexOf(Math.max(...data));
+				data[maxIndex] += difference;
+			}
+		}
+
 		// Return both data and labels for the chart
 		return { data, labels };
 	};
@@ -1228,35 +1244,80 @@ function SalesDashboard() {
 		let data = [];
 		let labels = [];
 
-		// For very low traffic scenarios, use actual daily data instead of proportional calculations
-		const totalVisits = filteredData.total_visits || 0;
-		const useActualData = totalVisits < 50; // If total visits is less than 50, use actual data
+		// Calculate the source-specific data based on card type
+		const getSourceSpecificData = () => {
+			if (!selectedSourceCard)
+				return { visits: dailyVisits, total: filteredData.total_visits || 0 };
 
-		// Calculate the source-specific ratio for proportional data
-		const getSourceSpecificRatio = () => {
-			if (!selectedSourceCard) return 1;
-
-			if (selectedSourceCard?.sources) {
-				// For social media and search engine visits, calculate the ratio
-				const totalSourceVisits = selectedSourceCard.sources.reduce(
-					(total, source) => {
-						return total + (filteredData.source_distribution?.[source] || 0);
-					},
-					0
-				);
-				const totalVisits = filteredData.total_visits || 0;
-				return totalVisits > 0 ? totalSourceVisits / totalVisits : 0;
-			} else if (selectedSourceCard?.data?.direct !== undefined) {
-				// For direct visits
+			if (selectedSourceCard?.title === "Total Page Visits") {
+				// For total page visits, use all visits
+				return { visits: dailyVisits, total: filteredData.total_visits || 0 };
+			} else if (selectedSourceCard?.title === "External Sources") {
+				// For external sources, calculate non-direct visits
 				const directVisits = filteredData.source_distribution?.direct || 0;
 				const totalVisits = filteredData.total_visits || 0;
-				return totalVisits > 0 ? directVisits / totalVisits : 0;
+				const externalRatio =
+					totalVisits > 0 ? (totalVisits - directVisits) / totalVisits : 0;
+
+				// Scale daily visits by external ratio
+				const externalVisits = {};
+				Object.keys(dailyVisits).forEach((date) => {
+					externalVisits[date] = Math.round(dailyVisits[date] * externalRatio);
+				});
+
+				return {
+					visits: externalVisits,
+					total: Math.max(0, totalVisits - directVisits),
+				};
+			} else if (selectedSourceCard?.title === "Direct Visits") {
+				// For direct visits, calculate direct-only visits
+				const directVisits = filteredData.source_distribution?.direct || 0;
+				const totalVisits = filteredData.total_visits || 0;
+				const directRatio = totalVisits > 0 ? directVisits / totalVisits : 0;
+
+				// Scale daily visits by direct ratio
+				const directOnlyVisits = {};
+				Object.keys(dailyVisits).forEach((date) => {
+					directOnlyVisits[date] = Math.round(dailyVisits[date] * directRatio);
+				});
+
+				return { visits: directOnlyVisits, total: directVisits };
+			} else if (selectedSourceCard?.title === "Top Source") {
+				// For top source, get the top performing source
+				const allSources = Object.keys(filteredData.source_distribution || {});
+				if (allSources.length === 0) {
+					return { visits: {}, total: 0 };
+				}
+
+				const topSource = allSources.reduce((top, source) => {
+					const currentCount = filteredData.source_distribution?.[source] || 0;
+					const topCount = filteredData.source_distribution?.[top] || 0;
+					return currentCount > topCount ? source : top;
+				}, allSources[0]);
+
+				const topSourceVisits =
+					filteredData.source_distribution?.[topSource] || 0;
+				const totalVisits = filteredData.total_visits || 0;
+				const topSourceRatio =
+					totalVisits > 0 ? topSourceVisits / totalVisits : 0;
+
+				// Scale daily visits by top source ratio
+				const topSourceOnlyVisits = {};
+				Object.keys(dailyVisits).forEach((date) => {
+					topSourceOnlyVisits[date] = Math.round(
+						dailyVisits[date] * topSourceRatio
+					);
+				});
+
+				return { visits: topSourceOnlyVisits, total: topSourceVisits };
 			}
-			return 1; // For total page visits, use full data
+
+			// Default fallback
+			return { visits: dailyVisits, total: filteredData.total_visits || 0 };
 		};
 
-		const sourceRatio = getSourceSpecificRatio();
-		const safeSourceRatio = Math.max(0, Math.min(1, sourceRatio));
+		const { visits: sourceSpecificVisits, total: sourceTotal } =
+			getSourceSpecificData();
 
 		switch (sourceDateFilter) {
 			case "today":
@@ -1300,9 +1361,8 @@ function SalesDashboard() {
 					date.setDate(today.getDate() - i);
 					const dateStr = date.toISOString().split("T")[0];
 
-					const visits = dailyVisits[dateStr] || 0;
-					const sourceSpecificVisits = Math.round(visits * safeSourceRatio);
-					data.push(sourceSpecificVisits);
+					const visits = sourceSpecificVisits[dateStr] || 0;
+					data.push(visits);
 					labels.push(date.toLocaleDateString("en-US", { weekday: "short" }));
 				}
 				break;
@@ -1314,9 +1374,8 @@ function SalesDashboard() {
 					date.setDate(today.getDate() - i);
 					const dateStr = date.toISOString().split("T")[0];
 
-					const visits = dailyVisits[dateStr] || 0;
-					const sourceSpecificVisits = Math.round(visits * safeSourceRatio);
-					data.push(sourceSpecificVisits);
+					const visits = sourceSpecificVisits[dateStr] || 0;
+					data.push(visits);
 					// Show date for better context
 					labels.push(
 						date.toLocaleDateString("en-US", {
@@ -1345,14 +1404,11 @@ function SalesDashboard() {
 					const currentDate = new Date(monthStart);
 					while (currentDate < monthEnd) {
 						const dateStr = currentDate.toISOString().split("T")[0];
-						monthVisits += dailyVisits[dateStr] || 0;
+						monthVisits += sourceSpecificVisits[dateStr] || 0;
 						currentDate.setDate(currentDate.getDate() + 1);
 					}
 
-					const sourceSpecificMonthVisits = Math.round(
-						monthVisits * safeSourceRatio
-					);
-					data.push(sourceSpecificMonthVisits);
+					data.push(monthVisits);
 					labels.push(
 						monthStart.toLocaleDateString("en-US", { month: "short" })
 					);
@@ -1374,9 +1430,8 @@ function SalesDashboard() {
 							date.setDate(startDate.getDate() + i);
 							const dateStr = date.toISOString().split("T")[0];
 
-							const visits = dailyVisits[dateStr] || 0;
-							const sourceSpecificVisits = Math.round(visits * safeSourceRatio);
-							data.push(sourceSpecificVisits);
+							const visits = sourceSpecificVisits[dateStr] || 0;
+							data.push(visits);
 							labels.push(
 								date.toLocaleDateString("en-US", {
 									month: "short",
@@ -1397,14 +1452,11 @@ function SalesDashboard() {
 							const currentDate = new Date(weekStart);
 							while (currentDate < weekEnd && currentDate <= endDate) {
 								const dateStr = currentDate.toISOString().split("T")[0];
-								weekVisits += dailyVisits[dateStr] || 0;
+								weekVisits += sourceSpecificVisits[dateStr] || 0;
 								currentDate.setDate(currentDate.getDate() + 1);
 							}
 
-							const sourceSpecificWeekVisits = Math.round(
-								weekVisits * safeSourceRatio
-							);
-							data.push(sourceSpecificWeekVisits);
+							data.push(weekVisits);
 							labels.push(`Week ${i + 1}`);
 						}
 					}
@@ -1415,9 +1467,8 @@ function SalesDashboard() {
 						date.setDate(today.getDate() - i);
 						const dateStr = date.toISOString().split("T")[0];
 
-						const visits = dailyVisits[dateStr] || 0;
-						const sourceSpecificVisits = Math.round(visits * sourceRatio);
-						data.push(sourceSpecificVisits);
+						const visits = sourceSpecificVisits[dateStr] || 0;
+						data.push(visits);
 						labels.push(date.toLocaleDateString("en-US", { weekday: "short" }));
 					}
 				}
@@ -1425,7 +1476,7 @@ function SalesDashboard() {
 
 			default: // "all"
 				// Show data across the entire time range where data exists
-				const availableDates = Object.keys(dailyVisits).sort();
+				const availableDates = Object.keys(sourceSpecificVisits).sort();
 
 				if (availableDates.length > 0) {
 					// Find the date range of the actual data
@@ -1454,16 +1505,13 @@ function SalesDashboard() {
 							const currentDateForLoop = new Date(monthStart);
 							while (currentDateForLoop < monthEnd) {
 								const dateStr = currentDateForLoop.toISOString().split("T")[0];
-								monthVisits += dailyVisits[dateStr] || 0;
+								monthVisits += sourceSpecificVisits[dateStr] || 0;
 								currentDateForLoop.setDate(currentDateForLoop.getDate() + 1);
 							}
 
 							if (monthVisits > 0) {
 								// Only show months with data
-								const sourceSpecificMonthVisits = Math.round(
-									monthVisits * safeSourceRatio
-								);
-								data.push(sourceSpecificMonthVisits);
+								data.push(monthVisits);
 								labels.push(
 									currentDate.toLocaleDateString("en-US", {
 										month: "short",
@@ -1481,9 +1529,8 @@ function SalesDashboard() {
 							date.setDate(earliestDate.getDate() + i);
 							const dateStr = date.toISOString().split("T")[0];
 
-							const visits = dailyVisits[dateStr] || 0;
-							const sourceSpecificVisits = Math.round(visits * safeSourceRatio);
-							data.push(sourceSpecificVisits);
+							const visits = sourceSpecificVisits[dateStr] || 0;
+							data.push(visits);
 							labels.push(
 								date.toLocaleDateString("en-US", {
 									month: "short",
@@ -1499,9 +1546,8 @@ function SalesDashboard() {
 						date.setDate(today.getDate() - i);
 						const dateStr = date.toISOString().split("T")[0];
 
-						const visits = dailyVisits[dateStr] || 0;
-						const sourceSpecificVisits = Math.round(visits * safeSourceRatio);
-						data.push(sourceSpecificVisits);
+						const visits = sourceSpecificVisits[dateStr] || 0;
+						data.push(visits);
 						labels.push(
 							date.toLocaleDateString("en-US", {
 								month: "short",
@@ -1511,6 +1557,22 @@ function SalesDashboard() {
 					}
 				}
 				break;
+		}
+
+		// Normalize the data to ensure it sums up to the total count
+		const dataSum = data.reduce((sum, value) => sum + value, 0);
+		if (dataSum > 0 && Math.abs(dataSum - sourceTotal) > 0) {
+			// Scale the data proportionally to match the total count
+			const scaleFactor = sourceTotal / dataSum;
+			data = data.map((value) => Math.round(value * scaleFactor));
+
+			// Ensure the sum is exactly equal to sourceTotal by adjusting the largest value
+			const newSum = data.reduce((sum, value) => sum + value, 0);
+			if (newSum !== sourceTotal) {
+				const difference = sourceTotal - newSum;
+				const maxIndex = data.indexOf(Math.max(...data));
+				data[maxIndex] += difference;
+			}
 		}
 
 		return { data, labels };
@@ -1602,7 +1664,7 @@ function SalesDashboard() {
 								memoizedFilteredSourceData={memoizedFilteredSourceData}
 								onSourceCardClick={(card) => {
 									setSelectedSourceCard(card);
-									setSourceDateFilter("all");
+									setSourceDateFilter("week");
 									setSourceCustomStartDate("");
 									setSourceCustomEndDate("");
 									setShowSourceModal(true);
