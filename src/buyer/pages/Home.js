@@ -227,10 +227,15 @@ const Home = () => {
 	useEffect(() => {
 		setIsComponentMounted(true);
 		return () => setIsComponentMounted(false);
-	}, [isComponentMounted]);
+	}, []);
 
 	// Update the search results useEffect to only run when component is mounted
 	useEffect(() => {
+		// Prevent running if component is not mounted
+		if (!isComponentMounted) {
+			return;
+		}
+
 		const params = new URLSearchParams(location.search);
 		const query = params.get("query");
 		const category = params.get("category");
@@ -321,7 +326,7 @@ const Home = () => {
 		};
 
 		fetchSearchResults();
-	}, [location.search]);
+	}, [location.search, isComponentMounted]);
 
 	const handleSidebarToggle = () => {
 		setSidebarOpen(!sidebarOpen);

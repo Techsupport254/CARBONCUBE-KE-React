@@ -9,6 +9,7 @@ import {
 	getDeviceFingerprint,
 	isInternalUser,
 } from "./utils/deviceFingerprint";
+import sourceTrackingService from "./utils/sourceTracking";
 import Spinner from "react-spinkit";
 
 // Lazy load components for better performance
@@ -112,14 +113,19 @@ function App() {
 
 	useEffect(() => {
 		// Determine if this device should be excluded from analytics trackers
+		// and track the initial visit (only once per session)
 		(async () => {
 			try {
 				const fp = getDeviceFingerprint();
-				if (isInternalUser(fp)) {
-					setExcludeTracking(true);
-					return;
-				}
+
+				// Temporarily disable internal user check for testing
+				// if (isInternalUser(fp)) {
+				// 	setExcludeTracking(true);
+				// 	return;
+				// }
+
 				const API_URL = process.env.REACT_APP_BACKEND_URL || "/api";
+
 				const resp = await fetch(
 					`${API_URL}/internal_user_exclusions/check/${fp.hash}`
 				);
@@ -134,8 +140,18 @@ function App() {
 					}
 				}
 				setExcludeTracking(false);
+
+				// Track the visit for analytics (only if not excluded)
+				sourceTrackingService.trackVisit().catch((error) => {
+					console.error("Source tracking failed:", error);
+				});
 			} catch (_) {
 				setExcludeTracking(false);
+
+				// Track the visit even if exclusion check fails
+				sourceTrackingService.trackVisit().catch((error) => {
+					console.error("Source tracking failed:", error);
+				});
 			}
 		})();
 	}, []);

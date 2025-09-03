@@ -12,7 +12,6 @@ class SourceTrackingService {
 		const referrer = document.referrer;
 
 		return {
-			from: urlParams.get("from"),
 			utm_source: urlParams.get("utm_source"),
 			utm_medium: urlParams.get("utm_medium"),
 			utm_campaign: urlParams.get("utm_campaign"),
@@ -23,11 +22,6 @@ class SourceTrackingService {
 	// Determine the primary source from URL parameters and referrer
 	determineSource() {
 		const params = this.parseUrlParams();
-
-		// Check for custom 'from' parameter first
-		if (params.from) {
-			return this.sanitizeSource(params.from);
-		}
 
 		// Check for UTM source
 		if (params.utm_source) {
@@ -214,11 +208,31 @@ class SourceTrackingService {
 		return "other";
 	}
 
-	// Track the current visit
+	// Clear session tracking (useful for testing)
+	clearSessionTracking() {
+		// Clear all UTM tracking keys
+		const keys = Object.keys(sessionStorage);
+		keys.forEach((key) => {
+			if (key.startsWith("utm_tracked_")) {
+				sessionStorage.removeItem(key);
+			}
+		});
+
+		sessionStorage.removeItem("visit_source");
+		sessionStorage.removeItem("visit_referrer");
+		sessionStorage.removeItem("session_start");
+	}
+
+	// Track the current visit (only on meaningful visits)
 	async trackVisit() {
 		try {
 			const params = this.parseUrlParams();
 			const source = this.determineSource();
+
+			// Only track if this is a meaningful visit
+			if (!this.shouldTrackVisit(params, source)) {
+				return null;
+			}
 
 			// Collect additional metadata
 			const metadata = this.collectMetadata();
@@ -235,7 +249,7 @@ class SourceTrackingService {
 				user_agent: navigator.userAgent,
 				url: window.location.href,
 				path: window.location.pathname,
-				device_hash: deviceInfo.hash, // Use proper device hash for internal user exclusion
+				device_hash: deviceInfo.hash,
 				...metadata,
 			};
 
@@ -244,15 +258,70 @@ class SourceTrackingService {
 				trackingData
 			);
 
-			// Store source info in localStorage for future reference
-			localStorage.setItem("visit_source", source);
-			localStorage.setItem("visit_referrer", params.referrer || "");
+			// Store source info in sessionStorage for this session
+			const utmKey = this.createUtmKey(params);
+			sessionStorage.setItem(`utm_tracked_${utmKey}`, "true");
+			sessionStorage.setItem("visit_source", source);
+			sessionStorage.setItem("visit_referrer", params.referrer || "");
 
 			return response.data;
 		} catch (error) {
 			console.error("Failed to track visit:", error);
 			return null;
 		}
+	}
+
+	// Determine if this visit should be tracked
+	shouldTrackVisit(params, source) {
+		// Create a unique key for this UTM combination
+		const utmKey = this.createUtmKey(params);
+
+		// Don't track if this specific UTM combination was already tracked in this session
+		if (sessionStorage.getItem(`utm_tracked_${utmKey}`) === "true") {
+			return false;
+		}
+
+		// Track if there are UTM parameters (even in development)
+		if (params.utm_source || params.utm_medium || params.utm_campaign) {
+			return true;
+		}
+
+		// Don't track if no meaningful source information
+		if (
+			source === "direct" &&
+			!params.utm_source &&
+			!params.utm_medium &&
+			!params.utm_campaign
+		) {
+			return false;
+		}
+
+		// Don't track if it's a development environment (unless UTM params present)
+		if (this.isDevelopmentDomain(window.location.hostname)) {
+			return false;
+		}
+
+		// Track if there's an external referrer
+		if (
+			params.referrer &&
+			!this.isDevelopmentDomain(new URL(params.referrer).hostname)
+		) {
+			return true;
+		}
+
+		// Don't track internal navigation or direct visits without UTM
+		return false;
+	}
+
+	// Create a unique key for UTM parameters
+	createUtmKey(params) {
+		const utmParams = [
+			params.utm_source || "",
+			params.utm_medium || "",
+			params.utm_campaign || "",
+		].filter((param) => param !== "");
+
+		return utmParams.length > 0 ? utmParams.join("_") : "direct";
 	}
 
 	collectMetadata() {
@@ -377,7 +446,7 @@ class SourceTrackingService {
 		// Unique visitor tracking cleared silently
 	}
 
-		// Get source analytics data (all data - filtering done client-side)
+	// Get source analytics data (all data - filtering done client-side)
 	async getSourceAnalytics() {
 		try {
 			const token =

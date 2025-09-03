@@ -41,12 +41,12 @@ const DeviceAnalyticsSection = ({
 			</Col>
 
 			{/* Operating Systems - Table and Chart */}
-			<Col xs={12} lg={6}>
+			{/* <Col xs={12} lg={6}>
 				<OperatingSystemsCard
 					deviceAnalytics={analytics.device_analytics}
 					getOSIcon={getOSIcon}
 				/>
-			</Col>
+			</Col> */}
 		</Row>
 	);
 };

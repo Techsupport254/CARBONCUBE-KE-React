@@ -39,9 +39,6 @@ import {
 import { SiGoogle, SiBrave } from "react-icons/si";
 import { MdSearch, MdLink } from "react-icons/md";
 
-// Import source tracking service
-import sourceTrackingService from "../../utils/sourceTracking";
-
 // Import new components
 import Navbar from "../../components/Navbar";
 import {
@@ -121,6 +118,23 @@ function SalesDashboard() {
 	const [sourceDateFilter, setSourceDateFilter] = useState("week");
 	const [sourceCustomStartDate, setSourceCustomStartDate] = useState("");
 	const [sourceCustomEndDate, setSourceCustomEndDate] = useState("");
+
+	// Add rate limiting to prevent excessive API calls
+	const [lastApiCall, setLastApiCall] = useState(0);
+	const API_CALL_INTERVAL = 1000; // 1 second between API calls
+
+	// Rate-limited fetch function
+	const rateLimitedFetch = useCallback(
+		(fetchFunction) => {
+			const now = Date.now();
+			if (now - lastApiCall < API_CALL_INTERVAL) {
+				return;
+			}
+			setLastApiCall(now);
+			fetchFunction();
+		},
+		[lastApiCall]
+	);
 
 	// Visitor metrics modal removed
 
@@ -470,6 +484,11 @@ function SalesDashboard() {
 
 		// Scale all distributions proportionally and ensure they add up correctly
 		const scaleDistribution = (distribution) => {
+			// If distribution is empty or null, return empty object
+			if (!distribution || Object.keys(distribution).length === 0) {
+				return {};
+			}
+
 			const scaled = {};
 			let totalScaled = 0;
 
@@ -481,7 +500,10 @@ function SalesDashboard() {
 			});
 
 			// Second pass: adjust to ensure total matches filteredTotalVisits
-			if (totalScaled !== filteredTotalVisits) {
+			if (
+				totalScaled !== filteredTotalVisits &&
+				Object.keys(scaled).length > 0
+			) {
 				const adjustment = filteredTotalVisits - totalScaled;
 				// Find the largest source and adjust it
 				const largestSource = Object.entries(scaled).reduce((a, b) =>
@@ -525,24 +547,30 @@ function SalesDashboard() {
 
 	// Fetch source analytics (all data - filtering done client-side)
 	const fetchSourceAnalytics = useCallback(async () => {
+		// Source analytics are now included in the main analytics response
+		// No need for a separate API call
+	}, []);
+
+	// Memoize fetch functions to prevent unnecessary re-renders
+	const fetchCategories = useCallback(async () => {
 		try {
-			// Prevent multiple simultaneous calls
-			if (sourceAnalyticsLoadingRef.current) {
-				return;
-			}
+			const res = await axios.get(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`
+			);
+			setCategories(res.data);
+		} catch (err) {
+			console.error("Failed to fetch categories:", err);
+		}
+	}, []);
 
-			setSourceAnalyticsLoading(true);
-			sourceAnalyticsLoadingRef.current = true;
-
-			const response = await sourceTrackingService.getSourceAnalytics();
-			if (response) {
-				setSourceAnalytics(response);
-			}
-		} catch (error) {
-			console.error("Failed to fetch source analytics:", error);
-		} finally {
-			setSourceAnalyticsLoading(false);
-			sourceAnalyticsLoadingRef.current = false;
+	const fetchCategoryAnalytics = useCallback(async () => {
+		try {
+			const res = await axios.get(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories/analytics`
+			);
+			setCategoryAnalytics(res.data);
+		} catch (err) {
+			console.error("Failed to fetch category analytics:", err);
 		}
 	}, []);
 
@@ -564,6 +592,11 @@ function SalesDashboard() {
 				// API response received successfully
 				setAnalytics(res.data);
 
+				// Set source analytics from the main response
+				if (res.data.source_analytics) {
+					setSourceAnalytics(res.data.source_analytics);
+				}
+
 				// Don't set source analytics here - let the useEffect handle it
 				// This prevents the all-time data from overriding filtered data
 			} catch (err) {
@@ -576,40 +609,7 @@ function SalesDashboard() {
 		fetchAnalytics();
 		fetchCategories();
 		fetchCategoryAnalytics();
-
-		// Initial fetch for source analytics (all-time data)
-		fetchSourceAnalytics();
 	}, []);
-
-	// Effect to refetch source analytics when date filter changes
-	useEffect(() => {
-		// No need to refetch - filtering is done client-side
-		// This effect is now just for monitoring state changes
-	}, [sourceDateFilter, sourceCustomStartDate, sourceCustomEndDate]);
-
-	// Fetch categories data
-	const fetchCategories = async () => {
-		try {
-			const res = await axios.get(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`
-			);
-			setCategories(res.data);
-		} catch (err) {
-			console.error("Failed to fetch categories:", err);
-		}
-	};
-
-	// Fetch category analytics data
-	const fetchCategoryAnalytics = async () => {
-		try {
-			const res = await axios.get(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories/analytics`
-			);
-			setCategoryAnalytics(res.data);
-		} catch (err) {
-			console.error("Failed to fetch category analytics:", err);
-		}
-	};
 
 	// Combine categories with analytics data
 	const getCategoriesWithAnalytics = useMemo(() => {
