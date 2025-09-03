@@ -238,7 +238,7 @@ const SellerAds = () => {
 	};
 
 	const handleAddWeightUnitChange = (unit) => {
-		setWeightUnit((prevUnit) => (prevUnit === unit ? "" : unit));
+		setWeightUnit((prevUnit) => (prevUnit === unit ? "Grams" : unit));
 	};
 
 	const handleFormChange = (e) => {
@@ -392,7 +392,12 @@ const SellerAds = () => {
 				formData.append("ad[item_height]", parseFloat(item_height));
 			if (item_weight)
 				formData.append("ad[item_weight]", parseFloat(item_weight));
-			formData.append("ad[weight_unit]", weightUnit);
+			// Ensure weight_unit is always valid
+			const validWeightUnit =
+				weightUnit && ["Grams", "Kilograms"].includes(weightUnit)
+					? weightUnit
+					: "Grams";
+			formData.append("ad[weight_unit]", validWeightUnit);
 
 			safeImages.forEach((file) => {
 				formData.append("ad[media][]", file);
@@ -449,6 +454,15 @@ const SellerAds = () => {
 
 							resolve(result);
 						} else {
+							// Handle validation errors
+							if (response.errors && Array.isArray(response.errors)) {
+								const errorMessage = response.errors.join(", ");
+								alert(`Error adding ad: ${errorMessage}`);
+							} else if (response.error) {
+								alert(`Error adding ad: ${response.error}`);
+							} else {
+								alert(`Error adding ad: ${xhr.responseText}`);
+							}
 							reject(new Error(`Upload failed with status: ${xhr.status}`));
 						}
 					} catch (err) {
@@ -490,6 +504,10 @@ const SellerAds = () => {
 			setShowAddModal(false);
 		} catch (error) {
 			console.error("Error adding ad:", error);
+			if (error.message.includes("Upload failed")) {
+				// Error message already shown in xhr.onload
+				return;
+			}
 			alert("Failed to add ad. Please try again.");
 		} finally {
 			setUploading(false);
