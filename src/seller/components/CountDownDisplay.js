@@ -1,77 +1,113 @@
-import React, { useEffect, useState } from 'react';
-import { Spinner, Alert } from 'react-bootstrap';
+import React, { useEffect, useState } from "react";
+import { Spinner, Alert } from "react-bootstrap";
 
 const CountDownDisplay = () => {
-  const [daysLeft, setDaysLeft] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+	const [daysLeft, setDaysLeft] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 
-  const getTotalDays = ({ months = 0, weeks = 0, days = 0 }) => {
-    return (months * 30) + (weeks * 7) + days;
-  };
+	const getTotalDays = ({ months = 0, weeks = 0, days = 0 }) => {
+		return months * 30 + weeks * 7 + days;
+	};
 
-  useEffect(() => {
-    const fetchCountdown = async () => {
-      try {
-        const token = sessionStorage.getItem('token');
-        const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        const sellerId = decodedToken.user_id;
+	useEffect(() => {
+		const fetchCountdown = async () => {
+			try {
+				const token = sessionStorage.getItem("token");
+				if (!token) {
+					throw new Error("No authentication token found");
+				}
 
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/seller/seller_tiers/${sellerId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+				const decodedToken = JSON.parse(atob(token.split(".")[1]));
+				const sellerId = decodedToken.user_id;
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch countdown');
-        }
+				if (!sellerId) {
+					throw new Error("User ID not found in token");
+				}
 
-        const data = await response.json();
+				console.log("Fetching countdown for seller:", sellerId);
 
-        if (data.subscription_countdown) {
-          const totalDays = getTotalDays(data.subscription_countdown);
-          setDaysLeft(totalDays);
-        } else {
-          throw new Error('No countdown data available');
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+				const response = await fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/seller/seller_tiers/${sellerId}`,
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
 
-    fetchCountdown();
-  }, []);
+				if (!response.ok) {
+					const errorText = await response.text();
+					console.error("API Error:", response.status, errorText);
+					throw new Error(
+						`Failed to fetch countdown: ${response.status} ${response.statusText}`
+					);
+				}
 
-  // Optional: reduce 1 day per 24 hours (or test faster with 10 sec below)
-  useEffect(() => {
-    if (daysLeft > 0) {
-      const timer = setInterval(() => {
-        setDaysLeft(prev => {
-          const next = prev - 1;
-          if (next <= 0) clearInterval(timer);
-          return next;
-        });
-      }, 24 * 60 * 60 * 1000); // 1 day in ms (use 10000 for testing)
+				const data = await response.json();
+				console.log("API Response:", data);
 
-      return () => clearInterval(timer);
-    }
-  }, [daysLeft]);
+				if (data.subscription_countdown) {
+					// Check if subscription has expired
+					if (data.subscription_countdown.expired) {
+						setDaysLeft(0);
+					} else if (data.subscription_countdown.never_expires) {
+						// Free tier never expires
+						setDaysLeft(null); // Use null to indicate no countdown needed
+					} else {
+						const totalDays = getTotalDays(data.subscription_countdown);
+						setDaysLeft(totalDays);
+					}
+				} else {
+					console.warn("No subscription_countdown in response:", data);
+					throw new Error("No countdown data available");
+				}
+			} catch (err) {
+				console.error("CountDownDisplay error:", err);
+				setError(err.message);
+			} finally {
+				setLoading(false);
+			}
+		};
 
-  if (loading) return <Spinner animation="border" />;
-  if (error) return <Alert variant="danger">{error}</Alert>;
-  if (daysLeft <= 0) return <strong>Subscription expired</strong>;
+		fetchCountdown();
+	}, []);
 
-  return (
-    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', textAlign: 'center', color: '#000000' }}>
-      {daysLeft} <span style={{ fontSize: '1rem' }}><em>Days Left</em></span>
-    </div>
-  );
+	// Optional: reduce 1 day per 24 hours (or test faster with 10 sec below)
+	useEffect(() => {
+		if (daysLeft > 0) {
+			const timer = setInterval(() => {
+				setDaysLeft((prev) => {
+					const next = prev - 1;
+					if (next <= 0) clearInterval(timer);
+					return next;
+				});
+			}, 24 * 60 * 60 * 1000); // 1 day in ms (use 10000 for testing)
+
+			return () => clearInterval(timer);
+		}
+	}, [daysLeft]);
+
+	if (loading) return <Spinner animation="border" />;
+	if (error) return <Alert variant="danger">{error}</Alert>;
+	if (daysLeft === null) return <strong>Free Tier - No Expiry</strong>;
+	if (daysLeft <= 0) return <strong>Subscription expired</strong>;
+
+	return (
+		<div
+			style={{
+				fontSize: "1.5rem",
+				fontWeight: "bold",
+				textAlign: "center",
+				color: "#000000",
+			}}
+		>
+			{daysLeft}{" "}
+			<span style={{ fontSize: "1rem" }}>
+				<em>Days Left</em>
+			</span>
+		</div>
+	);
 };
 
 export default CountDownDisplay;
