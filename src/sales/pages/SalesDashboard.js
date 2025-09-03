@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, {
+	useEffect,
+	useState,
+	useMemo,
+	useCallback,
+	useRef,
+} from "react";
 import axios from "axios";
 // Bootstrap CSS removed - using Tailwind CSS instead
 
@@ -105,8 +111,7 @@ function SalesDashboard() {
 		new_visitors_count: 0,
 	});
 	const [sourceAnalyticsLoading, setSourceAnalyticsLoading] = useState(false);
-	const [sourceAnalyticsLoadingRef, setSourceAnalyticsLoadingRef] =
-		useState(false);
+	const sourceAnalyticsLoadingRef = useRef(false);
 	const [categories, setCategories] = useState([]);
 	const [categoryAnalytics, setCategoryAnalytics] = useState([]);
 
@@ -518,6 +523,29 @@ function SalesDashboard() {
 		};
 	}, [sourceAnalytics, sourceDateFilter, getSourceDateRange]);
 
+	// Fetch source analytics (all data - filtering done client-side)
+	const fetchSourceAnalytics = useCallback(async () => {
+		try {
+			// Prevent multiple simultaneous calls
+			if (sourceAnalyticsLoadingRef.current) {
+				return;
+			}
+
+			setSourceAnalyticsLoading(true);
+			sourceAnalyticsLoadingRef.current = true;
+
+			const response = await sourceTrackingService.getSourceAnalytics();
+			if (response) {
+				setSourceAnalytics(response);
+			}
+		} catch (error) {
+			console.error("Failed to fetch source analytics:", error);
+		} finally {
+			setSourceAnalyticsLoading(false);
+			sourceAnalyticsLoadingRef.current = false;
+		}
+	}, []);
+
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 
@@ -552,29 +580,6 @@ function SalesDashboard() {
 		// Initial fetch for source analytics (all-time data)
 		fetchSourceAnalytics();
 	}, []);
-
-	// Fetch source analytics (all data - filtering done client-side)
-	const fetchSourceAnalytics = useCallback(async () => {
-		try {
-			// Prevent multiple simultaneous calls
-			if (sourceAnalyticsLoadingRef) {
-				return;
-			}
-
-			setSourceAnalyticsLoading(true);
-			setSourceAnalyticsLoadingRef(true);
-
-			const response = await sourceTrackingService.getSourceAnalytics();
-			if (response) {
-				setSourceAnalytics(response);
-			}
-		} catch (error) {
-			console.error("Failed to fetch source analytics:", error);
-		} finally {
-			setSourceAnalyticsLoading(false);
-			setSourceAnalyticsLoadingRef(false);
-		}
-	}, [sourceAnalyticsLoadingRef]);
 
 	// Effect to refetch source analytics when date filter changes
 	useEffect(() => {

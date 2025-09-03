@@ -27,14 +27,16 @@ const CACHE_CONFIG = {
 };
 
 function manageCache() {
+	const timestamp = Date.now();
+
 	try {
 		console.log("🔧 Managing cache configuration...");
 
 		// Step 1: Update service worker with version
-		updateServiceWorker();
+		updateServiceWorker(timestamp);
 
 		// Step 2: Update HTML with cache-busting
-		updateHTMLCacheBusting();
+		updateHTMLCacheBusting(timestamp);
 
 		// Step 3: Create cache headers file
 		createCacheHeaders();
@@ -49,28 +51,23 @@ function manageCache() {
 	}
 }
 
-function updateServiceWorker() {
-	console.log("Updating service worker with version...");
-
-	const timestamp = Date.now();
+function updateServiceWorker(timestamp) {
 	const swContent = `
 // Service Worker for Carbon Cube Kenya - Version ${timestamp}
 const CACHE_VERSION = '${timestamp}';
 const STATIC_CACHE = 'carbon-cube-static-${timestamp}';
 const DYNAMIC_CACHE = 'carbon-cube-dynamic-${timestamp}';
 
-// Files to cache immediately
+// Files to cache immediately - only cache files that are guaranteed to exist
 const STATIC_FILES = [
   '/',
-  '/static/js/main.js',
-  '/static/css/main.css',
+  '/favicon.ico',
+  '/manifest.json',
   '/optimized-banners/banner-01-2xl.webp',
   '/optimized-banners/banner-02-2xl.webp',
   '/optimized-banners/banner-03-2xl.webp',
   '/optimized-banners/banner-04-2xl.webp',
-  '/optimized-banners/banner-05-2xl.webp',
-  '/favicon.ico',
-  '/manifest.json'
+  '/optimized-banners/banner-05-2xl.webp'
 ];
 
 // Install event - cache static files
@@ -196,7 +193,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle static files
+  // Handle static files - use a more intelligent caching strategy
   event.respondWith(
     caches.match(request)
       .then((response) => {
@@ -211,12 +208,22 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
             
-            // Cache successful responses
-            const responseClone = response.clone();
-            caches.open(DYNAMIC_CACHE)
-              .then((cache) => {
-                cache.put(request, responseClone);
-              });
+            // Only cache static assets, not API responses or HTML
+            const url = new URL(request.url);
+            const isStaticAsset = 
+              url.pathname.startsWith('/static/') ||
+              url.pathname.startsWith('/optimized-banners/') ||
+              url.pathname === '/favicon.ico' ||
+              url.pathname === '/manifest.json';
+
+            if (isStaticAsset) {
+              // Cache successful static asset responses
+              const responseClone = response.clone();
+              caches.open(DYNAMIC_CACHE)
+                .then((cache) => {
+                  cache.put(request, responseClone);
+                });
+            }
             
             return response;
           });
@@ -262,7 +269,7 @@ self.addEventListener('message', (event) => {
 	console.log("Service worker updated with version:", timestamp);
 }
 
-function updateHTMLCacheBusting() {
+function updateHTMLCacheBusting(timestamp) {
 	console.log("📝 Updating HTML with cache-busting...");
 
 	const indexPath = path.join(BUILD_DIR, "index.html");
@@ -441,7 +448,7 @@ function updateNginxConfig() {
 
 	// Add version-based cache busting
 	nginxContent = nginxContent.replace(
-		/location ~\* \.(js\|css\|png\|jpg\|jpeg\|gif\|ico\|svg\|woff\|woff2\|ttf\|eot\) \{[\s\S]*?\}/g,
+		/location ~\\* \\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot) \\{[\\s\\S]*?\\}/g,
 		`location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         # Add version parameter for cache busting
         if ($arg_v) {

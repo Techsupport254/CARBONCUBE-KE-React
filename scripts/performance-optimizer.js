@@ -233,8 +233,8 @@ const DYNAMIC_CACHE = 'dynamic-v1';
 
 const STATIC_ASSETS = [
   '/',
-  '/static/css/main.css',
-  '/static/js/main.js',
+  '/favicon.ico',
+  '/manifest.json',
   '/optimized-banners/banner-01-xl.webp',
   '/optimized-banners/banner-02-xl.webp',
   '/optimized-banners/banner-03-xl.webp',

@@ -61,6 +61,7 @@
 		"clear-cache": "node scripts/clear-dev-cache.js",
 		"clear-build-cache": "node scripts/clear-build-cache.js",
 		"build:performance": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run clear-build-cache && npm run optimize-performance && npm run optimize-images && npm run manage-cache",
+		"fix-sw": "node scripts/fix-sw-template.js",
 		"generate-favicons": "node scripts/generate-favicons.js",
 		"generate-icons": "node scripts/generate-icons.js",
 		"generate-sitemap": "node scripts/generate-sitemap.js",

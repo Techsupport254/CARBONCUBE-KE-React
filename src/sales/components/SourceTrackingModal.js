@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Modal } from "react-bootstrap";
 import { Bar } from "react-chartjs-2";
 // Trending icons removed

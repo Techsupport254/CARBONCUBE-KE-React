@@ -3,7 +3,7 @@ import { Col, Card } from "react-bootstrap";
 
 const DashboardCard = ({ title, value, onClick }) => {
 	return (
-		<Col xs={12} sm={6} md={4} lg={3} className="mb-3">
+		<Col xs={6} sm={6} md={4} lg={3} className="mb-3">
 			<Card
 				className="custom-card h-100 cursor-pointer"
 				onClick={onClick}
