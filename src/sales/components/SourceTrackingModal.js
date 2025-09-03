@@ -16,55 +16,15 @@ const SourceTrackingModal = ({
 	generateSourceTrackingTrendData,
 	memoizedFilteredSourceData,
 	sourceAnalytics,
+	loading = false,
 }) => {
-	// Ensure the modal reflects the current filter when it opens
-	useEffect(() => {
-		if (show && sourceDateFilter !== "week") {
-			// Reset to week filter when modal opens
-			onSourceDateFilterChange("week");
-			onSourceCustomStartDateChange("");
-			onSourceCustomEndDateChange("");
-		}
-	}, [
-		show,
-		sourceDateFilter,
-		onSourceDateFilterChange,
-		onSourceCustomStartDateChange,
-		onSourceCustomEndDateChange,
-	]);
+	// Removed problematic useEffect that was forcing date filter reset
+	// Users can now freely select different time periods
 
 	if (!selectedSourceCard) return null;
 	// Growth rate calculation removed
 
 	const getSourceBrandColor = (source) => {
-		// Common social media and search engine colors
-		const sourceColors = {
-			facebook: "#1877F2",
-			instagram: "#E4405F",
-			twitter: "#1DA1F2",
-			linkedin: "#0A66C2",
-			youtube: "#FF0000",
-			tiktok: "#000000",
-			snapchat: "#FFFC00",
-			pinterest: "#BD081C",
-			reddit: "#FF4500",
-			whatsapp: "#25D366",
-			telegram: "#0088CC",
-			google: "#4285F4",
-			bing: "#0078D4",
-			yahoo: "#720E9E",
-			direct: "#6B7280",
-		};
-
-		// Return predefined color or generate a consistent color for unknown sources
-		return (
-			sourceColors[(source || "").toLowerCase()] ||
-			generateConsistentColor(source)
-		);
-	};
-
-	// Generate consistent colors for unknown sources
-	const generateConsistentColor = (source) => {
 		if (!source) return "#6366F1";
 
 		// Simple hash function to generate consistent colors
@@ -107,28 +67,24 @@ const SourceTrackingModal = ({
 							<div>
 								<div className="text-2xl sm:text-3xl lg:text-4xl font-bold">
 									{(() => {
-										let count = 0;
-										if (selectedSourceCard?.sources) {
-											count = selectedSourceCard.sources.reduce(
-												(total, source) =>
-													total +
-													(memoizedFilteredSourceData?.source_distribution?.[
-														source
-													] || 0),
-												0
-											);
-										} else if (selectedSourceCard?.data?.direct !== undefined) {
-											count =
-												memoizedFilteredSourceData?.source_distribution
-													?.direct || 0;
-										} else {
-											count = memoizedFilteredSourceData?.total_visits || 0;
-										}
-										return count.toLocaleString();
+										// Use the actual total visits from the backend data
+										const totalVisits =
+											memoizedFilteredSourceData?.total_visits || 0;
+										return totalVisits.toLocaleString();
 									})()}
 								</div>
 								<div className="text-blue-100 text-sm sm:text-base">
-									Total Count
+									{sourceDateFilter === "today"
+										? "Today's Count"
+										: sourceDateFilter === "week"
+										? "Last 7 Days Count"
+										: sourceDateFilter === "month"
+										? "Last 30 Days Count"
+										: sourceDateFilter === "year"
+										? "Last Year Count"
+										: sourceDateFilter === "custom"
+										? "Custom Period Count"
+										: "All Time Count"}
 								</div>
 							</div>
 							{/* Growth stats removed */}
@@ -467,6 +423,7 @@ const SourceTrackingModal = ({
 											});
 									} else {
 										// Show ALL sources sorted by value (highest to lowest)
+										// Use the actual data from the backend (no filtering needed)
 										const allSources = Object.entries(
 											memoizedFilteredSourceData?.source_distribution || {}
 										).sort(([, a], [, b]) => b - a); // Sort by count descending
@@ -527,6 +484,7 @@ const SourceTrackingModal = ({
 										{Object.entries(
 											memoizedFilteredSourceData?.utm_source_distribution || {}
 										)
+											.filter(([, count]) => count > 0) // Filter out zero counts
 											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([source, count], index) => {
 												const total = Object.values(
@@ -547,8 +505,11 @@ const SourceTrackingModal = ({
 														</div>
 														<div className="w-full bg-gray-200 rounded-full h-2">
 															<div
-																className="h-2 rounded-full bg-blue-500"
-																style={{ width: `${percentage}%` }}
+																className="h-2 rounded-full"
+																style={{
+																	width: `${percentage}%`,
+																	backgroundColor: getSourceBrandColor(source),
+																}}
 															></div>
 														</div>
 													</div>
@@ -565,6 +526,7 @@ const SourceTrackingModal = ({
 										{Object.entries(
 											memoizedFilteredSourceData?.utm_medium_distribution || {}
 										)
+											.filter(([, count]) => count > 0) // Filter out zero counts
 											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([medium, count], index) => {
 												const total = Object.values(
@@ -585,8 +547,11 @@ const SourceTrackingModal = ({
 														</div>
 														<div className="w-full bg-gray-200 rounded-full h-2">
 															<div
-																className="h-2 rounded-full bg-emerald-500"
-																style={{ width: `${percentage}%` }}
+																className="h-2 rounded-full"
+																style={{
+																	width: `${percentage}%`,
+																	backgroundColor: getSourceBrandColor(medium),
+																}}
 															></div>
 														</div>
 													</div>
@@ -604,6 +569,7 @@ const SourceTrackingModal = ({
 											memoizedFilteredSourceData?.utm_campaign_distribution ||
 												{}
 										)
+											.filter(([, count]) => count > 0) // Filter out zero counts
 											.sort(([, a], [, b]) => b - a) // Sort by count descending
 											.map(([campaign, count], index) => {
 												const total = Object.values(
@@ -624,8 +590,12 @@ const SourceTrackingModal = ({
 														</div>
 														<div className="w-full bg-gray-200 rounded-full h-2">
 															<div
-																className="h-2 rounded-full bg-amber-500"
-																style={{ width: `${percentage}%` }}
+																className="h-2 rounded-full"
+																style={{
+																	width: `${percentage}%`,
+																	backgroundColor:
+																		getSourceBrandColor(campaign),
+																}}
 															></div>
 														</div>
 													</div>

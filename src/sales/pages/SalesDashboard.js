@@ -33,6 +33,9 @@ import {
 import { SiGoogle, SiBrave } from "react-icons/si";
 import { MdSearch, MdLink } from "react-icons/md";
 
+// Import source tracking service
+import sourceTrackingService from "../../utils/sourceTracking";
+
 // Import new components
 import Navbar from "../../components/Navbar";
 import {
@@ -85,8 +88,27 @@ function SalesDashboard() {
 	const [dateFilter, setDateFilter] = useState("week");
 	const [customStartDate, setCustomStartDate] = useState("");
 	const [customEndDate, setCustomEndDate] = useState("");
-	const [sourceAnalytics, setSourceAnalytics] = useState(null);
+	const [sourceAnalytics, setSourceAnalytics] = useState({
+		source_distribution: {},
+		utm_source_distribution: {},
+		utm_medium_distribution: {},
+		utm_campaign_distribution: {},
+		referrer_distribution: {},
+		visitor_metrics: {},
+		unique_visitors_by_source: {},
+		visits_by_source: {},
+		total_visits: 0,
+		daily_visits: {},
+		visit_timestamps: [],
+		daily_unique_visitors: {},
+		returning_visitors_count: 0,
+		new_visitors_count: 0,
+	});
+	const [sourceAnalyticsLoading, setSourceAnalyticsLoading] = useState(false);
+	const [sourceAnalyticsLoadingRef, setSourceAnalyticsLoadingRef] =
+		useState(false);
 	const [categories, setCategories] = useState([]);
+	const [categoryAnalytics, setCategoryAnalytics] = useState([]);
 
 	// Separate state for source tracking modal
 	const [showSourceModal, setShowSourceModal] = useState(false);
@@ -289,7 +311,7 @@ function SalesDashboard() {
 	// Function to get source tracking date range
 	const getSourceDateRange = useCallback(
 		(filter) => {
-			const now = new Date();
+			const now = new Date(); // Use actual current date
 			const today = new Date(now);
 			today.setHours(0, 0, 0, 0); // Start of today (midnight)
 			const endOfToday = new Date(today);
@@ -297,19 +319,23 @@ function SalesDashboard() {
 
 			switch (filter) {
 				case "today":
-					return { start: today, end: endOfToday };
+					const todayResult = { start: today, end: endOfToday };
+					return todayResult;
 				case "week":
 					const weekAgo = new Date(today);
 					weekAgo.setDate(today.getDate() - 7);
-					return { start: weekAgo, end: endOfToday };
+					const weekResult = { start: weekAgo, end: endOfToday };
+					return weekResult;
 				case "month":
 					const monthAgo = new Date(today);
 					monthAgo.setMonth(today.getMonth() - 1);
-					return { start: monthAgo, end: endOfToday };
+					const monthResult = { start: monthAgo, end: endOfToday };
+					return monthResult;
 				case "year":
 					const yearAgo = new Date(today);
 					yearAgo.setFullYear(today.getFullYear() - 1);
-					return { start: yearAgo, end: endOfToday };
+					const yearResult = { start: yearAgo, end: endOfToday };
+					return yearResult;
 				case "custom":
 					if (sourceCustomStartDate && sourceCustomEndDate) {
 						const startDate = new Date(sourceCustomStartDate);
@@ -317,9 +343,11 @@ function SalesDashboard() {
 						// Set time to beginning and end of day
 						startDate.setHours(0, 0, 0, 0);
 						endDate.setHours(23, 59, 59, 999);
-						return { start: startDate, end: endDate };
+						const customResult = { start: startDate, end: endDate };
+						return customResult;
 					}
-					return { start: today, end: endOfToday };
+					const defaultResult = { start: today, end: endOfToday };
+					return defaultResult;
 				default:
 					return null;
 			}
@@ -401,92 +429,94 @@ function SalesDashboard() {
 
 	// Memoized filtered source data for source tracking modal
 	const memoizedFilteredSourceData = useMemo(() => {
-		if (sourceDateFilter === "all" || !sourceAnalytics) {
+		if (!sourceAnalytics || !sourceAnalytics.visit_timestamps) {
 			return sourceAnalytics;
 		}
 
+		// If no date filter, return all data
+		if (!sourceDateFilter || sourceDateFilter === "all") {
+			return sourceAnalytics;
+		}
+
+		// Get date range for filtering
 		const dateRange = getSourceDateRange(sourceDateFilter);
 		if (!dateRange) {
 			return sourceAnalytics;
 		}
 
-		// Filter daily visits based on date range
-		const filteredDailyVisits = {};
+		// Filter timestamps by date range
 		const startTime = dateRange.start.getTime();
 		const endTime = dateRange.end.getTime();
 
-		Object.entries(sourceAnalytics.daily_visits || {}).forEach(
-			([date, visits]) => {
-				const dateTime = new Date(date).getTime();
-				if (dateTime >= startTime && dateTime <= endTime) {
-					filteredDailyVisits[date] = visits;
-				}
+		const filteredTimestamps = sourceAnalytics.visit_timestamps.filter(
+			(timestamp) => {
+				const time = new Date(timestamp).getTime();
+				return time >= startTime && time <= endTime;
 			}
 		);
 
-		// Calculate filtered totals
-		const totalVisits = Object.values(filteredDailyVisits).reduce(
-			(sum, visits) => sum + visits,
-			0
-		);
+		// Calculate filtered total visits
+		const filteredTotalVisits = filteredTimestamps.length;
 
-		// For source distribution, we need to be more careful about proportional calculations
-		// Only apply proportional filtering if we have actual daily data for sources
-		const originalTotalVisits = sourceAnalytics.total_visits || 0;
-		const filterRatio =
-			originalTotalVisits > 0 ? totalVisits / originalTotalVisits : 0;
+		// For today filter, we need to ensure the hourly data matches the total
+		// Calculate the actual ratio based on filtered timestamps
+		const totalVisits = sourceAnalytics.total_visits;
+		const filterRatio = filteredTotalVisits / totalVisits;
 
-		// Only apply proportional filtering if the ratio is reasonable (not too skewed)
-		const shouldApplyProportionalFilter = filterRatio > 0.1 && filterRatio < 10;
+		// Scale all distributions proportionally and ensure they add up correctly
+		const scaleDistribution = (distribution) => {
+			const scaled = {};
+			let totalScaled = 0;
 
-		const filteredSourceDistribution = {};
-		if (shouldApplyProportionalFilter) {
-			Object.entries(sourceAnalytics.source_distribution || {}).forEach(
-				([source, count]) => {
-					filteredSourceDistribution[source] = Math.round(count * filterRatio);
-				}
-			);
-		} else {
-			// If the ratio is too skewed, keep original distribution but adjust total
-			Object.entries(sourceAnalytics.source_distribution || {}).forEach(
-				([source, count]) => {
-					filteredSourceDistribution[source] = count;
-				}
-			);
-		}
+			// First pass: scale all values
+			Object.entries(distribution).forEach(([key, count]) => {
+				const scaledCount = Math.round(count * filterRatio);
+				scaled[key] = scaledCount;
+				totalScaled += scaledCount;
+			});
 
-		// For visitor engagement metrics, use more conservative proportional filtering
-		const engagementFilterRatio = shouldApplyProportionalFilter
-			? filterRatio
-			: 1;
+			// Second pass: adjust to ensure total matches filteredTotalVisits
+			if (totalScaled !== filteredTotalVisits) {
+				const adjustment = filteredTotalVisits - totalScaled;
+				// Find the largest source and adjust it
+				const largestSource = Object.entries(scaled).reduce((a, b) =>
+					scaled[a[0]] > scaled[b[0]] ? a : b
+				)[0];
+				scaled[largestSource] += adjustment;
+			}
 
-		const filteredUniqueVisitors = Math.round(
-			(sourceAnalytics.unique_visitors || 0) * engagementFilterRatio
-		);
-		const filteredReturningVisitors = Math.round(
-			(sourceAnalytics.returning_visitors || 0) * engagementFilterRatio
-		);
-		const filteredNewVisitors = Math.round(
-			(sourceAnalytics.new_visitors || 0) * engagementFilterRatio
-		);
+			return scaled;
+		};
 
-		// Calculate average visits per visitor more accurately
-		const filteredAvgVisitsPerVisitor =
-			filteredUniqueVisitors > 0
-				? Math.round(totalVisits / filteredUniqueVisitors)
-				: 0;
-
+		// Return filtered data
 		return {
 			...sourceAnalytics,
-			daily_visits: filteredDailyVisits,
-			total_visits: totalVisits,
-			source_distribution: filteredSourceDistribution,
-			unique_visitors: filteredUniqueVisitors,
-			returning_visitors: filteredReturningVisitors,
-			new_visitors: filteredNewVisitors,
-			avg_visits_per_visitor: filteredAvgVisitsPerVisitor,
+			total_visits: filteredTotalVisits,
+			source_distribution: scaleDistribution(
+				sourceAnalytics.source_distribution
+			),
+			utm_source_distribution: scaleDistribution(
+				sourceAnalytics.utm_source_distribution
+			),
+			utm_medium_distribution: scaleDistribution(
+				sourceAnalytics.utm_medium_distribution
+			),
+			utm_campaign_distribution: scaleDistribution(
+				sourceAnalytics.utm_campaign_distribution
+			),
+			referrer_distribution: scaleDistribution(
+				sourceAnalytics.referrer_distribution
+			),
+			visit_timestamps: filteredTimestamps,
+			// Filter daily visits to only include dates in range
+			daily_visits: Object.fromEntries(
+				Object.entries(sourceAnalytics.daily_visits).filter(([date]) => {
+					const dateTime = new Date(date).getTime();
+					return dateTime >= startTime && dateTime <= endTime;
+				})
+			),
 		};
-	}, [sourceDateFilter, sourceAnalytics, getSourceDateRange]);
+	}, [sourceAnalytics, sourceDateFilter, getSourceDateRange]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -506,10 +536,8 @@ function SalesDashboard() {
 				// API response received successfully
 				setAnalytics(res.data);
 
-				// Set source analytics if available
-				if (res.data.source_analytics) {
-					setSourceAnalytics(res.data.source_analytics);
-				}
+				// Don't set source analytics here - let the useEffect handle it
+				// This prevents the all-time data from overriding filtered data
 			} catch (err) {
 				console.error("Failed to fetch analytics:", err);
 			} finally {
@@ -519,7 +547,40 @@ function SalesDashboard() {
 
 		fetchAnalytics();
 		fetchCategories();
+		fetchCategoryAnalytics();
+
+		// Initial fetch for source analytics (all-time data)
+		fetchSourceAnalytics();
 	}, []);
+
+	// Fetch source analytics (all data - filtering done client-side)
+	const fetchSourceAnalytics = useCallback(async () => {
+		try {
+			// Prevent multiple simultaneous calls
+			if (sourceAnalyticsLoadingRef) {
+				return;
+			}
+
+			setSourceAnalyticsLoading(true);
+			setSourceAnalyticsLoadingRef(true);
+
+			const response = await sourceTrackingService.getSourceAnalytics();
+			if (response) {
+				setSourceAnalytics(response);
+			}
+		} catch (error) {
+			console.error("Failed to fetch source analytics:", error);
+		} finally {
+			setSourceAnalyticsLoading(false);
+			setSourceAnalyticsLoadingRef(false);
+		}
+	}, [sourceAnalyticsLoadingRef]);
+
+	// Effect to refetch source analytics when date filter changes
+	useEffect(() => {
+		// No need to refetch - filtering is done client-side
+		// This effect is now just for monitoring state changes
+	}, [sourceDateFilter, sourceCustomStartDate, sourceCustomEndDate]);
 
 	// Fetch categories data
 	const fetchCategories = async () => {
@@ -532,6 +593,48 @@ function SalesDashboard() {
 			console.error("Failed to fetch categories:", err);
 		}
 	};
+
+	// Fetch category analytics data
+	const fetchCategoryAnalytics = async () => {
+		try {
+			const res = await axios.get(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories/analytics`
+			);
+			setCategoryAnalytics(res.data);
+		} catch (err) {
+			console.error("Failed to fetch category analytics:", err);
+		}
+	};
+
+	// Combine categories with analytics data
+	const getCategoriesWithAnalytics = useMemo(() => {
+		if (!categories || !categoryAnalytics) {
+			return categories || [];
+		}
+
+		// Create a map of analytics data by category name
+		const analyticsMap = {};
+		categoryAnalytics.forEach((item) => {
+			analyticsMap[item.category_name] = {
+				ad_clicks: item.ad_clicks || 0,
+				ad_click_reveals: item.reveal_clicks || 0,
+				// Use only actual wishlist totals
+				wishlist_count: item.total_wishlists || 0,
+			};
+		});
+
+		// Combine categories with their analytics data
+		return categories.map((category) => {
+			const categoryAnalytics = analyticsMap[category.name] || {};
+			return {
+				...category,
+				ads_count: category.ads_count || 0,
+				ad_clicks: categoryAnalytics.ad_clicks || 0,
+				ad_click_reveals: categoryAnalytics.ad_click_reveals || 0,
+				wishlist_count: categoryAnalytics.wishlist_count || 0,
+			};
+		});
+	}, [categories, categoryAnalytics]);
 
 	// Function to get the correct key for the selected card
 	const getFilterKey = (title) => {
@@ -1115,16 +1218,18 @@ function SalesDashboard() {
 	};
 
 	// Generate source tracking trend data
-	const generateSourceTrackingTrendData = () => {
-		if (!sourceAnalytics) return { data: [0, 0, 0, 0, 0, 0, 0], labels: [] };
+	const generateSourceTrackingTrendData = useCallback(() => {
+		// Use the filtered data instead of the original sourceAnalytics
+		const filteredData = memoizedFilteredSourceData;
+		if (!filteredData) return { data: [0, 0, 0, 0, 0, 0, 0], labels: [] };
 
-		const dailyVisits = sourceAnalytics.daily_visits || {};
+		const dailyVisits = filteredData.daily_visits || {};
 		const today = new Date();
 		let data = [];
 		let labels = [];
 
 		// For very low traffic scenarios, use actual daily data instead of proportional calculations
-		const totalVisits = sourceAnalytics.total_visits || 0;
+		const totalVisits = filteredData.total_visits || 0;
 		const useActualData = totalVisits < 50; // If total visits is less than 50, use actual data
 
 		// Calculate the source-specific ratio for proportional data
@@ -1135,16 +1240,16 @@ function SalesDashboard() {
 				// For social media and search engine visits, calculate the ratio
 				const totalSourceVisits = selectedSourceCard.sources.reduce(
 					(total, source) => {
-						return total + (sourceAnalytics.source_distribution?.[source] || 0);
+						return total + (filteredData.source_distribution?.[source] || 0);
 					},
 					0
 				);
-				const totalVisits = sourceAnalytics.total_visits || 0;
+				const totalVisits = filteredData.total_visits || 0;
 				return totalVisits > 0 ? totalSourceVisits / totalVisits : 0;
 			} else if (selectedSourceCard?.data?.direct !== undefined) {
 				// For direct visits
-				const directVisits = sourceAnalytics.source_distribution?.direct || 0;
-				const totalVisits = sourceAnalytics.total_visits || 0;
+				const directVisits = filteredData.source_distribution?.direct || 0;
+				const totalVisits = filteredData.total_visits || 0;
 				return totalVisits > 0 ? directVisits / totalVisits : 0;
 			}
 			return 1; // For total page visits, use full data
@@ -1155,21 +1260,26 @@ function SalesDashboard() {
 
 		switch (sourceDateFilter) {
 			case "today":
-				// Show hourly data for today
+				// Use the filtered timestamps for today
+				const visitTimestamps = filteredData?.visit_timestamps || [];
+
+				// Group visits by hour
+				const hourlyVisits = {};
+				visitTimestamps.forEach((timestamp) => {
+					const hour = new Date(timestamp).getHours();
+					hourlyVisits[hour] = (hourlyVisits[hour] || 0) + 1;
+				});
+
+				// Show hourly data for the last 24 hours using actual data
 				for (let i = 23; i >= 0; i--) {
 					const hour = new Date(today);
 					hour.setHours(today.getHours() - i, 0, 0, 0);
-					const nextHour = new Date(hour);
-					nextHour.setHours(hour.getHours() + 1);
+					const hourOfDay = hour.getHours();
 
-					// For today, we'll show the source-specific visits for today divided by hours
-					const todayVisits =
-						dailyVisits[today.toISOString().split("T")[0]] || 0;
-					const sourceSpecificVisits = useActualData
-						? Math.round(todayVisits * safeSourceRatio)
-						: Math.round(todayVisits * safeSourceRatio);
-					const hourlyVisits = Math.round(sourceSpecificVisits / 24);
-					data.push(hourlyVisits);
+					// Get actual visits for this hour (no source ratio needed)
+					const actualVisits = hourlyVisits[hourOfDay] || 0;
+					data.push(actualVisits);
+
 					// Format hour labels more clearly
 					const hourLabel =
 						hour.getHours() === 0
@@ -1404,7 +1514,13 @@ function SalesDashboard() {
 		}
 
 		return { data, labels };
-	};
+	}, [
+		memoizedFilteredSourceData,
+		sourceDateFilter,
+		selectedSourceCard,
+		sourceCustomStartDate,
+		sourceCustomEndDate,
+	]);
 
 	// Get timestamps for the selected card
 	const getTimestampsForCard = () => {
@@ -1478,7 +1594,9 @@ function SalesDashboard() {
 								}}
 							/>
 							<SellerAnalyticsSection analytics={analytics} />
-							<CategoryPerformanceTable categories={categories} />
+							<CategoryPerformanceTable
+								categories={getCategoriesWithAnalytics}
+							/>
 							<SourceAnalyticsSection
 								sourceAnalytics={sourceAnalytics}
 								memoizedFilteredSourceData={memoizedFilteredSourceData}
@@ -1544,6 +1662,7 @@ function SalesDashboard() {
 				generateSourceTrackingTrendData={generateSourceTrackingTrendData}
 				memoizedFilteredSourceData={memoizedFilteredSourceData}
 				sourceAnalytics={sourceAnalytics}
+				loading={sourceAnalyticsLoading}
 			/>
 
 			{/* Visitor Metrics Modal removed */}

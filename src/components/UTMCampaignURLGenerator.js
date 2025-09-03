@@ -52,7 +52,7 @@ const UTMCampaignURLGenerator = ({
 	return (
 		<div className={`utm-campaign-generator ${className}`}>
 			<Card className="shadow-sm border-0">
-				<Card.Header className="bg-gradient-primary text-white text-center fw-bold py-3">
+				<Card.Header className="bg-secondary text-white text-center fw-bold py-3">
 					<div className="d-flex align-items-center justify-content-center flex-wrap">
 						<FaExternalLinkAlt className="me-2 me-md-3 fs-5" />
 						<div>

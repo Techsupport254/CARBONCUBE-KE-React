@@ -9,6 +9,7 @@ import {
 	getDeviceFingerprint,
 	isInternalUser,
 } from "./utils/deviceFingerprint";
+import Spinner from "react-spinkit";
 
 // Lazy load components for better performance
 const LoginForm = lazy(() => import("./components/LoginForm"));
@@ -51,6 +52,7 @@ const TiersManagement = lazy(() => import("./admin/pages/TiersManagement"));
 const FingerprintRemovalRequests = lazy(() =>
 	import("./admin/pages/FingerprintRemovalRequests")
 );
+const AdminProfile = lazy(() => import("./admin/pages/Profile"));
 
 // Seller Imports - Lazy loaded
 const SellerSignUpPage = lazy(() => import("./seller/pages/SellerSignUpPage"));
@@ -78,8 +80,12 @@ const SalesDashboard = lazy(() => import("./sales/pages/SalesDashboard"));
 
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
-	<div className="flex items-center justify-center min-h-screen">
-		<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-yellow-500"></div>
+	<div className="flex items-center justify-center min-h-screen w-full">
+		<Spinner
+			variant="warning"
+			name="cube-grid"
+			style={{ width: 60, height: 60 }}
+		/>
 	</div>
 );
 
@@ -260,8 +266,12 @@ function App() {
 								element={<TiersManagement onLogout={handleLogout} />}
 							/>
 							<Route
-								path="fingerprint-removal"
+								path="fingerprint-requests"
 								element={<FingerprintRemovalRequests onLogout={handleLogout} />}
+							/>
+							<Route
+								path="profile"
+								element={<AdminProfile onLogout={handleLogout} />}
 							/>
 						</Route>
 					)}

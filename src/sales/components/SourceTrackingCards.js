@@ -13,7 +13,7 @@ const SourceTrackingCards = ({
 
 	// Dynamically get all available sources from the data
 	const allAvailableSources = Object.keys(
-		memoizedFilteredSourceData?.source_distribution || {}
+		sourceAnalytics?.source_distribution || {}
 	);
 
 	// Filter out 'direct' as it's handled separately
@@ -21,28 +21,24 @@ const SourceTrackingCards = ({
 		(source) => source !== "direct"
 	);
 
-	// Calculate total visits for all non-direct sources
-	const totalNonDirectVisits = nonDirectSources.reduce((total, source) => {
-		return (
-			total + (memoizedFilteredSourceData?.source_distribution?.[source] || 0)
-		);
-	}, 0);
+	// Calculate External as Total - Direct to ensure exact add-up
+	const totalVisits = sourceAnalytics?.total_visits || 0;
+	const directVisits = sourceAnalytics?.source_distribution?.direct || 0;
+	const totalNonDirectVisits = Math.max(0, totalVisits - directVisits);
 
-	// Get the top performing source
+	// Get the top performing source (including direct)
 	const getTopSource = () => {
-		if (nonDirectSources.length === 0) return { name: "", count: 0 };
+		if (allAvailableSources.length === 0) return { name: "", count: 0 };
 
-		const topSource = nonDirectSources.reduce((top, source) => {
-			const currentCount =
-				memoizedFilteredSourceData?.source_distribution?.[source] || 0;
-			const topCount =
-				memoizedFilteredSourceData?.source_distribution?.[top] || 0;
+		const topSource = allAvailableSources.reduce((top, source) => {
+			const currentCount = sourceAnalytics?.source_distribution?.[source] || 0;
+			const topCount = sourceAnalytics?.source_distribution?.[top] || 0;
 			return currentCount > topCount ? source : top;
-		}, nonDirectSources[0]);
+		}, allAvailableSources[0]);
 
 		return {
 			name: topSource,
-			count: memoizedFilteredSourceData?.source_distribution?.[topSource] || 0,
+			count: sourceAnalytics?.source_distribution?.[topSource] || 0,
 		};
 	};
 
@@ -51,24 +47,24 @@ const SourceTrackingCards = ({
 	const cards = [
 		{
 			title: "Total Page Visits",
-			value: memoizedFilteredSourceData?.total_visits || 0,
-			data: memoizedFilteredSourceData?.daily_visits || {},
+			value: sourceAnalytics?.total_visits || 0,
+			data: sourceAnalytics?.daily_visits || {},
 			icon: <FaChartBar />,
 			color: "text-primary",
 		},
 		{
 			title: "External Sources",
 			value: totalNonDirectVisits,
-			data: memoizedFilteredSourceData?.source_distribution || {},
+			data: sourceAnalytics?.source_distribution || {},
 			sources: nonDirectSources,
 			icon: <FaFacebook />,
 			color: "text-info",
 		},
 		{
 			title: "Direct Visits",
-			value: memoizedFilteredSourceData?.source_distribution?.direct || 0,
+			value: sourceAnalytics?.source_distribution?.direct || 0,
 			data: {
-				direct: memoizedFilteredSourceData?.source_distribution?.direct || 0,
+				direct: sourceAnalytics?.source_distribution?.direct || 0,
 			},
 			icon: <FaLink />,
 			color: "text-warning",
@@ -76,8 +72,8 @@ const SourceTrackingCards = ({
 		{
 			title: "Top Source",
 			value: topSource.count,
-			data: memoizedFilteredSourceData?.source_distribution || {},
-			sources: nonDirectSources.length > 0 ? [topSource.name] : [],
+			data: sourceAnalytics?.source_distribution || {},
+			sources: allAvailableSources.length > 0 ? [topSource.name] : [],
 			icon: <FaSearch />,
 			color: "text-success",
 		},
@@ -107,7 +103,7 @@ const SourceTrackingCards = ({
 								: card.title === "Direct Visits"
 								? "Direct traffic"
 								: card.title === "Top Source"
-								? nonDirectSources.length > 0
+								? allAvailableSources.length > 0
 									? `Most popular: ${topSource.name}`
 									: "No external sources"
 								: "Analytics"}

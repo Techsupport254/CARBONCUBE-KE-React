@@ -1,7 +1,20 @@
 import React from "react";
 import { Card } from "react-bootstrap";
 
-const SourceAnalyticsTable = ({ sourceAnalytics, getSourceIcon, getSourceTrend }) => {
+const SourceAnalyticsTable = ({
+	sourceAnalytics,
+	getSourceIcon,
+	getSourceTrend,
+}) => {
+	// Use source_distribution from original data
+	const sourceData = sourceAnalytics.source_distribution || {};
+	const totalVisits = sourceAnalytics.total_visits || 0;
+
+	// Convert to array and sort by count descending
+	const sortedSources = Object.entries(sourceData)
+		.sort(([, a], [, b]) => b - a)
+		.slice(0, 10); // Keep top 10
+
 	return (
 		<Card className="p-3 shadow-sm custom-card h-100">
 			<Card.Header className="text-center fw-bold">
@@ -15,87 +28,66 @@ const SourceAnalyticsTable = ({ sourceAnalytics, getSourceIcon, getSourceTrend }
 								<th>Source</th>
 								<th>Visits</th>
 								<th>Percentage</th>
-								<th>Trend</th>
 							</tr>
 						</thead>
 						<tbody>
-							{sourceAnalytics.top_sources &&
-							sourceAnalytics.top_sources.length > 0 ? (
-								sourceAnalytics.top_sources.map(
-									([source, count], index) => {
-										const percentage =
-											sourceAnalytics.total_visits > 0
-												? (
-														(count /
-															sourceAnalytics.total_visits) *
-														100
-												  ).toFixed(1)
-												: 0;
-										const isFacebook = source === "facebook";
-										return (
-											<tr key={index}>
-												<td>
-													<div className="d-flex align-items-center">
-														<div
-															className="me-2"
-															style={{ fontSize: "18px" }}
-														>
-															{getSourceIcon(source)}
-														</div>
-														<span className="text-capitalize fw-medium">
-															{source === "direct"
-																? "Direct"
-																: source === "facebook"
-																? "Facebook"
-																: source}
-														</span>
+							{sortedSources.length > 0 ? (
+								sortedSources.map(([source, count], index) => {
+									const percentage =
+										totalVisits > 0
+											? ((count / totalVisits) * 100).toFixed(1)
+											: 0;
+									const isFacebook = source === "facebook";
+									return (
+										<tr key={index}>
+											<td>
+												<div className="d-flex align-items-center">
+													<div className="me-2" style={{ fontSize: "18px" }}>
+														{getSourceIcon(source)}
 													</div>
-												</td>
-												<td>
-													<span className="fw-bold text-primary">
-														{count.toLocaleString()}
+													<span className="text-capitalize fw-medium">
+														{source === "direct"
+															? "Direct"
+															: source === "facebook"
+															? "Facebook"
+															: source}
 													</span>
-												</td>
-												<td>
-													<div className="d-flex align-items-center">
+												</div>
+											</td>
+											<td>
+												<span className="fw-bold text-primary">
+													{count.toLocaleString()}
+												</span>
+											</td>
+											<td>
+												<div className="d-flex align-items-center">
+													<div
+														className="progress me-2"
+														style={{
+															width: "60px",
+															height: "6px",
+														}}
+													>
 														<div
-															className="progress me-2"
+															className={`progress-bar ${
+																isFacebook ? "bg-primary" : "bg-primary"
+															}`}
 															style={{
-																width: "60px",
-																height: "6px",
+																width: `${percentage}%`,
 															}}
-														>
-															<div
-																className={`progress-bar ${
-																	isFacebook
-																		? "bg-primary"
-																		: "bg-primary"
-																}`}
-																style={{
-																	width: `${percentage}%`,
-																}}
-															></div>
-														</div>
-														<span className="text-muted small">
-															{percentage}%
-														</span>
+														></div>
 													</div>
-												</td>
-												<td>
-													<span className="badge bg-success">
-														{getSourceTrend(source)}
+													<span className="text-muted small">
+														{percentage}%
 													</span>
-												</td>
-											</tr>
-										);
-									}
-								)
+												</div>
+											</td>
+										</tr>
+									);
+								})
 							) : (
 								<tr>
-									<td
-										colSpan="4"
-										className="text-center text-muted py-4"
-									>
+									<td colSpan="3" className="text-center text-muted py-4">
 										No source data available
 									</td>
 								</tr>

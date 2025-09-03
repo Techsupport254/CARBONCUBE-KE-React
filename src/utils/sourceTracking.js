@@ -377,20 +377,19 @@ class SourceTrackingService {
 		// Unique visitor tracking cleared silently
 	}
 
-	// Get source analytics data
-	async getSourceAnalytics(days = 30) {
+		// Get source analytics data (all data - filtering done client-side)
+	async getSourceAnalytics() {
 		try {
 			const token =
 				localStorage.getItem("token") || sessionStorage.getItem("token");
 
-			const response = await axios.get(
-				`${this.API_URL}/source-tracking/analytics?days=${days}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
+			const url = `${this.API_URL}/source-tracking/analytics`;
+
+			const response = await axios.get(url, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
 
 			return response.data;
 		} catch (error) {

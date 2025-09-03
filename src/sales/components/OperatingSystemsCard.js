@@ -5,7 +5,7 @@ import { Pie } from "react-chartjs-2";
 const OperatingSystemsCard = ({ deviceAnalytics, getOSIcon }) => {
 	return (
 		<Card className="p-3 shadow-sm custom-card h-100">
-			<Card.Header className="text-center fw-bold">
+			<Card.Header className="bg-secondary text-white text-center fw-bold">
 				Operating Systems
 			</Card.Header>
 			<Card.Body>
@@ -22,17 +22,14 @@ const OperatingSystemsCard = ({ deviceAnalytics, getOSIcon }) => {
 									</tr>
 								</thead>
 								<tbody>
-									{Object.entries(
-										deviceAnalytics.operating_systems || {}
-									)
+									{Object.entries(deviceAnalytics.operating_systems || {})
 										.sort(([, a], [, b]) => b - a)
 										.slice(0, 5)
 										.map(([os, count]) => {
 											const percentage =
 												deviceAnalytics.total_devices > 0
 													? (
-															(count /
-																deviceAnalytics.total_devices) *
+															(count / deviceAnalytics.total_devices) *
 															100
 													  ).toFixed(1)
 													: 0;
@@ -49,12 +46,8 @@ const OperatingSystemsCard = ({ deviceAnalytics, getOSIcon }) => {
 															<span>{os}</span>
 														</div>
 													</td>
-													<td className="fw-bold small">
-														{count}
-													</td>
-													<td className="small">
-														{percentage}%
-													</td>
+													<td className="fw-bold small">{count}</td>
+													<td className="small">{percentage}%</td>
 												</tr>
 											);
 										})}
@@ -65,9 +58,7 @@ const OperatingSystemsCard = ({ deviceAnalytics, getOSIcon }) => {
 
 					{/* Pie Chart */}
 					<Col xs={12} md={6}>
-						{Object.keys(
-							deviceAnalytics.operating_systems || {}
-						).length > 0 ? (
+						{Object.keys(deviceAnalytics.operating_systems || {}).length > 0 ? (
 							<Pie
 								data={{
 									labels: Object.entries(

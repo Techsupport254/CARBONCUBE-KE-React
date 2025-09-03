@@ -311,7 +311,6 @@ const Navbar = ({
 	};
 
 	const getNavigationLinks = () => {
-
 		// Role-specific navigation mirrored from Sidebars
 		switch (userRole) {
 			case "buyer":
@@ -344,6 +343,7 @@ const Navbar = ({
 						label: "WhiteList",
 						icon: faShieldAlt,
 					},
+					{ href: "/admin/profile", label: "Profile", icon: faCog },
 				];
 			case "sales":
 				return [

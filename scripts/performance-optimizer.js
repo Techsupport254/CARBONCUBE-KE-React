@@ -45,7 +45,7 @@ const PERFORMANCE_CONFIG = {
 		},
 		{ href: "/static/js/main.js", as: "script", fetchpriority: "high" },
 		{
-			href: "/optimized-banners/banner-01-desktop.webp",
+			href: "/optimized-banners/banner-01-xl.webp",
 			as: "image",
 			fetchpriority: "high",
 		},
@@ -235,11 +235,11 @@ const STATIC_ASSETS = [
   '/',
   '/static/css/main.css',
   '/static/js/main.js',
-  '/optimized-banners/banner-01-desktop.webp',
-  '/optimized-banners/banner-02-desktop.webp',
-  '/optimized-banners/banner-03-desktop.webp',
-  '/optimized-banners/banner-04-desktop.webp',
-  '/optimized-banners/banner-05-desktop.webp'
+  '/optimized-banners/banner-01-xl.webp',
+  '/optimized-banners/banner-02-xl.webp',
+  '/optimized-banners/banner-03-xl.webp',
+  '/optimized-banners/banner-04-xl.webp',
+  '/optimized-banners/banner-05-xl.webp'
 ];
 
 // Install event

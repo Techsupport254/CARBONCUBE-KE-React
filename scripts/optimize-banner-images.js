@@ -9,17 +9,18 @@ const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
-const BANNERS_DIR = path.join(__dirname, "../public/Banners");
+const BANNERS_DIR = path.join(__dirname, "../Banners");
 const OPTIMIZED_DIR = path.join(__dirname, "../public/optimized-banners");
 
 // Image optimization configuration
 const IMAGE_CONFIG = {
 	formats: ["webp", "avif"],
 	sizes: {
-		mobile: { width: 768, height: 432 },
-		tablet: { width: 1024, height: 576 },
-		desktop: { width: 1600, height: 900 },
-		"2xl": { width: 2400, height: 1350 },
+		sm: { width: 640, height: 360 },
+		md: { width: 768, height: 432 },
+		lg: { width: 1024, height: 576 },
+		xl: { width: 1280, height: 720 },
+		"2xl": { width: 1536, height: 864 },
 	},
 	quality: {
 		webp: 85,
@@ -115,9 +116,10 @@ function generateResponsiveImageConfig() {
 				name: "banner-01",
 				alt: "Banner 1",
 				sizes: {
-					mobile: "/optimized-banners/banner-01-mobile.webp",
-					tablet: "/optimized-banners/banner-01-tablet.webp",
-					desktop: "/optimized-banners/banner-01-desktop.webp",
+					sm: "/optimized-banners/banner-01-sm.webp",
+					md: "/optimized-banners/banner-01-md.webp",
+					lg: "/optimized-banners/banner-01-lg.webp",
+					xl: "/optimized-banners/banner-01-xl.webp",
 					"2xl": "/optimized-banners/banner-01-2xl.webp",
 				},
 			},
@@ -125,9 +127,10 @@ function generateResponsiveImageConfig() {
 				name: "banner-02",
 				alt: "Banner 2",
 				sizes: {
-					mobile: "/optimized-banners/banner-02-mobile.webp",
-					tablet: "/optimized-banners/banner-02-tablet.webp",
-					desktop: "/optimized-banners/banner-02-desktop.webp",
+					sm: "/optimized-banners/banner-02-sm.webp",
+					md: "/optimized-banners/banner-02-md.webp",
+					lg: "/optimized-banners/banner-02-lg.webp",
+					xl: "/optimized-banners/banner-02-xl.webp",
 					"2xl": "/optimized-banners/banner-02-2xl.webp",
 				},
 			},
@@ -135,9 +138,10 @@ function generateResponsiveImageConfig() {
 				name: "banner-03",
 				alt: "Banner 3",
 				sizes: {
-					mobile: "/optimized-banners/banner-03-mobile.webp",
-					tablet: "/optimized-banners/banner-03-tablet.webp",
-					desktop: "/optimized-banners/banner-03-desktop.webp",
+					sm: "/optimized-banners/banner-03-sm.webp",
+					md: "/optimized-banners/banner-03-md.webp",
+					lg: "/optimized-banners/banner-03-lg.webp",
+					xl: "/optimized-banners/banner-03-xl.webp",
 					"2xl": "/optimized-banners/banner-03-2xl.webp",
 				},
 			},
@@ -145,9 +149,10 @@ function generateResponsiveImageConfig() {
 				name: "banner-04",
 				alt: "Banner 4",
 				sizes: {
-					mobile: "/optimized-banners/banner-04-mobile.webp",
-					tablet: "/optimized-banners/banner-04-tablet.webp",
-					desktop: "/optimized-banners/banner-04-desktop.webp",
+					sm: "/optimized-banners/banner-04-sm.webp",
+					md: "/optimized-banners/banner-04-md.webp",
+					lg: "/optimized-banners/banner-04-lg.webp",
+					xl: "/optimized-banners/banner-04-xl.webp",
 					"2xl": "/optimized-banners/banner-04-2xl.webp",
 				},
 			},
@@ -155,9 +160,10 @@ function generateResponsiveImageConfig() {
 				name: "banner-05",
 				alt: "Banner 5",
 				sizes: {
-					mobile: "/optimized-banners/banner-05-mobile.webp",
-					tablet: "/optimized-banners/banner-05-tablet.webp",
-					desktop: "/optimized-banners/banner-05-desktop.webp",
+					sm: "/optimized-banners/banner-05-sm.webp",
+					md: "/optimized-banners/banner-05-md.webp",
+					lg: "/optimized-banners/banner-05-lg.webp",
+					xl: "/optimized-banners/banner-05-xl.webp",
 					"2xl": "/optimized-banners/banner-05-2xl.webp",
 				},
 			},
@@ -179,7 +185,7 @@ export const getResponsiveImageSrcSet = (imageName) => {
   
   return Object.entries(image.sizes)
     .map(([size, src]) => {
-      const width = size === 'mobile' ? 768 : size === 'tablet' ? 1024 : size === 'desktop' ? 1600 : 2400;
+      const width = size === 'sm' ? 640 : size === 'md' ? 768 : size === 'lg' ? 1024 : size === 'xl' ? 1280 : 1536;
       return \`\${src} \${width}w\`;
     })
     .join(', ');

@@ -13,6 +13,7 @@ import {
 	List,
 	Union,
 	ShieldCheck,
+	Person,
 } from "react-bootstrap-icons";
 import { useLocation } from "react-router-dom";
 import "./Sidebar.css";
@@ -118,6 +119,12 @@ const Sidebar = () => {
 						}
 					>
 						<ShieldCheck className="icon" /> {isOpen && "WhiteList"}
+					</Nav.Link>
+					<Nav.Link
+						href="/admin/profile"
+						className={location.pathname === "/admin/profile" ? "active" : ""}
+					>
+						<Person className="icon" /> {isOpen && "Profile"}
 					</Nav.Link>
 				</Nav>
 			</div>

@@ -1,45 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Carousel from "react-bootstrap/Carousel";
 import OptimizedImage from "../../components/OptimizedImage";
+import { bannerImages, getResponsiveImageSrc } from "../../utils/imageConfig";
 
 // Optimized banner images with responsive sources
-const optimizedBanners = [
-	{
-		src: "/optimized-banners/banner-01-2xl.webp",
-		fallback: "/optimized-banners/banner-01-2xl.jpg",
-		alt: "Banner 1",
-		width: 1600,
-		height: 900,
-	},
-	{
-		src: "/optimized-banners/banner-02-2xl.webp",
-		fallback: "/optimized-banners/banner-02-2xl.jpg",
-		alt: "Banner 2",
-		width: 1600,
-		height: 900,
-	},
-	{
-		src: "/optimized-banners/banner-03-2xl.webp",
-		fallback: "/optimized-banners/banner-03-2xl.jpg",
-		alt: "Banner 3",
-		width: 1600,
-		height: 900,
-	},
-	{
-		src: "/optimized-banners/banner-04-2xl.webp",
-		fallback: "/optimized-banners/banner-04-2xl.jpg",
-		alt: "Banner 4",
-		width: 1600,
-		height: 900,
-	},
-	{
-		src: "/optimized-banners/banner-05-2xl.webp",
-		fallback: "/optimized-banners/banner-05-2xl.jpg",
-		alt: "Banner 5",
-		width: 1600,
-		height: 900,
-	},
-];
+const optimizedBanners = bannerImages.map((banner) => ({
+	src: getResponsiveImageSrc(banner.name, "2xl"),
+	fallback: getResponsiveImageSrc(banner.name, "2xl").replace(".webp", ".jpg"),
+	alt: banner.alt,
+	width: 1600,
+	height: 900,
+}));
 
 // Custom styles for carousel controls
 const carouselStyles = {

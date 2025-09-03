@@ -5,7 +5,7 @@ import { Pie } from "react-chartjs-2";
 const BrowserAnalyticsCard = ({ deviceAnalytics, getBrowserIcon }) => {
 	return (
 		<Card className="p-3 shadow-sm custom-card h-100">
-			<Card.Header className="text-center fw-bold">
+			<Card.Header className="bg-secondary text-white text-center fw-bold">
 				Top Browsers
 			</Card.Header>
 			<Card.Body>
@@ -22,17 +22,14 @@ const BrowserAnalyticsCard = ({ deviceAnalytics, getBrowserIcon }) => {
 									</tr>
 								</thead>
 								<tbody>
-									{Object.entries(
-										deviceAnalytics.browsers || {}
-									)
+									{Object.entries(deviceAnalytics.browsers || {})
 										.sort(([, a], [, b]) => b - a)
 										.slice(0, 5)
 										.map(([browser, count]) => {
 											const percentage =
 												deviceAnalytics.total_devices > 0
 													? (
-															(count /
-																deviceAnalytics.total_devices) *
+															(count / deviceAnalytics.total_devices) *
 															100
 													  ).toFixed(1)
 													: 0;
@@ -49,12 +46,8 @@ const BrowserAnalyticsCard = ({ deviceAnalytics, getBrowserIcon }) => {
 															<span>{browser}</span>
 														</div>
 													</td>
-													<td className="fw-bold small">
-														{count}
-													</td>
-													<td className="small">
-														{percentage}%
-													</td>
+													<td className="fw-bold small">{count}</td>
+													<td className="small">{percentage}%</td>
 												</tr>
 											);
 										})}
@@ -65,22 +58,16 @@ const BrowserAnalyticsCard = ({ deviceAnalytics, getBrowserIcon }) => {
 
 					{/* Pie Chart */}
 					<Col xs={12} md={6}>
-						{Object.keys(
-							deviceAnalytics.browsers || {}
-						).length > 0 ? (
+						{Object.keys(deviceAnalytics.browsers || {}).length > 0 ? (
 							<Pie
 								data={{
-									labels: Object.entries(
-										deviceAnalytics.browsers || {}
-									)
+									labels: Object.entries(deviceAnalytics.browsers || {})
 										.sort(([, a], [, b]) => b - a)
 										.slice(0, 5)
 										.map(([browser]) => browser),
 									datasets: [
 										{
-											data: Object.entries(
-												deviceAnalytics.browsers || {}
-											)
+											data: Object.entries(deviceAnalytics.browsers || {})
 												.sort(([, a], [, b]) => b - a)
 												.slice(0, 5)
 												.map(([, count]) => count),
