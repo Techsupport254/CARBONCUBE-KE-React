@@ -363,33 +363,6 @@ export const loadCSS = (href) => {
 	});
 };
 
-// Cache management
-export const clearOldCaches = async () => {
-	if ("caches" in window) {
-		const cacheNames = await caches.keys();
-		const oldCaches = cacheNames.filter(
-			(name) => name.startsWith("carbon-cube-") && name !== "carbon-cube-v1"
-		);
-		await Promise.all(oldCaches.map((name) => caches.delete(name)));
-	}
-};
-
-// Service Worker registration with performance optimization
-export const registerServiceWorker = async () => {
-	if ("serviceWorker" in navigator) {
-		try {
-			const registration = await navigator.serviceWorker.register("/sw.js", {
-				scope: "/",
-				updateViaCache: "none",
-			});
-			// console.log('SW registered: ', registration);
-			return registration;
-		} catch (error) {
-			// console.log('SW registration failed: ', error);
-		}
-	}
-};
-
 // Optimize font loading
 export const optimizeFontLoading = () => {
 	if ("fonts" in document) {

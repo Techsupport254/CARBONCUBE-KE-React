@@ -107,17 +107,6 @@ function App() {
 			setIsInitialized(true);
 		};
 
-		// Add cache-busting parameter to prevent stale data
-		const urlParams = new URLSearchParams(window.location.search);
-		const cacheBuster = urlParams.get("v");
-
-		if (!cacheBuster) {
-			// Add cache-busting parameter if not present
-			const newUrl = new URL(window.location);
-			newUrl.searchParams.set("v", Date.now());
-			window.history.replaceState({}, "", newUrl);
-		}
-
 		initializeAuth();
 	}, []);
 

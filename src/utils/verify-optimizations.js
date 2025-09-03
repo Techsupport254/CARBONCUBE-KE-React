@@ -13,23 +13,16 @@ const verifyPerformanceOptimizations = () => {
 		});
 	};
 
-	// Check font loading
-	const fontLinks = document.querySelectorAll('link[href*="fonts"]');
+	// // Check font loading
+	// const fontLinks = document.querySelectorAll('link[href*="fonts"]');
 
-	// Check preconnect hints
-	const preconnectLinks = document.querySelectorAll('link[rel="preconnect"]');
+	// // Check preconnect hints
+	// const preconnectLinks = document.querySelectorAll('link[rel="preconnect"]');
 
-	// Check optimized images
-	const optimizedImages = document.querySelectorAll(
-		'img[src*="optimized-banners"]'
-	);
-
-	// Check service worker
-	if ("serviceWorker" in navigator) {
-		navigator.serviceWorker.getRegistrations().then((registrations) => {
-			// Service workers registered
-		});
-	}
+	// // Check optimized images
+	// const optimizedImages = document.querySelectorAll(
+	// 	'img[src*="optimized-banners"]'
+	// );
 
 	// Performance summary
 	setTimeout(() => {
