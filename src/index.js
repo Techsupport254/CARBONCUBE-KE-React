@@ -56,42 +56,65 @@ const reportWebVitalsWithDetails = (metric) => {
 	});
 })();
 
-// Cache busting for development
-const clearOldCaches = () => {
+// Enhanced cache busting for production
+const clearAllCaches = () => {
 	if ("caches" in window) {
 		caches.keys().then((cacheNames) => {
 			cacheNames.forEach((cacheName) => {
-				// Clear old service worker caches
-				if (
-					cacheName.includes("carbon-cube") ||
-					cacheName.includes("static") ||
-					cacheName.includes("dynamic")
-				) {
-					caches.delete(cacheName);
-					console.log("Cleared old cache:", cacheName);
-				}
+				// Clear ALL caches to prevent any caching issues
+				caches.delete(cacheName);
+				console.log("Cleared cache:", cacheName);
 			});
 		});
 	}
 };
 
-// Unregister old service workers
-const unregisterOldServiceWorkers = () => {
+// Aggressive service worker unregistration
+const unregisterAllServiceWorkers = () => {
 	if ("serviceWorker" in navigator) {
 		navigator.serviceWorker.getRegistrations().then((registrations) => {
 			registrations.forEach((registration) => {
 				registration.unregister();
-				console.log("Unregistered old service worker");
+				console.log("Unregistered service worker:", registration.scope);
 			});
 		});
 	}
 };
 
+// Force reload if service worker is controlling the page
+const forceReloadIfControlled = () => {
+	if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+		console.log("Service worker is controlling the page, forcing reload");
+		window.location.reload(true);
+	}
+};
+
+// Add cache busting to all script and link tags
+const addCacheBustingToResources = () => {
+	const timestamp = Date.now();
+	const scripts = document.querySelectorAll('script[src]');
+	const links = document.querySelectorAll('link[href]');
+	
+	scripts.forEach(script => {
+		if (script.src && !script.src.includes('?v=')) {
+			script.src = script.src + (script.src.includes('?') ? '&' : '?') + 'v=' + timestamp;
+		}
+	});
+	
+	links.forEach(link => {
+		if (link.href && !link.href.includes('?v=')) {
+			link.href = link.href + (link.href.includes('?') ? '&' : '?') + 'v=' + timestamp;
+		}
+	});
+};
+
 // Performance optimizations
 const initializePerformanceOptimizations = () => {
-	// Clear old caches first
-	clearOldCaches();
-	unregisterOldServiceWorkers();
+	// Clear all caches first
+	clearAllCaches();
+	unregisterAllServiceWorkers();
+	forceReloadIfControlled();
+	addCacheBustingToResources();
 
 	// Manage preload links with enhanced monitoring
 	managePreloadLinks();
