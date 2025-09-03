@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Carousel from "react-bootstrap/Carousel";
-import OptimizedImage from "../../components/OptimizedImage";
 import { bannerImages, getResponsiveImageSrc } from "../../utils/imageConfig";
 
-// Optimized banner images with responsive sources
-const optimizedBanners = bannerImages.map((banner) => ({
+// Simple banner images with responsive sources
+const simpleBanners = bannerImages.map((banner) => ({
 	src: getResponsiveImageSrc(banner.name, "2xl"),
 	fallback: getResponsiveImageSrc(banner.name, "2xl").replace(".webp", ".jpg"),
 	alt: banner.alt,
@@ -60,9 +59,9 @@ const Banner = () => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
-		// Preload optimized images
+		// Preload images
 		const preloadImages = async () => {
-			const imagePromises = optimizedBanners.map((banner) => {
+			const imagePromises = simpleBanners.map((banner) => {
 				return new Promise((resolve) => {
 					const img = new Image();
 					img.onload = () => resolve();
@@ -76,8 +75,6 @@ const Banner = () => {
 		};
 
 		preloadImages();
-
-		// Note: Premium ads functionality removed as it was unused
 	}, []);
 
 	return (
@@ -86,7 +83,7 @@ const Banner = () => {
 				<div className="w-full mx-auto px-0">
 					<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-b-xl animate-pulse aspect-[16/9]"></div>
 				</div>
-			) : optimizedBanners.length > 0 ? (
+			) : simpleBanners.length > 0 ? (
 				<Carousel
 					interval={5000}
 					pause={false}
@@ -94,24 +91,22 @@ const Banner = () => {
 					controls={true}
 					indicators={true}
 				>
-					{optimizedBanners.map((banner, index) => (
+					{simpleBanners.map((banner, index) => (
 						<Carousel.Item key={index}>
 							<div className="w-full relative flex justify-center">
-								<OptimizedImage
+								<img
 									src={banner.src}
 									alt={banner.alt}
 									width={banner.width}
 									height={banner.height}
 									className="w-full h-auto object-contain"
 									loading={index === 0 ? "eager" : "lazy"}
-									priority={index === 0}
-									responsive={true}
 									sizes="100vw"
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 
 								{/* Banner Text Overlay - Centered in first half of banner - Only on last banner */}
-								{index === optimizedBanners.length - 1 && (
+								{index === simpleBanners.length - 1 && (
 									<div className="absolute inset-0 flex items-center justify-center z-10">
 										<div className="text-center text-white transform -translate-y-1/3">
 											<div className="bg-black bg-opacity-40 backdrop-blur-md rounded-3xl px-10 py-8 border border-white border-opacity-30 shadow-2xl max-w-2xl mx-4">

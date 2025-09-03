@@ -6,16 +6,6 @@ import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
 import sourceTrackingService from "./utils/sourceTracking";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
-import {
-	optimizeFontLoading,
-	optimizeCriticalPath,
-	checkPerformanceBudget,
-	logMemoryUsage,
-	optimizeCSSDelivery,
-	optimizeJavaScriptLoading,
-	fixPreloadLinks,
-	managePreloadLinks,
-} from "./utils/performance";
 
 // Performance monitoring
 const reportWebVitalsWithDetails = (metric) => {
@@ -55,37 +45,6 @@ const reportWebVitalsWithDetails = (metric) => {
 		console.error("Source tracking failed:", error);
 	});
 })();
-
-// Performance optimizations
-const initializePerformanceOptimizations = () => {
-	// Manage preload links with enhanced monitoring
-	managePreloadLinks();
-
-	// Optimize CSS delivery first
-	optimizeCSSDelivery();
-
-	// Optimize font loading
-	optimizeFontLoading();
-
-	// Optimize critical rendering path
-	optimizeCriticalPath();
-
-	// Optimize JavaScript loading
-	optimizeJavaScriptLoading();
-
-	// Check performance budget after page load
-	window.addEventListener("load", () => {
-		setTimeout(() => {
-			checkPerformanceBudget();
-			logMemoryUsage();
-			// Fix preload links again after page load
-			fixPreloadLinks();
-		}, 1000);
-	});
-};
-
-// Initialize performance optimizations
-initializePerformanceOptimizations();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);

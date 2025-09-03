@@ -271,25 +271,7 @@
 		<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-		<!-- Preload Critical Resources -->
-		<!-- CSS will be injected by webpack during build -->
-		<!-- Preload critical assets (only in production) -->
-		<!-- These will be replaced by webpack during build -->
-
-		<!-- Font Loading Optimization -->
-		<link
-			rel="preload"
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-			as="style"
-			onload="this.onload=null;this.rel='stylesheet'"
-		/>
-		<noscript
-			><link
-				rel="stylesheet"
-				href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-		/></noscript>
-
-		<!-- Optimized Font Loading -->
+		<!-- Font Loading -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
 			rel="stylesheet"
@@ -385,7 +367,7 @@
 			}
 		</script>
 
-		<!-- Optimized Analytics Loading -->
+		<!-- Analytics Loading -->
 		<script>
 			// Defer analytics loading to improve initial page load
 			window.addEventListener("load", function () {

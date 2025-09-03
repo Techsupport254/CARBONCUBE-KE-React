@@ -15,11 +15,19 @@ const SITE_BASE_URL =
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
 console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
 
+// Force current date for sitemap generation
+const CURRENT_DATE = new Date().toISOString().split("T")[0];
+const BUILD_TIMESTAMP = new Date().toISOString();
+
+console.log(`🚀 Starting dynamic sitemap generation...`);
+console.log(`📅 Current Date: ${CURRENT_DATE}`);
+console.log(`⏰ Build Timestamp: ${BUILD_TIMESTAMP}`);
+
 // Static routes with metadata
 const staticRoutes = [
 	{
 		path: "/",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "daily",
 		priority: "1.0",
 		keywords:
@@ -27,7 +35,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/categories",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "weekly",
 		priority: "0.9",
 		keywords:
@@ -35,7 +43,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/ads",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "hourly",
 		priority: "0.8",
 		keywords:
@@ -43,7 +51,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/about-us",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.7",
 		keywords:
@@ -51,7 +59,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/contact-us",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.7",
 		keywords:
@@ -59,7 +67,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/buyer-signup",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.6",
 		keywords:
@@ -67,7 +75,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/seller-signup",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.6",
 		keywords:
@@ -75,7 +83,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/login",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.6",
 		keywords:
@@ -83,7 +91,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/terms-and-conditions",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.5",
 		keywords:
@@ -91,7 +99,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/privacy-policy",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.5",
 		keywords:
@@ -277,7 +285,13 @@ function generateSubcategoryUrls(subcategories, categories) {
 
 // Generate XML sitemap
 function generateSitemapXML(urls) {
-	const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>';
+	const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Carbon Cube Kenya Sitemap
+  Generated on: ${CURRENT_DATE}
+  Build Timestamp: ${BUILD_TIMESTAMP}
+  Last Modified: ${CURRENT_DATE}
+-->`;
 	const urlsetOpen =
 		'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 	const urlsetClose = "</urlset>";
