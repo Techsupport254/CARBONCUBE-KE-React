@@ -56,66 +56,8 @@ const reportWebVitalsWithDetails = (metric) => {
 	});
 })();
 
-// Enhanced cache busting for production
-const clearAllCaches = () => {
-	if ("caches" in window) {
-		caches.keys().then((cacheNames) => {
-			cacheNames.forEach((cacheName) => {
-				// Clear ALL caches to prevent any caching issues
-				caches.delete(cacheName);
-				console.log("Cleared cache:", cacheName);
-			});
-		});
-	}
-};
-
-// Aggressive service worker unregistration
-const unregisterAllServiceWorkers = () => {
-	if ("serviceWorker" in navigator) {
-		navigator.serviceWorker.getRegistrations().then((registrations) => {
-			registrations.forEach((registration) => {
-				registration.unregister();
-				console.log("Unregistered service worker:", registration.scope);
-			});
-		});
-	}
-};
-
-// Force reload if service worker is controlling the page
-const forceReloadIfControlled = () => {
-	if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-		console.log("Service worker is controlling the page, forcing reload");
-		window.location.reload(true);
-	}
-};
-
-// Add cache busting to all script and link tags
-const addCacheBustingToResources = () => {
-	const timestamp = Date.now();
-	const scripts = document.querySelectorAll('script[src]');
-	const links = document.querySelectorAll('link[href]');
-	
-	scripts.forEach(script => {
-		if (script.src && !script.src.includes('?v=')) {
-			script.src = script.src + (script.src.includes('?') ? '&' : '?') + 'v=' + timestamp;
-		}
-	});
-	
-	links.forEach(link => {
-		if (link.href && !link.href.includes('?v=')) {
-			link.href = link.href + (link.href.includes('?') ? '&' : '?') + 'v=' + timestamp;
-		}
-	});
-};
-
 // Performance optimizations
 const initializePerformanceOptimizations = () => {
-	// Clear all caches first
-	clearAllCaches();
-	unregisterAllServiceWorkers();
-	forceReloadIfControlled();
-	addCacheBustingToResources();
-
 	// Manage preload links with enhanced monitoring
 	managePreloadLinks();
 
@@ -130,9 +72,6 @@ const initializePerformanceOptimizations = () => {
 
 	// Optimize JavaScript loading
 	optimizeJavaScriptLoading();
-
-	// Register service worker for caching
-	// registerServiceWorker();
 
 	// Check performance budget after page load
 	window.addEventListener("load", () => {
