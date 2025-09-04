@@ -41,6 +41,7 @@ Framework defaults (authoritative)
 const Home = () => {
 	const [categories, setCategories] = useState([]);
 	const [ads, setAds] = useState({});
+	const [subcategoryCounts, setSubcategoryCounts] = useState({});
 	// const [allAds, setAllAds] = useState({});
 	// Loading and error states
 	const [isLoadingCategories, setIsLoadingCategories] = useState(true);
@@ -64,6 +65,7 @@ const Home = () => {
 	const [displayedResults, setDisplayedResults] = useState([]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
+	const [hasSearched, setHasSearched] = useState(false); // Track if a search has been performed
 	const RESULTS_PER_PAGE = 18; // Show 18 items per page (3 rows of 6 items)
 	const navigate = useNavigate(); // Initialize useNavigate
 	const [isComponentMounted, setIsComponentMounted] = useState(false);
@@ -170,10 +172,22 @@ const Home = () => {
 
 				const adData = await adResponse.json();
 
+				// Handle new API response format with subcategory counts
+				let ads, subcategoryCounts;
+				if (adData.ads && adData.subcategory_counts) {
+					// New format with subcategory counts
+					ads = adData.ads;
+					subcategoryCounts = adData.subcategory_counts;
+				} else {
+					// Old format - just array of ads
+					ads = adData;
+					subcategoryCounts = {};
+				}
+
 				// Organize ads by subcategory ID
 				const organizedAds = {};
-				if (Array.isArray(adData)) {
-					adData.forEach((ad) => {
+				if (Array.isArray(ads)) {
+					ads.forEach((ad) => {
 						if (ad.subcategory_id) {
 							if (!organizedAds[ad.subcategory_id]) {
 								organizedAds[ad.subcategory_id] = [];
@@ -185,6 +199,8 @@ const Home = () => {
 
 				if (isMounted) {
 					setAds(organizedAds);
+					// Store subcategory counts for use in SearchResultSection
+					setSubcategoryCounts(subcategoryCounts);
 				}
 			} catch (err) {
 				console.error("Ads Fetch Error:", err);
@@ -252,7 +268,14 @@ const Home = () => {
 			setSearchResults([]);
 			setCurrentSearchType("");
 			setIsSearching(false);
+			setHasSearched(false); // Reset search state when no search params
+			setSearchQuery(""); // Reset search query
 			return;
+		}
+
+		// Set search query from URL parameters
+		if (query) {
+			setSearchQuery(query);
 		}
 
 		const fetchSearchResults = async () => {
@@ -263,22 +286,37 @@ const Home = () => {
 				const searchCategory = category || "All";
 				const searchSubcategory = subcategory || "All";
 
-				const response = await fetch(
-					`${
-						process.env.REACT_APP_BACKEND_URL
-					}/buyer/ads/search?query=${encodeURIComponent(
-						searchQuery
-					)}&category=${encodeURIComponent(
-						searchCategory
-					)}&subcategory=${encodeURIComponent(
-						searchSubcategory
-					)}&page=1&per_page=20`,
-					{
-						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
-						},
-					}
-				);
+				// Use different endpoints based on search type
+				let response;
+				if (searchQuery.trim()) {
+					// For text search, use the search endpoint
+					response = await fetch(
+						`${
+							process.env.REACT_APP_BACKEND_URL
+						}/buyer/ads/search?query=${encodeURIComponent(
+							searchQuery
+						)}&category=${encodeURIComponent(
+							searchCategory
+						)}&subcategory=${encodeURIComponent(
+							searchSubcategory
+						)}&page=1&per_page=20`,
+						{
+							headers: {
+								Authorization: "Bearer " + sessionStorage.getItem("token"),
+							},
+						}
+					);
+				} else {
+					// For category/subcategory filtering, use the main ads endpoint (same as homepage)
+					response = await fetch(
+						`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=200&balanced=true`,
+						{
+							headers: {
+								Authorization: "Bearer " + sessionStorage.getItem("token"),
+							},
+						}
+					);
+				}
 
 				if (!response.ok) {
 					const errorText = await response.text();
@@ -287,18 +325,57 @@ const Home = () => {
 					);
 				}
 
-				const results = await response.json();
+				let results = await response.json();
 
-				if (!results || results.length === 0) {
+				// Handle new API response format with subcategory counts
+				let ads, subcategoryCounts;
+				if (results.ads && results.subcategory_counts) {
+					// New format with subcategory counts
+					ads = results.ads;
+					subcategoryCounts = results.subcategory_counts;
+				} else {
+					// Old format - just array of ads
+					ads = results;
+					subcategoryCounts = {};
+				}
+
+				// If using main ads endpoint, filter by category/subcategory
+				if (!searchQuery.trim()) {
+					ads = ads.filter((ad) => {
+						// Filter by category
+						if (searchCategory !== "All") {
+							const categoryMatch =
+								typeof searchCategory === "string" &&
+								searchCategory.match(/^\d+$/)
+									? ad.category_id === parseInt(searchCategory)
+									: ad.category_name === searchCategory;
+							if (!categoryMatch) return false;
+						}
+
+						// Filter by subcategory
+						if (searchSubcategory !== "All") {
+							const subcategoryMatch =
+								typeof searchSubcategory === "string" &&
+								searchSubcategory.match(/^\d+$/)
+									? ad.subcategory_id === parseInt(searchSubcategory)
+									: ad.subcategory_name === searchSubcategory;
+							if (!subcategoryMatch) return false;
+						}
+
+						return true;
+					});
+				}
+
+				if (!ads || ads.length === 0) {
 					setSearchResults([]);
 					setDisplayedResults([]);
-					setError(
-						`No results found for "${searchQuery}". Try searching for: filter, pump, or battery`
-					);
-				} else {
-					setSearchResults(results);
-					initializeDisplayedResults(results);
 					setError(null); // Clear any previous errors
+					setHasSearched(true); // Mark that a search was performed
+				} else {
+					setSearchResults(ads);
+					initializeDisplayedResults(ads);
+					setError(null); // Clear any previous errors
+					setHasSearched(true); // Mark that a search was performed
 				}
 
 				if (searchQuery.trim()) {
@@ -355,18 +432,19 @@ const Home = () => {
 
 	// Function to log a click event
 
-	const handleSearch = (e, category = "All", subcategory = "All") => {
-		e.preventDefault();
-
+	const handleSearch = (query, category = "All", subcategory = "All") => {
 		// Don't search if query is empty and no category/subcategory filters
-		if (!searchQuery.trim() && category === "All" && subcategory === "All") {
+		if (!query.trim() && category === "All" && subcategory === "All") {
 			return;
 		}
 
+		// Update the search query state
+		setSearchQuery(query);
+
 		// Build search URL with proper parameters
 		const params = new URLSearchParams();
-		if (searchQuery.trim()) {
-			params.set("query", searchQuery.trim());
+		if (query.trim()) {
+			params.set("query", query.trim());
 		}
 		if (category !== "All") {
 			params.set("category", category);
@@ -403,6 +481,7 @@ const Home = () => {
 		setDisplayedResults([]);
 		setCurrentPage(1);
 		setHasMore(true);
+		setHasSearched(false); // Reset search state
 	};
 
 	// Function to load more results
@@ -417,12 +496,45 @@ const Home = () => {
 		setHasMore(endIndex < searchResults.length);
 	};
 
+	const handleSubcategoryLoadMore = (
+		newProducts,
+		subcategoryName,
+		subcategoryId
+	) => {
+		// Add the new products to the existing search results
+		const updatedResults = [...searchResults, ...newProducts];
+
+		// Update the search results with the new products
+		setSearchResults(updatedResults);
+		setDisplayedResults(updatedResults);
+	};
+
 	// Function to initialize displayed results when search results change
 	const initializeDisplayedResults = (results) => {
-		const initialResults = results.slice(0, RESULTS_PER_PAGE);
-		setDisplayedResults(initialResults);
-		setCurrentPage(1);
-		setHasMore(results.length > RESULTS_PER_PAGE);
+		// Get URL parameters to check if this is category/subcategory filtering
+		const params = new URLSearchParams(location.search);
+		const category = params.get("category");
+		const subcategory = params.get("subcategory");
+		const query = params.get("query");
+
+		// If filtering by category/subcategory (no search query), show all results
+		// If searching with text query, limit to RESULTS_PER_PAGE
+		if (!query || query.trim() === "") {
+			setDisplayedResults(results);
+			setCurrentPage(1);
+			setHasMore(false); // No pagination for category filtering
+		} else {
+			const initialResults = results.slice(0, RESULTS_PER_PAGE);
+			setDisplayedResults(initialResults);
+			setCurrentPage(1);
+			setHasMore(results.length > RESULTS_PER_PAGE);
+		}
+	};
+
+	// Wrapper function for navbar search (maintains old signature)
+	const handleNavbarSearch = (e, category = "All", subcategory = "All") => {
+		e.preventDefault();
+		handleSearch(searchQuery, category, subcategory);
 	};
 
 	// Do not early-return on error; show alerts inline instead
@@ -433,7 +545,7 @@ const Home = () => {
 				mode="buyer"
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
-				handleSearch={handleSearch}
+				handleSearch={handleNavbarSearch}
 				onSidebarToggle={handleSidebarToggle}
 				showSearch={true}
 				showCategories={true}
@@ -448,10 +560,11 @@ const Home = () => {
 				</div>
 				<div className="flex-1 bg-gray-300 transition-all duration-300 ease-in-out">
 					<div className="w-full">
-						{!isSearching && searchResults.length === 0 && <Banner />}
+						{/* Show Banner only when not in search mode */}
+						{!isSearching && !hasSearched && !searchQuery && <Banner />}
 						<div
 							className={`px-0 ${
-								!isSearching && searchResults.length === 0
+								!isSearching && !hasSearched && !searchQuery
 									? "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[15vh] 2xl:-translate-y-[20vh]"
 									: ""
 							} relative z-2 transition-transform duration-300`}
@@ -464,10 +577,58 @@ const Home = () => {
 										style={{ width: 50, height: 50 }}
 									/>
 								</div>
-							) : searchResults.length > 0 ? (
+							) : (searchQuery && searchQuery.trim() !== "") ||
+							  hasSearched ||
+							  (() => {
+									const params = new URLSearchParams(location.search);
+									const category = params.get("category");
+									const subcategory = params.get("subcategory");
+									return (
+										(category && category !== "All") ||
+										(subcategory && subcategory !== "All")
+									);
+							  })() ? (
 								<SearchResultSection
 									results={displayedResults}
+									searchQuery={searchQuery}
 									getHeaderTitle={() => {
+										// Get URL parameters for category and subcategory
+										const params = new URLSearchParams(location.search);
+										const categoryParam = params.get("category");
+										const subcategoryParam = params.get("subcategory");
+
+										// If we have subcategory filter, show subcategory name
+										if (subcategoryParam && subcategoryParam !== "All") {
+											const category = categories.find(
+												(c) =>
+													c.id === parseInt(categoryParam) ||
+													c.id === categoryParam
+											);
+											if (category) {
+												const subcategory = category.subcategories?.find(
+													(sc) =>
+														sc.id === parseInt(subcategoryParam) ||
+														sc.id === subcategoryParam
+												);
+												if (subcategory) {
+													return `${subcategory.name} Products`;
+												}
+											}
+										}
+
+										// If we have category filter, show category name
+										if (categoryParam && categoryParam !== "All") {
+											const category = categories.find(
+												(c) =>
+													c.id === parseInt(categoryParam) ||
+													c.id === categoryParam
+											);
+											if (category) {
+												return `${category.name} Products`;
+											}
+										}
+
+										// Fallback for search queries
 										if (
 											typeof currentSearchType === "string" &&
 											currentSearchType.startsWith("subcategory-")
@@ -481,12 +642,23 @@ const Home = () => {
 												.replace(/\b\w/g, (c) => c.toUpperCase());
 											return `${formatted} Products`;
 										}
+
 										return "Search Results";
 									}}
 									handleAdClick={handleAdClick}
 									handleClearSearch={handleClearSearch}
 									hasMore={hasMore}
-									onLoadMore={handleLoadMore}
+									onLoadMore={handleSubcategoryLoadMore}
+									selectedCategory={(() => {
+										const params = new URLSearchParams(location.search);
+										return params.get("category") || "All";
+									})()}
+									selectedSubcategory={(() => {
+										const params = new URLSearchParams(location.search);
+										return params.get("subcategory") || "All";
+									})()}
+									categories={categories}
+									subcategoryCounts={subcategoryCounts}
 								/>
 							) : (
 								<div className="relative z-10">

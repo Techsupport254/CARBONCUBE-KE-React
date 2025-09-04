@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faSearch,
@@ -23,23 +23,6 @@ import {
 	faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Spinner from "react-spinkit";
-
-// Custom hook for debouncing search inputs
-const useDebounce = (value, delay) => {
-	const [debouncedValue, setDebouncedValue] = useState(value);
-
-	useEffect(() => {
-		const handler = setTimeout(() => {
-			setDebouncedValue(value);
-		}, delay);
-
-		return () => {
-			clearTimeout(handler);
-		};
-	}, [value, delay]);
-
-	return debouncedValue;
-};
 
 // Custom hook for click outside
 const useClickOutside = (ref, handler, excludeRefs = []) => {
@@ -87,6 +70,7 @@ const Navbar = ({
 	showWishlist = true,
 }) => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [categories, setCategories] = useState([]);
 	const [selectedCategory, setSelectedCategory] = useState("All");
 	const [selectedSubcategory, setSelectedSubcategory] = useState("All");
@@ -100,7 +84,6 @@ const Navbar = ({
 	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const [wishlistCount, setWishlistCount] = useState(0);
-	const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
 	// Refs for click outside functionality
 	const dropdownRef = useRef(null);
@@ -153,7 +136,7 @@ const Navbar = ({
 		try {
 			const token = sessionStorage.getItem("token");
 			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/wishlist/count`,
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/wish_lists/count`,
 				{
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -178,6 +161,27 @@ const Navbar = ({
 			setWishlistCount(0);
 		}
 	}, [isLoggedIn, userRole, fetchWishlistCount]);
+
+	// Read URL parameters on component mount and URL changes
+	useEffect(() => {
+		const params = new URLSearchParams(location.search);
+		const categoryParam = params.get("category");
+		const subcategoryParam = params.get("subcategory");
+
+		// Update category selection
+		if (categoryParam && categoryParam !== "All") {
+			setSelectedCategory(categoryParam);
+		} else {
+			setSelectedCategory("All");
+		}
+
+		// Update subcategory selection
+		if (subcategoryParam && subcategoryParam !== "All") {
+			setSelectedSubcategory(subcategoryParam);
+		} else {
+			setSelectedSubcategory("All");
+		}
+	}, [location.search]);
 
 	const fetchCategories = async () => {
 		try {
@@ -251,37 +255,6 @@ const Navbar = ({
 			setIsSearchLoading(false);
 		}
 	};
-
-	// Auto-search when search term changes (debounced)
-	useEffect(() => {
-		if (debouncedSearchQuery !== searchQuery && handleSearch) {
-			const autoSearch = async () => {
-				setIsSearchLoading(true);
-				try {
-					await handleSearch(
-						{ preventDefault: () => {} },
-						selectedCategory,
-						selectedSubcategory
-					);
-				} finally {
-					setIsSearchLoading(false);
-				}
-			};
-
-			if (
-				debouncedSearchQuery.length > 2 ||
-				debouncedSearchQuery.length === 0
-			) {
-				autoSearch();
-			}
-		}
-	}, [
-		debouncedSearchQuery,
-		handleSearch,
-		searchQuery,
-		selectedCategory,
-		selectedSubcategory,
-	]);
 
 	const handleLogout = () => {
 		sessionStorage.removeItem("token");
@@ -406,9 +379,9 @@ const Navbar = ({
 		return (
 			<div className="hidden md:flex items-center justify-center flex-1 min-w-0 mx-4 lg:mx-8">
 				<div className="relative w-full max-w-xl lg:max-w-2xl">
-					<form onSubmit={onSubmit} className="relative">
+					<form onSubmit={onSubmit} className="relative flex">
 						{/* Category Dropdown */}
-						<div className="absolute left-0 top-0 z-10" ref={dropdownRef}>
+						<div className="relative flex-shrink-0" ref={dropdownRef}>
 							<button
 								type="button"
 								onClick={(e) => {
@@ -421,40 +394,44 @@ const Navbar = ({
 										setIsDropdownOpen(!isDropdownOpen);
 									}
 								}}
-								className={`flex items-center px-3 sm:px-4 text-sm font-medium rounded-l-full border border-r-0 transition-all duration-200 h-[36px] sm:h-[42px] ${
-									isDropdownOpen
-										? "bg-yellow-500 text-gray-900 border-yellow-500"
-										: "bg-yellow-500 text-gray-900 border-yellow-500 hover:bg-yellow-600"
+								className={`flex items-center px-3 sm:px-4 text-sm font-medium rounded-l-full border border-r-0 transition-all duration-200 h-[36px] sm:h-[42px] bg-yellow-500 text-gray-900 border-yellow-500 hover:bg-yellow-600 ${
+									isDropdownOpen ? "bg-yellow-600" : ""
 								}`}
 								aria-haspopup="true"
 								aria-expanded={isDropdownOpen}
 								aria-label="Filter categories"
 							>
-								<FontAwesomeIcon icon={faFilter} className="mr-1 sm:mr-2" />
-								{selectedCategory === "All" && selectedSubcategory === "All" ? (
-									"All"
-								) : (
-									<>
-										{categories.find((c) => c.id === selectedCategory)?.name ||
-											"Select"}
-										{selectedSubcategory !== "All" && (
-											<>
-												{" "}
-												•
-												{
-													categories
-														.find((c) => c.id === selectedCategory)
-														?.subcategories.find(
-															(sc) => sc.id === selectedSubcategory
-														)?.name
-												}
-											</>
-										)}
-									</>
-								)}
+								<FontAwesomeIcon
+									icon={faFilter}
+									className="mr-1 sm:mr-2 flex-shrink-0"
+								/>
+								<span className="truncate max-w-[120px] sm:max-w-[180px] lg:max-w-[220px]">
+									{selectedCategory === "All" &&
+									selectedSubcategory === "All" ? (
+										"All"
+									) : (
+										<>
+											{categories.find((c) => c.id === selectedCategory)
+												?.name || "Select"}
+											{selectedSubcategory !== "All" && (
+												<>
+													{" "}
+													•
+													{
+														categories
+															.find((c) => c.id === selectedCategory)
+															?.subcategories.find(
+																(sc) => sc.id === selectedSubcategory
+															)?.name
+													}
+												</>
+											)}
+										</>
+									)}
+								</span>
 								<FontAwesomeIcon
 									icon={faChevronDown}
-									className={`ml-1 sm:ml-2 transition-transform duration-200 ${
+									className={`ml-1 sm:ml-2 transition-transform duration-200 flex-shrink-0 ${
 										isDropdownOpen ? "rotate-180" : ""
 									}`}
 								/>
@@ -515,7 +492,7 @@ const Navbar = ({
 							onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
 							onFocus={() => setIsSearchFocused(true)}
 							onBlur={() => setIsSearchFocused(false)}
-							className={`w-full pl-28 sm:pl-32 pr-10 sm:pr-12 border border-yellow-500 rounded-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] sm:h-[42px] text-sm ${
+							className={`flex-1 min-w-0 px-3 sm:px-4 pr-10 sm:pr-12 border-t border-b border-yellow-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] sm:h-[42px] text-sm ${
 								isSearchFocused ? "shadow-lg" : ""
 							}`}
 						/>
@@ -523,7 +500,7 @@ const Navbar = ({
 						<button
 							type="submit"
 							disabled={isSearchLoading}
-							className="absolute right-0 top-0 h-[36px] sm:h-[42px] w-10 sm:w-12 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
+							className="flex-shrink-0 h-[36px] sm:h-[42px] w-10 sm:w-12 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
 						>
 							{isSearchLoading ? (
 								<Spinner animation="border" size="sm" />
@@ -742,30 +719,33 @@ const Navbar = ({
 							{/* Mobile Search */}
 							{showSearch && mode !== "minimal" && (
 								<div className="mb-4">
-									<form onSubmit={onSubmit} className="relative">
+									<form onSubmit={onSubmit} className="relative flex">
 										{/* Mobile Category Dropdown */}
-										<div className="absolute left-0 top-0 z-10">
+										<div className="relative flex-shrink-0">
 											<button
 												type="button"
 												onClick={(e) => {
 													e.stopPropagation();
 													setIsDropdownOpen(!isDropdownOpen);
 												}}
-												className={`flex items-center px-3 text-sm font-medium rounded-l-full border border-r-0 transition-all duration-200 h-[36px] ${
-													isDropdownOpen
-														? "bg-yellow-500 text-gray-900 border-yellow-500"
-														: "bg-yellow-500 text-gray-900 border-yellow-500 hover:bg-yellow-600"
+												className={`flex items-center px-3 text-sm font-medium rounded-l-full border border-r-0 transition-all duration-200 h-[36px] bg-yellow-500 text-gray-900 border-yellow-500 hover:bg-yellow-600 ${
+													isDropdownOpen ? "bg-yellow-600" : ""
 												}`}
 											>
-												<FontAwesomeIcon icon={faFilter} className="mr-1" />
-												{selectedCategory === "All" &&
-												selectedSubcategory === "All"
-													? "All"
-													: categories.find((c) => c.id === selectedCategory)
-															?.name || "Select"}
+												<FontAwesomeIcon
+													icon={faFilter}
+													className="mr-1 flex-shrink-0"
+												/>
+												<span className="truncate max-w-[100px]">
+													{selectedCategory === "All" &&
+													selectedSubcategory === "All"
+														? "All"
+														: categories.find((c) => c.id === selectedCategory)
+																?.name || "Select"}
+												</span>
 												<FontAwesomeIcon
 													icon={faChevronDown}
-													className={`ml-1 transition-transform duration-200 ${
+													className={`ml-1 transition-transform duration-200 flex-shrink-0 ${
 														isDropdownOpen ? "rotate-180" : ""
 													}`}
 												/>
@@ -830,13 +810,13 @@ const Navbar = ({
 											onChange={(e) =>
 												setSearchQuery && setSearchQuery(e.target.value)
 											}
-											className="w-full pl-24 pr-10 border border-yellow-500 rounded-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] text-sm"
+											className="flex-1 min-w-0 px-3 pr-10 border-t border-b border-yellow-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] text-sm"
 										/>
 
 										<button
 											type="submit"
 											disabled={isSearchLoading}
-											className="absolute right-0 top-0 h-[36px] w-10 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
+											className="flex-shrink-0 h-[36px] w-10 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
 										>
 											{isSearchLoading ? (
 												<Spinner animation="border" size="sm" />

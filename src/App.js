@@ -351,8 +351,13 @@ function App() {
 								/>
 							}
 						>
+							<Route path="home" element={<Home onLogout={handleLogout} />} />
 							<Route
 								path="wishlist"
+								element={<WishList onLogout={handleLogout} />}
+							/>
+							<Route
+								path="wish_lists"
 								element={<WishList onLogout={handleLogout} />}
 							/>
 							<Route

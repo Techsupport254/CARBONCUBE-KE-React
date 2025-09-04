@@ -1,6 +1,34 @@
 import React from "react";
 import { Card } from "react-bootstrap";
-import { getBorderColor } from "../utils/sellerTierUtils";
+import { getBorderColor, getTierName, getTierId } from "../utils/sellerTierUtils";
+import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
+
+// Helper function to get tier priority (higher number = higher priority)
+const getTierPriority = (ad) => {
+	const tier = ad.seller_tier || 1; // Default to Free (1) if no tier
+	// Premium = 4, Standard = 3, Basic = 2, Free = 1
+	return tier;
+};
+
+// Helper function to sort ads by tier priority (Premium → Standard → Basic → Free)
+const sortAdsByTier = (ads) => {
+	return [...ads].sort((a, b) => {
+		const tierA = getTierPriority(a);
+		const tierB = getTierPriority(b);
+
+		// Higher tier number = higher priority
+		if (tierA !== tierB) {
+			return tierB - tierA;
+		}
+
+		// If same tier, sort by quantity (descending)
+		const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
+		if (quantityDiff !== 0) return quantityDiff;
+
+		// If same quantity, sort by creation date (newest first)
+		return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+	});
+};
 
 const SubcategorySection = ({
 	subcategory,
@@ -13,26 +41,7 @@ const SubcategorySection = ({
 	onRetry,
 }) => {
 	// Sort ads by tier priority (Premium → Standard → Basic → Free), then by quantity, then by created_at
-	// The backend already sends ads sorted by tier priority, but we ensure proper ordering here too
-	const sortedAds = Array.isArray(ads)
-		? [...ads].sort((a, b) => {
-				// First priority: Complete tier hierarchy (Premium 4 → Standard 3 → Basic 2 → Free 1)
-				const tierA = a.seller_tier || 1; // Default to Free if no tier
-				const tierB = b.seller_tier || 1;
-
-				// Higher tier number = higher priority (Premium 4 > Standard 3 > Basic 2 > Free 1)
-				if (tierA !== tierB) {
-					return tierB - tierA;
-				}
-
-				// Second priority: quantity (descending)
-				const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
-				if (quantityDiff !== 0) return quantityDiff;
-
-				// Third priority: created_at (descending) for stable ordering
-				return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-		  })
-		: [];
+	const sortedAds = Array.isArray(ads) ? sortAdsByTier(ads) : [];
 
 	// Take first 4 ads (this will be Premium → Standard → Basic → Free to fill remaining slots)
 	const displayedAds = sortedAds.slice(0, 4);
@@ -71,7 +80,7 @@ const SubcategorySection = ({
 						const ad = displayedAds[i];
 
 						if (!isLoading && ad) {
-							const borderColor = getBorderColor(ad.seller_tier);
+							const borderColor = getBorderColor(getTierId(ad));
 							return (
 								<div
 									key={ad.id}
@@ -87,29 +96,17 @@ const SubcategorySection = ({
 											style={{ backgroundColor: borderColor }}
 											role="status"
 											aria-label={`${
-												ad.seller_tier_name || "Free"
+												getTierName(ad)
 											} tier product`}
 										>
-											{ad.seller_tier_name || "Free"}
+											{getTierName(ad)}
 										</div>
 										<div className="flex flex-col h-full">
 											{/* Ad image */}
 											<Card.Img
 												variant="top"
 												loading="lazy"
-												src={
-													ad.first_media_url
-														? ad.first_media_url.replace(/\n/g, "").trim()
-														: ad.media_urls &&
-														  Array.isArray(ad.media_urls) &&
-														  ad.media_urls.length > 0
-														? ad.media_urls[0].replace(/\n/g, "").trim()
-														: ad.media &&
-														  Array.isArray(ad.media) &&
-														  ad.media.length > 0
-														? ad.media[0].replace(/\n/g, "").trim()
-														: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
-												}
+												src={getAdImageUrl(ad)}
 												alt={ad.title || "Product Image"}
 												className="object-contain w-full h-auto aspect-square rounded-lg cursor-pointer transition-opacity duration-300 ease-in-out"
 												onClick={() => onAdClick(ad.id)}
@@ -118,8 +115,7 @@ const SubcategorySection = ({
 												}}
 												onError={(e) => {
 													// Use a data URI as fallback to prevent infinite loops
-													e.target.src =
-														"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+													e.target.src = getFallbackImage();
 													e.target.style.opacity = "1";
 												}}
 											/>

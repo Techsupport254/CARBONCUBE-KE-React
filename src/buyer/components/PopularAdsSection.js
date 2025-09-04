@@ -1,4 +1,32 @@
 import React from "react";
+import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
+
+// Helper function to get tier priority (higher number = higher priority)
+const getTierPriority = (ad) => {
+	const tier = ad.seller_tier || 1; // Default to Free (1) if no tier
+	// Premium = 4, Standard = 3, Basic = 2, Free = 1
+	return tier;
+};
+
+// Helper function to sort ads by tier priority (Premium → Standard → Basic → Free)
+const sortAdsByTier = (ads) => {
+	return [...ads].sort((a, b) => {
+		const tierA = getTierPriority(a);
+		const tierB = getTierPriority(b);
+
+		// Higher tier number = higher priority
+		if (tierA !== tierB) {
+			return tierB - tierA;
+		}
+
+		// If same tier, sort by quantity (descending)
+		const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
+		if (quantityDiff !== 0) return quantityDiff;
+
+		// If same quantity, sort by creation date (newest first)
+		return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+	});
+};
 
 const PopularAdsSection = ({
 	ads = [],
@@ -9,15 +37,12 @@ const PopularAdsSection = ({
 }) => {
 	// Sort ads by quantity (descending) and get the first 8
 	const sortedAds = Array.isArray(ads)
-		? [...ads].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+		? sortAdsByTier(ads) // First sort by tier priority
 		: [];
 	const popularProducts = sortedAds.slice(0, 8).map((ad, index) => ({
 		id: ad.id,
 		name: ad.title || `Product ${index + 1}`,
-		image:
-			ad.first_media_url ||
-			ad.media_urls?.[0] ||
-			"https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=200&h=200&fit=crop&crop=center",
+		image: getAdImageUrl(ad),
 	}));
 
 	// Loading skeletons (fixed layout)
@@ -165,11 +190,7 @@ const PopularAdsSection = ({
 						>
 							<div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
 								<img
-									src={
-										product.image
-											? product.image.replace(/\n/g, "").trim()
-											: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=200&h=200&fit=crop&crop=center"
-									}
+									src={product.image}
 									alt={product.name}
 									className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
 									loading="lazy"
@@ -178,8 +199,7 @@ const PopularAdsSection = ({
 									}}
 									onError={(e) => {
 										// Use a data URI as fallback to prevent infinite loops
-										e.target.src =
-											"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+										e.target.src = getFallbackImage();
 										e.target.style.opacity = "1";
 									}}
 								/>

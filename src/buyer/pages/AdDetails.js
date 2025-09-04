@@ -41,6 +41,7 @@ import useSEO from "../../hooks/useSEO";
 import { generateProductSEO } from "../../utils/seoHelpers";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
+import { getValidImageUrl, getFallbackImage } from "../../utils/imageUtils";
 
 const AdDetails = () => {
 	const { adId } = useParams();
@@ -923,11 +924,10 @@ const AdDetails = () => {
 									<div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
 										<img
 											className="w-full h-full object-contain rounded-xl"
-											src={url}
+											src={getValidImageUrl(url)}
 											alt={`Product ${index + 1}`}
 											onError={(e) => {
-												e.target.src =
-													"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+												e.target.src = getFallbackImage();
 											}}
 										/>
 									</div>
@@ -961,12 +961,11 @@ const AdDetails = () => {
 											}}
 										>
 											<img
-												src={image}
+												src={getValidImageUrl(image)}
 												alt={`Thumbnail ${index + 1}`}
 												className="w-full h-full object-cover"
 												onError={(e) => {
-													e.target.src =
-														"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+													e.target.src = getFallbackImage();
 												}}
 											/>
 										</div>
@@ -1619,10 +1618,6 @@ const AdDetails = () => {
 									{/* Description */}
 									<div className="lg:col-span-2 bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-xl p-3 sm:p-6 lg:p-8 border border-gray-100">
 										<div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
-											<FontAwesomeIcon
-												icon={faEdit}
-												className="text-yellow-500 text-lg sm:text-xl"
-											/>
 											<h2 className="text-xl sm:text-2xl font-bold text-gray-900">
 												Description
 											</h2>
@@ -1715,10 +1710,7 @@ const AdDetails = () => {
 								<div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-xl p-3 sm:p-6 lg:p-8 border border-gray-100">
 									<div className="flex items-center justify-between mb-3 sm:mb-6 lg:mb-8">
 										<div className="flex items-center space-x-2 sm:space-x-3">
-											<FontAwesomeIcon
-												icon={faBox}
-												className="text-gray-600 text-lg sm:text-xl"
-											/>
+											
 											<h2 className="text-xl sm:text-2xl font-bold text-gray-900">
 												Related Products
 											</h2>

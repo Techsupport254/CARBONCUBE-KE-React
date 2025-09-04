@@ -1,507 +1,726 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Card, Modal, Form, Button } from 'react-bootstrap';
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
-import ClickEventsStats from '../components/ClickEventsStats';
-import TopWishListedAds from '../components/TopWishListedAds';
-import WishListStats from '../components/WishListStats';
-import CompetitorStats from '../components/CompetitorStats';
-import CountDownDisplay from '../components/CountDownDisplay';
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Button } from "react-bootstrap";
+import Sidebar from "../components/Sidebar";
+import TopNavbar from "../components/TopNavbar";
+import ClickEventsStats from "../components/ClickEventsStats";
+import TopWishListedAds from "../components/TopWishListedAds";
+import WishListStats from "../components/WishListStats";
+import CompetitorStats from "../components/CompetitorStats";
+import CountDownDisplay from "../components/CountDownDisplay";
 import BuyerDemographics from "../components/BuyerDemographics";
 import Spinner from "react-spinkit";
-import { format, isToday } from 'date-fns';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencilAlt } from '@fortawesome/free-solid-svg-icons';
-import '../css/SellerAnalytics.css';
+import { format, isToday } from "date-fns";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	faPencilAlt,
+	faExclamationTriangle,
+	faChartBar,
+	faLock,
+	faClipboardList,
+	faComments,
+	faCrown,
+	faStar,
+	faGem,
+	faUser,
+} from "@fortawesome/free-solid-svg-icons";
+import "../css/SellerAnalytics.css";
 
 const SellerAnalytics = () => {
-  const [analyticsData, setAnalyticsData] = useState(null);
-  const [tierId, setTierId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showReviewsModal, setShowReviewsModal] = useState(false);
-  const [reviews, setReviews] = useState([]);
-  const [loadingReviews, setLoadingReviews] = useState(false);
-  const [editingReplyId, setEditingReplyId] = useState(null);
-  const [replyDraft, setReplyDraft] = useState('');
+	const [analyticsData, setAnalyticsData] = useState(null);
+	const [tierId, setTierId] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+	const [showReviewsModal, setShowReviewsModal] = useState(false);
+	const [reviews, setReviews] = useState([]);
+	const [loadingReviews, setLoadingReviews] = useState(false);
+	const [editingReplyId, setEditingReplyId] = useState(null);
+	const [replyDraft, setReplyDraft] = useState("");
 
+	// Helper function to get tier icon and color
+	const getTierInfo = (tierId) => {
+		switch (tierId) {
+			case 1:
+				return { icon: faUser, color: "text-gray-500", name: "Free Tier" };
+			case 2:
+				return { icon: faStar, color: "text-blue-500", name: "Basic Tier" };
+			case 3:
+				return { icon: faGem, color: "text-purple-500", name: "Standard Tier" };
+			case 4:
+				return {
+					icon: faCrown,
+					color: "text-yellow-500",
+					name: "Premium Tier",
+				};
+			default:
+				return { icon: faUser, color: "text-gray-500", name: "Free Tier" };
+		}
+	};
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/seller/analytics`, {
-          headers: {
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
-          },
-        });
+	useEffect(() => {
+		const fetchAnalytics = async () => {
+			try {
+				const response = await fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/seller/analytics`,
+					{
+						headers: {
+							Authorization: "Bearer " + sessionStorage.getItem("token"),
+						},
+					}
+				);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
 
-        const data = await response.json();
-        			// API Response data
+				const data = await response.json();
+				// API Response data
 
-        const validatedAnalytics = {
-          tier_id: data.tier_id || 1,
-          total_ads: data.total_ads || 0,
-          total_reviews: data.total_reviews || 0,
-          average_rating: data.average_rating || 0.0,
-          top_wishlisted_ads: Array.isArray(data.basic_wishlist_stats?.top_wishlisted_ads) 
-            ? data.basic_wishlist_stats.top_wishlisted_ads 
-            : [],  // Ensure it's always an array
-          click_events_stats: data.click_events_stats || {
-            age_groups: [],
-            income_ranges: [],
-            education_levels: [],
-            employment_statuses: [],
-            sectors: []
-          },
-          basic_click_event_stats: data.basic_click_event_stats || {
-            click_event_trends: []
-          },
-          wishlist_stats: data.wishlist_stats || {
-            top_age_groups: [],
-            top_income_ranges: [],
-            top_education_levels: [],
-            top_employment_statuses: [],
-            top_by_sectors: []
-          },
-          basic_wishlist_stats: data.basic_wishlist_stats || {
-            wishlist_trends: []
-          },
-          competitor_stats: data.competitor_stats || {
-            revenue_share: {
-              seller_revenue: 0,
-              total_category_revenue: 0,
-              revenue_share: 0
-            },
-            top_competitor_ads: [],
-            competitor_average_price: 0
-          }
-        };
+				const validatedAnalytics = {
+					tier_id: data.tier_id || 1,
+					total_ads: data.total_ads || 0,
+					total_reviews: data.total_reviews || 0,
+					average_rating: data.average_rating || 0.0,
+					top_wishlisted_ads: Array.isArray(
+						data.basic_wishlist_stats?.top_wishlisted_ads
+					)
+						? data.basic_wishlist_stats.top_wishlisted_ads
+						: [], // Ensure it's always an array
+					click_events_stats: data.click_events_stats || {
+						age_groups: [],
+						income_ranges: [],
+						education_levels: [],
+						employment_statuses: [],
+						sectors: [],
+					},
+					basic_click_event_stats: data.basic_click_event_stats || {
+						click_event_trends: [],
+					},
+					wishlist_stats: data.wishlist_stats || {
+						top_age_groups: [],
+						top_income_ranges: [],
+						top_education_levels: [],
+						top_employment_statuses: [],
+						top_by_sectors: [],
+					},
+					basic_wishlist_stats: data.basic_wishlist_stats || {
+						wishlist_trends: [],
+					},
+					competitor_stats: data.competitor_stats || {
+						revenue_share: {
+							seller_revenue: 0,
+							total_category_revenue: 0,
+							revenue_share: 0,
+						},
+						top_competitor_ads: [],
+						competitor_average_price: 0,
+					},
+				};
 
-        			// Validated Analytics data
+				// Validated Analytics data
 
-        setTierId(validatedAnalytics.tier_id);
-        setAnalyticsData(validatedAnalytics);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching analytics data:', err.message);
-        setError(err.message);
-        setLoading(false);
-      }
-    };
+				setTierId(validatedAnalytics.tier_id);
+				setAnalyticsData(validatedAnalytics);
+				setLoading(false);
+			} catch (err) {
+				console.error("Error fetching analytics data:", err.message);
+				setError(err.message);
+				setLoading(false);
+			}
+		};
 
-    fetchAnalytics();
-  }, []);
+		fetchAnalytics();
+	}, []);
 
-  const handleReplyClick = (review) => {
-    setEditingReplyId(review.id);
-    setReplyDraft(review.seller_reply || '');
-  };
+	const handleReplyClick = (review) => {
+		setEditingReplyId(review.id);
+		setReplyDraft(review.seller_reply || "");
+	};
 
-  const handleReplySave = async (reviewId) => {
-    if (!reviewId || !replyDraft.trim()) return;
+	const handleReplySave = async (reviewId) => {
+		if (!reviewId || !replyDraft.trim()) return;
 
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/seller/reviews/${reviewId}/reply`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
-          },
-          body: JSON.stringify({ seller_reply: replyDraft }),
-        }
-      );
+		try {
+			const response = await fetch(
+				`${process.env.REACT_APP_BACKEND_URL}/seller/reviews/${reviewId}/reply`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: "Bearer " + sessionStorage.getItem("token"),
+					},
+					body: JSON.stringify({ seller_reply: replyDraft }),
+				}
+			);
 
-      if (!response.ok) throw new Error("Failed to submit reply");
+			if (!response.ok) throw new Error("Failed to submit reply");
 
-      // Refresh reviews list and reset state
-      await fetchReviews();
-      setEditingReplyId(null);
-      setReplyDraft('');
-    } catch (err) {
-      console.error(err);
-      alert("Failed to submit reply. Please try again.");
-    }
-  };
+			// Refresh reviews list and reset state
+			await fetchReviews();
+			setEditingReplyId(null);
+			setReplyDraft("");
+		} catch (err) {
+			console.error(err);
+			alert("Failed to submit reply. Please try again.");
+		}
+	};
 
+	const fetchReviews = async () => {
+		setLoadingReviews(true);
+		try {
+			const response = await fetch(
+				`${process.env.REACT_APP_BACKEND_URL}/seller/reviews`,
+				{
+					headers: {
+						Authorization: "Bearer " + sessionStorage.getItem("token"),
+					},
+				}
+			);
 
-  const fetchReviews = async () => {
-    setLoadingReviews(true);
-    try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/seller/reviews`, {
-        headers: {
-          'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
-        },
-      });
+			if (!response.ok)
+				throw new Error(`HTTP error! status: ${response.status}`);
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+			const data = await response.json();
+			setReviews(data);
+		} catch (err) {
+			console.error("Error fetching reviews:", err.message);
+		} finally {
+			setLoadingReviews(false);
+		}
+	};
 
-      const data = await response.json();
-      setReviews(data);
-    } catch (err) {
-      console.error('Error fetching reviews:', err.message);
-    } finally {
-      setLoadingReviews(false);
-    }
-  };
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<Spinner
+						variant="warning"
+						name="cube-grid"
+						style={{ width: 100, height: 100 }}
+					/>
+					<p className="mt-4 text-gray-600 text-lg">
+						Loading analytics data...
+					</p>
+				</div>
+			</div>
+		);
+	}
 
-  if (loading) {
-    return (
-      <div className="centered-loader">
-        <Spinner variant="warning" name="cube-grid" style={{ width: 100, height: 100 }} />
-      </div>
-    );
-  }
+	if (error) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="max-w-7xl mx-auto text-center">
+					<div className="bg-white rounded-lg shadow-lg p-8">
+						<div className="text-red-500 text-6xl mb-4">
+							<FontAwesomeIcon icon={faExclamationTriangle} />
+						</div>
+						<h4 className="text-xl font-semibold text-gray-800 mb-2">
+							Error Loading Data
+						</h4>
+						<p className="text-gray-600">{error}</p>
+						<button
+							onClick={() => window.location.reload()}
+							className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+						>
+							Try Again
+						</button>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  if (error) {
-    return (
-      <Container fluid className="analytics-reporting-page">
-        <Row>
-          <Col xs={12} className="text-center mt-4">
-            <h4>Error Loading Data</h4>
-            <p>{error}</p>
-          </Col>
-        </Row>
-      </Container>
-    );
-  }
+	if (!analyticsData) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="max-w-7xl mx-auto text-center">
+					<div className="bg-white rounded-lg shadow-lg p-8">
+						<div className="text-blue-500 text-6xl mb-4">
+							<FontAwesomeIcon icon={faChartBar} />
+						</div>
+						<h4 className="text-xl font-semibold text-gray-800 mb-2">
+							No Analytics Data Available
+						</h4>
+						<p className="text-gray-600 mb-4">
+							Upgrade your package to access analytics data.
+						</p>
+						<a
+							href="/tiers"
+							className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg transition-all transform hover:scale-105"
+						>
+							View Packages
+						</a>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  if (!analyticsData) {
-    return (
-      <Container fluid className="analytics-reporting-page">
-        <Row>
-          <Col xs={12} className="text-center mt-4">
-            <h4>No Analytics Data Available</h4>
-            <p>Upgrade your package to access analytics data.</p>
-          </Col>
-        </Row>
-      </Container>
-    );
-  }
+	const { average_rating, total_ads, total_reviews, top_wishlisted_ads } =
+		analyticsData;
 
-  const {  average_rating, total_ads, total_reviews, top_wishlisted_ads } = analyticsData;
+	return (
+		<>
+			<TopNavbar />
+			<div className="min-h-screen bg-gray-50">
+				<div className="flex">
+					{/* Sidebar */}
+					<Sidebar />
 
-  return (
-    <>
-      <TopNavbar />
-      <Container fluid className="analytics-reporting-page">
-        <Row>
-          <Col xs={12} lg={2} className="p-0">
-            <Sidebar />
-          </Col>
-          <Col xs={12} lg={9} className="content-area">
-            <Row>
-              {/* Analytics Cards */}
-              <Col xs={12}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Subscription Countdown</Card.Header>
-                  <Card.Body className="text-center">
-                    <CountDownDisplay />
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
-            <Row>
-              <Col xs={6} md={4}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Total Ads</Card.Header>
-                  <Card.Body>
-                    {tierId >= 2 ? (
-                      <Card.Text className="text-center" style={{ fontSize: '1.3rem'}}>
-                        <strong>{total_ads.toLocaleString()}</strong>
-                      </Card.Text>
-                    ) : (
-                      <Card.Text className="text-center text-secondary">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Basic Tier
-                      </Card.Text>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-              
-              <Col xs={6} md={4}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Total Reviews</Card.Header>
-                  <Card.Body>
-                    {tierId >= 3 ? (
-                      <Card.Text
-                        className="text-center text-primary"
-                        role="button"
-                        style={{ fontSize: '1.3rem', textDecoration: 'underline' }}
-                        onClick={() => {
-                          setShowReviewsModal(true);
-                          fetchReviews();
-                        }}
-                      >
-                        <strong>{total_reviews.toLocaleString()}</strong>
-                      </Card.Text>
-                    ) : (
-                      <Card.Text className="text-center text-secondary">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Standard Tier
-                      </Card.Text>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col xs={6} md={4}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Average Rating</Card.Header>
-                  <Card.Body>
-                    <Card.Text className="text-center" style={{ fontSize: '1.3rem'}}>
-                      <strong>{average_rating.toFixed(1)}</strong>
-                    </Card.Text>
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
+					{/* Main Content */}
+					<div className="flex-1 p-6">
+						<div className="max-w-7xl mx-auto">
+							{/* Subscription Countdown */}
+							<div className="mb-6">
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Subscription Countdown
+										</h3>
+									</div>
+									<div className="p-6">
+										<CountDownDisplay />
+									</div>
+								</div>
+							</div>
 
-            <Row>
-            <Col xs={12} md={6}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Top Wishlisted Ads</Card.Header>
-                  <Card.Body>
-                    {top_wishlisted_ads.length > 0 ? (
-                      <TopWishListedAds data={top_wishlisted_ads} />
-                    ) : (
-                      <p className="text-center text-secondary">
-                        No wishlisted ads found. <br />
-                        <small>(Make sure your ads are added to wishlists by users.)</small>
-                      </p>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col xs={12} md={6}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Competitor Stats</Card.Header>
-                  <Card.Body className="py-1 px-3">
-                    {tierId >= 3 ? ( // Adjust the required tier level if needed
-                      <div>
-                        <CompetitorStats data={analyticsData.competitor_stats} />
-                      </div>
-                    ) : (
-                      <div className="text-secondary text-center">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Standard Tier
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
+							{/* Analytics Cards */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+								{/* Total Ads Card */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Total Ads
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 2 ? (
+											<div className="text-center">
+												<div className="text-3xl font-bold text-blue-600">
+													{total_ads.toLocaleString()}
+												</div>
+												<p className="text-sm text-gray-500 mt-2">
+													Active advertisements
+												</p>
+											</div>
+										) : (
+											<div className="text-center">
+												<div
+													className={`text-2xl mb-2 ${getTierInfo(2).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(2).icon} />
+												</div>
+												<p className="text-gray-500 text-sm">
+													Upgrade to {getTierInfo(2).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
 
-            <Row>
-              <Col xs={12} md={6}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Click Events Stats</Card.Header>
-                  <Card.Body className="py-1 px-3">
-                    {tierId >= 2 ? ( // Adjust the required tier level if needed
-                      <div>
-                        <ClickEventsStats data={analyticsData.basic_click_event_stats.click_event_trends} />
-                      </div>
-                    ) : (
-                      <div className="text-secondary text-center">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Basic Tier
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
+								{/* Total Reviews Card */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Total Reviews
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 3 ? (
+											<div className="text-center">
+												<button
+													onClick={() => {
+														setShowReviewsModal(true);
+														fetchReviews();
+													}}
+													className="text-3xl font-bold text-purple-600 hover:text-purple-700 transition-colors cursor-pointer"
+												>
+													{total_reviews.toLocaleString()}
+												</button>
+												<p className="text-sm text-gray-500 mt-2">
+													Customer feedback
+												</p>
+											</div>
+										) : (
+											<div className="text-center">
+												<div
+													className={`text-2xl mb-2 ${getTierInfo(3).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(3).icon} />
+												</div>
+												<p className="text-gray-500 text-sm">
+													Upgrade to {getTierInfo(3).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
 
-              <Col xs={12} md={6}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Wish List Stats</Card.Header>
-                  <Card.Body className="py-1 px-3">
-                    {tierId >= 3 ? ( // Adjust the required tier level if needed
-                      <div>
-                        <WishListStats data={analyticsData.basic_wishlist_stats} />
-                      </div>
-                    ) : (
-                      <div className="text-secondary text-center">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Standard Tier
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-            </Row>
+								{/* Average Rating Card */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Average Rating
+										</h3>
+									</div>
+									<div className="p-6">
+										<div className="text-center">
+											<div className="text-3xl font-bold text-yellow-500">
+												{average_rating.toFixed(1)}
+											</div>
+											<div className="flex justify-center mt-2">
+												{[...Array(5)].map((_, i) => (
+													<span
+														key={i}
+														className={`text-lg ${
+															i < Math.floor(average_rating)
+																? "text-yellow-400"
+																: "text-gray-300"
+														}`}
+													>
+														★
+													</span>
+												))}
+											</div>
+											<p className="text-sm text-gray-500 mt-2">
+												Out of 5 stars
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
 
-            <Row>
-              <Col xs={12}>
-                <Card className="mb-4 custom-card">
-                  <Card.Header>Buyer Demographics</Card.Header>
-                  <Card.Body>
-                    {tierId >= 3 ? (
-                      <BuyerDemographics
-                        data={{
-                          clickEvents: analyticsData.click_events_stats,
-                          wishlistStats: analyticsData.wishlist_stats,
-                        }}
-                      />
-                    ) : (
-                      <div className="text-secondary text-center">
-                        <a href="/tiers" className="text-primary">Upgrade</a> to Standard Tier
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-              </Row>
-          </Col>
-        </Row>
-        
-        <Modal
-          show={showReviewsModal}
-          onHide={() => setShowReviewsModal(false)}
-          centered
-          size="xl"
-          backdrop="static"
-          keyboard={false}
-          dialogClassName="glass-modal"
-        >
-          <Modal.Header className="text-white py-2 justify-content-center">
-            <Modal.Title className="fw-bold">
-              <i className="bi bi-star-half me-2"></i> Buyer Reviews
-            </Modal.Title>
-          </Modal.Header>
+							{/* Charts Section */}
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+								{/* Top Wishlisted Ads */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Top Wishlisted Ads
+										</h3>
+									</div>
+									<div className="p-6">
+										{top_wishlisted_ads.length > 0 ? (
+											<TopWishListedAds data={top_wishlisted_ads} />
+										) : (
+											<div className="text-center py-8">
+												<div className="text-gray-400 text-4xl mb-3">
+													<FontAwesomeIcon icon={faClipboardList} />
+												</div>
+												<p className="text-gray-500">No wishlisted ads found</p>
+												<p className="text-sm text-gray-400 mt-1">
+													Make sure your ads are added to wishlists by users
+												</p>
+											</div>
+										)}
+									</div>
+								</div>
 
-          <Modal.Body style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-            {loadingReviews ? (
-              <div className="text-center py-5">
-                <Spinner animation="border" variant="primary" />
-                <p className="mt-3 text-muted">Loading reviews...</p>
-              </div>
-            ) : reviews.length > 0 ? (
-              reviews.map((review, idx) => (
-                <Card key={review.id || idx} className="mb-3 border-0 shadow-sm">
-                  <Card.Body className="bg-white rounded">
-                    <div className="d-flex align-items-start">
-                      <img
-                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(review.buyer_name)}&background=random`}
-                        className="rounded-circle me-3"
-                        alt="Avatar"
-                        width="60"
-                        height="60"
-                      />
-                      <div className="flex-grow-1">
-                        <div className="d-flex justify-content-between align-items-center w-100">
-                          {/* Left: Buyer name */}
-                          <div className="d-flex align-items-center">
-                            <h6 className="fw-semibold text-dark mb-0 me-2">
-                              {review.buyer_name || `Buyer #${review.buyer_id}`}
-                            </h6>
-                            {/* Rating right of name */}
-                            <div className="text-warning">
-                              {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                              <small className="text-muted ms-1">({review.rating}/5)</small>
-                            </div>
-                          </div>
+								{/* Competitor Stats */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Competitor Stats
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 3 ? (
+											<CompetitorStats data={analyticsData.competitor_stats} />
+										) : (
+											<div className="text-center py-8">
+												<div
+													className={`text-4xl mb-3 ${getTierInfo(3).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(3).icon} />
+												</div>
+												<p className="text-gray-500">
+													Upgrade to {getTierInfo(3).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
 
-                          {/* Right: Timestamp */}
-                          <small
-                            className="text-muted text-nowrap"
-                            style={{ fontSize: '0.70rem' }}
-                          >
-                            {review.updated_at
-                              ? isToday(new Date(review.updated_at))
-                                ? `Today at ${format(new Date(review.updated_at), 'HH:mm')}`
-                                : format(new Date(review.updated_at), 'PP HH:mm')
-                              : "No date"}
-                          </small>
-                        </div>
+							{/* More Charts Section */}
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+								{/* Click Events Stats */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Click Events Stats
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 2 ? (
+											<ClickEventsStats
+												data={
+													analyticsData.basic_click_event_stats
+														.click_event_trends
+												}
+											/>
+										) : (
+											<div className="text-center py-8">
+												<div
+													className={`text-4xl mb-3 ${getTierInfo(2).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(2).icon} />
+												</div>
+												<p className="text-gray-500">
+													Upgrade to {getTierInfo(2).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
 
-                        <p className="text-muted fst-italic mb-2">
-                          {review.review || 'No review provided.'}
-                        </p>
+								{/* Wish List Stats */}
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Wish List Stats
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 3 ? (
+											<WishListStats
+												data={analyticsData.basic_wishlist_stats}
+											/>
+										) : (
+											<div className="text-center py-8">
+												<div
+													className={`text-4xl mb-3 ${getTierInfo(3).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(3).icon} />
+												</div>
+												<p className="text-gray-500">
+													Upgrade to {getTierInfo(3).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
 
-                        {editingReplyId === review.id ? (
-                        <div
-                          className="bg-light p-2 ps-4 rounded border-start border-3 border-success mb-2"
-                          style={{
-                            fontSize: '0.85rem',
-                            color: '#444',
-                            marginLeft: '1.5rem',
-                            backgroundColor: '#f8f9fa',
-                          }}
-                        >
-                          <Form.Group controlId={`replyText-${review.id}`}>
-                            <Form.Label className="text-success d-block mb-1">Your Reply:</Form.Label>
-                            <Form.Control
-                              as="textarea"
-                              rows={3}
-                              value={replyDraft}
-                              onChange={(e) => setReplyDraft(e.target.value)}
-                            />
-                          </Form.Group>
-                          <div className="text-end mt-2">
-                            <Button
-                              variant="success"
-                              className="rounded-pill py-0 px-3"
-                              size="sm"
-                              onClick={() => handleReplySave(review.id)}
-                            >
-                              <i className="bi bi-check-circle me-1"></i> Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : review.seller_reply ? (
-                        <div
-                          className="bg-light p-2 ps-4 rounded border-start border-3 border-success mb-2 position-relative"
-                          style={{
-                            fontSize: '0.85rem',
-                            color: '#444',
-                            marginLeft: '1.5rem',
-                            backgroundColor: '#f8f9fa',
-                          }}
-                        >
-                          <strong className="text-success d-block mb-1">Your Reply:</strong>
-                          <p className="mb-0 fst-italic pe-4">{review.seller_reply}</p>
-                          <Button
-                            variant="transparent"
-                            className="position-absolute top-0 end-0 m-2 p-1 border-0"
-                            style={{ width: '1.8rem', height: '1.8rem' }}
-                            onClick={() => handleReplyClick(review)}
-                          >
-                            <FontAwesomeIcon icon={faPencilAlt} style={{ fontSize: '1rem', color: '#28a745' }} />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="outline-warning"
-                          className="rounded-pill text-dark mt-1 py-0"
-                          size="sm"
-                          onClick={() => handleReplyClick(review)}
-                        >
-                          Reply
-                        </Button>
-                      )}
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center text-muted py-5">
-                <i className="bi bi-chat-left-dots fs-1 mb-3"></i>
-                <p>No reviews have been submitted yet.</p>
-              </div>
-            )}
-          </Modal.Body>
+							{/* Buyer Demographics */}
+							<div className="mb-6">
+								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
+									<div className="px-6 py-4 border-b border-gray-100">
+										<h3 className="text-lg font-semibold text-gray-800">
+											Buyer Demographics
+										</h3>
+									</div>
+									<div className="p-6">
+										{tierId >= 3 ? (
+											<BuyerDemographics
+												data={{
+													clickEvents: analyticsData.click_events_stats,
+													wishlistStats: analyticsData.wishlist_stats,
+												}}
+											/>
+										) : (
+											<div className="text-center py-8">
+												<div
+													className={`text-4xl mb-3 ${getTierInfo(3).color}`}
+												>
+													<FontAwesomeIcon icon={getTierInfo(3).icon} />
+												</div>
+												<p className="text-gray-500">
+													Upgrade to {getTierInfo(3).name}
+												</p>
+												<a
+													href="/tiers"
+													className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+												>
+													View Packages →
+												</a>
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
-          <Modal.Footer className="py-1">
-            <Button variant="danger" onClick={() => setShowReviewsModal(false)}>
-              <i className="bi bi-x-circle me-1"></i> Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+				{/* Reviews Modal */}
+				<Modal
+					show={showReviewsModal}
+					onHide={() => setShowReviewsModal(false)}
+					centered
+					size="xl"
+					backdrop="static"
+					keyboard={false}
+					dialogClassName="glass-modal"
+				>
+					<Modal.Header className="text-white py-2 justify-content-center">
+						<Modal.Title className="fw-bold">
+							<i className="bi bi-star-half me-2"></i> Buyer Reviews
+						</Modal.Title>
+					</Modal.Header>
 
-      </Container>
-    </>
-  );
+					<Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+						{loadingReviews ? (
+							<div className="text-center py-5">
+								<Spinner animation="border" variant="primary" />
+								<p className="mt-3 text-muted">Loading reviews...</p>
+							</div>
+						) : reviews.length > 0 ? (
+							reviews.map((review, idx) => (
+								<div
+									key={review.id || idx}
+									className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4"
+								>
+									<div className="flex items-start space-x-4">
+										<img
+											src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+												review.buyer_name
+											)}&background=random`}
+											className="w-12 h-12 rounded-full"
+											alt="Avatar"
+										/>
+										<div className="flex-1">
+											<div className="flex justify-between items-center mb-2">
+												<div className="flex items-center space-x-2">
+													<h6 className="font-semibold text-gray-800">
+														{review.buyer_name || `Buyer #${review.buyer_id}`}
+													</h6>
+													<div className="flex text-yellow-400">
+														{[...Array(5)].map((_, i) => (
+															<span
+																key={i}
+																className={
+																	i < review.rating
+																		? "text-yellow-400"
+																		: "text-gray-300"
+																}
+															>
+																★
+															</span>
+														))}
+														<span className="text-gray-500 text-sm ml-1">
+															({review.rating}/5)
+														</span>
+													</div>
+												</div>
+												<span className="text-gray-500 text-sm">
+													{review.updated_at
+														? isToday(new Date(review.updated_at))
+															? `Today at ${format(
+																	new Date(review.updated_at),
+																	"HH:mm"
+															  )}`
+															: format(new Date(review.updated_at), "PP HH:mm")
+														: "No date"}
+												</span>
+											</div>
+
+											<p className="text-gray-600 italic mb-3">
+												{review.review || "No review provided."}
+											</p>
+
+											{editingReplyId === review.id ? (
+												<div className="bg-gray-50 p-4 rounded-lg border-l-4 border-green-500 ml-6">
+													<Form.Group controlId={`replyText-${review.id}`}>
+														<Form.Label className="text-green-600 font-medium mb-2 block">
+															Your Reply:
+														</Form.Label>
+														<Form.Control
+															as="textarea"
+															rows={3}
+															value={replyDraft}
+															onChange={(e) => setReplyDraft(e.target.value)}
+															className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+														/>
+													</Form.Group>
+													<div className="text-right mt-3">
+														<Button
+															variant="success"
+															className="rounded-full px-4 py-1 text-sm"
+															onClick={() => handleReplySave(review.id)}
+														>
+															<i className="bi bi-check-circle mr-1"></i> Save
+														</Button>
+													</div>
+												</div>
+											) : review.seller_reply ? (
+												<div className="bg-gray-50 p-4 rounded-lg border-l-4 border-green-500 ml-6 relative">
+													<strong className="text-green-600 block mb-2">
+														Your Reply:
+													</strong>
+													<p className="italic text-gray-700 pr-8">
+														{review.seller_reply}
+													</p>
+													<button
+														className="absolute top-2 right-2 p-1 text-green-600 hover:text-green-700 transition-colors"
+														onClick={() => handleReplyClick(review)}
+													>
+														<FontAwesomeIcon
+															icon={faPencilAlt}
+															className="text-sm"
+														/>
+													</button>
+												</div>
+											) : (
+												<button
+													className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-1 rounded-full text-sm transition-colors"
+													onClick={() => handleReplyClick(review)}
+												>
+													Reply
+												</button>
+											)}
+										</div>
+									</div>
+								</div>
+							))
+						) : (
+							<div className="text-center text-gray-500 py-8">
+								<div className="text-4xl mb-3">
+									<FontAwesomeIcon icon={faComments} />
+								</div>
+								<p>No reviews have been submitted yet.</p>
+							</div>
+						)}
+					</Modal.Body>
+
+					<Modal.Footer className="py-2">
+						<Button variant="danger" onClick={() => setShowReviewsModal(false)}>
+							<i className="bi bi-x-circle mr-1"></i> Close
+						</Button>
+					</Modal.Footer>
+				</Modal>
+			</div>
+		</>
+	);
 };
 
 export default SellerAnalytics;
