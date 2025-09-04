@@ -41,6 +41,7 @@ const SearchResultSection = ({
 	searchShops = [], // Add shops prop
 	getHeaderTitle,
 	handleAdClick,
+	handleShopClick, // Add handleShopClick prop
 	handleClearSearch,
 	hasMore,
 	onLoadMore,
@@ -53,10 +54,17 @@ const SearchResultSection = ({
 	subcategoryCounts = {},
 	isSearchContext = false,
 }) => {
-	// Handle shop click - navigate to shop page
-	const handleShopClick = (shop) => {
-		const slug = createSlug(shop.enterprise_name);
-		window.location.href = `/shop/${slug}`;
+	// Handle shop click - use prop if provided, otherwise use default behavior
+	const handleShopClickInternal = (shop) => {
+		if (handleShopClick) {
+			// Use the prop function if provided
+			handleShopClick(shop);
+		} else {
+			// Default behavior - use React Router navigation
+			const slug = createSlug(shop.enterprise_name);
+			// Use window.location.href as fallback for now
+			window.location.href = `/shop/${slug}`;
+		}
 	};
 	const groupedResults = React.useMemo(() => {
 		if (!results || results.length === 0) return {};
@@ -390,7 +398,7 @@ const SearchResultSection = ({
 							<div
 								key={shop.id}
 								className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 cursor-pointer group"
-								onClick={() => handleShopClick(shop)}
+								onClick={() => handleShopClickInternal(shop)}
 							>
 								<div className="p-4 sm:p-5">
 									<div className="flex items-center mb-3">
@@ -524,9 +532,7 @@ const SearchResultSection = ({
 						tires
 					</p>
 				</div>
-			) : limitedResults.length ===
-			  0 ? // Return null when not in search context and no results
-			null : (
+			) : limitedResults.length === 0 ? null : ( // Return null when not in search context and no results
 				<div className="space-y-6 sm:space-y-7 md:space-y-8">
 					{isGroupedView ? (
 						// Grouped by subcategory view

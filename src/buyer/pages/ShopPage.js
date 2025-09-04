@@ -13,6 +13,7 @@ import Footer from "../../components/Footer";
 import useSEO from "../../hooks/useSEO";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShare, faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
+import Spinner from "react-spinkit";
 
 const ShopPage = () => {
 	const { slug } = useParams();
@@ -65,16 +66,18 @@ const ShopPage = () => {
 	// SEO Implementation
 	useSEO({
 		title: shop
-			? `${shop.enterprise_name} - Shop on CarbonCube Kenya`
+			? `${shop.enterprise_name} Shop - ${shop.product_count} Products`
 			: "Shop - CarbonCube Kenya",
 		description: shop
-			? `Browse ${shop.product_count} products from ${shop.enterprise_name}. ${
+			? `${shop.enterprise_name} - ${shop.tier} seller with ${
+					shop.product_count
+			  } products. ${
 					shop.description ||
-					`Discover quality items from ${shop.enterprise_name} on CarbonCube Kenya's marketplace.`
+					`Shop quality products from ${shop.enterprise_name}. Fast delivery, secure payments, trusted seller.`
 			  }`
 			: "Browse shops and products on CarbonCube Kenya's marketplace",
 		keywords: shop
-			? `${shop.enterprise_name}, online shop, marketplace, CarbonCube Kenya, ${shop.tier} seller, ${shop.product_count} products`
+			? `${shop.enterprise_name}, ${shop.enterprise_name} shop, online shopping Kenya, ${shop.tier} seller, ${shop.product_count} products, CarbonCube Kenya`
 			: "online marketplace Kenya, trusted sellers, secure ecommerce",
 		image: shop?.profile_picture
 			? shop.profile_picture.startsWith("http")
@@ -83,13 +86,15 @@ const ShopPage = () => {
 			: "https://carboncube-ke.com/logo.png",
 		url: `https://carboncube-ke.com/shop/${slug}`,
 		type: "website",
+		author: shop ? `${shop.enterprise_name} Team` : "Carbon Cube Kenya Team",
 		structuredData: shop
 			? {
 					"@context": "https://schema.org",
 					"@type": "Store",
 					name: shop.enterprise_name,
 					description:
-						shop.description || `Online shop on CarbonCube Kenya marketplace`,
+						shop.description ||
+						`${shop.enterprise_name} - ${shop.tier} seller offering ${shop.product_count} quality products for online shopping`,
 					url: `https://carboncube-ke.com/shop/${slug}`,
 					image: shop.profile_picture
 						? shop.profile_picture.startsWith("http")
@@ -110,11 +115,7 @@ const ShopPage = () => {
 						ratingValue: "4.5",
 						reviewCount: "100+",
 					},
-					sameAs: [
-						"https://www.linkedin.com/company/carbon-cube-kenya/",
-						"https://www.facebook.com/profile.php?id=61574066312678",
-						"https://www.instagram.com/carboncube_kenya/",
-					],
+					// Remove sameAs links since they point to CarbonCube, not the shop
 			  }
 			: null,
 		additionalStructuredData: shop
@@ -193,9 +194,13 @@ const ShopPage = () => {
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-gray-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
 					<div className="flex justify-center items-center h-64">
-						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+						<Spinner
+							variant="warning"
+							name="cube-grid"
+							style={{ width: 50, height: 50 }}
+						/>
 					</div>
 				</div>
 			</div>
@@ -205,7 +210,7 @@ const ShopPage = () => {
 	if (error) {
 		return (
 			<div className="min-h-screen bg-gray-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
 					<div className="text-center">
 						<h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
 						<p className="text-gray-600 mb-4">{error}</p>
@@ -221,7 +226,7 @@ const ShopPage = () => {
 	if (!shop) {
 		return (
 			<div className="min-h-screen bg-gray-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
 					<div className="text-center">
 						<h1 className="text-2xl font-bold text-gray-900 mb-4">
 							Shop Not Found
@@ -239,17 +244,17 @@ const ShopPage = () => {
 		<div className="min-h-screen bg-gray-50">
 			<Navbar
 				mode="buyer"
-				showSearch={true}
+				showSearch={false}
 				showCategories={true}
 				showUserMenu={true}
 				showCart={true}
 				showWishlist={true}
 			/>
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
 				{/* Header */}
-				<div className="mb-8">
+				<div className="mb-4 sm:mb-8">
 					{/* Breadcrumb */}
-					<nav className="text-sm text-gray-500 mb-4">
+					<nav className="text-sm text-gray-500 mb-3 sm:mb-4">
 						<span
 							onClick={() => navigate("/")}
 							className="cursor-pointer hover:text-yellow-600 transition-colors"
@@ -263,62 +268,69 @@ const ShopPage = () => {
 					</nav>
 
 					{/* Shop Info */}
-					<div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-						<div className="flex items-center mb-4">
-							{shop.profile_picture ? (
-								<img
-									src={shop.profile_picture}
-									alt={shop.enterprise_name}
-									className="w-16 h-16 rounded-full object-cover mr-4"
-									onError={(e) => {
-										e.target.style.display = "none";
-									}}
-								/>
-							) : (
-								<div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-									<svg
-										className="w-8 h-8 text-gray-400"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-										/>
-									</svg>
-								</div>
-							)}
-							<div className="flex-1">
-								<h1 className="text-2xl font-bold text-gray-900 mb-2">
-									{shop.enterprise_name}
-								</h1>
-								<div className="flex items-center gap-2">
-									<span
-										className={`text-sm px-3 py-1 rounded-full font-medium ${
-											shop.tier_id === 4
-												? "bg-purple-100 text-purple-800"
-												: shop.tier_id === 3
-												? "bg-blue-100 text-blue-800"
-												: shop.tier_id === 2
-												? "bg-green-100 text-green-800"
-												: "bg-gray-100 text-gray-800"
-										}`}
-									>
-										{shop.tier}
-									</span>
-									<span className="text-sm text-gray-500">
-										{shop.product_count} products
-									</span>
+					<div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+						<div className="flex flex-col items-start gap-4">
+							{/* Logo, Shop Name, Tier and Product Count Row */}
+							<div className="flex items-center gap-3 w-full">
+								{shop.profile_picture ? (
+									<img
+										src={shop.profile_picture}
+										alt={shop.enterprise_name}
+										className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
+										onError={(e) => {
+											e.target.style.display = "none";
+										}}
+									/>
+								) : (
+									<div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+										<svg
+											className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+											/>
+										</svg>
+									</div>
+								)}
+								<div className="flex-1 min-w-0">
+									<h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">
+										{shop.enterprise_name}
+									</h1>
+									<div className="flex items-center gap-2 mt-1">
+										<span
+											className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
+												shop.tier_id === 4
+													? "bg-purple-100 text-purple-800"
+													: shop.tier_id === 3
+													? "bg-blue-100 text-blue-800"
+													: shop.tier_id === 2
+													? "bg-green-100 text-green-800"
+													: "bg-gray-100 text-gray-800"
+											}`}
+										>
+											{shop.tier}
+										</span>
+										<span className="text-xs sm:text-sm text-gray-500">
+											{shop.product_count} products
+										</span>
+									</div>
 								</div>
 							</div>
-							<div className="flex items-center gap-2">
+
+							{/* Share Button Row */}
+
+							{/* Share Button Row */}
+							<div className="w-full">
 								<button
 									onClick={handleShareShop}
 									disabled={!shop}
-									className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+									className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
 								>
 									{showShareSuccess ? (
 										<>
@@ -326,38 +338,50 @@ const ShopPage = () => {
 												icon={faCheck}
 												className="text-green-400"
 											/>
-											<span>Copied!</span>
+											<span className="hidden sm:inline">Copied!</span>
+											<span className="sm:hidden">✓</span>
 										</>
 									) : (
 										<>
 											<FontAwesomeIcon icon={faShare} />
-											<span>Share Shop</span>
+											<span className="hidden sm:inline">Share Shop</span>
+											<span className="sm:hidden">Share</span>
 										</>
 									)}
 								</button>
 							</div>
+
+							{/* Description */}
+							{shop.description && (
+								<div className="w-full">
+									<p className="text-sm sm:text-base text-gray-600">
+										{shop.description}
+									</p>
+								</div>
+							)}
+
+							{/* Address */}
+							{shop.address && (
+								<div className="w-full">
+									<div className="text-xs sm:text-sm text-gray-500">
+										📍 {shop.address}
+									</div>
+								</div>
+							)}
 						</div>
-
-						{shop.description && (
-							<p className="text-gray-600 mb-4">{shop.description}</p>
-						)}
-
-						{shop.address && (
-							<div className="text-sm text-gray-500">📍 {shop.address}</div>
-						)}
 					</div>
 
 					{/* Products */}
-					<div className="mb-6">
-						<h2 className="text-xl font-semibold text-gray-900 mb-4">
+					<div className="mb-4 sm:mb-6">
+						<h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">
 							Products ({shop.product_count})
 						</h2>
 
 						{ads.length === 0 ? (
-							<div className="text-center py-8">
-								<div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+							<div className="text-center py-8 sm:py-12">
+								<div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 									<svg
-										className="w-8 h-8 text-gray-400"
+										className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -370,15 +394,15 @@ const ShopPage = () => {
 										/>
 									</svg>
 								</div>
-								<h3 className="text-lg font-medium text-gray-900 mb-2">
+								<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
 									No Products Available
 								</h3>
-								<p className="text-gray-500">
+								<p className="text-sm sm:text-base text-gray-500">
 									This shop doesn't have any products listed yet.
 								</p>
 							</div>
 						) : (
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
 								{ads.map((ad) => (
 									<div
 										key={ad.id}
@@ -410,9 +434,9 @@ const ShopPage = () => {
 													}}
 												/>
 												{/* Tier Badge */}
-												<div className="absolute top-2 right-2">
+												<div className="absolute top-1 sm:top-2 right-1 sm:right-2">
 													<span
-														className={`text-xs px-2 py-1 rounded-full font-medium ${
+														className={`text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${
 															getTierId(ad) === 4
 																? "bg-purple-100 text-purple-800"
 																: getTierId(ad) === 3
@@ -428,11 +452,11 @@ const ShopPage = () => {
 											</div>
 
 											{/* Product Info */}
-											<div className="p-3 flex-1 flex flex-col">
-												<h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+											<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
+												<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
 													{ad.title}
 												</h3>
-												<p className="text-lg font-bold text-yellow-600 mb-2">
+												<p className="text-sm sm:text-lg font-bold text-yellow-600 mb-2">
 													KSh {ad.price?.toLocaleString() || "N/A"}
 												</p>
 												<div className="mt-auto">
