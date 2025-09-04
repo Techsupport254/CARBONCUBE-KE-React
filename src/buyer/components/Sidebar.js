@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Nav, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -11,15 +11,26 @@ import {
 } from "react-bootstrap-icons";
 import "./Sidebar.css";
 
-const Sidebar = ({ isOpen, onToggle }) => {
+const Sidebar = () => {
+	const [isOpen, setIsOpen] = useState(true); // Default to open on initial load
 	const location = useLocation();
 	const navigate = useNavigate();
 
 	const toggleSidebar = () => {
-		if (onToggle) {
-			onToggle();
-		}
+		setIsOpen(!isOpen);
 	};
+
+	useEffect(() => {
+		const handleResize = () => {
+			setIsOpen(window.innerWidth >= 1024); // Open by default on larger screens
+		};
+
+		// Set initial state based on screen width when component mounts
+		handleResize();
+		window.addEventListener("resize", handleResize);
+
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
 	const handleProtectedClick = (e, path) => {
 		const token = sessionStorage.getItem("token");

@@ -1,27 +1,28 @@
 .sidebar {
   background-color: #333;
-  opacity: 95%;
   color: #fff;
   min-height: 100vh;
   padding: 1rem;
   transition: transform 0.3s, width 0.3s;
   position: fixed;
-  top: 56px; /* Adjust this value to the height of your top navbar */
+  top: 64px;
+  /* Adjust this value to the height of your top navbar */
   left: 0;
-  z-index: 9999; /* High z-index to display above all content */
+  z-index: 4;
   overflow-y: auto;
   font-family: "Fira Sans Extra Condensed", sans-serif;
   font-weight: 400;
   font-style: normal;
-  width: 200px;
-  transform: translateX(-100%); /* Start collapsed by default */
+  width: fit-content;
 }
 
 .sidebar.collapsed {
-  transform: translateX(-100%);
+  width: 60px;
+  transform: translateX(-60px);
 }
 
 .sidebar.open {
+  width: 200px;
   transform: translateX(0);
 }
 
@@ -63,11 +64,12 @@
 
 .toggle-button {
   background-color: #333;
-  color: #ffc107;
+  color: #333;
   position: fixed;
-  top: 64px; /* Adjust this value as needed */
+  top: 70px;
+  /* Adjust this value as needed */
   left: 10px;
-  z-index: 10000; /* Higher than sidebar to always be visible */
+  z-index: 5;
   width: 40px;
   height: 40px;
   display: flex;
@@ -78,7 +80,8 @@
 }
 
 .toggle-button.open {
-  left: 210px; /* Width of the open sidebar + 10px */
+  left: 180px;
+  /* Width of the open sidebar + 10px */
   background-color: #333;
   color: #ffc107;
 }
@@ -149,6 +152,7 @@
     opacity: 0;
     transform: scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -160,11 +164,13 @@
     opacity: 1;
     transform: scale(1);
   }
+
   100% {
     opacity: 0;
     transform: scale(0.9);
   }
 }
+
 /* Use SweetAlert's built-in classes for transitions */
 .swal2-show {
   animation: fadeInScale 0.3s ease-in-out;
@@ -172,7 +178,8 @@
 
 .swal2-hide {
   animation: fadeOutScale 0.2s ease-in-out forwards !important;
-  display: flex !important; /* Ensure animation plays */
+  display: flex !important;
+  /* Ensure animation plays */
 }
 
 .swal2-backdrop-show {
@@ -191,8 +198,6 @@
     width: 100%;
     height: 100%;
     top: 56px;
-    opacity: 80%;
-    z-index: 9999; /* Maintain high z-index on mobile */
   }
 
   .sidebar.collapsed {
@@ -207,18 +212,10 @@
     top: 60px;
     width: 40px;
     height: 40px;
-    z-index: 10000; /* Maintain high z-index on mobile */
   }
 
   .toggle-button.open {
-    left: 10px; /* Keep button in accessible position on mobile */
-    opacity: 60%;
-  }
-
-  .toggle-button.collapsed {
-    left: 10px;
-    top: 60px;
-    opacity: 60%;
+    left: 180px;
   }
 }
 
@@ -234,9 +231,11 @@
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.2);
   }
+
   100% {
     transform: scale(1);
   }

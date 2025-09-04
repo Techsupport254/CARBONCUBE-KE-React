@@ -6,8 +6,8 @@ const TopWishListedAds = ({ data }) => {
 
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-			{data.map((ad) => (
-				<div key={ad.ad_id} className="bg-white rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+			{data.map((ad, index) => (
+				<div key={ad.ad_id || `ad-${index}`} className="bg-white rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
 					<img
 						className="w-full h-32 object-cover rounded-t-lg"
 						src={

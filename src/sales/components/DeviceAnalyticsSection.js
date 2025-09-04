@@ -2,7 +2,6 @@ import React from "react";
 import { Row, Col } from "react-bootstrap";
 import DeviceTypesCard from "./DeviceTypesCard";
 import BrowserAnalyticsCard from "./BrowserAnalyticsCard";
-import OperatingSystemsCard from "./OperatingSystemsCard";
 
 const DeviceAnalyticsSection = ({
 	analytics,

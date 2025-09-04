@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 // import TopNavbar from "../components/TopNavbar"; // Commented out old navbar
 import Navbar from "../../components/Navbar"; // New unified navbar
@@ -59,10 +59,12 @@ const Home = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
+	const [searchShops, setSearchShops] = useState([]); // Add shops state
 	const [isSearching, setIsSearching] = useState(false);
 
 	const [currentSearchType, setCurrentSearchType] = useState(""); // Track if it's a subcategory search
 	const [displayedResults, setDisplayedResults] = useState([]);
+	// eslint-disable-next-line no-unused-vars
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
 	const [hasSearched, setHasSearched] = useState(false); // Track if a search has been performed
@@ -70,9 +72,45 @@ const Home = () => {
 	const navigate = useNavigate(); // Initialize useNavigate
 	const [isComponentMounted, setIsComponentMounted] = useState(false);
 
+	// Debounced search functionality
+	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+	const SEARCH_DELAY = 3000; // 3000ms (3 seconds) delay for debounced search
+
+	// Category and subcategory state for navbar
+	const [selectedCategory, setSelectedCategory] = useState("All");
+	const [selectedSubcategory, setSelectedSubcategory] = useState("All");
+
+	// Flag to prevent circular updates
+	const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
+
 	// SEO Implementation
 	const seoData = generateHomeSEO(categories);
 	useSEO(seoData);
+
+	const location = useLocation();
+
+	// Function to initialize displayed results when search results change
+	const initializeDisplayedResults = useCallback(
+		(results) => {
+			// Get URL parameters to check if this is category/subcategory filtering
+			const params = new URLSearchParams(location.search);
+			const query = params.get("query");
+
+			// If filtering by category/subcategory (no search query), show all results
+			// If searching with text query, limit to RESULTS_PER_PAGE
+			if (!query || query.trim() === "") {
+				setDisplayedResults(results);
+				setCurrentPage(1);
+				setHasMore(false); // No pagination for category filtering
+			} else {
+				const initialResults = results.slice(0, RESULTS_PER_PAGE);
+				setDisplayedResults(initialResults);
+				setCurrentPage(1);
+				setHasMore(results.length > RESULTS_PER_PAGE);
+			}
+		},
+		[location.search]
+	);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -231,8 +269,6 @@ const Home = () => {
 		};
 	}, []);
 
-	const location = useLocation();
-
 	// Memoize flattened ads to prevent unnecessary re-renders
 	const flattenedAds = useMemo(() => {
 		const flat = Object.values(ads).flat();
@@ -245,10 +281,84 @@ const Home = () => {
 		return () => setIsComponentMounted(false);
 	}, []);
 
+	// Debounced search effect - triggers search after user stops typing
+	useEffect(() => {
+		// Don't debounce empty queries - clear immediately
+		if (!searchQuery || searchQuery.trim() === "") {
+			setDebouncedSearchQuery("");
+			return;
+		}
+
+		const timer = setTimeout(() => {
+			setDebouncedSearchQuery(searchQuery);
+		}, SEARCH_DELAY);
+
+		return () => clearTimeout(timer);
+	}, [searchQuery, SEARCH_DELAY]);
+
+	// Effect to update URL when debounced search query changes
+	useEffect(() => {
+		if (!isComponentMounted || isUpdatingUrl) {
+			return;
+		}
+
+		// Update URL with debounced search query
+		const params = new URLSearchParams(location.search);
+		const currentQuery = params.get("query");
+		const category = params.get("category");
+		const subcategory = params.get("subcategory");
+
+		// Only update URL if the debounced query is different from current URL query
+		if (debouncedSearchQuery !== currentQuery) {
+			setIsUpdatingUrl(true);
+
+			const newParams = new URLSearchParams();
+
+			// Add search query if it exists and is not empty
+			if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
+				newParams.set("query", debouncedSearchQuery.trim());
+			}
+
+			// Add category if it exists
+			if (category && category !== "All") {
+				newParams.set("category", category);
+			}
+
+			// Add subcategory if it exists
+			if (subcategory && subcategory !== "All") {
+				newParams.set("subcategory", subcategory);
+			}
+
+			// If we have no search query and no category/subcategory filters, go to home page
+			if (!debouncedSearchQuery || debouncedSearchQuery.trim() === "") {
+				if (!category || category === "All") {
+					if (!subcategory || subcategory === "All") {
+						navigate("/", { replace: true });
+						setIsUpdatingUrl(false);
+						return;
+					}
+				}
+			}
+
+			// Update URL without adding to browser history (replace current entry)
+			const newUrl = newParams.toString() ? `/?${newParams.toString()}` : "/";
+			navigate(newUrl, { replace: true });
+
+			// Reset the flag after a short delay to allow the navigation to complete
+			setTimeout(() => setIsUpdatingUrl(false), 100);
+		}
+	}, [debouncedSearchQuery, isComponentMounted, navigate, isUpdatingUrl]);
+
+	// Effect to handle category/subcategory changes immediately (no debouncing)
+	useEffect(() => {
+		// This effect handles category/subcategory changes from the navbar
+		// It will be triggered when the URL changes due to category/subcategory selection
+	}, [location.search]);
+
 	// Update the search results useEffect to only run when component is mounted
 	useEffect(() => {
-		// Prevent running if component is not mounted
-		if (!isComponentMounted) {
+		// Prevent running if we're updating URL
+		if (isUpdatingUrl) {
 			return;
 		}
 
@@ -257,32 +367,72 @@ const Home = () => {
 		const category = params.get("category");
 		const subcategory = params.get("subcategory");
 
-		// Only trigger search if we have actual search parameters
-		// Ignore other parameters like 'from', 'utm_source', etc.
-		const hasSearchParams =
-			(query && query.trim() !== "") ||
-			(category && category !== "All") ||
-			(subcategory && subcategory !== "All");
+		// Use debounced search query if available, otherwise use URL query
+		const searchQueryToUse = debouncedSearchQuery || query;
 
-		if (!hasSearchParams) {
+		// Handle empty search query immediately (but allow category/subcategory filtering)
+		if (
+			(!searchQuery || searchQuery.trim() === "") &&
+			(!category || category === "All") &&
+			(!subcategory || subcategory === "All")
+		) {
 			setSearchResults([]);
+			setSearchShops([]); // Clear shops
 			setCurrentSearchType("");
 			setIsSearching(false);
-			setHasSearched(false); // Reset search state when no search params
-			setSearchQuery(""); // Reset search query
+			setHasSearched(false);
+			setDisplayedResults([]);
+			setCurrentPage(1);
+			setHasMore(true);
 			return;
 		}
 
-		// Set search query from URL parameters
-		if (query) {
+		// Only trigger search if we have actual search parameters
+		// Ignore other parameters like 'from', 'utm_source', etc.
+		const hasSearchParams =
+			(searchQueryToUse && searchQueryToUse.trim() !== "") ||
+			(category && category !== "All") ||
+			(subcategory && subcategory !== "All");
+
+		// Set loading state when we have search parameters
+		if (hasSearchParams) {
+			setIsSearching(true);
+		}
+
+		if (!hasSearchParams) {
+			setSearchResults([]);
+			setSearchShops([]); // Clear shops
+			setCurrentSearchType("");
+			setIsSearching(false);
+			setHasSearched(false); // Reset search state when no search params
+			// Don't reset search query here - let the user keep their input
+			return;
+		}
+
+		// Set search query from URL parameters only if it exists and no debounced query
+		if (query && !debouncedSearchQuery) {
 			setSearchQuery(query);
+		} else if (
+			!debouncedSearchQuery &&
+			((category && category !== "All") ||
+				(subcategory && subcategory !== "All"))
+		) {
+			// Set empty search query when there are category/subcategory filters but no text query
+			setSearchQuery("");
+		}
+
+		// Set category and subcategory from URL parameters
+		if (category) {
+			setSelectedCategory(category);
+		}
+		if (subcategory) {
+			setSelectedSubcategory(subcategory);
 		}
 
 		const fetchSearchResults = async () => {
-			setIsSearching(true);
 			setError(null); // Clear previous errors
 			try {
-				const searchQuery = query || "";
+				const searchQuery = searchQueryToUse || "";
 				const searchCategory = category || "All";
 				const searchSubcategory = subcategory || "All";
 
@@ -327,15 +477,25 @@ const Home = () => {
 
 				let results = await response.json();
 
-				// Handle new API response format with subcategory counts
-				let ads, subcategoryCounts;
-				if (results.ads && results.subcategory_counts) {
-					// New format with subcategory counts
+				// Handle new API response format with shops and ads
+				let ads, shops, subcategoryCounts;
+				if (results.ads && results.shops) {
+					// New format with shops and ads
 					ads = results.ads;
+					shops = results.shops;
+					// eslint-disable-next-line no-unused-vars
+					subcategoryCounts = results.subcategory_counts || {};
+				} else if (results.ads && results.subcategory_counts) {
+					// Format with subcategory counts (no shops)
+					ads = results.ads;
+					shops = [];
+					// eslint-disable-next-line no-unused-vars
 					subcategoryCounts = results.subcategory_counts;
 				} else {
 					// Old format - just array of ads
 					ads = results;
+					shops = [];
+					// eslint-disable-next-line no-unused-vars
 					subcategoryCounts = {};
 				}
 
@@ -368,11 +528,13 @@ const Home = () => {
 
 				if (!ads || ads.length === 0) {
 					setSearchResults([]);
+					setSearchShops(shops || []); // Set shops even if no ads
 					setDisplayedResults([]);
 					setError(null); // Clear any previous errors
 					setHasSearched(true); // Mark that a search was performed
 				} else {
 					setSearchResults(ads);
+					setSearchShops(shops || []); // Set shops
 					initializeDisplayedResults(ads);
 					setError(null); // Clear any previous errors
 					setHasSearched(true); // Mark that a search was performed
@@ -403,7 +565,12 @@ const Home = () => {
 		};
 
 		fetchSearchResults();
-	}, [location.search, isComponentMounted]);
+	}, [
+		location.search,
+		debouncedSearchQuery,
+		isComponentMounted,
+		initializeDisplayedResults,
+	]);
 
 	const handleSidebarToggle = () => {
 		setSidebarOpen(!sidebarOpen);
@@ -475,6 +642,7 @@ const Home = () => {
 		// Use replace to avoid adding to history stack
 		navigate("/", { replace: true });
 		setSearchResults([]);
+		setSearchShops([]); // Clear shops
 		setSearchQuery("");
 		setCurrentSearchType("");
 		setIsSearching(false);
@@ -482,18 +650,6 @@ const Home = () => {
 		setCurrentPage(1);
 		setHasMore(true);
 		setHasSearched(false); // Reset search state
-	};
-
-	// Function to load more results
-	const handleLoadMore = () => {
-		const nextPage = currentPage + 1;
-		const startIndex = (nextPage - 1) * RESULTS_PER_PAGE;
-		const endIndex = startIndex + RESULTS_PER_PAGE;
-		const newResults = searchResults.slice(startIndex, endIndex);
-
-		setDisplayedResults((prev) => [...prev, ...newResults]);
-		setCurrentPage(nextPage);
-		setHasMore(endIndex < searchResults.length);
 	};
 
 	const handleSubcategoryLoadMore = (
@@ -509,32 +665,40 @@ const Home = () => {
 		setDisplayedResults(updatedResults);
 	};
 
-	// Function to initialize displayed results when search results change
-	const initializeDisplayedResults = (results) => {
-		// Get URL parameters to check if this is category/subcategory filtering
-		const params = new URLSearchParams(location.search);
-		const category = params.get("category");
-		const subcategory = params.get("subcategory");
-		const query = params.get("query");
-
-		// If filtering by category/subcategory (no search query), show all results
-		// If searching with text query, limit to RESULTS_PER_PAGE
-		if (!query || query.trim() === "") {
-			setDisplayedResults(results);
-			setCurrentPage(1);
-			setHasMore(false); // No pagination for category filtering
-		} else {
-			const initialResults = results.slice(0, RESULTS_PER_PAGE);
-			setDisplayedResults(initialResults);
-			setCurrentPage(1);
-			setHasMore(results.length > RESULTS_PER_PAGE);
-		}
+	// Wrapper function for navbar search (maintains old signature)
+	const handleNavbarSearch = (query, category = "All", subcategory = "All") => {
+		handleSearch(query, category, subcategory);
 	};
 
-	// Wrapper function for navbar search (maintains old signature)
-	const handleNavbarSearch = (e, category = "All", subcategory = "All") => {
-		e.preventDefault();
-		handleSearch(searchQuery, category, subcategory);
+	// Handlers for category and subcategory changes
+	const handleCategoryChange = (categoryId) => {
+		setSelectedCategory(categoryId);
+		setSelectedSubcategory("All");
+		// Trigger search immediately for category changes
+		const params = new URLSearchParams();
+		if (searchQuery.trim()) {
+			params.set("query", searchQuery.trim());
+		}
+		if (categoryId !== "All") {
+			params.set("category", categoryId);
+		}
+		navigate(`/?${params.toString()}`);
+	};
+
+	const handleSubcategoryChange = (subcategoryId) => {
+		setSelectedSubcategory(subcategoryId);
+		// Trigger search immediately for subcategory changes
+		const params = new URLSearchParams();
+		if (searchQuery.trim()) {
+			params.set("query", searchQuery.trim());
+		}
+		if (selectedCategory !== "All") {
+			params.set("category", selectedCategory);
+		}
+		if (subcategoryId !== "All") {
+			params.set("subcategory", subcategoryId);
+		}
+		navigate(`/?${params.toString()}`);
 	};
 
 	// Do not early-return on error; show alerts inline instead
@@ -553,6 +717,11 @@ const Home = () => {
 				showNotifications={true}
 				showCart={true}
 				showWishlist={true}
+				isSearchLoading={isSearching}
+				selectedCategory={selectedCategory}
+				selectedSubcategory={selectedSubcategory}
+				onCategoryChange={handleCategoryChange}
+				onSubcategoryChange={handleSubcategoryChange}
 			/>
 			<div className="flex flex-col md:flex-row p-0 m-0">
 				<div className={`${sidebarOpen ? "block" : "hidden"} md:block`}>
@@ -561,7 +730,20 @@ const Home = () => {
 				<div className="flex-1 bg-gray-300 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
-						{!isSearching && !hasSearched && !searchQuery && <Banner />}
+						{(() => {
+							const params = new URLSearchParams(location.search);
+							const query = params.get("query");
+							const category = params.get("category");
+							const subcategory = params.get("subcategory");
+							const hasSearchParams =
+								query !== null ||
+								(category && category !== "All") ||
+								(subcategory && subcategory !== "All");
+
+							return (
+								!isSearching && !hasSearched && !searchQuery && !hasSearchParams
+							);
+						})() && <Banner />}
 						<div
 							className={`px-0 ${
 								!isSearching && !hasSearched && !searchQuery
@@ -577,13 +759,16 @@ const Home = () => {
 										style={{ width: 50, height: 50 }}
 									/>
 								</div>
-							) : (searchQuery && searchQuery.trim() !== "") ||
-							  hasSearched ||
-							  (() => {
+							) : (() => {
+									// Check if we're in a search context
 									const params = new URLSearchParams(location.search);
+									const query = params.get("query");
 									const category = params.get("category");
 									const subcategory = params.get("subcategory");
+
+									// Only show search results if we have a query parameter OR category/subcategory filtering
 									return (
+										query !== null ||
 										(category && category !== "All") ||
 										(subcategory && subcategory !== "All")
 									);
@@ -591,6 +776,29 @@ const Home = () => {
 								<SearchResultSection
 									results={displayedResults}
 									searchQuery={searchQuery}
+									searchShops={searchShops}
+									isLoading={isSearching}
+									errorMessage={error}
+									isSearchContext={(() => {
+										const params = new URLSearchParams(location.search);
+										const query = params.get("query");
+										const category = params.get("category");
+										const subcategory = params.get("subcategory");
+										// True for search queries OR category/subcategory filtering
+										return (
+											query !== null ||
+											(category && category !== "All") ||
+											(subcategory && subcategory !== "All")
+										);
+									})()}
+									onRetry={() => {
+										// Retry the search
+										const params = new URLSearchParams(location.search);
+										const query = params.get("query");
+										if (query) {
+											handleSearch(query);
+										}
+									}}
 									getHeaderTitle={() => {
 										// Get URL parameters for category and subcategory
 										const params = new URLSearchParams(location.search);

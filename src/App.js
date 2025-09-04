@@ -5,10 +5,7 @@ import {
 	Routes,
 	Navigate,
 } from "react-router-dom";
-import {
-	getDeviceFingerprint,
-	isInternalUser,
-} from "./utils/deviceFingerprint";
+import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import Spinner from "react-spinkit";
 
@@ -59,7 +56,7 @@ const AdminProfile = lazy(() => import("./admin/pages/Profile"));
 const SellerSignUpPage = lazy(() => import("./seller/pages/SellerSignUpPage"));
 const SellerAnalytics = lazy(() => import("./seller/pages/SellerAnalytics"));
 const SellerAds = lazy(() => import("./seller/pages/SellerAds"));
-const SellerMessages = lazy(() => import("./seller/pages/Messages"));
+const SellerMessages = lazy(() => import("./seller/pages/SellerMessages"));
 const SellerNotifications = lazy(() =>
 	import("./seller/pages/SellerNotifications")
 );
@@ -68,6 +65,7 @@ const TierPage = lazy(() => import("./seller/pages/Tiers"));
 
 // Buyer Imports - Lazy loaded
 const Home = lazy(() => import("./buyer/pages/Home"));
+const ShopPage = lazy(() => import("./buyer/pages/ShopPage"));
 const AdDetails = lazy(() => import("./buyer/pages/AdDetails"));
 const WishList = lazy(() => import("./buyer/pages/WishLists"));
 const BuyerMessages = lazy(() => import("./buyer/pages/BuyerMessages"));
@@ -214,6 +212,11 @@ function App() {
 			<Suspense fallback={<LoadingSpinner />}>
 				<Routes>
 					<Route path="/ads/:adId" element={<AdDetails />} />
+					<Route
+						path="/ad/:adId"
+						element={<Navigate to="/ads/:adId" replace />}
+					/>
+					<Route path="/shop/:slug" element={<ShopPage />} />
 					<Route path="/home" element={<Home onLogout={handleLogout} />} />
 					<Route path="/" element={<Home onLogout={handleLogout} />} />
 					<Route path="/admin" element={<Navigate to="/login" />} />

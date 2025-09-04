@@ -51,7 +51,7 @@ const AdDetails = () => {
 	const [error, setError] = useState(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false); // Manage sidebar state
 	const [searchQuery, setSearchQuery] = useState(""); // Manage search query state
-	const [wish_listLoading, setBookmarkLoading] = React.useState(false);
+	const [wish_listLoading, setBookmarkLoading] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [reviews, setReviews] = useState([]);
 	const [loadingReviews, setLoadingReviews] = useState(false);
@@ -77,6 +77,19 @@ const AdDetails = () => {
 	const [totalSellerAdsCount, setTotalSellerAdsCount] = useState(0);
 	const [isLargeScreen, setIsLargeScreen] = useState(false);
 	const [showAllRelatedProducts, setShowAllRelatedProducts] = useState(false);
+
+	const handleViewShop = () => {
+		const shopName =
+			ad.seller_enterprise_name ||
+			ad.seller?.enterprise_name ||
+			ad.seller_name ||
+			"shop";
+		const slug = shopName
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/(^-|-$)/g, "");
+		navigate(`/shop/${slug}`);
+	};
 
 	const handleViewAllRelatedProducts = () => {
 		setShowAllRelatedProducts(!showAllRelatedProducts);
@@ -599,11 +612,9 @@ const AdDetails = () => {
 						Authorization: `Bearer ${token}`,
 					},
 					body: JSON.stringify({
-						conversation: {
-							seller_id: ad?.seller_id,
-							ad_id: ad?.id,
-						},
-						message: message.trim(), // Ensure no extra whitespace
+						seller_id: ad?.seller_id,
+						ad_id: ad?.id,
+						content: message.trim(), // Ensure no extra whitespace
 					}),
 				}
 			);
@@ -1450,7 +1461,7 @@ const AdDetails = () => {
 														{/* Seller Section */}
 														<div
 															className="p-3 sm:p-6 rounded-xl border border-yellow-200 cursor-pointer transition-all duration-200 hover:shadow-lg bg-yellow-50"
-															onClick={() => setShowShopModal(true)}
+															onClick={handleViewShop}
 														>
 															<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
 																<div className="flex items-center space-x-3 sm:space-x-4">
@@ -1710,7 +1721,6 @@ const AdDetails = () => {
 								<div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-xl p-3 sm:p-6 lg:p-8 border border-gray-100">
 									<div className="flex items-center justify-between mb-3 sm:mb-6 lg:mb-8">
 										<div className="flex items-center space-x-2 sm:space-x-3">
-											
 											<h2 className="text-xl sm:text-2xl font-bold text-gray-900">
 												Related Products
 											</h2>

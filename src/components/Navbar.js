@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faSearch,
@@ -68,17 +68,18 @@ const Navbar = ({
 	showUserMenu = true,
 	showCart = true,
 	showWishlist = true,
+	isSearchLoading = false,
+	selectedCategory = "All",
+	selectedSubcategory = "All",
+	onCategoryChange,
+	onSubcategoryChange,
 }) => {
 	const navigate = useNavigate();
-	const location = useLocation();
 	const [categories, setCategories] = useState([]);
-	const [selectedCategory, setSelectedCategory] = useState("All");
-	const [selectedSubcategory, setSelectedSubcategory] = useState("All");
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [userRole, setUserRole] = useState(null);
 	const [userName, setUserName] = useState("");
 	const [userEmail, setUserEmail] = useState("");
-	const [isSearchLoading, setIsSearchLoading] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -162,27 +163,6 @@ const Navbar = ({
 		}
 	}, [isLoggedIn, userRole, fetchWishlistCount]);
 
-	// Read URL parameters on component mount and URL changes
-	useEffect(() => {
-		const params = new URLSearchParams(location.search);
-		const categoryParam = params.get("category");
-		const subcategoryParam = params.get("subcategory");
-
-		// Update category selection
-		if (categoryParam && categoryParam !== "All") {
-			setSelectedCategory(categoryParam);
-		} else {
-			setSelectedCategory("All");
-		}
-
-		// Update subcategory selection
-		if (subcategoryParam && subcategoryParam !== "All") {
-			setSelectedSubcategory(subcategoryParam);
-		} else {
-			setSelectedSubcategory("All");
-		}
-	}, [location.search]);
-
 	const fetchCategories = async () => {
 		try {
 			const response = await fetch(
@@ -214,46 +194,23 @@ const Navbar = ({
 	};
 
 	const handleCategorySelect = async (categoryId) => {
-		setSelectedCategory(categoryId);
-		setSelectedSubcategory("All");
-		setIsSearchLoading(true);
 		setIsDropdownOpen(false);
-		try {
-			if (handleSearch) {
-				await handleSearch({ preventDefault: () => {} }, categoryId, "All");
-			}
-		} finally {
-			setIsSearchLoading(false);
+		if (onCategoryChange) {
+			onCategoryChange(categoryId);
 		}
 	};
 
 	const handleSubcategorySelect = async (subcategoryId) => {
-		setSelectedSubcategory(subcategoryId);
-		setIsSearchLoading(true);
 		setIsDropdownOpen(false);
-		try {
-			if (handleSearch) {
-				await handleSearch(
-					{ preventDefault: () => {} },
-					selectedCategory,
-					subcategoryId
-				);
-			}
-		} finally {
-			setIsSearchLoading(false);
+		if (onSubcategoryChange) {
+			onSubcategoryChange(subcategoryId);
 		}
 	};
 
 	const onSubmit = async (e) => {
 		e.preventDefault();
-		setIsSearchLoading(true);
-		try {
-			if (handleSearch) {
-				await handleSearch(e, selectedCategory, selectedSubcategory);
-			}
-		} finally {
-			setIsSearchLoading(false);
-		}
+		// No need to call handleSearch here since it's now handled by debounced search
+		// The search will trigger automatically when searchQuery changes
 	};
 
 	const handleLogout = () => {
@@ -488,7 +445,7 @@ const Navbar = ({
 						<input
 							type="text"
 							placeholder="Search ads..."
-							value={searchQuery || ""}
+							value={searchQuery ?? ""}
 							onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
 							onFocus={() => setIsSearchFocused(true)}
 							onBlur={() => setIsSearchFocused(false)}
@@ -581,6 +538,12 @@ const Navbar = ({
 									/>
 								)}
 								{link.label}
+								{/* Show wishlist count badge for wishlist link */}
+								{link.href === "/buyer/wish_lists" && wishlistCount > 0 && (
+									<span className="ml-auto bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+										{wishlistCount > 99 ? "99+" : wishlistCount}
+									</span>
+								)}
 							</button>
 						))}
 
@@ -608,25 +571,7 @@ const Navbar = ({
 	const renderActionButtons = () => {
 		const buttons = [];
 
-		// Wishlist button (for buyers)
-		if (showWishlist && userRole === "buyer") {
-			buttons.push(
-				<button
-					key="wishlist"
-					onClick={() => handleNavigation("/buyer/wish_lists")}
-					className="relative p-1.5 sm:p-2 text-white hover:text-yellow-400 transition-colors duration-200 rounded-lg hover:bg-gray-700"
-					aria-label="Wishlist"
-				>
-					<FontAwesomeIcon icon={faHeart} className="text-sm sm:text-base" />
-					{wishlistCount > 0 && (
-						<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
-							{wishlistCount > 99 ? "99+" : wishlistCount}
-						</span>
-					)}
-				</button>
-			);
-		}
-
+		// No wishlist button in action buttons - it's now only in the dropdown
 		return buttons;
 	};
 
@@ -806,7 +751,7 @@ const Navbar = ({
 										<input
 											type="text"
 											placeholder="Search ads..."
-											value={searchQuery || ""}
+											value={searchQuery ?? ""}
 											onChange={(e) =>
 												setSearchQuery && setSearchQuery(e.target.value)
 											}
@@ -858,6 +803,12 @@ const Navbar = ({
 											/>
 										)}
 										{link.label}
+										{/* Show wishlist count badge for wishlist link */}
+										{link.href === "/buyer/wish_lists" && wishlistCount > 0 && (
+											<span className="ml-auto bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium">
+												{wishlistCount > 99 ? "99+" : wishlistCount}
+											</span>
+										)}
 									</button>
 								))}
 

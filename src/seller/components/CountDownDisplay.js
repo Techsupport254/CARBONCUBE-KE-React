@@ -13,11 +13,6 @@ const CountDownDisplay = () => {
 	const [error, setError] = useState(null);
 	const [currentTier, setCurrentTier] = useState(1);
 	const [countdownSeconds, setCountdownSeconds] = useState(0);
-	const [expiryDate, setExpiryDate] = useState(null);
-
-	const getTotalDays = ({ months = 0, weeks = 0, days = 0 }) => {
-		return months * 30 + weeks * 7 + days;
-	};
 
 	// Helper function to format countdown display
 	const formatCountdown = (seconds) => {
@@ -66,8 +61,6 @@ const CountDownDisplay = () => {
 					throw new Error("User ID not found in token");
 				}
 
-				console.log("Fetching countdown for seller:", sellerId);
-
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/seller/seller_tiers/${sellerId}`,
 					{
@@ -86,17 +79,11 @@ const CountDownDisplay = () => {
 				}
 
 				const data = await response.json();
-				console.log("API Response:", data);
-
-				// Set current tier - check both tier_id and tier.id
+				// API Response data
 				if (data.tier_id) {
 					setCurrentTier(data.tier_id);
-					console.log("Set tier from tier_id:", data.tier_id);
 				} else if (data.tier && data.tier.id) {
 					setCurrentTier(data.tier.id);
-					console.log("Set tier from tier.id:", data.tier.id);
-				} else {
-					console.log("No tier found in response:", data);
 				}
 
 				if (data.subscription_countdown) {
@@ -104,12 +91,10 @@ const CountDownDisplay = () => {
 					if (data.subscription_countdown.expired) {
 						setDaysLeft(0);
 						setCountdownSeconds(0);
-						setExpiryDate(null);
 					} else if (data.subscription_countdown.never_expires) {
 						// Free tier never expires
 						setDaysLeft(null); // Use null to indicate no countdown needed
 						setCountdownSeconds(0);
-						setExpiryDate(null);
 					} else {
 						// Calculate total seconds from the countdown data
 						const {
@@ -134,7 +119,6 @@ const CountDownDisplay = () => {
 						setDaysLeft(days + weeks * 7 + months * 30);
 					}
 				} else {
-					console.warn("No subscription_countdown in response:", data);
 					throw new Error("No countdown data available");
 				}
 			} catch (err) {
@@ -189,12 +173,6 @@ const CountDownDisplay = () => {
 
 	if (daysLeft === null) {
 		const tierInfo = getTierInfo(currentTier);
-		console.log(
-			"Rendering No Expiry - Current tier:",
-			currentTier,
-			"Tier info:",
-			tierInfo
-		);
 		return (
 			<div className="text-center">
 				<div className="flex justify-center mb-3">
@@ -230,12 +208,6 @@ const CountDownDisplay = () => {
 	}
 
 	const tierInfo = getTierInfo(currentTier);
-	console.log(
-		"Rendering Days Left - Current tier:",
-		currentTier,
-		"Tier info:",
-		tierInfo
-	);
 
 	const countdown = formatCountdown(countdownSeconds);
 

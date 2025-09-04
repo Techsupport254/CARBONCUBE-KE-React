@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { Trash } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
-import "../css/WishLists.css";
 
 const WishList = () => {
 	const [wish_lists, setWishLists] = useState([]);
+	const [searchQuery, setSearchQuery] = useState("");
 	const navigate = useNavigate();
+
+	const handleSearch = async (e, category = "All", subcategory = "All") => {
+		e.preventDefault();
+		// For now, just navigate to the main search page with the query
+		// You can implement actual search filtering here if needed
+		navigate(
+			`/?search=${encodeURIComponent(
+				searchQuery
+			)}&category=${category}&subcategory=${subcategory}`
+		);
+	};
 
 	useEffect(() => {
 		const fetchWishLists = async () => {
@@ -102,100 +111,117 @@ const WishList = () => {
 
 	return (
 		<>
-			<Navbar mode="buyer" showSearch={true} showCategories={true} />
-			<div className="wish_lists-page">
-				<Container fluid className="p-0">
-					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
-						<Col xs={12} md={10} className="p-2">
-							<Container>
-								<h2>Wishlist Ads</h2>
-								<Row>
-									{wish_lists.length === 0 ? (
-										<p>No wishlists ads found.</p>
-									) : (
-										wish_lists.map((wish_list) => (
-											<Col key={wish_list.ad.id} md={3} className="mb-4">
-												<Card>
-													<Card.Img
-														variant="top"
-														src={wish_list.ad.first_media_url}
-														alt={wish_list.ad.title}
-														className="ad-image"
-														style={{ cursor: "pointer" }}
-														onClick={() => handleAdClick(wish_list.ad.id)}
-													/>
-													<Card.Body className="p-2 wish_list-body">
-														<div className="d-flex justify-content-between align-items-center">
-															<div>
-																<Card.Title className="mb-1">
-																	{wish_list.ad.title}
-																</Card.Title>
-																<Card.Text className="mb-0">
-																	<em
-																		className="ad-price-label"
-																		style={{ fontSize: "13px" }}
-																	>
-																		Kshs:{" "}
-																	</em>
-																	<strong
-																		className="text-danger"
-																		style={{ fontSize: "18px" }}
-																	>
-																		{wish_list.ad.price
-																			? parseFloat(wish_list.ad.price)
-																					.toFixed(2)
-																					.split(".")
-																					.map((part, index) => (
-																						<React.Fragment key={index}>
-																							{index === 0 ? (
-																								<span className="price-integer">
-																									{parseInt(
-																										part,
-																										10
-																									).toLocaleString()}
-																								</span>
-																							) : (
-																								<>
-																									<span
-																										style={{ fontSize: "16px" }}
-																									>
-																										.
-																									</span>
-																									<span className="price-decimal">
-																										{part}
-																									</span>
-																								</>
-																							)}
-																						</React.Fragment>
-																					))
-																			: "N/A"}
-																	</strong>
-																</Card.Text>
-															</div>
+			<Navbar
+				mode="buyer"
+				showSearch={true}
+				showCategories={true}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				handleSearch={handleSearch}
+			/>
+			<div className="min-h-screen bg-gray-50">
+				<div className="flex">
+					{/* Sidebar */}
+					<Sidebar />
 
-															<Button
-																variant="danger"
-																id="button"
-																onClick={() =>
-																	handleDeleteWishList(wish_list.ad.id)
-																}
-															>
-																<Trash />
-															</Button>
+					{/* Main Content */}
+					<div className="flex-1 p-6">
+						<div className="max-w-7xl mx-auto">
+							<h2 className="text-2xl font-bold text-gray-800 mb-6">
+								Wishlist Ads
+							</h2>
+
+							{wish_lists.length === 0 ? (
+								<div className="text-center py-12">
+									<p className="text-gray-500 text-lg">
+										No wishlist ads found.
+									</p>
+								</div>
+							) : (
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+									{wish_lists.map((wish_list) => (
+										<div
+											key={wish_list.ad.id}
+											className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+										>
+											<div
+												className="relative cursor-pointer"
+												onClick={() => handleAdClick(wish_list.ad.id)}
+											>
+												<img
+													src={wish_list.ad.first_media_url}
+													alt={wish_list.ad.title}
+													className="w-full h-48 object-cover"
+												/>
+											</div>
+
+											<div className="p-4">
+												<div className="flex justify-between items-start">
+													<div className="flex-1">
+														<h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+															{wish_list.ad.title}
+														</h3>
+														<div className="flex items-baseline">
+															<span className="text-sm text-gray-600 mr-1">
+																Kshs:
+															</span>
+															<span className="text-lg font-bold text-red-600">
+																{wish_list.ad.price
+																	? parseFloat(wish_list.ad.price)
+																			.toFixed(2)
+																			.split(".")
+																			.map((part, index) => (
+																				<React.Fragment key={index}>
+																					{index === 0 ? (
+																						<span>
+																							{parseInt(
+																								part,
+																								10
+																							).toLocaleString()}
+																						</span>
+																					) : (
+																						<>
+																							<span className="text-base">
+																								.
+																							</span>
+																							<span>{part}</span>
+																						</>
+																					)}
+																				</React.Fragment>
+																			))
+																	: "N/A"}
+															</span>
 														</div>
-													</Card.Body>
-												</Card>
-											</Col>
-										))
-									)}
-								</Row>
-							</Container>
-						</Col>
-					</Row>
-				</Container>
+													</div>
+
+													<button
+														onClick={() =>
+															handleDeleteWishList(wish_list.ad.id)
+														}
+														className="ml-3 p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-200"
+														aria-label="Delete from wishlist"
+													>
+														<svg
+															className="w-5 h-5"
+															fill="currentColor"
+															viewBox="0 0 20 20"
+														>
+															<path
+																fillRule="evenodd"
+																d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+																clipRule="evenodd"
+															/>
+														</svg>
+													</button>
+												</div>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
 			</div>
 		</>
 	);

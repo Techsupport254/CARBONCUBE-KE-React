@@ -1,4 +1,5 @@
 import React from "react";
+import { createSlug } from "../../utils/slugUtils";
 import { Button } from "react-bootstrap";
 import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
 import {
@@ -37,6 +38,7 @@ const sortAdsByTier = (ads) => {
 const SearchResultSection = ({
 	results,
 	searchQuery,
+	searchShops = [], // Add shops prop
 	getHeaderTitle,
 	handleAdClick,
 	handleClearSearch,
@@ -49,8 +51,13 @@ const SearchResultSection = ({
 	selectedSubcategory = "All",
 	categories = [],
 	subcategoryCounts = {},
+	isSearchContext = false,
 }) => {
-	// Group results by subcategory for better organization
+	// Handle shop click - navigate to shop page
+	const handleShopClick = (shop) => {
+		const slug = createSlug(shop.enterprise_name);
+		window.location.href = `/shop/${slug}`;
+	};
 	const groupedResults = React.useMemo(() => {
 		if (!results || results.length === 0) return {};
 
@@ -89,11 +96,6 @@ const SearchResultSection = ({
 	// Track display counts for each subcategory when filtering by category
 	const [subcategoryDisplayCounts, setSubcategoryDisplayCounts] =
 		React.useState({});
-
-	// Track total available products for each subcategory
-	const [subcategoryTotalCounts, setSubcategoryTotalCounts] = React.useState(
-		{}
-	);
 
 	// Track loading states for each subcategory
 	const [subcategoryLoadingStates, setSubcategoryLoadingStates] =
@@ -138,18 +140,6 @@ const SearchResultSection = ({
 			if (hasNewSubcategories) {
 				setSubcategoryDisplayCounts(initialCounts);
 			}
-
-			// Initialize total counts based on the balanced algorithm (20 per subcategory)
-			const initialTotalCounts = {};
-			Object.keys(groupedResults).forEach((subcategoryName) => {
-				// For now, we'll assume each subcategory has at least 20 products
-				// In a real implementation, you might want to fetch this from the API
-				initialTotalCounts[subcategoryName] = Math.max(
-					20,
-					groupedResults[subcategoryName].length
-				);
-			});
-			setSubcategoryTotalCounts(initialTotalCounts);
 		}
 	}, [
 		groupedResults,
@@ -286,7 +276,7 @@ const SearchResultSection = ({
 		});
 
 		return limited;
-	}, [groupedResults, subcategoryDisplayCounts, results.length]);
+	}, [groupedResults, subcategoryDisplayCounts]);
 
 	return (
 		<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 min-h-screen">
@@ -389,6 +379,90 @@ const SearchResultSection = ({
 				</nav>
 			</div>
 
+			{/* Shops Section - Show when there are matching shops */}
+			{searchShops && searchShops.length > 0 && (
+				<div className="mb-6 sm:mb-8">
+					<h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-4 sm:mb-5">
+						Matching Shops
+					</h2>
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+						{searchShops.map((shop) => (
+							<div
+								key={shop.id}
+								className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 cursor-pointer group"
+								onClick={() => handleShopClick(shop)}
+							>
+								<div className="p-4 sm:p-5">
+									<div className="flex items-center mb-3">
+										{shop.profile_picture ? (
+											<img
+												src={shop.profile_picture}
+												alt={shop.enterprise_name}
+												className="w-12 h-12 rounded-full object-cover mr-3"
+												onError={(e) => {
+													e.target.style.display = "none";
+												}}
+											/>
+										) : (
+											<div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+												<svg
+													className="w-6 h-6 text-gray-400"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24"
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														strokeWidth={2}
+														d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+													/>
+												</svg>
+											</div>
+										)}
+										<div className="flex-1">
+											<h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+												{shop.enterprise_name}
+											</h3>
+											<span
+												className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
+													shop.tier_id === 4
+														? "bg-purple-100 text-purple-800"
+														: shop.tier_id === 3
+														? "bg-blue-100 text-blue-800"
+														: shop.tier_id === 2
+														? "bg-green-100 text-green-800"
+														: "bg-gray-100 text-gray-800"
+												}`}
+											>
+												{shop.tier}
+											</span>
+										</div>
+									</div>
+									{shop.description && (
+										<p className="text-sm text-gray-600 mb-3 line-clamp-2">
+											{shop.description}
+										</p>
+									)}
+									<div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+										<span>{shop.product_count} products</span>
+										{shop.address && (
+											<span className="truncate max-w-[120px]">
+												{shop.address}
+											</span>
+										)}
+									</div>
+									{/* Click indicator */}
+									<div className="text-xs text-yellow-600 font-medium group-hover:text-yellow-700 transition-colors">
+										View Shop →
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			)}
+
 			{!isLoading && errorMessage && (
 				<div className="flex items-center justify-between p-2 sm:p-3 md:p-4 mb-4 sm:mb-5 md:mb-6 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
 					<span className="text-xs sm:text-sm">{errorMessage}</span>
@@ -424,7 +498,7 @@ const SearchResultSection = ({
 						</div>
 					))}
 				</div>
-			) : limitedResults.length === 0 ? (
+			) : limitedResults.length === 0 && isSearchContext ? (
 				<div className="text-center py-8 sm:py-10 md:py-12">
 					<div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 mx-auto mb-3 sm:mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 						<svg
@@ -450,7 +524,9 @@ const SearchResultSection = ({
 						tires
 					</p>
 				</div>
-			) : (
+			) : limitedResults.length ===
+			  0 ? // Return null when not in search context and no results
+			null : (
 				<div className="space-y-6 sm:space-y-7 md:space-y-8">
 					{isGroupedView ? (
 						// Grouped by subcategory view

@@ -126,11 +126,6 @@ const UTMCampaignTracking = ({
 		}
 	};
 
-	// Calculate total visits for percentage calculations
-	const totalVisits = Object.values(
-		utmData.utm_campaign_distribution || {}
-	).reduce((sum, count) => sum + count, 0);
-
 	return (
 		<div className={`utm-campaign-tracking ${className}`}>
 			<Card className="shadow-sm border-0">

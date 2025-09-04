@@ -3,13 +3,13 @@ import Messages from "../../components/Messages";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-const BuyerMessages = () => {
+const SellerMessages = () => {
 	return (
 		<Messages
-			userType="buyer"
-			apiBaseUrl="/buyer/conversations"
+			userType="seller"
+			apiBaseUrl="/seller/conversations"
 			navbarComponent={
-				<Navbar mode="buyer" showSearch={true} showCategories={true} />
+				<Navbar mode="seller" showSearch={true} showCategories={true} />
 			}
 			sidebarComponent={<Sidebar />}
 			title="Messages"
@@ -20,4 +20,4 @@ const BuyerMessages = () => {
 	);
 };
 
-export default BuyerMessages;
+export default SellerMessages;

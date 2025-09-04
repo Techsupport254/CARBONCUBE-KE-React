@@ -15,7 +15,6 @@ import {
 	faPencilAlt,
 	faExclamationTriangle,
 	faChartBar,
-	faLock,
 	faClipboardList,
 	faComments,
 	faCrown,

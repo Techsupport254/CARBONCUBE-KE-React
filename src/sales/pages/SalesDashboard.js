@@ -1,10 +1,4 @@
-import React, {
-	useEffect,
-	useState,
-	useMemo,
-	useCallback,
-	useRef,
-} from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 // Bootstrap CSS removed - using Tailwind CSS instead
 
@@ -107,8 +101,8 @@ function SalesDashboard() {
 		returning_visitors_count: 0,
 		new_visitors_count: 0,
 	});
+	// eslint-disable-next-line no-unused-vars
 	const [sourceAnalyticsLoading, setSourceAnalyticsLoading] = useState(false);
-	const sourceAnalyticsLoadingRef = useRef(false);
 	const [categories, setCategories] = useState([]);
 	const [categoryAnalytics, setCategoryAnalytics] = useState([]);
 
@@ -118,23 +112,6 @@ function SalesDashboard() {
 	const [sourceDateFilter, setSourceDateFilter] = useState("week");
 	const [sourceCustomStartDate, setSourceCustomStartDate] = useState("");
 	const [sourceCustomEndDate, setSourceCustomEndDate] = useState("");
-
-	// Add rate limiting to prevent excessive API calls
-	const [lastApiCall, setLastApiCall] = useState(0);
-	const API_CALL_INTERVAL = 1000; // 1 second between API calls
-
-	// Rate-limited fetch function
-	const rateLimitedFetch = useCallback(
-		(fetchFunction) => {
-			const now = Date.now();
-			if (now - lastApiCall < API_CALL_INTERVAL) {
-				return;
-			}
-			setLastApiCall(now);
-			fetchFunction();
-		},
-		[lastApiCall]
-	);
 
 	// Visitor metrics modal removed
 
@@ -545,12 +522,6 @@ function SalesDashboard() {
 		};
 	}, [sourceAnalytics, sourceDateFilter, getSourceDateRange]);
 
-	// Fetch source analytics (all data - filtering done client-side)
-	const fetchSourceAnalytics = useCallback(async () => {
-		// Source analytics are now included in the main analytics response
-		// No need for a separate API call
-	}, []);
-
 	// Memoize fetch functions to prevent unnecessary re-renders
 	const fetchCategories = useCallback(async () => {
 		try {
@@ -609,7 +580,7 @@ function SalesDashboard() {
 		fetchAnalytics();
 		fetchCategories();
 		fetchCategoryAnalytics();
-	}, []);
+	}, [fetchCategories, fetchCategoryAnalytics]);
 
 	// Combine categories with analytics data
 	const getCategoriesWithAnalytics = useMemo(() => {
