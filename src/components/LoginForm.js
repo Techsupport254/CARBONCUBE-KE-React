@@ -336,6 +336,7 @@ const LoginForm = ({ onLogin }) => {
 											<Row className="justify-content-center">
 												<Col xs={5} sm={4}>
 													<Button
+														id="buyerSignupBtn"
 														variant="secondary"
 														className="w-100 signup-btn rounded-pill"
 														onClick={() => navigate("/buyer-signup")}

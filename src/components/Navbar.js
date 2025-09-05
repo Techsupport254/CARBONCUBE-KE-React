@@ -632,6 +632,7 @@ const Navbar = ({
 							getPublicLinks().length === 0 && (
 								<div className="flex items-center space-x-2 lg:space-x-3">
 									<button
+										id="signInButton"
 										onClick={() => handleNavigation("/login")}
 										className="inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
 									>
@@ -818,6 +819,7 @@ const Navbar = ({
 									getPublicLinks().length === 0 && (
 										<div className="flex space-x-2">
 											<button
+												id="signInButton"
 												onClick={() => handleNavigation("/login")}
 												className="inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
 											>

@@ -572,6 +572,7 @@ function BuyerSignUpPage({ onSignup }) {
 
 													<div className="d-flex justify-content-center mt-3">
 														<Button
+														id="step1ContinueBtn"
 															variant="dark"
 															className="rounded-pill w-75"
 															onClick={nextStep}
@@ -778,6 +779,7 @@ function BuyerSignUpPage({ onSignup }) {
 															</Button>
 
 															<Button
+															id="verifyOtpBtn"
 																variant="warning"
 																className="rounded-pill w-50"
 																onClick={verifyOtpCode}
