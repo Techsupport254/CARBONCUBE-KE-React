@@ -1148,11 +1148,8 @@ const AdDetails = () => {
 		<>
 			<Navbar
 				mode="buyer"
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-				handleSearch={handleSearch}
 				onSidebarToggle={handleSidebarToggle}
-				showSearch={true}
+				showSearch={false}
 				showCategories={true}
 				showUserMenu={true}
 				showCart={true}

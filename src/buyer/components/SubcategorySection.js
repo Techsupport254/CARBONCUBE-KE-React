@@ -1,6 +1,10 @@
 import React from "react";
 import { Card } from "react-bootstrap";
-import { getBorderColor, getTierName, getTierId } from "../utils/sellerTierUtils";
+import {
+	getBorderColor,
+	getTierName,
+	getTierId,
+} from "../utils/sellerTierUtils";
 import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
 
 // Helper function to get tier priority (higher number = higher priority)
@@ -84,7 +88,7 @@ const SubcategorySection = ({
 							return (
 								<div
 									key={ad.id}
-									className="h-full w-full flex items-stretch relative group"
+									className="h-full w-full flex items-stretch relative group cursor-pointer"
 								>
 									<Card
 										className="h-full w-full bg-white rounded-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col relative"
@@ -95,9 +99,7 @@ const SubcategorySection = ({
 											className="absolute top-0.5 left-0.5 px-1 py-0.5 text-[7px] sm:text-[8px] md:text-[9px] font-medium text-white rounded-full z-10 shadow-sm"
 											style={{ backgroundColor: borderColor }}
 											role="status"
-											aria-label={`${
-												getTierName(ad)
-											} tier product`}
+											aria-label={`${getTierName(ad)} tier product`}
 										>
 											{getTierName(ad)}
 										</div>
@@ -120,23 +122,39 @@ const SubcategorySection = ({
 												}}
 											/>
 
-											{/* Ad title - now inside the card */}
-											<div className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white">
+											{/* Ad title and price - now inside the card */}
+											<div className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white flex flex-col justify-between flex-grow">
 												<h6
-													className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-800 text-center w-full truncate cursor-pointer hover:text-blue-600 transition-colors duration-200"
+													className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-800 text-center w-full truncate cursor-pointer hover:text-blue-600 transition-colors duration-200 mb-1"
 													onClick={() => onAdClick(ad.id)}
+													title={ad.title}
 												>
 													{ad.title}
 												</h6>
+												{/* Price */}
+												<div className="text-center">
+													<span className="text-[9px] sm:text-[10px] md:text-xs font-bold text-yellow-600">
+														KES{" "}
+														{ad.price
+															? parseFloat(ad.price).toLocaleString()
+															: "N/A"}
+													</span>
+												</div>
 											</div>
 										</div>
 									</Card>
 
-									{/* Tooltip for full title */}
-									<div className="hidden sm:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10 max-w-xs">
-										{ad.title}
+									{/* Enhanced Tooltip for full title and price */}
+									<div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-4 py-3 bg-gray-900 text-white text-sm rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 max-w-[200px] whitespace-normal">
+										<div className="font-semibold mb-2 text-center">
+											{ad.title}
+										</div>
+										<div className="text-yellow-300 font-bold text-center">
+											KES{" "}
+											{ad.price ? parseFloat(ad.price).toLocaleString() : "N/A"}
+										</div>
 										{/* Tooltip arrow */}
-										<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+										<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-900"></div>
 									</div>
 								</div>
 							);

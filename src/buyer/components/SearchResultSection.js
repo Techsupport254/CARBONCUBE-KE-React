@@ -287,12 +287,12 @@ const SearchResultSection = ({
 	}, [groupedResults, subcategoryDisplayCounts]);
 
 	return (
-		<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 min-h-screen">
+		<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 min-h-screen overflow-hidden">
 			{/* Enhanced Header */}
 			<div className="mb-4 sm:mb-5 md:mb-6 mt-2 sm:mt-3 md:mt-4">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
-					<div>
-						<h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">
+					<div className="flex-1 min-w-0">
+						<h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 break-words">
 							{searchQuery && searchQuery.trim() !== ""
 								? `Search Results for "${searchQuery}"`
 								: getHeaderTitle()}
@@ -394,79 +394,143 @@ const SearchResultSection = ({
 						Matching Shops
 					</h2>
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-						{searchShops.map((shop) => (
-							<div
-								key={shop.id}
-								className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 cursor-pointer group"
-								onClick={() => handleShopClickInternal(shop)}
-							>
-								<div className="p-4 sm:p-5">
-									<div className="flex items-center mb-3">
-										{shop.profile_picture ? (
-											<img
-												src={shop.profile_picture}
-												alt={shop.enterprise_name}
-												className="w-12 h-12 rounded-full object-cover mr-3"
-												onError={(e) => {
-													e.target.style.display = "none";
-												}}
-											/>
-										) : (
-											<div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-												<svg
-													className="w-6 h-6 text-gray-400"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														strokeWidth={2}
-														d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-													/>
-												</svg>
+						{searchShops.map((shop) => {
+							const borderColor = getBorderColor(shop.tier_id);
+							return (
+								<div
+									key={shop.id}
+									className="bg-white rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group h-full overflow-hidden"
+									style={{ border: `3px solid ${borderColor}` }}
+									onClick={() => handleShopClickInternal(shop)}
+								>
+									<div className="p-6 h-full flex flex-col">
+										{/* Header Section */}
+										<div className="flex items-center mb-4">
+											{shop.profile_picture ? (
+												<img
+													src={shop.profile_picture}
+													alt={shop.enterprise_name}
+													className="w-16 h-16 rounded-full object-cover mr-4 flex-shrink-0 shadow-md"
+													onError={(e) => {
+														e.target.style.display = "none";
+													}}
+												/>
+											) : (
+												<div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+													<svg
+														className="w-8 h-8 text-gray-500"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+														/>
+													</svg>
+												</div>
+											)}
+											<div className="flex-1 min-w-0">
+												<h3 className="text-lg font-bold text-gray-900 line-clamp-2 break-words mb-2">
+													{shop.enterprise_name}
+												</h3>
 											</div>
+										</div>
+
+										{/* Description */}
+										{shop.description && (
+											<p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow leading-relaxed">
+												{shop.description}
+											</p>
 										)}
-										<div className="flex-1">
-											<h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-												{shop.enterprise_name}
-											</h3>
-											<span
-												className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
-													shop.tier_id === 4
-														? "bg-purple-100 text-purple-800"
-														: shop.tier_id === 3
-														? "bg-blue-100 text-blue-800"
-														: shop.tier_id === 2
-														? "bg-green-100 text-green-800"
-														: "bg-gray-100 text-gray-800"
-												}`}
-											>
-												{shop.tier}
-											</span>
+
+										{/* Bottom Section */}
+										<div className="mt-auto space-y-3">
+											{/* Stats Row */}
+											<div className="flex items-center justify-between">
+												<div className="flex items-center text-sm text-gray-600">
+													<svg
+														className="w-4 h-4 mr-2 text-gray-400"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+														/>
+													</svg>
+													<span className="font-medium">
+														{shop.product_count} products
+													</span>
+												</div>
+												{shop.address && (
+													<div className="flex items-center text-sm text-gray-500">
+														<svg
+															className="w-4 h-4 mr-1 text-gray-400"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																strokeWidth={2}
+																d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+															/>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																strokeWidth={2}
+																d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+															/>
+														</svg>
+														<span className="truncate max-w-[120px]">
+															{shop.address}
+														</span>
+													</div>
+												)}
+											</div>
+
+											{/* Action Button and Tier Badge */}
+											<div className="pt-2 border-t border-gray-100">
+												<div className="flex items-center justify-between">
+													{/* Tier Badge */}
+													<span
+														className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+														style={{ backgroundColor: borderColor }}
+													>
+														{shop.tier}
+													</span>
+
+													{/* View Shop Button */}
+													<div className="flex items-center text-sm font-semibold text-yellow-600 group-hover:text-yellow-700 transition-colors">
+														<span>View Shop</span>
+														<svg
+															className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																strokeLinecap="round"
+																strokeLinejoin="round"
+																strokeWidth={2}
+																d="M9 5l7 7-7 7"
+															/>
+														</svg>
+													</div>
+												</div>
+											</div>
 										</div>
 									</div>
-									{shop.description && (
-										<p className="text-sm text-gray-600 mb-3 line-clamp-2">
-											{shop.description}
-										</p>
-									)}
-									<div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-										<span>{shop.product_count} products</span>
-										{shop.address && (
-											<span className="truncate max-w-[120px]">
-												{shop.address}
-											</span>
-										)}
-									</div>
-									{/* Click indicator */}
-									<div className="text-xs text-yellow-600 font-medium group-hover:text-yellow-700 transition-colors">
-										View Shop →
-									</div>
 								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</div>
 			)}
@@ -614,19 +678,19 @@ const SearchResultSection = ({
 															</div>
 														</div>
 
-														<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col">
-															<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow">
+														<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col min-h-0">
+															<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow break-words">
 																{ad.title}
 															</h3>
 															<div className="flex items-center justify-between mt-auto">
-																<p className="text-sm sm:text-base md:text-lg font-bold text-yellow-600">
+																<p className="text-sm sm:text-base md:text-lg font-bold text-yellow-600 truncate">
 																	KES{" "}
 																	{ad.price
 																		? parseFloat(ad.price).toLocaleString()
 																		: "N/A"}
 																</p>
 															</div>
-															<p className="text-xs text-gray-500 mt-1">
+															<p className="text-xs text-gray-500 mt-1 truncate">
 																{ad.seller?.enterprise_name || "Unknown Seller"}
 															</p>
 														</div>
@@ -713,19 +777,19 @@ const SearchResultSection = ({
 														</div>
 													</div>
 
-													<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col">
-														<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow">
+													<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col min-h-0">
+														<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow break-words">
 															{ad.title}
 														</h3>
 														<div className="flex items-center justify-between mt-auto">
-															<p className="text-sm sm:text-base md:text-lg font-bold text-yellow-600">
+															<p className="text-sm sm:text-base md:text-lg font-bold text-yellow-600 truncate">
 																KES{" "}
 																{ad.price
 																	? parseFloat(ad.price).toLocaleString()
 																	: "N/A"}
 															</p>
 														</div>
-														<p className="text-xs text-gray-500 mt-1">
+														<p className="text-xs text-gray-500 mt-1 truncate">
 															{ad.seller?.enterprise_name || "Unknown Seller"}
 														</p>
 													</div>

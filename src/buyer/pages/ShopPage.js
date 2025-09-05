@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { createSlug } from "../../utils/slugUtils";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
-import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
-import {
-	getBorderColor,
-	getTierName,
-	getTierId,
-} from "../utils/sellerTierUtils";
+import { getFallbackImage } from "../../utils/imageUtils";
+import { getTierName, getTierId } from "../utils/sellerTierUtils";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import ReviewsModal from "../../components/ReviewsModal";
 import useSEO from "../../hooks/useSEO";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faShare, faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
+import {
+	faShare,
+	faCheck,
+	faStar,
+	faStarHalfAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import Spinner from "react-spinkit";
 
 const ShopPage = () => {
@@ -25,6 +26,8 @@ const ShopPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
 	const [showShareSuccess, setShowShareSuccess] = useState(false);
+	const [showReviewsModal, setShowReviewsModal] = useState(false);
+	const [reviewStats, setReviewStats] = useState(null);
 
 	const handleShareShop = async () => {
 		if (!shop) {
@@ -61,6 +64,61 @@ const ShopPage = () => {
 				console.error("Error copying to clipboard:", clipboardError);
 			}
 		}
+	};
+
+	const fetchReviewStats = useCallback(async () => {
+		try {
+			const response = await fetch(
+				`${process.env.REACT_APP_BACKEND_URL}/shop/${slug}/reviews?page=1&per_page=1`,
+				{
+					headers: {
+						Authorization: "Bearer " + sessionStorage.getItem("token"),
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				setReviewStats(data.statistics);
+			}
+		} catch (err) {
+			console.error("Error fetching review stats:", err);
+		}
+	}, [slug]);
+
+	const renderStars = (rating) => {
+		const stars = [];
+		const fullStars = Math.floor(rating);
+		const hasHalfStar = rating % 1 !== 0;
+
+		for (let i = 0; i < fullStars; i++) {
+			stars.push(
+				<FontAwesomeIcon key={i} icon={faStar} className="text-yellow-400" />
+			);
+		}
+
+		if (hasHalfStar) {
+			stars.push(
+				<FontAwesomeIcon
+					key="half"
+					icon={faStarHalfAlt}
+					className="text-yellow-400"
+				/>
+			);
+		}
+
+		const emptyStars = 5 - Math.ceil(rating);
+		for (let i = 0; i < emptyStars; i++) {
+			stars.push(
+				<FontAwesomeIcon
+					key={`empty-${i}`}
+					icon={faStar}
+					className="text-gray-300"
+				/>
+			);
+		}
+
+		return stars;
 	};
 
 	// SEO Implementation
@@ -206,6 +264,12 @@ const ShopPage = () => {
 
 		fetchShopData();
 	}, [slug, currentPage]);
+
+	useEffect(() => {
+		if (shop) {
+			fetchReviewStats();
+		}
+	}, [shop, fetchReviewStats]);
 
 	const handleAdClick = (adId) => {
 		navigate(`/ads/${adId}`);
@@ -399,6 +463,94 @@ const ShopPage = () => {
 									</p>
 								</div>
 							)}
+
+							{/* Reviews Section - Integrated within the shop card */}
+							<div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-gray-200">
+								<div className="flex items-center justify-between mb-3">
+									<h3 className="text-base sm:text-lg font-semibold text-gray-900">
+										Customer Reviews
+									</h3>
+									<button
+										onClick={() => setShowReviewsModal(true)}
+										className="text-yellow-600 hover:text-yellow-700 font-medium text-xs sm:text-sm transition-colors"
+									>
+										View All Reviews
+									</button>
+								</div>
+
+								{reviewStats && reviewStats.total_reviews > 0 ? (
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+										{/* Average Rating */}
+										<div className="text-center sm:text-left">
+											<div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+												{reviewStats.average_rating}
+											</div>
+											<div className="flex justify-center sm:justify-start mb-1">
+												{renderStars(reviewStats.average_rating)}
+											</div>
+											<p className="text-xs sm:text-sm text-gray-600">
+												Based on {reviewStats.total_reviews} reviews
+											</p>
+										</div>
+
+										{/* Rating Distribution */}
+										<div>
+											<h4 className="font-medium text-gray-900 mb-2 text-sm">
+												Rating Breakdown
+											</h4>
+											<div className="space-y-1">
+												{reviewStats.rating_distribution
+													.slice()
+													.reverse()
+													.map((dist) => (
+														<div
+															key={dist.rating}
+															className="flex items-center space-x-2"
+														>
+															<span className="text-xs font-medium text-gray-700 w-4">
+																{dist.rating}
+															</span>
+															<FontAwesomeIcon
+																icon={faStar}
+																className="text-yellow-400 text-xs"
+															/>
+															<div className="flex-1 bg-gray-200 rounded-full h-1.5">
+																<div
+																	className="bg-yellow-400 h-1.5 rounded-full"
+																	style={{ width: `${dist.percentage}%` }}
+																></div>
+															</div>
+															<span className="text-xs text-gray-600 w-6">
+																{dist.count}
+															</span>
+														</div>
+													))}
+											</div>
+										</div>
+									</div>
+								) : (
+									<div className="text-center py-4">
+										<div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+											<FontAwesomeIcon
+												icon={faStar}
+												className="text-gray-400 text-lg"
+											/>
+										</div>
+										<h4 className="text-sm font-medium text-gray-900 mb-1">
+											No Reviews Yet
+										</h4>
+										<p className="text-xs text-gray-500 mb-3">
+											This shop doesn't have any reviews yet.
+										</p>
+										<button
+											onClick={() => setShowReviewsModal(true)}
+											className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium text-xs transition-colors"
+										>
+											View Reviews
+										</button>
+									</div>
+								)}
+							</div>
 						</div>
 
 						{/* Products */}
@@ -518,6 +670,14 @@ const ShopPage = () => {
 				</div>
 			</div>
 			<Footer />
+
+			{/* Reviews Modal */}
+			<ReviewsModal
+				show={showReviewsModal}
+				onHide={() => setShowReviewsModal(false)}
+				shopSlug={slug}
+				shopName={shop?.enterprise_name}
+			/>
 		</div>
 	);
 };
