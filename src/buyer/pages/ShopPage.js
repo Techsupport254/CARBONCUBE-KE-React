@@ -79,11 +79,25 @@ const ShopPage = () => {
 		keywords: shop
 			? `${shop.enterprise_name}, ${shop.enterprise_name} shop, online shopping Kenya, ${shop.tier} seller, ${shop.product_count} products, CarbonCube Kenya`
 			: "online marketplace Kenya, trusted sellers, secure ecommerce",
-		image: shop?.profile_picture
-			? shop.profile_picture.startsWith("http")
-				? shop.profile_picture
-				: `https://carboncube-ke.com${shop.profile_picture}`
-			: "https://carboncube-ke.com/logo.png",
+		image: (() => {
+			// Use shop profile picture if available and valid
+			if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
+				// If it's already a full URL, use it as is
+				if (shop.profile_picture.startsWith("http")) {
+					return shop.profile_picture;
+				}
+				// If it's a relative path, make it absolute
+				if (shop.profile_picture.startsWith("/")) {
+					return `https://carboncube-ke.com${shop.profile_picture}`;
+				}
+				// Otherwise, assume it's a full URL
+				return shop.profile_picture;
+			}
+			// Fallback to a shop-specific placeholder instead of CarbonCube logo
+			return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
+				shop?.enterprise_name || "Shop"
+			)}`;
+		})(),
 		url: `https://carboncube-ke.com/shop/${slug}`,
 		type: "website",
 		author: shop ? `${shop.enterprise_name} Team` : "Carbon Cube Kenya Team",
@@ -96,11 +110,25 @@ const ShopPage = () => {
 						shop.description ||
 						`${shop.enterprise_name} - ${shop.tier} seller offering ${shop.product_count} quality products for online shopping`,
 					url: `https://carboncube-ke.com/shop/${slug}`,
-					image: shop.profile_picture
-						? shop.profile_picture.startsWith("http")
-							? shop.profile_picture
-							: `https://carboncube-ke.com${shop.profile_picture}`
-						: "https://carboncube-ke.com/logo.png",
+					image: (() => {
+						// Use shop profile picture if available and valid
+						if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
+							// If it's already a full URL, use it as is
+							if (shop.profile_picture.startsWith("http")) {
+								return shop.profile_picture;
+							}
+							// If it's a relative path, make it absolute
+							if (shop.profile_picture.startsWith("/")) {
+								return `https://carboncube-ke.com${shop.profile_picture}`;
+							}
+							// Otherwise, assume it's a full URL
+							return shop.profile_picture;
+						}
+						// Fallback to a shop-specific placeholder instead of CarbonCube logo
+						return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
+							shop?.enterprise_name || "Shop"
+						)}`;
+					})(),
 					address: shop.address
 						? {
 								"@type": "PostalAddress",
@@ -241,7 +269,7 @@ const ShopPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-50 flex flex-col">
 			<Navbar
 				mode="buyer"
 				showSearch={false}
@@ -250,39 +278,138 @@ const ShopPage = () => {
 				showCart={true}
 				showWishlist={true}
 			/>
-			<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
-				{/* Header */}
-				<div className="mb-4 sm:mb-8">
-					{/* Breadcrumb */}
-					<nav className="text-sm text-gray-500 mb-3 sm:mb-4">
-						<span
-							onClick={() => navigate("/")}
-							className="cursor-pointer hover:text-yellow-600 transition-colors"
-						>
-							Home
-						</span>
-						<span className="mx-2">›</span>
-						<span className="text-gray-700 font-medium">
-							{shop.enterprise_name}
-						</span>
-					</nav>
+			<div className="flex-1">
+				<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+					{/* Header */}
+					<div className="mb-4 sm:mb-8">
+						{/* Breadcrumb */}
+						<nav className="text-sm text-gray-500 mb-3 sm:mb-4">
+							<span
+								onClick={() => navigate("/")}
+								className="cursor-pointer hover:text-yellow-600 transition-colors"
+							>
+								Home
+							</span>
+							<span className="mx-2">›</span>
+							<span className="text-gray-700 font-medium">
+								{shop.enterprise_name}
+							</span>
+						</nav>
 
-					{/* Shop Info */}
-					<div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
-						<div className="flex flex-col items-start gap-4">
-							{/* Logo, Shop Name, Tier and Product Count Row */}
-							<div className="flex items-center gap-3 w-full">
-								{shop.profile_picture ? (
-									<img
-										src={shop.profile_picture}
-										alt={shop.enterprise_name}
-										className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
-										onError={(e) => {
-											e.target.style.display = "none";
-										}}
-									/>
-								) : (
-									<div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+						{/* Shop Info */}
+						<div className="bg-white rounded-lg shadow-sm border p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+							<div className="flex flex-col lg:flex-row lg:items-start gap-4">
+								{/* Logo, Shop Name, Tier and Product Count - Left side on large screens */}
+								<div className="flex items-center gap-3 w-full lg:flex-1">
+									{shop.profile_picture ? (
+										<img
+											src={shop.profile_picture}
+											alt={shop.enterprise_name}
+											className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full object-cover flex-shrink-0"
+											onError={(e) => {
+												e.target.style.display = "none";
+											}}
+										/>
+									) : (
+										<div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+											<svg
+												className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-gray-400"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+												/>
+											</svg>
+										</div>
+									)}
+									<div className="flex-1 min-w-0">
+										<h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 break-words">
+											{shop.enterprise_name}
+										</h1>
+										<div className="flex items-center gap-2 mt-1 sm:mt-2">
+											<span
+												className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
+													shop.tier_id === 4
+														? "bg-purple-100 text-purple-800"
+														: shop.tier_id === 3
+														? "bg-blue-100 text-blue-800"
+														: shop.tier_id === 2
+														? "bg-green-100 text-green-800"
+														: "bg-gray-100 text-gray-800"
+												}`}
+											>
+												{shop.tier}
+											</span>
+											<span className="text-xs sm:text-sm text-gray-500">
+												{shop.product_count} products
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Share Button and Address - Right side on large screens */}
+								<div className="flex flex-col gap-3 lg:gap-4 lg:w-auto lg:items-end">
+									<button
+										onClick={handleShareShop}
+										disabled={!shop}
+										className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base lg:w-auto"
+									>
+										{showShareSuccess ? (
+											<>
+												<FontAwesomeIcon
+													icon={faCheck}
+													className="text-green-400"
+												/>
+												<span className="hidden sm:inline">Copied!</span>
+												<span className="sm:hidden">✓</span>
+											</>
+										) : (
+											<>
+												<FontAwesomeIcon icon={faShare} />
+												<span className="hidden sm:inline">Share Shop</span>
+												<span className="sm:hidden">Share</span>
+											</>
+										)}
+									</button>
+
+									{shop.address && (
+										<div className="text-xs sm:text-sm text-gray-500 lg:text-right">
+											📍 {shop.address}
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Description - Full width below on all screen sizes */}
+							{shop.description && shop.description.trim() !== "" ? (
+								<div className="mt-4 lg:mt-6">
+									<p className="text-sm sm:text-base text-gray-600">
+										{shop.description}
+									</p>
+								</div>
+							) : (
+								<div className="mt-4 lg:mt-6">
+									<p className="text-sm sm:text-base text-gray-500 italic">
+										No description available for this shop.
+									</p>
+								</div>
+							)}
+						</div>
+
+						{/* Products */}
+						<div className="mb-4 sm:mb-6">
+							<h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">
+								Products ({shop.product_count})
+							</h2>
+
+							{ads.length === 0 ? (
+								<div className="text-center py-8 sm:py-12">
+									<div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 										<svg
 											className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
 											fill="none"
@@ -293,196 +420,100 @@ const ShopPage = () => {
 												strokeLinecap="round"
 												strokeLinejoin="round"
 												strokeWidth={2}
-												d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+												d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
 											/>
 										</svg>
 									</div>
-								)}
-								<div className="flex-1 min-w-0">
-									<h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 break-words">
-										{shop.enterprise_name}
-									</h1>
-									<div className="flex items-center gap-2 mt-1">
-										<span
-											className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
-												shop.tier_id === 4
-													? "bg-purple-100 text-purple-800"
-													: shop.tier_id === 3
-													? "bg-blue-100 text-blue-800"
-													: shop.tier_id === 2
-													? "bg-green-100 text-green-800"
-													: "bg-gray-100 text-gray-800"
-											}`}
-										>
-											{shop.tier}
-										</span>
-										<span className="text-xs sm:text-sm text-gray-500">
-											{shop.product_count} products
-										</span>
-									</div>
-								</div>
-							</div>
-
-							{/* Share Button Row */}
-
-							{/* Share Button Row */}
-							<div className="w-full">
-								<button
-									onClick={handleShareShop}
-									disabled={!shop}
-									className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base"
-								>
-									{showShareSuccess ? (
-										<>
-											<FontAwesomeIcon
-												icon={faCheck}
-												className="text-green-400"
-											/>
-											<span className="hidden sm:inline">Copied!</span>
-											<span className="sm:hidden">✓</span>
-										</>
-									) : (
-										<>
-											<FontAwesomeIcon icon={faShare} />
-											<span className="hidden sm:inline">Share Shop</span>
-											<span className="sm:hidden">Share</span>
-										</>
-									)}
-								</button>
-							</div>
-
-							{/* Description */}
-							{shop.description && (
-								<div className="w-full">
-									<p className="text-sm sm:text-base text-gray-600">
-										{shop.description}
+									<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+										No Products Available
+									</h3>
+									<p className="text-sm sm:text-base text-gray-500">
+										This shop doesn't have any products listed yet.
 									</p>
 								</div>
-							)}
-
-							{/* Address */}
-							{shop.address && (
-								<div className="w-full">
-									<div className="text-xs sm:text-sm text-gray-500">
-										📍 {shop.address}
-									</div>
-								</div>
-							)}
-						</div>
-					</div>
-
-					{/* Products */}
-					<div className="mb-4 sm:mb-6">
-						<h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">
-							Products ({shop.product_count})
-						</h2>
-
-						{ads.length === 0 ? (
-							<div className="text-center py-8 sm:py-12">
-								<div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-									<svg
-										className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-										/>
-									</svg>
-								</div>
-								<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-									No Products Available
-								</h3>
-								<p className="text-sm sm:text-base text-gray-500">
-									This shop doesn't have any products listed yet.
-								</p>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
-								{ads.map((ad) => (
-									<div
-										key={ad.id}
-										className="group cursor-pointer transition-transform hover:scale-105 h-full"
-										onClick={() => handleAdClick(ad.id)}
-									>
-										<div className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 h-full flex flex-col">
-											{/* Product Image */}
-											<div className="relative flex-shrink-0">
-												<img
-													src={
-														ad.first_media_url
-															? ad.first_media_url.replace(/\n/g, "").trim()
-															: ad.media_urls &&
-															  Array.isArray(ad.media_urls) &&
-															  ad.media_urls.length > 0
-															? ad.media_urls[0].replace(/\n/g, "").trim()
-															: ad.media &&
-															  Array.isArray(ad.media) &&
-															  ad.media.length > 0
-															? ad.media[0].replace(/\n/g, "").trim()
-															: getFallbackImage()
-													}
-													alt={ad.title}
-													className="w-full aspect-square object-contain rounded-t-lg"
-													loading="lazy"
-													onError={(e) => {
-														e.target.src = getFallbackImage();
-													}}
-												/>
-												{/* Tier Badge */}
-												<div className="absolute top-1 sm:top-2 right-1 sm:right-2">
-													<span
-														className={`text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${
-															getTierId(ad) === 4
-																? "bg-purple-100 text-purple-800"
-																: getTierId(ad) === 3
-																? "bg-blue-100 text-blue-800"
-																: getTierId(ad) === 2
-																? "bg-green-100 text-green-800"
-																: "bg-gray-100 text-gray-800"
-														}`}
-													>
-														{getTierName(ad)}
-													</span>
+							) : (
+								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+									{ads.map((ad) => (
+										<div
+											key={ad.id}
+											className="group cursor-pointer transition-transform hover:scale-105 h-full"
+											onClick={() => handleAdClick(ad.id)}
+										>
+											<div className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 h-full flex flex-col">
+												{/* Product Image */}
+												<div className="relative flex-shrink-0">
+													<img
+														src={
+															ad.first_media_url
+																? ad.first_media_url.replace(/\n/g, "").trim()
+																: ad.media_urls &&
+																  Array.isArray(ad.media_urls) &&
+																  ad.media_urls.length > 0
+																? ad.media_urls[0].replace(/\n/g, "").trim()
+																: ad.media &&
+																  Array.isArray(ad.media) &&
+																  ad.media.length > 0
+																? ad.media[0].replace(/\n/g, "").trim()
+																: getFallbackImage()
+														}
+														alt={ad.title}
+														className="w-full aspect-square object-contain rounded-t-lg"
+														loading="lazy"
+														onError={(e) => {
+															e.target.src = getFallbackImage();
+														}}
+													/>
+													{/* Tier Badge */}
+													<div className="absolute top-1 sm:top-2 right-1 sm:right-2">
+														<span
+															className={`text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${
+																getTierId(ad) === 4
+																	? "bg-purple-100 text-purple-800"
+																	: getTierId(ad) === 3
+																	? "bg-blue-100 text-blue-800"
+																	: getTierId(ad) === 2
+																	? "bg-green-100 text-green-800"
+																	: "bg-gray-100 text-gray-800"
+															}`}
+														>
+															{getTierName(ad)}
+														</span>
+													</div>
 												</div>
-											</div>
 
-											{/* Product Info */}
-											<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
-												<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-													{ad.title}
-												</h3>
-												<p className="text-sm sm:text-lg font-bold text-yellow-600 mb-2">
-													KSh {ad.price?.toLocaleString() || "N/A"}
-												</p>
-												<div className="mt-auto">
-													<p className="text-xs text-gray-500">
-														{ad.category_name} › {ad.subcategory_name}
+												{/* Product Info */}
+												<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
+													<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+														{ad.title}
+													</h3>
+													<p className="text-sm sm:text-lg font-bold text-yellow-600 mb-2">
+														KSh {ad.price?.toLocaleString() || "N/A"}
 													</p>
+													<div className="mt-auto">
+														<p className="text-xs text-gray-500">
+															{ad.category_name} › {ad.subcategory_name}
+														</p>
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								))}
-							</div>
-						)}
+									))}
+								</div>
+							)}
 
-						{/* Load More Button */}
-						{hasMore && ads.length > 0 && (
-							<div className="text-center mt-8">
-								<Button
-									variant="outline-warning"
-									onClick={handleLoadMore}
-									className="px-6 py-2"
-								>
-									Load More Products
-								</Button>
-							</div>
-						)}
+							{/* Load More Button */}
+							{hasMore && ads.length > 0 && (
+								<div className="text-center mt-8">
+									<Button
+										variant="outline-warning"
+										onClick={handleLoadMore}
+										className="px-6 py-2"
+									>
+										Load More Products
+									</Button>
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
