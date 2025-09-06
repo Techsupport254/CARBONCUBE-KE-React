@@ -50,6 +50,14 @@ const staticRoutes = [
 			"products, buy online Kenya, marketplace products, verified sellers, secure shopping, ecommerce Kenya",
 	},
 	{
+		path: "/shop",
+		lastmod: CURRENT_DATE,
+		changefreq: "hourly",
+		priority: "0.8",
+		keywords:
+			"shop online Kenya, Carbon Cube Kenya shop, marketplace shopping, online store Kenya, verified products",
+	},
+	{
 		path: "/about-us",
 		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
@@ -107,7 +115,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/faq",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.6",
 		keywords:
@@ -115,7 +123,7 @@ const staticRoutes = [
 	},
 	{
 		path: "/how-it-works",
-		lastmod: new Date().toISOString().split("T")[0],
+		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.7",
 		keywords:
@@ -249,7 +257,7 @@ function generateCategoryUrls(categories) {
 	(Array.isArray(categories) ? categories : []).forEach((category) => {
 		categoryUrls.push({
 			path: `/categories/${category.id}`,
-			lastmod: new Date().toISOString().split("T")[0],
+			lastmod: CURRENT_DATE,
 			changefreq: "daily",
 			priority: "0.8",
 			keywords: `${category.name}, ${
@@ -272,7 +280,7 @@ function generateSubcategoryUrls(subcategories, categories) {
 		if (category) {
 			subcategoryUrls.push({
 				path: `/subcategories/${subcategory.id}`,
-				lastmod: new Date().toISOString().split("T")[0],
+				lastmod: CURRENT_DATE,
 				changefreq: "daily",
 				priority: "0.7",
 				keywords: `${subcategory.name}, ${subcategory.name} Kenya, ${category.name}, ${subcategory.name} ${category.name}, online shopping Kenya, Carbon Cube Kenya, verified sellers`,
@@ -281,6 +289,66 @@ function generateSubcategoryUrls(subcategories, categories) {
 	});
 
 	return subcategoryUrls;
+}
+
+// Fetch individual ads for sitemap
+async function fetchAds() {
+	try {
+		console.log("📡 Fetching individual ads...");
+		console.log(`📡 Ads API: ${API_BASE_URL}/buyer/ads`);
+		
+		const adsResponse = await axios
+			.get(`${API_BASE_URL}/buyer/ads`, {
+				timeout: 15000,
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+				},
+				params: {
+					per_page: 1000, // Get more ads for better SEO coverage
+					page: 1
+				}
+			})
+			.catch((error) => {
+				console.error(`Ads API Error: ${error.message}`);
+				console.error(`Status: ${error.response?.status}`);
+				return { data: { ads: [] } };
+			});
+
+		console.log(`📡 Ads Response Status: ${adsResponse.status || "N/A"}`);
+		
+		const adsData = adsResponse.data;
+		const ads = Array.isArray(adsData) 
+			? adsData 
+			: Array.isArray(adsData?.ads) 
+			? adsData.ads 
+			: [];
+
+		console.log(`Found ${ads.length} individual ads`);
+		return ads;
+	} catch (error) {
+		console.error("Error fetching ads:", error.message);
+		return [];
+	}
+}
+
+// Generate individual ad URLs
+function generateAdUrls(ads) {
+	const adUrls = [];
+
+	(Array.isArray(ads) ? ads : []).forEach((ad) => {
+		if (ad.id && ad.title) {
+			adUrls.push({
+				path: `/ads/${ad.id}`,
+				lastmod: CURRENT_DATE,
+				changefreq: "weekly",
+				priority: "0.6",
+				keywords: `${ad.title}, ${ad.title} Kenya, Carbon Cube Kenya, online shopping, verified seller, marketplace`,
+			});
+		}
+	});
+
+	return adUrls;
 }
 
 // Generate XML sitemap
@@ -452,18 +520,21 @@ async function generateDynamicSitemap() {
 		// Fetch dynamic data
 		const { categories, subcategories } =
 			await fetchCategoriesAndSubcategories();
+		const ads = await fetchAds();
 
 		// Generate URLs
 		const categoryUrls = generateCategoryUrls(categories);
 		const subcategoryUrls = generateSubcategoryUrls(subcategories, categories);
+		const adUrls = generateAdUrls(ads);
 
 		// Combine all URLs
-		const allUrls = [...staticRoutes, ...categoryUrls, ...subcategoryUrls];
+		const allUrls = [...staticRoutes, ...categoryUrls, ...subcategoryUrls, ...adUrls];
 
 		console.log(`📊 Generated ${allUrls.length} URLs total:`);
 		console.log(`   - ${staticRoutes.length} static routes`);
 		console.log(`   - ${categoryUrls.length} category pages`);
 		console.log(`   - ${subcategoryUrls.length} subcategory pages`);
+		console.log(`   - ${adUrls.length} individual ad pages`);
 
 		// Generate sitemap XML
 		const sitemapXML = generateSitemapXML(allUrls);
