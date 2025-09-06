@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 
 const FeatureComparisonTable = () => {
-	const [showTooltip, setShowTooltip] = useState(false);
 
 	const features = [
 		{

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Modal, Button, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -7,7 +7,6 @@ import {
 	faTimes,
 	faReply,
 	faUser,
-	faCalendarAlt,
 	faShoppingBag,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -27,19 +26,7 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 	const [hasMore, setHasMore] = useState(true);
 	const [error, setError] = useState(null);
 
-	useEffect(() => {
-		if (show && shopSlug) {
-			fetchReviews();
-		}
-	}, [show, shopSlug]);
-
-	useEffect(() => {
-		if (show && shopSlug && currentPage > 1) {
-			loadMoreReviews();
-		}
-	}, [currentPage]);
-
-	const fetchReviews = async () => {
+	const fetchReviews = useCallback(async () => {
 		try {
 			setIsLoading(true);
 			setError(null);
@@ -65,9 +52,9 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [shopSlug]);
 
-	const loadMoreReviews = async () => {
+	const loadMoreReviews = useCallback(async () => {
 		try {
 			const response = await fetch(
 				`${process.env.REACT_APP_BACKEND_URL}/shop/${shopSlug}/reviews?page=${currentPage}&per_page=10`,
@@ -88,7 +75,7 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 		} catch (err) {
 			console.error("Error loading more reviews:", err);
 		}
-	};
+	}, [shopSlug, currentPage]);
 
 	const handleLoadMore = () => {
 		setCurrentPage((prev) => prev + 1);
@@ -102,6 +89,18 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 		setError(null);
 		onHide();
 	};
+
+	useEffect(() => {
+		if (show && shopSlug) {
+			fetchReviews();
+		}
+	}, [show, shopSlug, fetchReviews]);
+
+	useEffect(() => {
+		if (show && shopSlug && currentPage > 1) {
+			loadMoreReviews();
+		}
+	}, [currentPage, show, shopSlug, loadMoreReviews]);
 
 	const renderStars = (rating) => {
 		const stars = [];

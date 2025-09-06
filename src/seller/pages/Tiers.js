@@ -16,7 +16,7 @@ const TierPage = () => {
 	const [paymentStep, setPaymentStep] = useState("instructions"); // 'instructions', 'confirming', 'success'
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+	const [, setIsProcessingPayment] = useState(false);
 	const [currentSellerTier, setCurrentSellerTier] = useState(null);
 
 	const [timeRemaining, setTimeRemaining] = useState(null);
@@ -361,10 +361,8 @@ const TierPage = () => {
 		useState(null);
 	const [manualPaymentStep, setManualPaymentStep] = useState("instructions"); // 'instructions', 'verification', 'success'
 	const [verificationData, setVerificationData] = useState(null);
-	const [currentPaymentId, setCurrentPaymentId] = useState(null);
 
 	const pollPaymentStatus = async (paymentId) => {
-		setCurrentPaymentId(paymentId);
 
 		const pollInterval = setInterval(async () => {
 			try {
@@ -410,20 +408,6 @@ const TierPage = () => {
 		setTimeout(() => {
 			clearInterval(pollInterval);
 		}, 300000);
-	};
-
-	const confirmPayment = () => {
-		// This function is no longer needed as payment is handled in handlePayment
-		// Keep it for backward compatibility but it won't be called
-		setIsProcessingPayment(false);
-		setPaymentStep("success");
-		setShowConfirmationModal(false);
-
-		// Reset state
-		setSelectedTier(null);
-		setSelectedPricing(null);
-		setShowPaymentModal(false);
-		setPaymentStep("instructions");
 	};
 
 	const resetPaymentFlow = () => {

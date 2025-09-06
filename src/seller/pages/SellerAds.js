@@ -7,7 +7,6 @@ import {
 	Button,
 	Modal,
 	Carousel,
-	FormControl,
 	Form,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -43,7 +42,6 @@ const SellerAds = () => {
 	const [subcategories, setSubcategories] = useState([]);
 	const [selectedCategory, setSelectedCategory] = useState("");
 	const [selectedSubcategory, setSelectedSubcategory] = useState("");
-	// const [ setNewImageUrl] = useState('');
 	const [isSaving, setIsSaving] = useState(false);
 	const [weightUnit, setWeightUnit] = useState("Grams");
 	const [uploading, setUploading] = useState(false);
@@ -54,12 +52,9 @@ const SellerAds = () => {
 	const [selectedImages, setSelectedImages] = useState([]);
 	const [activeIndex, setActiveIndex] = useState(0);
 	const [viewActiveIndex, setViewActiveIndex] = useState(0);
-	// const [alertMessage, setAlertMessage] = useState('');
 	const navigate = useNavigate();
 	const [formErrors, setFormErrors] = useState({});
-	const [hoveredAdId, setHoveredAdId] = useState(null);
 
-	// const [files, setFiles] = useState([]);
 	const [editedAd, setEditedAd] = useState({
 		item_length: "",
 		item_width: "",

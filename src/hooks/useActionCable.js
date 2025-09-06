@@ -19,7 +19,7 @@ class WebSocketConnectionManager {
 
 	createConnection(userType, userId, wsUrl) {
 		const key = this.getConnectionKey(userType, userId);
-		
+
 		// Return existing connection if available
 		if (this.connections.has(key)) {
 			return this.connections.get(key);
@@ -38,7 +38,7 @@ class WebSocketConnectionManager {
 	removeConnection(userType, userId) {
 		const key = this.getConnectionKey(userType, userId);
 		const consumer = this.connections.get(key);
-		
+
 		if (consumer) {
 			try {
 				consumer.disconnect();
@@ -51,6 +51,7 @@ class WebSocketConnectionManager {
 
 	cleanup() {
 		// Clean up all connections
+		// eslint-disable-next-line no-unused-vars
 		for (const [key, consumer] of this.connections) {
 			try {
 				consumer.disconnect();
@@ -108,7 +109,11 @@ const useActionCable = (
 					)?.replace("http://", "ws://") || "ws://localhost:3001";
 
 				// Get or create connection using the manager
-				const consumer = connectionManager.createConnection(userType, userId, wsUrl);
+				const consumer = connectionManager.createConnection(
+					userType,
+					userId,
+					wsUrl
+				);
 
 				// Subscribe to conversations channel
 				subscriptionRef.current = consumer.subscriptions.create(
@@ -134,7 +139,7 @@ const useActionCable = (
 							if (onConnectionStatus) {
 								onConnectionStatus("disconnected");
 							}
-							
+
 							// Attempt to reconnect after a delay
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
@@ -216,16 +221,19 @@ const useActionCable = (
 	}, [userType, userId]);
 
 	return {
-		sendMessage: useCallback((conversationId, content, senderType, senderId) => {
-			if (subscriptionRef.current) {
-				subscriptionRef.current.send({
-					conversation_id: conversationId,
-					content: content,
-					sender_type: senderType,
-					sender_id: senderId,
-				});
-			}
-		}, []),
+		sendMessage: useCallback(
+			(conversationId, content, senderType, senderId) => {
+				if (subscriptionRef.current) {
+					subscriptionRef.current.send({
+						conversation_id: conversationId,
+						content: content,
+						sender_type: senderType,
+						sender_id: senderId,
+					});
+				}
+			},
+			[]
+		),
 	};
 };
 

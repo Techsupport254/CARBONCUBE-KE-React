@@ -19,7 +19,7 @@ class WebSocketConnectionManager {
 
 	createConnection(userType, userId, wsUrl) {
 		const key = this.getConnectionKey(userType, userId);
-		
+
 		// Return existing connection if available
 		if (this.connections.has(key)) {
 			return this.connections.get(key);
@@ -38,7 +38,7 @@ class WebSocketConnectionManager {
 	removeConnection(userType, userId) {
 		const key = this.getConnectionKey(userType, userId);
 		const consumer = this.connections.get(key);
-		
+
 		if (consumer) {
 			try {
 				consumer.disconnect();
@@ -51,6 +51,7 @@ class WebSocketConnectionManager {
 
 	cleanup() {
 		// Clean up all connections
+		// eslint-disable-next-line no-unused-vars
 		for (const [key, consumer] of this.connections) {
 			try {
 				consumer.disconnect();
@@ -100,7 +101,11 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
 					"ws://localhost:3001";
 
-				const consumer = connectionManager.createConnection(userType, userId, wsUrl);
+				const consumer = connectionManager.createConnection(
+					userType,
+					userId,
+					wsUrl
+				);
 
 				// Subscribe to conversations channel for new messages
 				subscriptionRef.current = consumer.subscriptions.create(
@@ -120,7 +125,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 						},
 						disconnected() {
 							isConnectingRef.current = false;
-							
+
 							// Attempt to reconnect after a delay, but only if not already reconnecting
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
@@ -130,7 +135,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 						},
 						rejected() {
 							isConnectingRef.current = false;
-							
+
 							// Attempt to reconnect after a longer delay for rejections
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
@@ -144,7 +149,10 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 									// Only trigger if the message is not from the current user
 									if (
 										data.message &&
-										!(data.message.sender_id === userId && data.message.sender_type === userType)
+										!(
+											data.message.sender_id === userId &&
+											data.message.sender_type === userType
+										)
 									) {
 										onNewMessage(data);
 									}
@@ -157,7 +165,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 				);
 			} catch (error) {
 				isConnectingRef.current = false;
-				
+
 				// Attempt to reconnect after an error
 				if (!reconnectTimeoutRef.current) {
 					reconnectTimeoutRef.current = setTimeout(() => {

@@ -16,6 +16,7 @@ import SearchResultSection from "../components/SearchResultSection";
 import Spinner from "react-spinkit";
 // import AdDetailsModal from '../components/AdDetailsModal';
 import { useNavigate, useLocation } from "react-router-dom"; // Import useNavigate
+import { createSlug } from "../../utils/slugUtils";
 // import "../css/Home.css"; // Removed CSS import
 import Footer from "../../components/Footer";
 import {
@@ -586,6 +587,11 @@ const Home = () => {
 				ads = results;
 			}
 
+			// Extract shops from results if they exist
+			if (results.shops) {
+				shops = results.shops;
+			}
+
 			// Batch state updates to prevent flickering
 			startTransition(() => {
 				setSearchResults(ads);
@@ -727,6 +733,11 @@ const Home = () => {
 			// Proceed with navigation even if logging fails
 			navigate(`/ads/${adId}`);
 		}
+	};
+
+	const handleShopClick = (shop) => {
+		const slug = createSlug(shop.enterprise_name);
+		navigate(`/shop/${slug}`);
 	};
 
 	// Function to log a click event
@@ -896,14 +907,14 @@ const Home = () => {
 				<div className={`${sidebarOpen ? "block" : "hidden"} xl:block`}>
 					<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
 				</div>
-				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 relative z-0 transition-all duration-300 ease-in-out">
+				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-2 sm:pb-4 md:pb-6 lg:pb-8 relative z-0 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
 						{(() => {
 							const params = new URLSearchParams(location.search);
 							const query = params.get("query");
 							const category = params.get("category");
-							
+
 							const subcategory = params.get("subcategory");
 							const hasSearchParams =
 								query !== null ||
@@ -927,7 +938,7 @@ const Home = () => {
 								// Use normal positioning for search results, overlap positioning for homepage
 								return hasSearchParams || searchQuery || isSearching
 									? "mt-4" // Normal spacing for search results
-									: "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[20vh] 2xl:-translate-y-[30vh]"; // Overlap for homepage
+									: "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[15vh] 2xl:-translate-y-[20vh]"; // Overlap for homepage
 							})()} relative z-10 transition-transform duration-300`}
 						>
 							{isSearching ? (
@@ -956,6 +967,7 @@ const Home = () => {
 									results={displayedResults}
 									searchQuery={searchQuery}
 									searchShops={searchShops}
+									handleShopClick={handleShopClick}
 									isLoading={isSearching}
 									errorMessage={error}
 									isSearchContext={(() => {
