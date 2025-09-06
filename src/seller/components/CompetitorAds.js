@@ -3,14 +3,14 @@ import "./TopWishListedAds.css";
 
 const CompetitorAds = ({ data }) => {
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 sm:gap-2">
 			{data.map((ad) => (
 				<div
 					key={ad.ad_id}
-					className="bg-white bg-opacity-10 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+					className="bg-white bg-opacity-10 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow overflow-hidden"
 				>
 					<img
-						className="w-full h-32 object-cover rounded-t-lg"
+						className="w-full h-48 sm:h-52 object-contain bg-gray-50"
 						src={
 							ad.ad_media && ad.ad_media.length > 0
 								? ad.ad_media[0]
@@ -18,14 +18,16 @@ const CompetitorAds = ({ data }) => {
 						}
 						alt={ad.ad_title}
 					/>
-					<div className="p-3">
-						<h6 className="font-semibold text-gray-800 mb-2 text-sm truncate">
+					<div className="p-1 sm:p-2">
+						<h6 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base truncate">
 							{ad.ad_title}
 						</h6>
 
 						<div className="flex items-center mb-2">
-							<span className="text-green-600 text-xs italic">Kshs: </span>
-							<span className="text-red-600 font-bold text-lg">
+							<span className="text-green-600 text-xs sm:text-sm italic">
+								Kshs:{" "}
+							</span>
+							<span className="text-red-600 font-bold text-base sm:text-lg">
 								{ad.ad_price.split(".").map((part, index) => (
 									<React.Fragment key={index}>
 										{index === 0 ? (
@@ -47,10 +49,10 @@ const CompetitorAds = ({ data }) => {
 							</span>
 						</div>
 						<div className="flex items-center">
-							<span className="font-semibold text-gray-700">
+							<span className="font-semibold text-gray-700 text-xs sm:text-sm">
 								Ads Wishlisted:{" "}
 							</span>
-							<span className="text-blue-600 font-bold">
+							<span className="text-blue-600 font-bold text-sm sm:text-base">
 								{ad.total_wishlists}
 							</span>
 						</div>

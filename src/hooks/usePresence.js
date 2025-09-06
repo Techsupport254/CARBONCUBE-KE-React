@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createConsumer } from "@rails/actioncable";
 
 const usePresence = (
 	userType,
@@ -12,6 +13,24 @@ const usePresence = (
 	const typingTimeoutRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);
 	const isConnectingRef = useRef(false);
+
+	// Store callback refs to avoid dependency issues
+	const onOnlineStatusChangeRef = useRef(onOnlineStatusChange);
+	const onTypingStatusChangeRef = useRef(onTypingStatusChange);
+	const onMessageStatusChangeRef = useRef(onMessageStatusChange);
+
+	// Update refs when callbacks change
+	useEffect(() => {
+		onOnlineStatusChangeRef.current = onOnlineStatusChange;
+	}, [onOnlineStatusChange]);
+
+	useEffect(() => {
+		onTypingStatusChangeRef.current = onTypingStatusChange;
+	}, [onTypingStatusChange]);
+
+	useEffect(() => {
+		onMessageStatusChangeRef.current = onMessageStatusChange;
+	}, [onMessageStatusChange]);
 
 	useEffect(() => {
 		if (!userType || !userId) {
@@ -37,9 +56,6 @@ const usePresence = (
 					cableRef.current = null;
 				}
 
-				// Create ActionCable connection
-				const ActionCable = require("actioncable");
-
 				// Convert HTTP URL to WebSocket URL
 				const wsUrl =
 					process.env.REACT_APP_BACKEND_URL?.replace(
@@ -47,7 +63,7 @@ const usePresence = (
 						"wss://"
 					)?.replace("http://", "ws://") || "ws://localhost:3001";
 
-				cableRef.current = ActionCable.createConsumer(`${wsUrl}/cable`);
+				cableRef.current = createConsumer(`${wsUrl}/cable`);
 
 				// Subscribe to presence channel
 				subscriptionRef.current = cableRef.current.subscriptions.create(
@@ -84,19 +100,25 @@ const usePresence = (
 							}
 						},
 						received(data) {
-							switch (data.type) {
-								case "online_status":
-									onOnlineStatusChange(data);
-									break;
-								case "typing_status":
-									onTypingStatusChange(data);
-									break;
-								case "message_read":
-								case "message_delivered":
-									onMessageStatusChange(data);
-									break;
-								default:
-									break;
+							try {
+								if (data) {
+									switch (data.type) {
+										case "online_status":
+											onOnlineStatusChangeRef.current?.(data);
+											break;
+										case "typing_status":
+											onTypingStatusChangeRef.current?.(data);
+											break;
+										case "message_read":
+										case "message_delivered":
+											onMessageStatusChangeRef.current?.(data);
+											break;
+										default:
+											break;
+									}
+								}
+							} catch (error) {
+								console.error("Error handling received presence data:", error);
 							}
 						},
 					}
@@ -126,11 +148,19 @@ const usePresence = (
 				typingTimeoutRef.current = null;
 			}
 			if (subscriptionRef.current) {
-				subscriptionRef.current.unsubscribe();
+				try {
+					subscriptionRef.current.unsubscribe();
+				} catch (error) {
+					console.error("Error unsubscribing from presence:", error);
+				}
 				subscriptionRef.current = null;
 			}
 			if (cableRef.current) {
-				cableRef.current.disconnect();
+				try {
+					cableRef.current.disconnect();
+				} catch (error) {
+					console.error("Error disconnecting presence cable:", error);
+				}
 				cableRef.current = null;
 			}
 			isConnectingRef.current = false;

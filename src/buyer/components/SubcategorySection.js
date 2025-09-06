@@ -124,16 +124,16 @@ const SubcategorySection = ({
 
 											{/* Ad title and price - now inside the card */}
 											<div className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white flex flex-col justify-between flex-grow">
-												<h6
+												<h3
 													className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-800 text-center w-full truncate cursor-pointer hover:text-blue-600 transition-colors duration-200 mb-1"
 													onClick={() => onAdClick(ad.id)}
 													title={ad.title}
 												>
 													{ad.title}
-												</h6>
+												</h3>
 												{/* Price */}
 												<div className="text-center">
-													<span className="text-[9px] sm:text-[10px] md:text-xs font-bold text-yellow-600">
+													<span className="text-[9px] sm:text-[10px] md:text-xs font-bold text-orange-700">
 														KES{" "}
 														{ad.price
 															? parseFloat(ad.price).toLocaleString()
@@ -178,12 +178,12 @@ const SubcategorySection = ({
 				{isLoading ? (
 					<div className="h-3 sm:h-4 md:h-5 w-16 sm:w-20 md:w-24 bg-gray-200 rounded animate-pulse" />
 				) : (
-					<h6
+					<h3
 						className="m-0 cursor-pointer transition-all duration-300 hover:text-blue-600 hover:translate-x-1 font-semibold text-gray-800 text-[10px] sm:text-xs md:text-sm"
 						onClick={() => onSubcategoryClick(subcategory, categoryName)}
 					>
 						{subcategory}
-					</h6>
+					</h3>
 				)}
 			</Card.Footer>
 		</Card>

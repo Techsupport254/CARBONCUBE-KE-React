@@ -24,7 +24,13 @@ const cable = createConsumer(
 			"http://",
 			"ws://"
 		) || "ws://localhost:3001"
-	}/cable`
+	}/cable`,
+	{
+		timeout: 15000, // Increased timeout
+		reconnect: false, // Disable automatic reconnection to prevent rapid reconnects
+		maxReconnectAttempts: 3, // Reduced max attempts
+		reconnectInterval: 10000, // Increased interval
+	}
 );
 
 export default cable;

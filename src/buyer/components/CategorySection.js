@@ -28,7 +28,7 @@ const CategorySection = ({
 		  }));
 
 	return (
-		<Card className="mx-0 shadow-xl rounded-lg border-0">
+		<Card className="mx-0 shadow-xl rounded-lg border-0 relative z-10">
 			<Card.Header
 				className="bg-secondary text-white rounded-t-lg flex justify-between items-center shadow-md cursor-pointer hover:bg-yellow-600 transition-colors duration-200 px-2 sm:px-3 md:px-4 lg:px-5 py-2 sm:py-3 md:py-4"
 				onClick={() =>

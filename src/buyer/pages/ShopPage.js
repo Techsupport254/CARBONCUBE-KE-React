@@ -2,18 +2,30 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import { getFallbackImage } from "../../utils/imageUtils";
-import { getTierName, getTierId } from "../utils/sellerTierUtils";
+import {
+	getTierName,
+	getTierId,
+	getBorderColor,
+} from "../utils/sellerTierUtils";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import ReviewsModal from "../../components/ReviewsModal";
+import LeaveReviewModal from "../../components/LeaveReviewModal";
 import useSEO from "../../hooks/useSEO";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faShare,
-	faCheck,
 	faStar,
 	faStarHalfAlt,
+	faTimes,
+	faCopy,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+	faFacebook,
+	faTwitter,
+	faWhatsapp,
+	faLinkedin,
+} from "@fortawesome/free-brands-svg-icons";
 import Spinner from "react-spinkit";
 
 const ShopPage = () => {
@@ -25,44 +37,91 @@ const ShopPage = () => {
 	const [error, setError] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
-	const [showShareSuccess, setShowShareSuccess] = useState(false);
+	const [showShareModal, setShowShareModal] = useState(false);
 	const [showReviewsModal, setShowReviewsModal] = useState(false);
+	const [showLeaveReviewModal, setShowLeaveReviewModal] = useState(false);
 	const [reviewStats, setReviewStats] = useState(null);
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [userRole, setUserRole] = useState(null);
+	const [currentUserId, setCurrentUserId] = useState(null);
 
-	const handleShareShop = async () => {
+	// Initialize authentication state
+	useEffect(() => {
+		const token = sessionStorage.getItem("token");
+		const role = sessionStorage.getItem("userRole");
+		const userId = sessionStorage.getItem("userId");
+
+		if (token && role) {
+			setIsAuthenticated(true);
+			setUserRole(role);
+			setCurrentUserId(userId);
+		}
+	}, []);
+
+	const handleShareShop = () => {
 		if (!shop) {
-			// Don't share if shop data isn't loaded yet
 			return;
 		}
+		setShowShareModal(true);
+	};
 
-		const shopUrl = `${window.location.origin}/shop/${slug}`;
-		const shopTitle = `${shop.enterprise_name} - Shop on CarbonCube Kenya`;
-		const shopDescription = `Check out ${shop.enterprise_name} on CarbonCube Kenya! Browse ${shop.product_count} products.`;
+	const handleCloseShareModal = () => {
+		setShowShareModal(false);
+	};
 
+	const shareToFacebook = () => {
+		const shopUrl = `${window.location.origin}/shop/${encodeURIComponent(
+			slug
+		)}`;
+		const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+			shopUrl
+		)}`;
+		window.open(facebookUrl, "_blank", "width=600,height=400");
+		setShowShareModal(false);
+	};
+
+	const shareToTwitter = () => {
+		const shopUrl = `${window.location.origin}/shop/${encodeURIComponent(
+			slug
+		)}`;
+		const tweetText = `Check out ${shop.enterprise_name} on Carbon Cube Kenya! Browse ${shop.product_count} products.`;
+		const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+			tweetText
+		)}&url=${encodeURIComponent(shopUrl)}`;
+		window.open(twitterUrl, "_blank", "width=600,height=400");
+		setShowShareModal(false);
+	};
+
+	const shareToWhatsApp = () => {
+		const shopUrl = `${window.location.origin}/shop/${encodeURIComponent(
+			slug
+		)}`;
+		const message = `Check out ${shop.enterprise_name} on Carbon Cube Kenya! Browse ${shop.product_count} products: ${shopUrl}`;
+		const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+		window.open(whatsappUrl, "_blank");
+		setShowShareModal(false);
+	};
+
+	const shareToLinkedIn = () => {
+		const shopUrl = `${window.location.origin}/shop/${encodeURIComponent(
+			slug
+		)}`;
+		const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+			shopUrl
+		)}`;
+		window.open(linkedinUrl, "_blank", "width=600,height=400");
+		setShowShareModal(false);
+	};
+
+	const copyToClipboard = async () => {
+		const shopUrl = `${window.location.origin}/shop/${encodeURIComponent(
+			slug
+		)}`;
 		try {
-			if (navigator.share) {
-				// Use native sharing if available (mobile)
-				await navigator.share({
-					title: shopTitle,
-					text: shopDescription,
-					url: shopUrl,
-				});
-			} else {
-				// Fallback to clipboard copy
-				await navigator.clipboard.writeText(shopUrl);
-				setShowShareSuccess(true);
-				setTimeout(() => setShowShareSuccess(false), 2000);
-			}
+			await navigator.clipboard.writeText(shopUrl);
+			setShowShareModal(false);
 		} catch (error) {
-			console.error("Error sharing:", error);
-			// Fallback to clipboard copy
-			try {
-				await navigator.clipboard.writeText(shopUrl);
-				setShowShareSuccess(true);
-				setTimeout(() => setShowShareSuccess(false), 2000);
-			} catch (clipboardError) {
-				console.error("Error copying to clipboard:", clipboardError);
-			}
+			console.error("Error copying to clipboard:", error);
 		}
 	};
 
@@ -121,68 +180,87 @@ const ShopPage = () => {
 		return stars;
 	};
 
-	// SEO Implementation
-	useSEO({
-		title: shop
-			? `${shop.enterprise_name} Shop - ${shop.product_count} Products`
-			: "Shop - CarbonCube Kenya",
-		description: shop
-			? `${shop.enterprise_name} - ${shop.tier} seller with ${
+	// Generate comprehensive SEO data based on shop content
+	const seoData = shop
+		? {
+				title: `${shop.enterprise_name} - Shop | ${
 					shop.product_count
-			  } products. ${
-					shop.description ||
-					`Shop quality products from ${shop.enterprise_name}. Fast delivery, secure payments, trusted seller.`
-			  }`
-			: "Browse shops and products on CarbonCube Kenya's marketplace",
-		keywords: shop
-			? `${shop.enterprise_name}, ${shop.enterprise_name} shop, online shopping Kenya, ${shop.tier} seller, ${shop.product_count} products, CarbonCube Kenya`
-			: "online marketplace Kenya, trusted sellers, secure ecommerce",
-		image: (() => {
-			// Use shop profile picture if available and valid
-			if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
-				// If it's already a full URL, use it as is
-				if (shop.profile_picture.startsWith("http")) {
-					return shop.profile_picture;
-				}
-				// If it's a relative path, make it absolute
-				if (shop.profile_picture.startsWith("/")) {
-					return `https://carboncube-ke.com${shop.profile_picture}`;
-				}
-				// Otherwise, assume it's a full URL
-				return shop.profile_picture;
-			}
-			// Fallback to a shop-specific placeholder instead of CarbonCube logo
-			return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
-				shop?.enterprise_name || "Shop"
-			)}`;
-		})(),
-		url: `https://carboncube-ke.com/shop/${slug}`,
-		type: "website",
-		author: shop ? `${shop.enterprise_name} Team` : "Carbon Cube Kenya Team",
-		structuredData: shop
-			? {
+				} Products | ${shop.tier || "Free"} Tier Seller`,
+				description: (() => {
+					const location = [shop.city, shop.sub_county, shop.county]
+						.filter(Boolean)
+						.join(", ");
+					const tier = shop.tier || "Free";
+					const rating = shop.average_rating
+						? ` Rated ${shop.average_rating}/5 stars`
+						: "";
+					const reviews =
+						shop.total_reviews > 0 ? ` with ${shop.total_reviews} reviews` : "";
+
+					if (shop.description) {
+						return `${shop.description.substring(0, 160)}... Shop ${
+							shop.enterprise_name
+						} on Carbon Cube Kenya. ${
+							shop.product_count
+						} products available from ${tier} tier verified seller${
+							location ? ` in ${location}` : ""
+						}.${rating}${reviews}. Fast delivery across Kenya.`;
+					} else {
+						return `Shop ${shop.enterprise_name} on Carbon Cube Kenya. ${
+							shop.product_count
+						} products available from ${tier} tier verified seller${
+							location ? ` in ${location}` : ""
+						}.${rating}${reviews}. Browse quality products with fast delivery across Kenya.`;
+					}
+				})(),
+				keywords: `${shop.enterprise_name}, ${shop.enterprise_name} shop, ${
+					shop.enterprise_name
+				} store, ${shop.categories || ""}, ${shop.city || ""}, ${
+					shop.county || ""
+				}, ${shop.sub_county || ""}, ${
+					shop.tier || "Free"
+				} tier seller, online shop Kenya, Carbon Cube Kenya, Kenya marketplace, ${
+					shop.product_count
+				} products, ${
+					shop.business_registration_number
+						? `registered business ${shop.business_registration_number}`
+						: ""
+				}, Kenya e-commerce, online shopping Kenya, verified seller Kenya`,
+				url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+				type: "website",
+				image: (() => {
+					if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
+						if (shop.profile_picture.startsWith("http")) {
+							return shop.profile_picture;
+						}
+						if (shop.profile_picture.startsWith("/")) {
+							return `https://carboncube-ke.com${shop.profile_picture}`;
+						}
+						return shop.profile_picture;
+					}
+					return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
+						shop?.enterprise_name || "Shop"
+					)}`;
+				})(),
+				author: `${shop.enterprise_name} Team`,
+				structuredData: {
 					"@context": "https://schema.org",
-					"@type": "Store",
+					"@type": "LocalBusiness",
 					name: shop.enterprise_name,
 					description:
 						shop.description ||
-						`${shop.enterprise_name} - ${shop.tier} seller offering ${shop.product_count} quality products for online shopping`,
-					url: `https://carboncube-ke.com/shop/${slug}`,
+						`Shop ${shop.enterprise_name} on Carbon Cube Kenya`,
+					url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
 					image: (() => {
-						// Use shop profile picture if available and valid
 						if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
-							// If it's already a full URL, use it as is
 							if (shop.profile_picture.startsWith("http")) {
 								return shop.profile_picture;
 							}
-							// If it's a relative path, make it absolute
 							if (shop.profile_picture.startsWith("/")) {
 								return `https://carboncube-ke.com${shop.profile_picture}`;
 							}
-							// Otherwise, assume it's a full URL
 							return shop.profile_picture;
 						}
-						// Fallback to a shop-specific placeholder instead of CarbonCube logo
 						return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
 							shop?.enterprise_name || "Shop"
 						)}`;
@@ -190,22 +268,37 @@ const ShopPage = () => {
 					address: shop.address
 						? {
 								"@type": "PostalAddress",
-								addressLocality: "Kenya",
+								streetAddress: shop.address,
+								addressLocality: shop.city || "Kenya",
+								addressRegion: shop.county || "Kenya",
 								addressCountry: "KE",
 						  }
 						: undefined,
-					numberOfItems: shop.product_count,
+					telephone: shop.phone_number,
+					email: shop.email,
+					foundingDate: shop.created_at,
+					numberOfEmployees: "1-10",
 					priceRange: "$$",
-					aggregateRating: {
-						"@type": "AggregateRating",
-						ratingValue: "4.5",
-						reviewCount: "100+",
+					paymentAccepted: "Cash, Mobile Money, Bank Transfer",
+					currenciesAccepted: "KES",
+					aggregateRating:
+						shop.total_reviews > 0
+							? {
+									"@type": "AggregateRating",
+									ratingValue: shop.average_rating.toString(),
+									reviewCount: shop.total_reviews.toString(),
+							  }
+							: undefined,
+					hasOfferCatalog: {
+						"@type": "OfferCatalog",
+						name: `${shop.enterprise_name} Products`,
+						numberOfItems: shop.product_count,
 					},
-					// Remove sameAs links since they point to CarbonCube, not the shop
-			  }
-			: null,
-		additionalStructuredData: shop
-			? [
+					sameAs: [
+						`${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+					],
+				},
+				additionalStructuredData: [
 					{
 						"@context": "https://schema.org",
 						"@type": "BreadcrumbList",
@@ -214,25 +307,205 @@ const ShopPage = () => {
 								"@type": "ListItem",
 								position: 1,
 								name: "Home",
-								item: "https://carboncube-ke.com",
+								item: `${window.location.origin}/`,
 							},
 							{
 								"@type": "ListItem",
 								position: 2,
 								name: "Shops",
-								item: "https://carboncube-ke.com/shops",
+								item: `${window.location.origin}/shops`,
 							},
 							{
 								"@type": "ListItem",
 								position: 3,
 								name: shop.enterprise_name,
-								item: `https://carboncube-ke.com/shop/${slug}`,
+								item: `${window.location.origin}/shop/${encodeURIComponent(
+									slug
+								)}`,
 							},
 						],
 					},
-			  ]
-			: [],
-	});
+					{
+						"@context": "https://schema.org",
+						"@type": "WebPage",
+						name: `${shop.enterprise_name} - Shop`,
+						description:
+							shop.description ||
+							`Shop ${shop.enterprise_name} on Carbon Cube Kenya`,
+						url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+						isPartOf: {
+							"@type": "WebSite",
+							name: "Carbon Cube Kenya",
+							url: "https://carboncube.co.ke",
+						},
+						about: {
+							"@type": "LocalBusiness",
+							name: shop.enterprise_name,
+						},
+					},
+					// Enhanced FAQ Schema for Shop
+					{
+						"@context": "https://schema.org",
+						"@type": "FAQPage",
+						mainEntity: [
+							{
+								"@type": "Question",
+								name: `What products does ${shop.enterprise_name} sell?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `${shop.enterprise_name} offers ${shop.product_count} products across various categories. Browse our shop to see all available items.`,
+								},
+							},
+							{
+								"@type": "Question",
+								name: `Is ${shop.enterprise_name} a verified seller?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `Yes, ${shop.enterprise_name} is a ${
+										shop.tier || "Free"
+									} tier verified seller on Carbon Cube Kenya with ${
+										shop.total_reviews || 0
+									} reviews and a ${shop.average_rating || 0}/5 star rating.`,
+								},
+							},
+							{
+								"@type": "Question",
+								name: `Where is ${shop.enterprise_name} located?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `${shop.enterprise_name} is located in ${[
+										shop.city,
+										shop.sub_county,
+										shop.county,
+									]
+										.filter(Boolean)
+										.join(", ")}.`,
+								},
+							},
+						],
+					},
+					// Enhanced Review Schema for Shop
+					...(shop.average_rating && shop.total_reviews > 0
+						? [
+								{
+									"@context": "https://schema.org",
+									"@type": "Review",
+									itemReviewed: {
+										"@type": "LocalBusiness",
+										name: shop.enterprise_name,
+										description:
+											shop.description ||
+											`Shop ${shop.enterprise_name} on Carbon Cube Kenya`,
+									},
+									reviewRating: {
+										"@type": "Rating",
+										ratingValue: shop.average_rating,
+										bestRating: 5,
+										worstRating: 1,
+									},
+									author: {
+										"@type": "Organization",
+										name: "Carbon Cube Kenya Customers",
+									},
+									datePublished: shop.created_at,
+									publisher: {
+										"@type": "Organization",
+										name: "Carbon Cube Kenya",
+									},
+								},
+						  ]
+						: []),
+				],
+				// Advanced SEO Features
+				alternateLanguages: [
+					{
+						lang: "en",
+						url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+					},
+					{
+						lang: "sw",
+						url: `${window.location.origin}/sw/shop/${encodeURIComponent(
+							slug
+						)}`,
+					},
+				],
+				customMetaTags: [
+					{ name: "business:name", content: shop.enterprise_name },
+					{ name: "business:type", content: "Local Business" },
+					{
+						name: "business:location",
+						content: [shop.city, shop.county].filter(Boolean).join(", "),
+					},
+					{
+						name: "business:rating",
+						content: shop.average_rating?.toString() || "0",
+					},
+					{
+						name: "business:review_count",
+						content: shop.total_reviews?.toString() || "0",
+					},
+					{
+						name: "business:product_count",
+						content: shop.product_count?.toString() || "0",
+					},
+					{ name: "business:tier", content: shop.tier || "Free" },
+					{ property: "og:business:name", content: shop.enterprise_name },
+					{ property: "og:business:type", content: "Local Business" },
+					{
+						property: "og:business:location",
+						content: [shop.city, shop.county].filter(Boolean).join(", "),
+					},
+					{
+						property: "og:business:rating",
+						content: shop.average_rating?.toString() || "0",
+					},
+					{
+						property: "og:business:review_count",
+						content: shop.total_reviews?.toString() || "0",
+					},
+					{
+						property: "og:business:product_count",
+						content: shop.product_count?.toString() || "0",
+					},
+					{ property: "og:business:tier", content: shop.tier || "Free" },
+					{ property: "place:location:latitude", content: "-1.2921" },
+					{ property: "place:location:longitude", content: "36.8219" },
+					{ property: "place:name", content: shop.enterprise_name },
+					{ property: "place:region", content: shop.county || "Kenya" },
+				],
+				imageWidth: 1200,
+				imageHeight: 630,
+				themeColor: "#FFD700",
+				viewport:
+					"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
+				// AI Search Optimization
+				aiSearchOptimized: true,
+				contentType: "business",
+				expertiseLevel: "expert",
+				contentDepth: "comprehensive",
+				aiFriendlyFormat: true,
+				conversationalKeywords: [
+					`${shop.enterprise_name} shop Kenya`,
+					`buy from ${shop.enterprise_name} Kenya`,
+					`${shop.enterprise_name} products Kenya`,
+					`verified seller ${shop.enterprise_name}`,
+					`${shop.enterprise_name} ${shop.tier || "Free"} tier`,
+					`shop ${shop.enterprise_name} Carbon Cube`,
+					`${shop.enterprise_name} ${shop.city || "Kenya"}`,
+					`trusted seller ${shop.enterprise_name}`,
+				],
+				aiCitationOptimized: true,
+		  }
+		: {
+				title: "Shop | Carbon Cube Kenya",
+				description:
+					"Browse shops on Carbon Cube Kenya - Kenya's trusted online marketplace",
+				keywords: "shop, Carbon Cube Kenya, online shopping Kenya",
+				url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+				type: "website",
+		  };
+
+	useSEO(seoData);
 
 	useEffect(() => {
 		const fetchShopData = async () => {
@@ -281,6 +554,32 @@ const ShopPage = () => {
 
 	const handleBackToSearch = () => {
 		navigate(-1);
+	};
+
+	const handleLeaveReview = () => {
+		if (!isAuthenticated) {
+			// Show login prompt
+			if (
+				window.confirm(
+					"You must be logged in to leave a review. Would you like to go to the login page?"
+				)
+			) {
+				navigate("/login");
+			}
+			return;
+		}
+
+		if (
+			userRole === "seller" &&
+			shop &&
+			currentUserId &&
+			shop.id === parseInt(currentUserId)
+		) {
+			alert("You cannot review your own shop.");
+			return;
+		}
+
+		setShowLeaveReviewModal(true);
 	};
 
 	if (isLoading) {
@@ -397,15 +696,10 @@ const ShopPage = () => {
 										</h1>
 										<div className="flex items-center gap-2 mt-1 sm:mt-2">
 											<span
-												className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium ${
-													shop.tier_id === 4
-														? "bg-purple-100 text-purple-800"
-														: shop.tier_id === 3
-														? "bg-blue-100 text-blue-800"
-														: shop.tier_id === 2
-														? "bg-green-100 text-green-800"
-														: "bg-gray-100 text-gray-800"
-												}`}
+												className="text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full font-medium text-white"
+												style={{
+													backgroundColor: getBorderColor(shop.tier_id),
+												}}
 											>
 												{shop.tier}
 											</span>
@@ -416,36 +710,17 @@ const ShopPage = () => {
 									</div>
 								</div>
 
-								{/* Share Button and Address - Right side on large screens */}
+								{/* Share Button and Shop Details - Right side on large screens */}
 								<div className="flex flex-col gap-3 lg:gap-4 lg:w-auto lg:items-end">
 									<button
 										onClick={handleShareShop}
 										disabled={!shop}
-										className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base lg:w-auto"
+										className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base lg:w-auto"
 									>
-										{showShareSuccess ? (
-											<>
-												<FontAwesomeIcon
-													icon={faCheck}
-													className="text-green-400"
-												/>
-												<span className="hidden sm:inline">Copied!</span>
-												<span className="sm:hidden">✓</span>
-											</>
-										) : (
-											<>
-												<FontAwesomeIcon icon={faShare} />
-												<span className="hidden sm:inline">Share Shop</span>
-												<span className="sm:hidden">Share</span>
-											</>
-										)}
+										<FontAwesomeIcon icon={faShare} />
+										<span className="hidden sm:inline">Share Shop</span>
+										<span className="sm:hidden">Share</span>
 									</button>
-
-									{shop.address && (
-										<div className="text-xs sm:text-sm text-gray-500 lg:text-right">
-											📍 {shop.address}
-										</div>
-									)}
 								</div>
 							</div>
 
@@ -464,18 +739,100 @@ const ShopPage = () => {
 								</div>
 							)}
 
+							{/* Shop Details Row */}
+							<div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-gray-200">
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+									{/* Location */}
+									{(shop.city ||
+										shop.county ||
+										shop.sub_county ||
+										shop.address) && (
+										<div className="text-center sm:text-left">
+											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+												Location
+											</div>
+											<div className="text-sm text-gray-900">
+												{[shop.city, shop.sub_county, shop.county]
+													.filter(Boolean)
+													.join(", ")}
+											</div>
+										</div>
+									)}
+
+									{/* Registration Number */}
+									{shop.business_registration_number && (
+										<div className="text-center sm:text-left">
+											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+												Registration
+											</div>
+											<div className="text-sm text-gray-900 font-mono">
+												{shop.business_registration_number}
+											</div>
+										</div>
+									)}
+
+									{/* Owner */}
+									{shop.fullname && (
+										<div className="text-center sm:text-left">
+											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+												Owner
+											</div>
+											<div className="text-sm text-gray-900">
+												{shop.fullname}
+											</div>
+										</div>
+									)}
+
+									{/* Member Since */}
+									{shop.created_at && (
+										<div className="text-center sm:text-left">
+											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+												Member Since
+											</div>
+											<div className="text-sm text-gray-900">
+												{new Date(shop.created_at).toLocaleDateString("en-US", {
+													year: "numeric",
+													month: "short",
+													day: "numeric",
+												})}
+											</div>
+										</div>
+									)}
+
+									{/* Address */}
+									{shop.address && (
+										<div className="text-center sm:text-left">
+											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+												Address
+											</div>
+											<div className="text-sm text-gray-900">
+												{shop.address}
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
+
 							{/* Reviews Section - Integrated within the shop card */}
 							<div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-gray-200">
 								<div className="flex items-center justify-between mb-3">
-									<h3 className="text-base sm:text-lg font-semibold text-gray-900">
+									<h2 className="text-base sm:text-lg font-semibold text-gray-900">
 										Customer Reviews
-									</h3>
-									<button
-										onClick={() => setShowReviewsModal(true)}
-										className="text-yellow-600 hover:text-yellow-700 font-medium text-xs sm:text-sm transition-colors"
-									>
-										View All Reviews
-									</button>
+									</h2>
+									<div className="flex items-center gap-2">
+										<button
+											onClick={handleLeaveReview}
+											className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md font-medium text-xs transition-colors"
+										>
+											Leave Review
+										</button>
+										<button
+											onClick={() => setShowReviewsModal(true)}
+											className="text-yellow-700 hover:text-yellow-800 font-medium text-xs sm:text-sm transition-colors"
+										>
+											View All Reviews
+										</button>
+									</div>
 								</div>
 
 								{reviewStats && reviewStats.total_reviews > 0 ? (
@@ -542,12 +899,20 @@ const ShopPage = () => {
 										<p className="text-xs text-gray-500 mb-3">
 											This shop doesn't have any reviews yet.
 										</p>
-										<button
-											onClick={() => setShowReviewsModal(true)}
-											className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium text-xs transition-colors"
-										>
-											View Reviews
-										</button>
+										<div className="flex gap-2 justify-center">
+											<button
+												onClick={handleLeaveReview}
+												className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md font-medium text-xs transition-colors"
+											>
+												Leave Review
+											</button>
+											<button
+												onClick={() => setShowReviewsModal(true)}
+												className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white rounded-md font-medium text-xs transition-colors"
+											>
+												View Reviews
+											</button>
+										</div>
 									</div>
 								)}
 							</div>
@@ -585,71 +950,77 @@ const ShopPage = () => {
 								</div>
 							) : (
 								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
-									{ads.map((ad) => (
-										<div
-											key={ad.id}
-											className="group cursor-pointer transition-transform hover:scale-105 h-full"
-											onClick={() => handleAdClick(ad.id)}
-										>
-											<div className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 h-full flex flex-col">
-												{/* Product Image */}
-												<div className="relative flex-shrink-0">
-													<img
-														src={
-															ad.first_media_url
-																? ad.first_media_url.replace(/\n/g, "").trim()
-																: ad.media_urls &&
-																  Array.isArray(ad.media_urls) &&
-																  ad.media_urls.length > 0
-																? ad.media_urls[0].replace(/\n/g, "").trim()
-																: ad.media &&
-																  Array.isArray(ad.media) &&
-																  ad.media.length > 0
-																? ad.media[0].replace(/\n/g, "").trim()
-																: getFallbackImage()
-														}
-														alt={ad.title}
-														className="w-full aspect-square object-contain rounded-t-lg"
-														loading="lazy"
-														onError={(e) => {
-															e.target.src = getFallbackImage();
-														}}
-													/>
-													{/* Tier Badge */}
-													<div className="absolute top-1 sm:top-2 right-1 sm:right-2">
-														<span
-															className={`text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${
-																getTierId(ad) === 4
-																	? "bg-purple-100 text-purple-800"
-																	: getTierId(ad) === 3
-																	? "bg-blue-100 text-blue-800"
-																	: getTierId(ad) === 2
-																	? "bg-green-100 text-green-800"
-																	: "bg-gray-100 text-gray-800"
-															}`}
-														>
-															{getTierName(ad)}
-														</span>
+									{ads.map((ad, index) => {
+										const borderColor = getBorderColor(getTierId(ad));
+										return (
+											<div
+												key={ad.id}
+												className="group cursor-pointer transition-transform hover:scale-105 h-full"
+												onClick={() => handleAdClick(ad.id)}
+											>
+												<div
+													className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 h-full flex flex-col"
+													style={{ border: `2px solid ${borderColor}` }}
+												>
+													{/* Product Image */}
+													<div className="relative flex-shrink-0">
+														<img
+															src={
+																ad.first_media_url
+																	? ad.first_media_url.replace(/\n/g, "").trim()
+																	: ad.media_urls &&
+																	  Array.isArray(ad.media_urls) &&
+																	  ad.media_urls.length > 0
+																	? ad.media_urls[0].replace(/\n/g, "").trim()
+																	: ad.media &&
+																	  Array.isArray(ad.media) &&
+																	  ad.media.length > 0
+																	? ad.media[0].replace(/\n/g, "").trim()
+																	: getFallbackImage()
+															}
+															alt={ad.title}
+															className="w-full aspect-square object-contain rounded-t-lg"
+															loading={index < 4 ? "eager" : "lazy"}
+															fetchPriority={index < 2 ? "high" : "auto"}
+															width="400"
+															height="400"
+															onError={(e) => {
+																e.target.src = getFallbackImage();
+															}}
+														/>
+														{/* Tier Badge */}
+														<div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10">
+															<span
+																className="text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium text-white shadow-sm"
+																style={{
+																	backgroundColor: getBorderColor(
+																		getTierId(ad)
+																	),
+																}}
+															>
+																{getTierName(ad)}
+															</span>
+														</div>
 													</div>
-												</div>
 
-												{/* Product Info */}
-												<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
-													<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-														{ad.title}
-													</h3>
-													<p className="text-sm sm:text-lg font-bold text-yellow-600 mb-2">
-														KSh {ad.price?.toLocaleString() || "N/A"}
-													</p>
-													<div className="mt-auto">
-														<p className="text-xs text-gray-500">
-															{ad.category_name} › {ad.subcategory_name}
+													{/* Product Info */}
+													<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
+														<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+															{ad.title}
+														</h3>
+														<p className="text-sm sm:text-lg font-bold text-yellow-700 mb-2">
+															KSh {ad.price?.toLocaleString() || "N/A"}
 														</p>
+														<div className="mt-auto">
+															<p className="text-xs text-gray-500">
+																{ad.category_name} › {ad.subcategory_name}
+															</p>
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									))}
+										);
+									})}
 								</div>
 							)}
 
@@ -678,6 +1049,81 @@ const ShopPage = () => {
 				shopSlug={slug}
 				shopName={shop?.enterprise_name}
 			/>
+
+			{/* Leave Review Modal */}
+			<LeaveReviewModal
+				show={showLeaveReviewModal}
+				onHide={() => setShowLeaveReviewModal(false)}
+				shopName={shop?.enterprise_name}
+				products={ads}
+			/>
+
+			{/* Share Modal */}
+			{showShareModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+					<div className="bg-white rounded-lg p-6 max-w-md w-full">
+						<div className="flex justify-between items-center mb-4">
+							<h3 className="text-lg font-semibold text-gray-900">
+								Share Shop
+							</h3>
+							<button
+								onClick={handleCloseShareModal}
+								className="text-gray-400 hover:text-gray-600"
+							>
+								<FontAwesomeIcon icon={faTimes} />
+							</button>
+						</div>
+
+						<div className="space-y-3">
+							<p className="text-sm text-gray-600 mb-4">
+								Share {shop?.enterprise_name} with your friends and family
+							</p>
+
+							<div className="grid grid-cols-2 gap-3">
+								<button
+									onClick={shareToFacebook}
+									className="flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+								>
+									<FontAwesomeIcon icon={faFacebook} />
+									<span className="text-sm">Facebook</span>
+								</button>
+
+								<button
+									onClick={shareToTwitter}
+									className="flex items-center justify-center gap-2 p-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors"
+								>
+									<FontAwesomeIcon icon={faTwitter} />
+									<span className="text-sm">Twitter</span>
+								</button>
+
+								<button
+									onClick={shareToWhatsApp}
+									className="flex items-center justify-center gap-2 p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+								>
+									<FontAwesomeIcon icon={faWhatsapp} />
+									<span className="text-sm">WhatsApp</span>
+								</button>
+
+								<button
+									onClick={shareToLinkedIn}
+									className="flex items-center justify-center gap-2 p-3 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors"
+								>
+									<FontAwesomeIcon icon={faLinkedin} />
+									<span className="text-sm">LinkedIn</span>
+								</button>
+							</div>
+
+							<button
+								onClick={copyToClipboard}
+								className="w-full flex items-center justify-center gap-2 p-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+							>
+								<FontAwesomeIcon icon={faCopy} />
+								<span className="text-sm">Copy Link</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

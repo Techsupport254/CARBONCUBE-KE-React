@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
-import {
-	Container,
-	Row,
-	Col,
-	Form,
-	Button,
-	Alert,
-	ProgressBar,
-} from "react-bootstrap";
 import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
-import TopNavbarMinimal from "../../components/TopNavBarMinimal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	faUser,
+	faEnvelope,
+	faPhone,
+	faMapMarkerAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import Navbar from "../../components/Navbar";
 import "../css/BuyerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -43,30 +41,105 @@ function BuyerSignUpPage({ onSignup }) {
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
 
-	// SEO Implementation
+	// Enhanced SEO Implementation
 	useSEO({
-		title: "Buyer Sign Up - Carbon Cube Kenya",
+		title: "Join Carbon Cube Kenya - Buyer Registration | Free Sign Up",
 		description:
-			"Join Carbon Cube Kenya as a buyer. Create your account to start shopping from verified sellers on Kenya's trusted online marketplace.",
+			"Join Carbon Cube Kenya as a buyer and start shopping from verified sellers. Create your free account today and enjoy secure online shopping in Kenya's most trusted marketplace with buyer protection.",
 		keywords:
-			"buyer signup, join Carbon Cube Kenya, create account, Kenya online shopping, marketplace registration",
-		url: "https://carboncube-ke.com/buyer-signup",
+			"buyer signup, join Carbon Cube Kenya, create account, Kenya online shopping, marketplace registration, buyer registration, free signup, verified sellers, secure shopping Kenya",
+		url: `${window.location.origin}/buyer-signup`,
+		type: "website",
+		image: "https://carboncube-ke.com/logo.png",
+		author: "Carbon Cube Kenya Team",
 		structuredData: {
 			"@context": "https://schema.org",
 			"@type": "WebPage",
 			name: "Buyer Sign Up - Carbon Cube Kenya",
 			description: "Create your buyer account on Carbon Cube Kenya",
-			url: "https://carboncube-ke.com/buyer-signup",
+			url: `${window.location.origin}/buyer-signup`,
 			mainEntity: {
 				"@type": "WebApplication",
 				name: "Carbon Cube Kenya Buyer Registration",
 				applicationCategory: "BusinessApplication",
 				operatingSystem: "Web Browser",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "KES",
+					description: "Free buyer registration",
+				},
 			},
 		},
+		additionalStructuredData: [
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				mainEntity: [
+					{
+						"@type": "Question",
+						name: "Is buyer registration free on Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Yes, creating a buyer account on Carbon Cube Kenya is completely free. You only pay for the products you purchase.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "What information do I need to sign up as a buyer?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "You need basic information like your name, email, phone number, and location. We also collect optional demographic information to improve your shopping experience.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "Are all sellers verified on Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Yes, all sellers on Carbon Cube Kenya go through a verification process to ensure quality and reliability for buyers.",
+						},
+					},
+				],
+			},
+		],
+		alternateLanguages: [
+			{ lang: "en", url: `${window.location.origin}/buyer-signup` },
+			{ lang: "sw", url: `${window.location.origin}/sw/buyer-signup` },
+		],
+		customMetaTags: [
+			{ name: "signup:type", content: "buyer" },
+			{ name: "signup:cost", content: "free" },
+			{ name: "signup:verification", content: "required" },
+			{ property: "og:signup:type", content: "buyer" },
+			{ property: "og:signup:cost", content: "free" },
+			{ property: "og:signup:verification", content: "required" },
+		],
+		imageWidth: 1200,
+		imageHeight: 630,
+		themeColor: "#FFD700",
+		viewport:
+			"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
+		// AI Search Optimization
+		aiSearchOptimized: true,
+		contentType: "registration",
+		expertiseLevel: "expert",
+		contentDepth: "comprehensive",
+		aiFriendlyFormat: true,
+		conversationalKeywords: [
+			"how to join Carbon Cube Kenya",
+			"create buyer account Kenya",
+			"sign up for online shopping Kenya",
+			"join marketplace Kenya",
+			"become a buyer Carbon Cube",
+			"register for online shopping Kenya",
+			"free buyer registration Kenya",
+			"start shopping online Kenya",
+		],
+		aiCitationOptimized: true,
 	});
 
-	const nextStep = () => {
+	const nextStep = async () => {
 		const requiredFields = [
 			"fullname",
 			"username",
@@ -84,6 +157,24 @@ function BuyerSignUpPage({ onSignup }) {
 			}
 		});
 
+		// Check if email already exists
+		if (formData.email && !newErrors.email) {
+			const emailExists = await checkEmailExists(formData.email);
+			if (emailExists) {
+				newErrors.email =
+					"This email is already registered. Please use a different email address.";
+			}
+		}
+
+		// Check if username already exists
+		if (formData.username && !newErrors.username) {
+			const usernameExists = await checkUsernameExists(formData.username);
+			if (usernameExists) {
+				newErrors.username =
+					"This username is already taken. Please choose a different username.";
+			}
+		}
+
 		if (Object.keys(newErrors).length > 0) {
 			setErrors(newErrors);
 			return; // Stop from going to next step
@@ -100,8 +191,139 @@ function BuyerSignUpPage({ onSignup }) {
 	const [otpCode, setOtpCode] = useState("");
 	const [submittingSignup, setSubmittingSignup] = useState(false);
 	const [verifyingOtp, setVerifyingOtp] = useState(false);
+	const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
+	const [usernameCheckTimeout, setUsernameCheckTimeout] = useState(null);
 
-	// Place this AFTER state declarations
+	const checkEmailExists = async (email) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/api/email/exists`,
+				{ email: email.toLowerCase().trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking email:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
+	const checkUsernameExists = async (username) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/api/username/exists`,
+				{ username: username.trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking username:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
+	const handleEmailChange = async (e) => {
+		const email = e.target.value;
+		handleChange(e);
+
+		// Clear previous email error
+		if (errors.email) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.email;
+				return newErrors;
+			});
+		}
+
+		// Validate email format immediately
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (email && !emailRegex.test(email)) {
+			setErrors((prev) => ({
+				...prev,
+				email: "Please enter a valid email address",
+			}));
+			return;
+		}
+
+		// Clear any existing timeout
+		if (emailCheckTimeout) {
+			clearTimeout(emailCheckTimeout);
+		}
+
+		// Check if email exists only when user stops typing (debounced)
+		if (email && emailRegex.test(email) && email.length > 5) {
+			const timeoutId = setTimeout(async () => {
+				const emailExists = await checkEmailExists(email);
+				if (emailExists) {
+					setErrors((prev) => ({
+						...prev,
+						email:
+							"This email is already registered. Please use a different email address.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setEmailCheckTimeout(timeoutId);
+		}
+	};
+
+	const handleUsernameChange = async (e) => {
+		const username = e.target.value;
+		handleChange(e);
+
+		// Clear previous username error
+		if (errors.username) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.username;
+				return newErrors;
+			});
+		}
+
+		// Validate username format immediately
+		const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+		if (username && !usernameRegex.test(username)) {
+			setErrors((prev) => ({
+				...prev,
+				username:
+					"Username must be 3-20 characters and contain only letters, numbers, underscores, and hyphens",
+			}));
+			return;
+		}
+
+		// Clear any existing timeout
+		if (usernameCheckTimeout) {
+			clearTimeout(usernameCheckTimeout);
+		}
+
+		// Check if username exists only when user stops typing (debounced)
+		if (username && usernameRegex.test(username) && username.length >= 3) {
+			const timeoutId = setTimeout(async () => {
+				const usernameExists = await checkUsernameExists(username);
+				if (usernameExists) {
+					setErrors((prev) => ({
+						...prev,
+						username:
+							"This username is already taken. Please choose a different username.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setUsernameCheckTimeout(timeoutId);
+		}
+	};
 	const hasFocusedError = React.useRef(false);
 
 	useEffect(() => {
@@ -122,6 +344,18 @@ function BuyerSignUpPage({ onSignup }) {
 	useEffect(() => {
 		hasFocusedError.current = false;
 	}, [step]);
+
+	// Cleanup email and username check timeouts on unmount
+	useEffect(() => {
+		return () => {
+			if (emailCheckTimeout) {
+				clearTimeout(emailCheckTimeout);
+			}
+			if (usernameCheckTimeout) {
+				clearTimeout(usernameCheckTimeout);
+			}
+		};
+	}, [emailCheckTimeout, usernameCheckTimeout]);
 
 	useEffect(() => {
 		// Fetch options for dropdowns from the API
@@ -346,270 +580,399 @@ function BuyerSignUpPage({ onSignup }) {
 
 	return (
 		<>
-			<TopNavbarMinimal />
-			<Container fluid className="login-container">
-				<Row
-					className="justify-content-center align-items-center"
-					style={{ minHeight: "100vh" }}
-				>
-					<Col xs={11} md={10} lg={6}>
-						<div className="card border-0 shadow-lg overflow-hidden">
-							<Row className="g-0">
-								{/* Left Branding Section */}
-								<Col lg={4} className="d-none d-lg-block">
-									<div
-										className="h-100 d-flex flex-column justify-content-between text-white p-4"
-										style={{
-											background:
-												"linear-gradient(135deg, #000000 0%, #111111 50%, #1a1a1a 100%)",
-										}}
-									>
-										<div className="pt-4">
-											<h2 className="fw-bold">
-												<span className="text-white me-2">Buyer</span>
-												<span className="text-warning">Portal</span>
-											</h2>
-											<p className="text-light opacity-75 mt-3">
-												Join to explore a world of eco-friendly products,
-												curated just for you.
-											</p>
-										</div>
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
+			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
+				<div className="w-full max-w-4xl">
+					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+						<div className="flex flex-col lg:flex-row min-h-[600px]">
+							{/* Left Branding Section */}
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 flex-col justify-between">
+								<div className="pt-2">
+									<h2 className="text-2xl font-bold mb-3">
+										<span className="text-white">Buyer</span>
+										<span className="text-yellow-400">Portal</span>
+									</h2>
+									<p className="text-gray-300 opacity-90 text-xs leading-relaxed">
+										Join to explore a world of eco-friendly products, curated
+										just for you.
+									</p>
+								</div>
 
-										<div className="px-2 py-4">
-											<h5 className="text-warning mb-3">Why Shop with us?</h5>
-											<ul className="list-unstyled">
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Wide variety of carbon-conscious products
-													</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Verified and trusted local sellers
-													</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">Secure and seamless</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Support kenyan economy with every purchase
-													</span>
-												</li>
-											</ul>
-										</div>
+								<div className="px-1 py-4">
+									<h5 className="text-yellow-400 mb-3 text-sm font-semibold">
+										Why Shop with us?
+									</h5>
+									<ul className="space-y-2">
+										<li className="flex items-center">
+											<span className="mr-2 text-yellow-400 text-xs">✓</span>
+											<span className="text-xs text-gray-300">
+												Wide variety of carbon-conscious products
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Verified and trusted local sellers
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Secure and seamless
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Support kenyan economy with every purchase
+											</span>
+										</li>
+									</ul>
+								</div>
 
-										<div className="bg-dark bg-opacity-50 p-3 rounded-3 mt-2">
-											<div className="d-flex align-items-center">
-												{/* <div className="rounded-circle bg-warning" style={{ width: "30px", height: "30px" }}></div> */}
-												<div className="ms-2">
-													<small className="fw-bold">Vision:</small>
-												</div>
-											</div>
-											<p className="fst-italic small mb-2">
-												"To be Kenya’s most trusted and innovative online
-												marketplace."
-											</p>
-										</div>
+								<div className="bg-black bg-opacity-50 p-3 rounded-lg mt-2">
+									<div className="flex items-center mb-1">
+										<div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></div>
+										<small className="font-semibold text-xs">Vision:</small>
 									</div>
-								</Col>
+									<p className="italic text-xs text-gray-300">
+										"To be Kenya's most trusted and innovative online
+										marketplace."
+									</p>
+								</div>
+							</div>
 
-								{/* Right Branding Section */}
-								<Col lg={8}>
-									<div
-										className="card-body p-4 p-lg-5 h-100 d-flex flex-column justify-content-between"
-										style={{ backgroundColor: "#e0e0e0" }}
-									>
-										<h3 className="fw-bold text-center mb-4">Buyer Sign Up</h3>
-										<Form onSubmit={handleSubmit}>
-											{errors.general && (
-												<Alert variant="danger">{errors.general}</Alert>
-											)}
+							{/* Right Form Section */}
+							<div className="w-full lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10 flex items-center">
+								<div className="w-full max-w-md mx-auto">
+									{/* Header Section */}
+									<div className="text-center mb-8">
+										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+											Buyer Sign Up
+										</h3>
+										<p className="text-gray-600 text-sm">
+											Create your buyer account
+										</p>
+									</div>
 
-											{step === 1 && (
-												<>
-													<Row>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
-																	type="text"
-																	placeholder="Full Name"
-																	name="fullname"
-																	className="mb-2 text-center rounded-pill"
-																	value={formData.fullname}
-																	onChange={handleChange}
-																	isInvalid={!!errors.fullname}
+									<form onSubmit={handleSubmit} className="space-y-6">
+										{errors.general && (
+											<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+												{errors.general}
+											</div>
+										)}
+
+										{step === 1 && (
+											<>
+												{/* Step 1 Errors */}
+												{(errors.fullname ||
+													errors.username ||
+													errors.email ||
+													errors.phone_number ||
+													errors.city ||
+													errors.gender ||
+													errors.age_group_id) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.fullname && (
+																<li>Full Name: {errors.fullname}</li>
+															)}
+															{errors.username && (
+																<li>Username: {errors.username}</li>
+															)}
+															{errors.email && <li>Email: {errors.email}</li>}
+															{errors.phone_number && (
+																<li>Phone Number: {errors.phone_number}</li>
+															)}
+															{errors.city && <li>City: {errors.city}</li>}
+															{errors.gender && (
+																<li>Gender: {errors.gender}</li>
+															)}
+															{errors.age_group_id && (
+																<li>Age Group: {errors.age_group_id}</li>
+															)}
+														</ul>
+													</div>
+												)}
+												{/* Personal Information Section */}
+												<div className="space-y-4">
+													{/* Full Name */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Full Name
+														</label>
+														<div className="relative">
+															<FontAwesomeIcon
+																icon={faUser}
+																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+															/>
+															<input
+																type="text"
+																placeholder="Enter your full name"
+																name="fullname"
+																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.fullname
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.fullname}
+																onChange={handleChange}
+															/>
+														</div>
+														{errors.fullname && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.fullname}
+															</div>
+														)}
+													</div>
+
+													{/* Username and Phone - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Username
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faUser}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.fullname}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
+																<input
 																	type="text"
-																	placeholder="Username"
+																	placeholder="Enter username"
 																	name="username"
-																	className="mb-2 text-center rounded-pill"
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.username
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.username}
-																	onChange={handleChange}
-																	isInvalid={!!errors.username}
+																	onChange={handleUsernameChange}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.username && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.username}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col md={12}>
-															<Form.Group>
-																<Form.Control
-																	type="email"
-																	placeholder="Email"
-																	name="email"
-																	className="mb-2 text-center rounded-pill"
-																	value={formData.email}
-																	onChange={handleChange}
-																	isInvalid={!!errors.email}
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Phone Number
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faPhone}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.email}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
+																<input
 																	type="text"
-																	placeholder="Phone Number"
+																	placeholder="Enter phone number"
 																	name="phone_number"
-																	className="mb-2 text-center rounded-pill"
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.phone_number
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.phone_number}
 																	onChange={handleChange}
-																	isInvalid={!!errors.phone_number}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.phone_number && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.phone_number}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
+																</div>
+															)}
+														</div>
+													</div>
+
+													{/* Email */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Email Address
+														</label>
+														<div className="relative">
+															<FontAwesomeIcon
+																icon={faEnvelope}
+																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+															/>
+															<input
+																type="email"
+																placeholder="Enter your email address"
+																name="email"
+																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.email
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.email}
+																onChange={handleEmailChange}
+															/>
+														</div>
+														{errors.email && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.email}
+															</div>
+														)}
+													</div>
+
+													{/* City and Gender - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																City
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faMapMarkerAlt}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+																/>
+																<input
 																	type="text"
-																	placeholder="City"
+																	placeholder="Enter your city"
 																	name="city"
-																	className="mb-2 text-center rounded-pill"
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.city
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.city}
 																	onChange={handleChange}
-																	isInvalid={!!errors.city}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.city && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.city}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Select
-																	name="gender"
-																	className="text-center rounded-pill mb-2 rounded-pill"
-																	value={formData.gender}
-																	onChange={handleChange}
-																	isInvalid={!!errors.gender}
-																>
-																	<option value="" disabled hidden>
-																		Gender
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Gender
+															</label>
+															<select
+																name="gender"
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.gender
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.gender}
+																onChange={handleChange}
+															>
+																<option value="" disabled hidden>
+																	Select gender
+																</option>
+																{["Male", "Female", "Other"].map((g) => (
+																	<option key={g} value={g}>
+																		{g}
 																	</option>
-																	{["Male", "Female", "Other"].map((g) => (
-																		<option key={g} value={g}>
-																			{g}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
+																))}
+															</select>
+															{errors.gender && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.gender}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Select
-																	name="age_group_id"
-																	className="text-center rounded-pill mb-2 rounded-pill"
-																	value={formData.age_group_id}
-																	onChange={handleChange}
-																	isInvalid={!!errors.age_group_id}
-																>
-																	<option value="" disabled hidden>
-																		Age Group
-																	</option>
-																	{options.age_groups.map((group) => (
-																		<option key={group.id} value={group.id}>
-																			{group.name}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
-																	{errors.age_group_id}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<div className="d-flex justify-content-center mt-3">
-														<Button
-														id="step1ContinueBtn"
-															variant="dark"
-															className="rounded-pill w-75"
-															onClick={nextStep}
-														>
-															Continue
-														</Button>
+																</div>
+															)}
+														</div>
 													</div>
-												</>
-											)}
 
-											{step === 2 && (
-												<>
-													<Row>
-														<Col md={12}>
-															<Form.Group className="position-relative">
-																<Form.Control
+													{/* Age Group */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Age Group
+														</label>
+														<select
+															name="age_group_id"
+															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.age_group_id
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
+															value={formData.age_group_id}
+															onChange={handleChange}
+														>
+															<option value="" disabled hidden>
+																Select age group
+															</option>
+															{options.age_groups.map((group) => (
+																<option key={group.id} value={group.id}>
+																	{group.name}
+																</option>
+															))}
+														</select>
+														{errors.age_group_id && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.age_group_id}
+															</div>
+														)}
+													</div>
+												</div>
+
+												<div className="pt-2">
+													<button
+														id="step1ContinueBtn"
+														type="button"
+														className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] text-sm shadow-md hover:shadow-lg"
+														onClick={nextStep}
+													>
+														Continue
+													</button>
+												</div>
+											</>
+										)}
+
+										{step === 2 && (
+											<>
+												{/* Step 2 Errors */}
+												{(errors.password ||
+													errors.password_confirmation ||
+													errors.terms) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.password && (
+																<li>Password: {errors.password}</li>
+															)}
+															{errors.password_confirmation && (
+																<li>
+																	Password Confirmation:{" "}
+																	{errors.password_confirmation}
+																</li>
+															)}
+															{errors.terms && <li>Terms: {errors.terms}</li>}
+														</ul>
+													</div>
+												)}
+												{/* Account Security Section */}
+												<div className="space-y-4">
+													{/* Password Fields */}
+													<div className="space-y-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Password
+															</label>
+															<div className="relative">
+																<input
 																	type={showPassword ? "text" : "password"}
-																	placeholder="Password"
+																	placeholder="Enter your password"
 																	name="password"
-																	className="mb-2 text-center rounded-pill"
+																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																		errors.password
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.password}
 																	onChange={handleChange}
-																	isInvalid={!!errors.password}
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.password}
-																</Form.Control.Feedback>
 																<div
 																	onClick={() => setShowPassword(!showPassword)}
-																	style={{
-																		position: "absolute",
-																		top: "50%",
-																		right: "15px",
-																		transform: "translateY(-50%)",
-																		cursor: "pointer",
-																		color: "#6c757d",
-																	}}
+																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
 																>
 																	<AnimatePresence mode="wait" initial={false}>
 																		{showPassword ? (
@@ -620,7 +983,7 @@ function BuyerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<EyeSlash />
+																				<EyeSlash size={16} />
 																			</motion.span>
 																		) : (
 																			<motion.span
@@ -630,44 +993,43 @@ function BuyerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<Eye />
+																				<Eye size={16} />
 																			</motion.span>
 																		)}
 																	</AnimatePresence>
 																</div>
-															</Form.Group>
-														</Col>
-													</Row>
+															</div>
+															{errors.password && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.password}
+																</div>
+															)}
+														</div>
 
-													<Row>
-														<Col md={12}>
-															<Form.Group className="position-relative">
-																<Form.Control
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Confirm Password
+															</label>
+															<div className="relative">
+																<input
 																	type={
 																		showConfirmPassword ? "text" : "password"
 																	}
-																	placeholder="Confirm Password"
+																	placeholder="Confirm your password"
 																	name="password_confirmation"
-																	className="mb-2 text-center rounded-pill"
+																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																		errors.password_confirmation
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.password_confirmation}
 																	onChange={handleChange}
-																	isInvalid={!!errors.password_confirmation}
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.password_confirmation}
-																</Form.Control.Feedback>
 																<div
 																	onClick={() =>
 																		setShowConfirmPassword(!showConfirmPassword)
 																	}
-																	style={{
-																		position: "absolute",
-																		top: "50%",
-																		right: "15px",
-																		transform: "translateY(-50%)",
-																		cursor: "pointer",
-																		color: "#6c757d",
-																	}}
+																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
 																>
 																	<AnimatePresence mode="wait" initial={false}>
 																		{showConfirmPassword ? (
@@ -678,7 +1040,7 @@ function BuyerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<EyeSlash />
+																				<EyeSlash size={16} />
 																			</motion.span>
 																		) : (
 																			<motion.span
@@ -688,162 +1050,216 @@ function BuyerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<Eye />
+																				<Eye size={16} />
 																			</motion.span>
 																		)}
 																	</AnimatePresence>
 																</div>
-															</Form.Group>
-														</Col>
-													</Row>
+															</div>
+															{errors.password_confirmation && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.password_confirmation}
+																</div>
+															)}
+														</div>
+													</div>
 
-													<Form.Group className="mb-2">
-														<Form.Check
-															type="checkbox"
-															label="Agree to Terms and Conditions and receive SMS/emails."
-															name="terms"
-															checked={terms}
-															onChange={(e) => setTerms(e.target.checked)}
-														/>
+													{/* Terms and Conditions */}
+													<div className="pt-1">
+														<div className="flex items-center">
+															<input
+																type="checkbox"
+																id="terms"
+																className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
+																checked={terms}
+																onChange={(e) => setTerms(e.target.checked)}
+															/>
+															<label
+																htmlFor="terms"
+																className="text-sm text-gray-600 cursor-pointer"
+															>
+																Agree to Terms and Conditions and receive
+																SMS/emails.
+															</label>
+														</div>
 														{errors.terms && (
-															<div className="text-danger mt-1">
+															<div className="text-red-500 text-xs mt-1">
 																{errors.terms}
 															</div>
 														)}
-													</Form.Group>
+													</div>
+												</div>
 
-													<Row className="mt-3">
-														<Col className="d-flex justify-content-between">
-															<Button
-																variant="dark"
-																className="rounded-pill w-25"
-																onClick={prevStep}
-															>
-																Back
-															</Button>
-															<Button
-																variant="warning"
-																type="submit"
-																className="rounded-pill w-25"
-																disabled={!terms || submittingSignup}
-															>
-																{submittingSignup
-																	? "Sending OTP..."
-																	: "Request OTP"}
-															</Button>
-														</Col>
-													</Row>
-												</>
-											)}
+												<div className="flex justify-between gap-4 pt-2">
+													<button
+														type="button"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														onClick={prevStep}
+													>
+														Back
+													</button>
+													<button
+														type="submit"
+														disabled={!terms || submittingSignup}
+														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+													>
+														{submittingSignup
+															? "Sending OTP..."
+															: "Request OTP"}
+													</button>
+												</div>
+											</>
+										)}
 
-											{step === 3 && (
-												<>
-													<Form.Group>
-														<Form.Control
+										{step === 3 && (
+											<>
+												{/* Step 3 Errors */}
+												{(errors.otp || errors.terms) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.otp && <li>OTP Code: {errors.otp}</li>}
+															{errors.terms && <li>Terms: {errors.terms}</li>}
+														</ul>
+													</div>
+												)}
+												{/* Email Verification Section */}
+												<div className="space-y-4">
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															OTP Code
+														</label>
+														<input
 															type="text"
-															placeholder="Enter OTP sent to email"
+															placeholder="Enter OTP sent to your email"
 															name="otp"
-															className="mb-2 text-center rounded-pill"
+															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.otp
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
 															value={otpCode}
 															onChange={(e) => setOtpCode(e.target.value)}
-															isInvalid={!!errors.otp}
 														/>
-														<Form.Control.Feedback type="invalid">
-															{errors.otp}
-														</Form.Control.Feedback>
-													</Form.Group>
+														{errors.otp && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.otp}
+															</div>
+														)}
+													</div>
 
-													<Form.Group className="mb-2">
-														<Form.Check
+													<div className="flex items-center pt-1">
+														<input
 															type="checkbox"
-															label="Agree to Terms and Conditions and receive SMS/emails."
-															name="terms"
+															id="terms3"
+															className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
 															checked={terms}
 															onChange={(e) => setTerms(e.target.checked)}
 														/>
-														{errors.terms && (
-															<div className="text-danger mt-1">
-																{errors.terms}
-															</div>
-														)}
-													</Form.Group>
+														<label
+															htmlFor="terms3"
+															className="text-sm text-gray-600 cursor-pointer"
+														>
+															Agree to Terms and Conditions and receive
+															SMS/emails.
+														</label>
+													</div>
+													{errors.terms && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.terms}
+														</div>
+													)}
+												</div>
 
-													<Row className="mt-3">
-														<Col className="d-flex justify-content-between">
-															<Button
-																variant="dark"
-																className="rounded-pill w-25"
-																onClick={prevStep}
-															>
-																Back
-															</Button>
+												<div className="flex justify-between gap-4 pt-2">
+													<button
+														type="button"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														onClick={prevStep}
+													>
+														Back
+													</button>
 
-															<Button
-															id="verifyOtpBtn"
-																variant="warning"
-																className="rounded-pill w-50"
-																onClick={verifyOtpCode}
-																disabled={
-																	!terms ||
-																	otpCode.trim().length === 0 ||
-																	verifyingOtp
-																}
-															>
-																{verifyingOtp
-																	? "Verifying OTP..."
-																	: "Verify & Finish Sign Up"}
-															</Button>
-														</Col>
-													</Row>
-												</>
-											)}
+													<button
+														id="verifyOtpBtn"
+														type="button"
+														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+														onClick={verifyOtpCode}
+														disabled={
+															!terms ||
+															otpCode.trim().length === 0 ||
+															verifyingOtp
+														}
+													>
+														{verifyingOtp
+															? "Verifying OTP..."
+															: "Verify & Finish Sign Up"}
+													</button>
+												</div>
+											</>
+										)}
 
-											<div className="divider mt-4">
-												<span>or continue with</span>
+										<div className="relative my-6">
+											<div className="absolute inset-0 flex items-center">
+												<div className="w-full border-t border-gray-200"></div>
 											</div>
-
-											<div className="d-flex justify-content-around mb-3">
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Google size={20} />
-												</Button>
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Facebook size={20} />
-												</Button>
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Apple size={20} />
-												</Button>
+											<div className="relative flex justify-center text-sm">
+												<span className="px-4 bg-white text-gray-500">
+													or continue with
+												</span>
 											</div>
+										</div>
 
-											<div className="text-center mt-2">
-												Already have an account?{" "}
-												<a href="./login" className="login-link">
-													Sign In
-												</a>
-											</div>
-										</Form>
+										<div className="flex justify-center space-x-3 mb-6">
+											<button
+												type="button"
+												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Google size={18} />
+											</button>
+											<button
+												type="button"
+												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Facebook size={18} />
+											</button>
+											<button
+												type="button"
+												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Apple size={18} />
+											</button>
+										</div>
 
-										<ProgressBar
-											now={Math.round((step / 3) * 100)}
-											className=" mt-3 rounded-pill"
-											variant="warning"
-											style={{ height: "8px" }}
-										/>
-									</div>
-								</Col>
-							</Row>
+										<div className="text-center">
+											<p className="text-gray-600 mb-4 text-sm">
+												Already have an account?
+											</p>
+											<a
+												href="./login"
+												className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200 text-sm font-medium"
+											>
+												Sign In
+											</a>
+										</div>
+									</form>
+								</div>
+							</div>
 						</div>
-					</Col>
-				</Row>
-			</Container>
+					</div>
+				</div>
+
+				<div className="mt-4">
+					<div className="w-full bg-gray-200 rounded-full h-2">
+						<div
+							className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+							style={{ width: `${Math.round((step / 3) * 100)}%` }}
+						></div>
+					</div>
+				</div>
+			</div>
 		</>
 	);
 }

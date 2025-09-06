@@ -2,11 +2,38 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import useSEO from "../../hooks/useSEO";
 
 const WishList = () => {
 	const [wish_lists, setWishLists] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const navigate = useNavigate();
+
+	// SEO Implementation - Private user data, should not be indexed
+	useSEO({
+		title: "My Wishlist - Carbon Cube Kenya",
+		description: "View and manage your saved products on Carbon Cube Kenya",
+		keywords: "wishlist, saved products, Carbon Cube Kenya",
+		url: `${window.location.origin}/wishlist`,
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "My Wishlist - Carbon Cube Kenya",
+			description: "Private user wishlist page",
+			url: `${window.location.origin}/wishlist`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+		},
+	});
 
 	const handleSearch = async (e, category = "All", subcategory = "All") => {
 		e.preventDefault();

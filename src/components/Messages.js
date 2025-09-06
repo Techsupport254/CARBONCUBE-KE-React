@@ -4,7 +4,6 @@ import {
 	faSearch,
 	faEnvelopeOpenText,
 	faArrowLeft,
-	faEllipsisV,
 	faImage,
 	faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
@@ -159,6 +158,7 @@ const Messages = ({
 	const [onlineUsers, setOnlineUsers] = useState(new Set());
 	const [typingUsers, setTypingUsers] = useState(new Set());
 	const [messageStatuses, setMessageStatuses] = useState({});
+	const [unreadCounts, setUnreadCounts] = useState({}); // Per-conversation unread counts
 	const messagesEndRef = useRef(null);
 
 	// ActionCable for real-time messaging
@@ -295,6 +295,43 @@ const Messages = ({
 		fetchConversations();
 	}, [apiBaseUrl]);
 
+	// Fetch per-conversation unread counts
+	const fetchUnreadCounts = useCallback(async () => {
+		if (!currentUser || !userType) return;
+
+		try {
+			const token = sessionStorage.getItem("token");
+			const response = await fetch(
+				`${
+					process.env.REACT_APP_BACKEND_URL
+				}/${userType.toLowerCase()}/conversations/unread_counts`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				const countsMap = {};
+				data.unread_counts.forEach((item) => {
+					countsMap[item.conversation_id] = item.unread_count;
+				});
+				setUnreadCounts(countsMap);
+			}
+		} catch (error) {
+			console.error("Error fetching unread counts:", error);
+		}
+	}, [currentUser, userType]);
+
+	// Fetch unread counts when conversations are loaded
+	useEffect(() => {
+		if (conversations.length > 0) {
+			fetchUnreadCounts();
+		}
+	}, [conversations, fetchUnreadCounts]);
+
 	const fetchMessages = async (conversationId) => {
 		setLoadingMessages(true);
 		try {
@@ -376,6 +413,8 @@ const Messages = ({
 					!messageStatuses[message.id]
 				) {
 					sendMessageDelivered(message.id);
+					// Dispatch custom event to notify Navbar to refresh unread count
+					window.dispatchEvent(new CustomEvent("messageDelivered"));
 				}
 			});
 		}
@@ -398,6 +437,8 @@ const Messages = ({
 						!messageStatuses[message.id]
 					) {
 						sendMessageRead(message.id);
+						// Dispatch custom event to notify Navbar to refresh unread count
+						window.dispatchEvent(new CustomEvent("messageRead"));
 					}
 				});
 			}, 1000); // 1 second delay
@@ -411,6 +452,29 @@ const Messages = ({
 		sendMessageRead,
 		isMessageSentByCurrentUser,
 	]);
+
+	// Update unread counts when messages are read
+	useEffect(() => {
+		if (selectedConversation && messages.length > 0) {
+			// Clear unread count for current conversation when messages are viewed
+			setUnreadCounts((prev) => ({
+				...prev,
+				[selectedConversation.id]: 0,
+			}));
+		}
+	}, [selectedConversation, messages]);
+
+	// Listen for new messages to update unread counts
+	useEffect(() => {
+		const handleNewMessage = () => {
+			fetchUnreadCounts();
+		};
+
+		window.addEventListener("newMessage", handleNewMessage);
+		return () => {
+			window.removeEventListener("newMessage", handleNewMessage);
+		};
+	}, [fetchUnreadCounts]);
 
 	const handleBackToConversations = () => {
 		setShowMobileMessages(false);
@@ -626,14 +690,24 @@ const Messages = ({
 																			>
 																				{participantInfo.name}
 																			</h3>
-																			{lastMessage && (
-																				<span className="text-xs text-gray-500">
-																					{formatTime(
-																						conversation.last_message_time ||
-																							conversation.updated_at
-																					)}
-																				</span>
-																			)}
+																			<div className="flex items-center space-x-1">
+																				{/* Unread count badge */}
+																				{unreadCounts[conversation.id] > 0 && (
+																					<span className="bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-semibold">
+																						{unreadCounts[conversation.id] > 99
+																							? "99+"
+																							: unreadCounts[conversation.id]}
+																					</span>
+																				)}
+																				{lastMessage && (
+																					<span className="text-xs text-gray-500">
+																						{formatTime(
+																							conversation.last_message_time ||
+																								conversation.updated_at
+																						)}
+																					</span>
+																				)}
+																			</div>
 																		</div>
 																		{lastMessage && (
 																			<p className="text-xs text-gray-600 truncate">
@@ -662,7 +736,8 @@ const Messages = ({
 													<div className="flex items-center space-x-2">
 														<button
 															onClick={handleBackToConversations}
-															className="md:hidden p-1 hover:bg-gray-100 rounded transition-colors"
+															className="p-1 hover:bg-gray-100 rounded transition-colors"
+															title="Back to conversations"
 														>
 															<FontAwesomeIcon
 																icon={faArrowLeft}
@@ -757,9 +832,13 @@ const Messages = ({
 														})()}
 													</div>
 
-													<button className="p-1 hover:bg-gray-100 rounded transition-colors">
+													<button
+														onClick={handleBackToConversations}
+														className="p-1 hover:bg-gray-100 rounded transition-colors"
+														title="Back to conversations"
+													>
 														<FontAwesomeIcon
-															icon={faEllipsisV}
+															icon={faArrowLeft}
 															className="text-gray-600"
 														/>
 													</button>

@@ -12,6 +12,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
+import useSEO from "../../hooks/useSEO";
 import "../css/Orders.css";
 // import consumer from "../cable"; // Import ActionCable consumer
 
@@ -24,6 +25,32 @@ const Orders = () => {
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const buyerId = sessionStorage.getItem("buyerId");
+
+	// SEO Implementation - Private user data, should not be indexed
+	useSEO({
+		title: "My Orders - Carbon Cube Kenya",
+		description: "View and manage your order history on Carbon Cube Kenya",
+		keywords: "orders, order history, Carbon Cube Kenya",
+		url: `${window.location.origin}/orders`,
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "My Orders - Carbon Cube Kenya",
+			description: "Private user orders page",
+			url: `${window.location.origin}/orders`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+		},
+	});
 
 	useEffect(() => {
 		const fetchOrders = async () => {

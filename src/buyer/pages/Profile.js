@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { formatDate } from "../utils/formatDate";
 import AlertModal from "../../components/AlertModal";
+import useSEO from "../../hooks/useSEO";
 import "../css/Profile.css";
 
 const ProfilePage = () => {
@@ -43,6 +44,32 @@ const ProfilePage = () => {
 
 	// Retrieve token from sessionStorage
 	const token = sessionStorage.getItem("token"); // Adjust the key to match your app
+
+	// SEO Implementation - Private user data, should not be indexed
+	useSEO({
+		title: "My Profile - Carbon Cube Kenya",
+		description: "Manage your profile information on Carbon Cube Kenya",
+		keywords: "profile, account settings, Carbon Cube Kenya",
+		url: `${window.location.origin}/profile`,
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "My Profile - Carbon Cube Kenya",
+			description: "Private user profile page",
+			url: `${window.location.origin}/profile`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+		},
+	});
 
 	// Fetch profile data from the backend API
 	useEffect(() => {

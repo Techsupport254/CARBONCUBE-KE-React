@@ -18,7 +18,13 @@ export const isValidImageUrl = (url) => {
 		return true;
 	}
 
-	return true;
+	// Check if it's a valid URL format
+	try {
+		new URL(url);
+		return true;
+	} catch {
+		return false;
+	}
 };
 
 /**
@@ -79,4 +85,31 @@ export const getAdImageUrl = (ad) => {
 	}
 
 	return getFallbackImage();
+};
+
+/**
+ * Handles image loading errors by setting fallback image
+ * @param {Event} event - The error event
+ */
+export const handleImageError = (event) => {
+	if (event.target) {
+		event.target.src = getFallbackImage();
+		event.target.onerror = null; // Prevent infinite loop
+	}
+};
+
+/**
+ * Creates an image element with proper error handling
+ * @param {string} src - The image source URL
+ * @param {string} alt - The alt text
+ * @param {Object} props - Additional props for the image
+ * @returns {Object} - Image props with error handling
+ */
+export const createImageProps = (src, alt = "", props = {}) => {
+	return {
+		src: getValidImageUrl(src),
+		alt,
+		onError: handleImageError,
+		...props,
+	};
 };

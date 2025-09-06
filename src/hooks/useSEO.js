@@ -10,6 +10,26 @@ const useSEO = ({
 	author = "Carbon Cube Kenya Team",
 	structuredData = null,
 	additionalStructuredData = [], // Array for multiple structured data objects
+	alternateLanguages = [], // Array of {lang: 'en', url: '...'}
+	customMetaTags = [], // Array of {name: '...', content: '...'} or {property: '...', content: '...'}
+	viewport = "width=device-width, initial-scale=1.0",
+	themeColor = "#FFD700",
+	imageWidth = null,
+	imageHeight = null,
+	robots = "index, follow", // Default robots directive
+	canonical = null, // Custom canonical URL
+	sitemap = null, // Sitemap URL
+	preload = [], // Array of resources to preload
+	prefetch = [], // Array of resources to prefetch
+	performance = true, // Enable performance optimizations
+	// AI Search Optimization
+	aiSearchOptimized = true, // Enable AI search optimization
+	contentType = "article", // Content type for AI understanding
+	expertiseLevel = "expert", // Expertise level (beginner, intermediate, expert)
+	contentDepth = "comprehensive", // Content depth (basic, intermediate, comprehensive)
+	aiFriendlyFormat = true, // Enable AI-friendly content formatting
+	conversationalKeywords = [], // Keywords optimized for conversational search
+	aiCitationOptimized = true, // Optimize for AI citations
 }) => {
 	useEffect(() => {
 		const siteName = "Carbon Cube Kenya";
@@ -21,6 +41,24 @@ const useSEO = ({
 
 		// Update document title
 		document.title = fullTitle;
+
+		// Update viewport meta tag
+		let viewportMeta = document.querySelector('meta[name="viewport"]');
+		if (!viewportMeta) {
+			viewportMeta = document.createElement("meta");
+			viewportMeta.name = "viewport";
+			document.head.appendChild(viewportMeta);
+		}
+		viewportMeta.content = viewport;
+
+		// Update theme color meta tag
+		let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+		if (!themeColorMeta) {
+			themeColorMeta = document.createElement("meta");
+			themeColorMeta.name = "theme-color";
+			document.head.appendChild(themeColorMeta);
+		}
+		themeColorMeta.content = themeColor;
 
 		// Update meta tags
 		const updateMetaTag = (name, content) => {
@@ -48,7 +86,7 @@ const useSEO = ({
 		updateMetaTag("description", description || defaultDescription);
 		updateMetaTag("keywords", keywords);
 		updateMetaTag("author", author);
-		updateMetaTag("robots", "index, follow");
+		updateMetaTag("robots", robots);
 		updateMetaTag("language", "English");
 		updateMetaTag("geo.region", "KE");
 		updateMetaTag("geo.placename", "Kenya");
@@ -64,6 +102,14 @@ const useSEO = ({
 		updatePropertyTag("og:site_name", siteName);
 		updatePropertyTag("og:locale", "en_US");
 
+		// Add image dimensions if provided
+		if (imageWidth) {
+			updatePropertyTag("og:image:width", imageWidth.toString());
+		}
+		if (imageHeight) {
+			updatePropertyTag("og:image:height", imageHeight.toString());
+		}
+
 		// Twitter Card tags
 		updatePropertyTag("twitter:card", "summary_large_image");
 		updatePropertyTag("twitter:site", "@carboncube_kenya");
@@ -77,13 +123,91 @@ const useSEO = ({
 		twitterTags.forEach((tag) => tag.remove());
 
 		// Update canonical URL
-		let canonical = document.querySelector('link[rel="canonical"]');
-		if (!canonical) {
-			canonical = document.createElement("link");
-			canonical.rel = "canonical";
-			document.head.appendChild(canonical);
+		let canonicalLink = document.querySelector('link[rel="canonical"]');
+		if (!canonicalLink) {
+			canonicalLink = document.createElement("link");
+			canonicalLink.rel = "canonical";
+			document.head.appendChild(canonicalLink);
 		}
-		canonical.href = url || defaultUrl;
+		canonicalLink.href = canonical || url || defaultUrl;
+
+		// Add sitemap link if provided
+		if (sitemap) {
+			let sitemapLink = document.querySelector('link[rel="sitemap"]');
+			if (!sitemapLink) {
+				sitemapLink = document.createElement("link");
+				sitemapLink.rel = "sitemap";
+				sitemapLink.type = "application/xml";
+				document.head.appendChild(sitemapLink);
+			}
+			sitemapLink.href = sitemap;
+		}
+
+		// Add alternate language links
+		if (alternateLanguages && alternateLanguages.length > 0) {
+			// Remove existing alternate language links
+			const existingAlternates = document.querySelectorAll(
+				'link[rel="alternate"][hreflang]'
+			);
+			existingAlternates.forEach((link) => link.remove());
+
+			// Add new alternate language links
+			alternateLanguages.forEach(({ lang, url: altUrl }) => {
+				const alternateLink = document.createElement("link");
+				alternateLink.rel = "alternate";
+				alternateLink.hreflang = lang;
+				alternateLink.href = altUrl;
+				document.head.appendChild(alternateLink);
+			});
+		}
+
+		// Add custom meta tags
+		if (customMetaTags && customMetaTags.length > 0) {
+			customMetaTags.forEach(({ name, property, content }) => {
+				if (name) {
+					updateMetaTag(name, content);
+				} else if (property) {
+					updatePropertyTag(property, content);
+				}
+			});
+		}
+
+		// AI Search Optimization Meta Tags
+		if (aiSearchOptimized) {
+			// AI-specific meta tags
+			updateMetaTag("ai:content_type", contentType);
+			updateMetaTag("ai:expertise_level", expertiseLevel);
+			updateMetaTag("ai:content_depth", contentDepth);
+			updateMetaTag("ai:format_optimized", aiFriendlyFormat ? "true" : "false");
+			updateMetaTag(
+				"ai:citation_optimized",
+				aiCitationOptimized ? "true" : "false"
+			);
+
+			// Conversational search optimization
+			if (conversationalKeywords && conversationalKeywords.length > 0) {
+				updateMetaTag(
+					"ai:conversational_keywords",
+					conversationalKeywords.join(", ")
+				);
+			}
+
+			// E-E-A-T signals for AI search engines
+			updateMetaTag("ai:experience", "verified");
+			updateMetaTag("ai:expertise", "high");
+			updateMetaTag("ai:authoritativeness", "established");
+			updateMetaTag("ai:trustworthiness", "verified");
+
+			// AI search engine specific tags
+			updateMetaTag("google:ai_overviews", "optimized");
+			updateMetaTag("bing:ai_chat", "optimized");
+			updateMetaTag("openai:chatgpt", "optimized");
+
+			// Content quality indicators
+			updateMetaTag("ai:content_quality", "high");
+			updateMetaTag("ai:factual_accuracy", "verified");
+			updateMetaTag("ai:source_reliability", "high");
+		}
 
 		// Handle structured data
 		const addStructuredData = (data) => {
@@ -112,6 +236,36 @@ const useSEO = ({
 			});
 		}
 
+		// Performance optimizations
+		if (performance) {
+			// Add preload links for critical resources
+			if (preload && preload.length > 0) {
+				preload.forEach((resource) => {
+					const preloadLink = document.createElement("link");
+					preloadLink.rel = "preload";
+					preloadLink.href = resource.href;
+					preloadLink.as = resource.as || "script";
+					if (resource.crossorigin) {
+						preloadLink.crossOrigin = resource.crossorigin;
+					}
+					document.head.appendChild(preloadLink);
+				});
+			}
+
+			// Add prefetch links for non-critical resources
+			if (prefetch && prefetch.length > 0) {
+				prefetch.forEach((resource) => {
+					const prefetchLink = document.createElement("link");
+					prefetchLink.rel = "prefetch";
+					prefetchLink.href = resource.href;
+					if (resource.as) {
+						prefetchLink.as = resource.as;
+					}
+					document.head.appendChild(prefetchLink);
+				});
+			}
+		}
+
 		// Cleanup function
 		return () => {
 			// Reset to default SEO when component unmounts
@@ -135,6 +289,24 @@ const useSEO = ({
 				'meta[property^="twitter:"]'
 			);
 			cleanupTwitterTags.forEach((tag) => tag.remove());
+
+			// Remove alternate language links
+			const cleanupAlternates = document.querySelectorAll(
+				'link[rel="alternate"][hreflang]'
+			);
+			cleanupAlternates.forEach((link) => link.remove());
+
+			// Remove preload and prefetch links
+			const cleanupPreloads = document.querySelectorAll(
+				'link[rel="preload"], link[rel="prefetch"]'
+			);
+			cleanupPreloads.forEach((link) => link.remove());
+
+			// Remove sitemap link
+			const cleanupSitemap = document.querySelector('link[rel="sitemap"]');
+			if (cleanupSitemap) {
+				cleanupSitemap.remove();
+			}
 		};
 	}, [
 		title,
@@ -146,6 +318,25 @@ const useSEO = ({
 		author,
 		structuredData,
 		additionalStructuredData,
+		alternateLanguages,
+		customMetaTags,
+		viewport,
+		themeColor,
+		imageWidth,
+		imageHeight,
+		robots,
+		canonical,
+		sitemap,
+		preload,
+		prefetch,
+		performance,
+		aiSearchOptimized,
+		contentType,
+		expertiseLevel,
+		contentDepth,
+		aiFriendlyFormat,
+		conversationalKeywords,
+		aiCitationOptimized,
 	]);
 };
 

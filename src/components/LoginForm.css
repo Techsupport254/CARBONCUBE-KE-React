@@ -1,53 +1,50 @@
 .login-container {
-  background: url('./assets/LoginFormbg.jpg') no-repeat center center fixed;
-  background-size: cover;
-  font-family: "Fira Sans Extra Condensed", sans-serif;
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
+    background: url('./assets/LoginFormbg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-attachment: fixed;
+    font-family: "Fira Sans Extra Condensed", sans-serif;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .login-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: 1;
 }
 
-.login-container > * {
-  position: relative;
-  z-index: 2;
+.login-container>* {
+    position: relative;
+    z-index: 2;
 }
 
-.login-box {
-  background-color: #e0e0e0;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+    .login-container {
+        background-attachment: scroll;
+        padding: 1rem;
+    }
+
+    .login-container::before {
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.7) 100%);
+    }
 }
 
-.separator::before,
-.separator::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #999;
-  margin: 0 0.5rem;
+@media (max-width: 480px) {
+    .login-container {
+        padding: 0.5rem;
+    }
 }
 
-.social-btn {
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.signup-btn:hover {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: black;
+/* Ensure proper backdrop for mobile */
+@media (max-width: 1024px) {
+    .login-container::before {
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.8) 100%);
+    }
 }

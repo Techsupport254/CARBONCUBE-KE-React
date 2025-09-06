@@ -64,6 +64,8 @@ const Home = () => {
 	const [categoriesError, setCategoriesError] = useState(null);
 	const [adsError, setAdsError] = useState(null);
 	const [error, setError] = useState(null); // search error only
+	const [retryCount, setRetryCount] = useState(0);
+	const [lastRetryTime, setLastRetryTime] = useState(0);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
@@ -75,7 +77,6 @@ const Home = () => {
 	// eslint-disable-next-line no-unused-vars
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
-	// eslint-disable-next-line no-unused-vars
 	const [hasSearched, setHasSearched] = useState(false); // Track if a search has been performed
 	const RESULTS_PER_PAGE = 18; // Show 18 items per page (3 rows of 6 items)
 	const navigate = useNavigate(); // Initialize useNavigate
@@ -241,6 +242,29 @@ const Home = () => {
 	useSEO(seoData);
 
 	const location = useLocation();
+
+	// Function to initialize displayed results when search results change
+	const initializeDisplayedResults = useCallback(
+		(results) => {
+			// Get URL parameters to check if this is category/subcategory filtering
+			const params = new URLSearchParams(location.search);
+			const query = params.get("query");
+
+			// If filtering by category/subcategory (no search query), show all results
+			// If searching with text query, limit to RESULTS_PER_PAGE
+			if (!query || query.trim() === "") {
+				setDisplayedResults(results);
+				setCurrentPage(1);
+				setHasMore(false); // No pagination for category filtering
+			} else {
+				const initialResults = results.slice(0, RESULTS_PER_PAGE);
+				setDisplayedResults(initialResults);
+				setCurrentPage(1);
+				setHasMore(results.length > RESULTS_PER_PAGE);
+			}
+		},
+		[location.search]
+	);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -498,161 +522,237 @@ const Home = () => {
 		}
 	}, [location.search, isUpdatingUrl]);
 
-	// Define fetchSearchResults function using useCallback
-	const fetchSearchResults = useCallback(async () => {
-		// Prevent multiple simultaneous requests
-		if (isSearching || isProcessingRef.current) {
+	// Separate effect to handle URL changes and trigger search
+		if (hasSearchParams) {
+			setIsSearching(true);
+		}
+
+		if (!hasSearchParams) {
+			// Batch state updates to prevent flickering
+			startTransition(() => {
+				setSearchResults([]);
+				setSearchShops([]); // Clear shops
+				setCurrentSearchType("");
+				setIsSearching(false);
+				setHasSearched(false); // Reset search state when no search params
+				// Don't reset search query here - let the user keep their input
+			});
 			return;
 		}
 
-		isProcessingRef.current = true;
-		setIsSearching(true);
-		setError(null);
-
-		// Cancel any existing request
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort();
+		// Set search query from URL parameters only if it exists and no debounced query
+		if (query && !debouncedSearchQuery) {
+			setSearchQuery(query);
+		} else if (
+			!debouncedSearchQuery &&
+			((category && category !== "All") ||
+				(subcategory && subcategory !== "All"))
+		) {
+			// Set empty search query when there are category/subcategory filters but no text query
+			setSearchQuery("");
 		}
 
-		// Create new AbortController for request cancellation
-		const abortController = new AbortController();
-		abortControllerRef.current = abortController;
-		const timeoutId = setTimeout(() => abortController.abort(), 10000);
+		// Set category and subcategory from URL parameters
+		if (category) {
+			setSelectedCategory(category);
+		}
+		if (subcategory) {
+			setSelectedSubcategory(subcategory);
+		}
 
-		try {
-			// Check if component is still mounted
-			if (!isComponentMounted) {
+		const fetchSearchResults = async () => {
+			// Prevent multiple simultaneous requests
+			if (isSearching || isProcessingRef.current) {
 				return;
 			}
 
-			// Extract search parameters from URL
-			const searchParams = new URLSearchParams(location.search);
-			const searchQuery = searchParams.get("query") || "";
-			const searchCategory = searchParams.get("category") || "All";
-			const searchSubcategory = searchParams.get("subcategory") || "All";
+			// Create current search parameters for duplicate check
+			const currentParams = {
+				query: searchQueryToUse || "",
+				category: category || "All",
+				subcategory: subcategory || "All",
+			};
 
-			// Use API service for optimized data fetching
-			let results;
-			if (searchQuery.trim()) {
-				// For text search, use the search endpoint
-				results = await apiService.searchAds(searchQuery, {
-					category: searchCategory,
-					subcategory: searchSubcategory,
-					page: 1,
-					per_page: 20,
-				});
-			} else {
-				// For category/subcategory filtering, use the main ads endpoint
-				const params = {
-					per_page: 200,
-					balanced: true,
-				};
-
-				// Add category filter if specified
-				if (searchCategory && searchCategory !== "All") {
-					params.category_id = searchCategory;
-				}
-
-				// Add subcategory filter if specified
-				if (searchSubcategory && searchSubcategory !== "All") {
-					params.subcategory_id = searchSubcategory;
-				}
-
-				results = await apiService.getAds(params);
-			}
-
-			clearTimeout(timeoutId);
-
-			// Check if component is still mounted before processing results
-			if (!isComponentMounted) {
-				return;
-			}
-
-			// Add a small delay to prevent rapid flickering
-			await new Promise((resolve) => setTimeout(resolve, 100));
-
-			// Check if component is still mounted after delay
-			if (!isComponentMounted) {
-				return;
-			}
-
-			// Process results based on search type
-			let ads = [];
-			let shops = [];
-
-			if (results.ads) {
-				ads = results.ads;
-			} else if (Array.isArray(results)) {
-				ads = results;
-			}
-
-			// Batch state updates to prevent flickering
-			startTransition(() => {
-				setSearchResults(ads);
-				setSearchShops(shops);
-
-				// Initialize displayed results inline to avoid dependency issues
-				const params = new URLSearchParams(location.search);
-				const query = params.get("query");
-
-				if (!query || query.trim() === "") {
-					setDisplayedResults(ads);
-					setCurrentPage(1);
-					setHasMore(false); // No pagination for category filtering
-				} else {
-					const initialResults = ads.slice(0, RESULTS_PER_PAGE);
-					setDisplayedResults(initialResults);
-					setCurrentPage(1);
-					setHasMore(ads.length > RESULTS_PER_PAGE);
-				}
-
-				setError(null); // Clear any previous errors
-				setHasSearched(true); // Mark that a search was performed
-			});
-
-			if (searchQuery.trim()) {
-				setCurrentSearchType("search");
-			} else if (searchSubcategory !== "All") {
-				setCurrentSearchType(`subcategory-${searchSubcategory}`);
-			} else {
-				setCurrentSearchType("category");
-			}
-
-			await logAdSearch(searchQuery, searchCategory, searchSubcategory);
-		} catch (error) {
-			console.error("Search error:", error);
-
-			// Clear timeout on error
-			clearTimeout(timeoutId);
-
-			// Handle different types of errors
-			if (error.name === "AbortError") {
-				// Request was cancelled or timed out
-				setError("Request timed out. Please try again.");
-			} else if (
-				error.message.includes("Failed to fetch") ||
-				error.message.includes("ERR_NETWORK_CHANGED")
+			// Check if this is the same search as the last one
+			if (
+				JSON.stringify(currentParams) ===
+				JSON.stringify(lastSearchParamsRef.current)
 			) {
-				setError("Network error. Please check your connection and try again.");
-			} else if (error.message.includes("ERR_CONNECTION_REFUSED")) {
-				setError("Unable to connect to server. Please try again later.");
-			} else {
-				setError(error.message);
+				isProcessingRef.current = false;
+				return;
 			}
 
-			setSearchResults([]);
-			setSearchShops([]);
-			setIsSearching(false);
-			setHasSearched(false);
-		} finally {
-			setIsSearching(false);
-			isProcessingRef.current = false;
-			// Clear the abort controller ref if this is the current request
-			if (abortControllerRef.current === abortController) {
-				abortControllerRef.current = null;
+			isProcessingRef.current = true;
+			setIsSearching(true); // Set loading state immediately
+			setError(null); // Clear previous errors
+
+			// Cancel any existing request
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
 			}
-		}
-	}, [location.search, isComponentMounted, isSearching]);
+
+			// Create new AbortController for request cancellation
+			const abortController = new AbortController();
+			abortControllerRef.current = abortController;
+			const timeoutId = setTimeout(() => abortController.abort(), 10000); // 10 second timeout
+
+			try {
+				// Check if component is still mounted
+				if (!isComponentMounted) {
+					return;
+				}
+
+				const searchQuery = searchQueryToUse || "";
+				const searchCategory = category || "All";
+				const searchSubcategory = subcategory || "All";
+
+				// Use API service for optimized data fetching
+				let results;
+				if (searchQuery.trim()) {
+					// For text search, use the search endpoint
+					results = await apiService.searchAds(searchQuery, {
+						category: searchCategory,
+						subcategory: searchSubcategory,
+						page: 1,
+						per_page: 20,
+					});
+				} else {
+					// For category/subcategory filtering, use the main ads endpoint
+					const params = {
+						per_page: 200,
+						balanced: true,
+					};
+
+					// Add category filter if specified
+					if (searchCategory && searchCategory !== "All") {
+						params.category_id = searchCategory;
+					}
+
+					// Add subcategory filter if specified
+					if (searchSubcategory && searchSubcategory !== "All") {
+						params.subcategory_id = searchSubcategory;
+					}
+
+					results = await apiService.getAds(params);
+				}
+
+				clearTimeout(timeoutId);
+
+				// Check if component is still mounted before processing results
+				if (!isComponentMounted) {
+					return;
+				}
+
+				// Handle new API response format with shops and ads
+				let ads, shops, subcategoryCounts;
+				if (results.ads && results.shops) {
+					// New format with shops and ads
+					ads = results.ads;
+					shops = results.shops;
+					// eslint-disable-next-line no-unused-vars
+					subcategoryCounts = results.subcategory_counts || {};
+				} else if (results.ads && results.subcategory_counts) {
+					// Format with subcategory counts (no shops)
+					ads = results.ads;
+					shops = [];
+					// eslint-disable-next-line no-unused-vars
+					subcategoryCounts = results.subcategory_counts;
+				} else {
+					// Old format - just array of ads
+					ads = results;
+					shops = [];
+					// eslint-disable-next-line no-unused-vars
+					subcategoryCounts = {};
+				}
+
+				// If using main ads endpoint, no need for client-side filtering since backend handles it
+				// The backend now filters by category_id and subcategory_id parameters
+
+				// Add a small delay to prevent rapid flickering
+				await new Promise((resolve) => setTimeout(resolve, 100));
+
+				// Check if component is still mounted after delay
+				if (!isComponentMounted) {
+					return;
+				}
+
+				// Batch all state updates to prevent flickering
+				startTransition(() => {
+					if (!ads || ads.length === 0) {
+						setSearchResults([]);
+						setSearchShops(shops || []); // Set shops even if no ads
+						setDisplayedResults([]);
+						setError(null); // Clear any previous errors
+						setHasSearched(true); // Mark that a search was performed
+					} else {
+						setSearchResults(ads);
+						setSearchShops(shops || []); // Set shops
+
+						// Initialize displayed results inline to avoid dependency issues
+						const params = new URLSearchParams(location.search);
+						const query = params.get("query");
+
+						if (!query || query.trim() === "") {
+							setDisplayedResults(ads);
+							setCurrentPage(1);
+							setHasMore(false); // No pagination for category filtering
+						} else {
+							const initialResults = ads.slice(0, RESULTS_PER_PAGE);
+							setDisplayedResults(initialResults);
+							setCurrentPage(1);
+							setHasMore(ads.length > RESULTS_PER_PAGE);
+						}
+
+						setError(null); // Clear any previous errors
+						setHasSearched(true); // Mark that a search was performed
+					}
+
+					if (searchQuery.trim()) {
+						setCurrentSearchType("search");
+					} else if (searchSubcategory !== "All") {
+						setCurrentSearchType(`subcategory-${searchSubcategory}`);
+					} else {
+						setCurrentSearchType("category");
+					}
+				});
+
+				await logAdSearch(searchQuery, searchCategory, searchSubcategory);
+			} catch (error) {
+				console.error("Search error:", error);
+
+				// Clear timeout on error
+				clearTimeout(timeoutId);
+
+				// Handle different types of errors
+				if (error.name === "AbortError") {
+					console.log("Request was cancelled or timed out");
+					setError("Request timed out. Please try again.");
+				} else if (
+					error.message.includes("Failed to fetch") ||
+					error.message.includes("ERR_NETWORK_CHANGED")
+				) {
+					setError(
+						"Network error. Please check your connection and try again."
+					);
+				} else if (error.message.includes("ERR_CONNECTION_REFUSED")) {
+					setError("Unable to connect to server. Please try again later.");
+				} else {
+					setError(error.message);
+				}
+
+				setSearchResults([]);
+				setSearchShops([]);
+				setIsSearching(false);
+				setHasSearched(false);
+			} finally {
+				setIsSearching(false);
+				isProcessingRef.current = false;
+				// Clear the abort controller ref if this is the current request
+				if (abortControllerRef.current === abortController) {
+					abortControllerRef.current = null;
+				}
+			}
+		};
 
 	// Separate effect to handle URL changes and trigger search
 	useEffect(() => {
@@ -684,7 +784,7 @@ const Home = () => {
 			// Execute search only if parameters have changed
 			fetchSearchResults();
 		}
-	}, [location.search, isComponentMounted, isUpdatingUrl, fetchSearchResults]);
+	}, [location.search, isComponentMounted, isUpdatingUrl]);
 
 	// Cleanup effect to abort pending requests on unmount
 	useEffect(() => {
@@ -892,43 +992,33 @@ const Home = () => {
 				onCategoryChange={handleCategoryChange}
 				onSubcategoryChange={handleSubcategoryChange}
 			/>
-			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
-				<div className={`${sidebarOpen ? "block" : "hidden"} xl:block`}>
+			<div className="flex flex-col md:flex-row p-0 m-0">
+				<div className={`${sidebarOpen ? "block" : "hidden"} md:block`}>
 					<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
 				</div>
-				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 relative z-0 transition-all duration-300 ease-in-out">
+				<div className="flex-1 bg-gray-300 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
 						{(() => {
 							const params = new URLSearchParams(location.search);
 							const query = params.get("query");
 							const category = params.get("category");
-							
 							const subcategory = params.get("subcategory");
 							const hasSearchParams =
 								query !== null ||
 								(category && category !== "All") ||
 								(subcategory && subcategory !== "All");
 
-							// Hide banner if searching, has search query, or has URL search parameters
-							return !isSearching && !searchQuery && !hasSearchParams;
+							return (
+								!isSearching && !hasSearched && !searchQuery && !hasSearchParams
+							);
 						})() && <Banner />}
 						<div
-							className={`px-0 ${(() => {
-								const params = new URLSearchParams(location.search);
-								const query = params.get("query");
-								const category = params.get("category");
-								const subcategory = params.get("subcategory");
-								const hasSearchParams =
-									query !== null ||
-									(category && category !== "All") ||
-									(subcategory && subcategory !== "All");
-
-								// Use normal positioning for search results, overlap positioning for homepage
-								return hasSearchParams || searchQuery || isSearching
-									? "mt-4" // Normal spacing for search results
-									: "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[20vh] 2xl:-translate-y-[30vh]"; // Overlap for homepage
-							})()} relative z-10 transition-transform duration-300`}
+							className={`px-0 ${
+								!isSearching && !hasSearched && !searchQuery
+									? "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[15vh] 2xl:-translate-y-[20vh]"
+									: ""
+							} relative z-2 transition-transform duration-300`}
 						>
 							{isSearching ? (
 								<div className="flex justify-center items-center h-screen w-full">

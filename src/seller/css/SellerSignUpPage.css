@@ -1,152 +1,50 @@
-.seller-signup-page {
+.login-container {
+    background: url('../../components/assets/LoginFormbg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    background-attachment: fixed;
     font-family: "Fira Sans Extra Condensed", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-  }
-  
-  
-  .signup-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-    
-    .warehouse-bg {
-      background-image: url('../../components/assets/LoginFormbg.jpg');
-      background-size: cover;
-      background-position: center;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .form-container {
-      background-color: #e0e0e0;
-      padding: 1rem;
-      border-radius: 8px; /* Optional: Add some border radius for a better look */
-      box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional: Add a shadow effect */
-      max-width: 100%; /* Ensure it doesn't exceed container width */
-    }
-    
-    .form-title {
-      color: #333;
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-control {
-      margin-bottom: 1rem;
-    }
-    
-    .btn-sign-in {
-      background-color: #ffc107;
-      border-color: #ffc107;
-      color: #000;
-      font-weight: bold;
-    }
-    
-    .btn-sign-in:hover {
-      background-color: #e0a800;
-      border-color: #e0a800;
-    }
-    
-    .social-login-button {
-      width: 40px;
-      height: 40px;
-      padding: 6px;
-      margin: 0 5px;
-    }
-    
-    .social-login-button img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      margin: 1rem 0;
-    }
-    
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid #ced4da;
-    }
-    
-    .divider span {
-      padding: 0 10px;
-      color: #6c757d;
-    }
-  
-    #button {
-      border-radius: 2.0rem;
-    }
-    
-    .login-link {
-      color: #007bff;
-      text-decoration: none;
-    }
-    
-    .login-link:hover {
-      text-decoration: underline;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: 1;
+}
+
+.login-container>* {
+    position: relative;
+    z-index: 2;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+    .login-container {
+        background-attachment: scroll;
+        padding: 1rem;
     }
 
+    .login-container::before {
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.7) 100%);
+    }
+}
 
-    .dropdown-container {
-      position: relative;
-      width: 100%;
-      color: #ffffff;
+@media (max-width: 480px) {
+    .login-container {
+        padding: 0.5rem;
     }
-    
-    .dropdown-container select {
-      appearance: none; /* Remove default dropdown styling */
-      -webkit-appearance: none; /* Safari support */
-      -moz-appearance: none; /* Firefox support */
-      width: 100%;
-      padding-right: 30px; /* Ensure space for arrow */
-      background: #ffffff;
-      border: 1px solid #ccc; /* Optional for styling */
-      border-radius: 4px;
-    }
-    
-    .dropdown-container::after {
-      content: "▼";
-      font-size: 15px;
-      color: #000000;
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      pointer-events: none; /* Prevent interfering with clicks */
-    }
+}
 
-    .react-datepicker-wrapper {
-      width: 100%;
+/* Ensure proper backdrop for mobile */
+@media (max-width: 1024px) {
+    .login-container::before {
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.8) 100%);
     }
-    
-    .react-datepicker__input-container input {
-      border-radius: 50px !important; /* Ensures rounded-pill effect */
-      height: 40px; /* Matches other input fields */
-      text-align: center;
-    }
-    
-    
-    
-    @media (min-width: 768px) {
-      .form-container {
-        max-width: 400px;
-      }
-    }
-    
-    @media (min-width: 992px) {
-      .form-container {
-        max-width: 750px;
-      }
-    }
-    
+}

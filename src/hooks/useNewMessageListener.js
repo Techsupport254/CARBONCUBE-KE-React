@@ -1,21 +1,17 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { createConsumer } from "@rails/actioncable";
 
-const useActionCable = (
-	userType,
-	userId,
-	onMessageReceived,
-	onConnectionStatus
-) => {
+const useNewMessageListener = (userType, userId, onNewMessage) => {
 	const cableRef = useRef(null);
 	const subscriptionRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);
 	const isConnectingRef = useRef(false);
 
 	useEffect(() => {
-		if (!userType || !userId) {
+		if (!userType || !userId || !onNewMessage) {
 			return;
 		}
+
 
 		const connect = () => {
 			// Prevent multiple simultaneous connection attempts
@@ -44,20 +40,17 @@ const useActionCable = (
 					cableRef.current = null;
 				}
 
-				// Convert HTTP URL to WebSocket URL
+				// Create a dedicated consumer for this hook
 				const wsUrl =
-					process.env.REACT_APP_BACKEND_URL?.replace(
-						"https://",
-						"wss://"
-					)?.replace("http://", "ws://") || "ws://localhost:3001";
+					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
+					"ws://localhost:3001";
 
-				// Create connection
 				cableRef.current = createConsumer(`${wsUrl}/cable`, {
 					timeout: 30000, // Increased timeout
 					reconnect: false, // Disable automatic reconnection to prevent conflicts
 				});
 
-				// Subscribe to conversations channel
+				// Subscribe to conversations channel for new messages
 				subscriptionRef.current = cableRef.current.subscriptions.create(
 					{
 						channel: "ConversationsChannel",
@@ -67,9 +60,6 @@ const useActionCable = (
 					{
 						connected() {
 							isConnectingRef.current = false;
-							if (onConnectionStatus) {
-								onConnectionStatus("connected");
-							}
 							// Clear any pending reconnect timeout
 							if (reconnectTimeoutRef.current) {
 								clearTimeout(reconnectTimeoutRef.current);
@@ -78,11 +68,8 @@ const useActionCable = (
 						},
 						disconnected() {
 							isConnectingRef.current = false;
-							if (onConnectionStatus) {
-								onConnectionStatus("disconnected");
-							}
 							
-							// Attempt to reconnect after a delay
+							// Attempt to reconnect after a delay, but only if not already reconnecting
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
 									connect();
@@ -91,10 +78,7 @@ const useActionCable = (
 						},
 						rejected() {
 							isConnectingRef.current = false;
-							if (onConnectionStatus) {
-								onConnectionStatus("rejected");
-							}
-
+							
 							// Attempt to reconnect after a longer delay for rejections
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
@@ -105,7 +89,16 @@ const useActionCable = (
 						received(data) {
 							try {
 								if (data && data.type === "new_message") {
-									onMessageReceived(data);
+									// Only trigger if the message is not from the current user
+									if (
+										data.message &&
+										!(
+											data.message.sender_id === userId &&
+											data.message.sender_type === userType
+										)
+									) {
+										onNewMessage(data);
+									}
 								}
 							} catch (error) {
 								// Silently handle errors
@@ -115,10 +108,7 @@ const useActionCable = (
 				);
 			} catch (error) {
 				isConnectingRef.current = false;
-				if (onConnectionStatus) {
-					onConnectionStatus("error");
-				}
-
+				
 				// Attempt to reconnect after an error
 				if (!reconnectTimeoutRef.current) {
 					reconnectTimeoutRef.current = setTimeout(() => {
@@ -160,23 +150,7 @@ const useActionCable = (
 
 			isConnectingRef.current = false;
 		};
-	}, [userType, userId, onConnectionStatus, onMessageReceived]);
-
-	return {
-		sendMessage: useCallback(
-			(conversationId, content, senderType, senderId) => {
-				if (subscriptionRef.current) {
-					subscriptionRef.current.send({
-						conversation_id: conversationId,
-						content: content,
-						sender_type: senderType,
-						sender_id: senderId,
-					});
-				}
-			},
-			[]
-		),
-	};
+	}, [userType, userId, onNewMessage]);
 };
 
-export default useActionCable;
+export default useNewMessageListener;

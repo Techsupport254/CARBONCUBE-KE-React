@@ -1,5 +1,6 @@
 import React from "react";
-import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
+import { getAdImageUrl } from "../../utils/imageUtils";
+import ResponsiveImage from "../../components/ResponsiveImage";
 
 // Helper function to get tier priority (higher number = higher priority)
 const getTierPriority = (ad) => {
@@ -189,19 +190,15 @@ const PopularAdsSection = ({
 							onClick={() => onAdClick && onAdClick(product.id)}
 						>
 							<div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-								<img
+								<ResponsiveImage
 									src={product.image}
 									alt={product.name}
+									width={200}
+									height={200}
 									className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
 									loading="lazy"
-									onLoad={(e) => {
-										e.target.style.opacity = "1";
-									}}
-									onError={(e) => {
-										// Use a data URI as fallback to prevent infinite loops
-										e.target.src = getFallbackImage();
-										e.target.style.opacity = "1";
-									}}
+									sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+									quality={75}
 								/>
 							</div>
 							<div className="mt-2 text-xs sm:text-sm line-clamp-2">

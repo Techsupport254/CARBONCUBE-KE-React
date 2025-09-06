@@ -18,6 +18,7 @@ import {
 	faStar as faStarEmpty,
 	faPencilAlt,
 	faRotateLeft,
+	faBox,
 } from "@fortawesome/free-solid-svg-icons";
 import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
@@ -851,161 +852,161 @@ const SellerAds = () => {
 	};
 
 	const renderAdCard = (ad) => (
-		<Col xs={6} md={6} lg={3} key={ad.id} className="mb-3 px-2 px-md-2">
-			<Card className="h-100">
-				<div style={{ position: "relative" }}>
-					<Card.Img
-						variant="top"
-						className="ad-image"
-						style={{ cursor: "pointer" }}
-						onClick={() => handleViewDetailsClick(ad)}
+		<div key={ad.id} className="group">
+			<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+				{/* Image Section */}
+				<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
+					<img
 						src={
 							ad.media && ad.media.length > 0
 								? ad.media[0]
-								: "default-image-url"
+								: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBMMTUwIDEwMEwxMDAgMTUwSDUwTDc1IDEwMEw1MCA1MEgxMDBaIiBmaWxsPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2Nzc0OEIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4="
 						}
+						alt={ad.title}
+						className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-200"
+						onClick={() => handleViewDetailsClick(ad)}
 					/>
+
+					{/* Deleted Overlay */}
 					{ads.deleted.some((p) => p.id === ad.id) && (
-						<div
-							style={{
-								position: "absolute",
-								top: 0,
-								left: 0,
-								backgroundColor: "rgba(255, 0, 0, 0.6)",
-								color: "white",
-								width: "100%",
-								height: "100%",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								fontSize: "1.5rem",
-								fontWeight: "bold",
-								textTransform: "uppercase",
+						<div className="absolute inset-0 bg-red-500 bg-opacity-80 flex items-center justify-center">
+							<div className="text-white text-center">
+								<FontAwesomeIcon icon={faTrashCan} className="text-3xl mb-2" />
+								<div className="text-lg font-bold uppercase">Deleted</div>
+							</div>
+						</div>
+					)}
+
+					{/* Action Buttons Overlay */}
+					<div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								handleEditAd(ad.id);
 							}}
+							className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+							title="Edit Ad"
 						>
-							Deleted
+							<FontAwesomeIcon
+								icon={faPencilAlt}
+								className="text-gray-600 text-sm"
+							/>
+						</button>
+						{ads.deleted.some((p) => p.id === ad.id) ? (
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									handleRestoreAd(ad.id);
+								}}
+								className="w-8 h-8 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+								title="Restore Ad"
+							>
+								<FontAwesomeIcon
+									icon={faRotateLeft}
+									className="text-white text-sm"
+								/>
+							</button>
+						) : (
+							<button
+								onClick={(e) => {
+									e.stopPropagation();
+									setAdToDelete(ad);
+									setAlertVisible(true);
+								}}
+								className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+								title="Delete Ad"
+							>
+								<FontAwesomeIcon
+									icon={faTrashCan}
+									className="text-white text-sm"
+								/>
+							</button>
+						)}
+					</div>
+
+					{/* Media Count Badge */}
+					{ad.media && ad.media.length > 1 && (
+						<div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+							{ad.media.length} photos
 						</div>
 					)}
 				</div>
 
-				<Card.Body className="px-2 py-2 bookmark-body d-flex flex-column justify-content-center">
-					<div className="d-flex justify-content-between align-items-center h-100 w-100">
-						{/* Title + Price */}
-						<div className="flex-grow-1" style={{ minWidth: 0 }}>
-							<Card.Title
-								className="mb-1 ad-title text-truncate"
-								style={{
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-									textOverflow: "ellipsis",
-								}}
-							>
-								{ad.title}
-							</Card.Title>
+				{/* Content Section */}
+				<div className="p-2 sm:p-3">
+					{/* Title */}
+					<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200">
+						{ad.title}
+					</h3>
 
-							<Card.Text className="mb-0">
-								<span className="text-success" style={{ fontSize: "15px" }}>
-									Kshs:{" "}
-								</span>
-								<strong style={{ fontSize: "20px" }} className="text-danger">
-									{ad.price
-										? Number(ad.price)
-												.toFixed(2)
-												.split(".")
-												.map((part, index) => (
-													<React.Fragment key={index}>
-														{index === 0 ? (
-															<span className="price-integer">
-																{parseInt(part, 10).toLocaleString()}
-															</span>
-														) : (
-															<>
-																<span style={{ fontSize: "16px" }}>.</span>
-																<span className="price-decimal">{part}</span>
-															</>
-														)}
-													</React.Fragment>
-												))
-										: "N/A"}
-								</strong>
-							</Card.Text>
-						</div>
-
-						{/* Edit/Delete Icons */}
-						{ads.deleted.some((p) => p.id === ad.id) ? (
-							<div
-								className="restore-button-wrapper"
-								style={{ position: "relative", display: "inline-block" }}
-							>
-								<span
-									onClick={() => handleRestoreAd(ad.id)}
-									onMouseEnter={() => setHoveredAdId(ad.id)}
-									onMouseLeave={() => setHoveredAdId(null)}
-									style={{
-										cursor: "pointer",
-										color: "green",
-										fontSize: "1.2rem",
-									}}
-								>
-									<FontAwesomeIcon icon={faRotateLeft} />
-								</span>
-
-								{hoveredAdId === ad.id && (
-									<div
-										style={{
-											position: "absolute",
-											bottom: "110%",
-											left: "50%",
-											transform: "translateX(-50%)",
-											backgroundColor: "rgba(0, 0, 0, 0.75)",
-											color: "#fff",
-											padding: "2px 6px",
-											borderRadius: "4px",
-											fontSize: "12px",
-											whiteSpace: "nowrap",
-											zIndex: 1000,
-											pointerEvents: "none",
-										}}
-									>
-										Restore
-									</div>
-								)}
-							</div>
-						) : (
-							<div className="d-flex flex-column align-items-center">
-								<span
-									onClick={() => handleEditAd(ad.id)}
-									className="mb-2 text-secondary icon-button"
-									title="Edit Ad"
-									style={{ cursor: "pointer" }}
-								>
-									<FontAwesomeIcon
-										icon={faPencilAlt}
-										className="edit-icon"
-										size="lg"
-									/>
-								</span>
-								<span
-									onClick={() => {
-										setAdToDelete(ad.id);
-										setAlertVisible(true);
-									}}
-									className="text-danger icon-button"
-									title="Delete Ad"
-									style={{ cursor: "pointer" }}
-								>
-									<FontAwesomeIcon
-										icon={faTrashCan}
-										className="edit-icon"
-										size="lg"
-									/>
-								</span>
-							</div>
+					{/* Price */}
+					<div className="flex items-center justify-between mb-1">
+						<span className="text-sm sm:text-base font-bold text-green-600">
+							Kshs {parseFloat(ad.price).toLocaleString()}
+						</span>
+						{ad.quantity && (
+							<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+								Qty: {ad.quantity}
+							</span>
 						)}
 					</div>
-				</Card.Body>
-			</Card>
-		</Col>
+
+					{/* Brand and Condition */}
+					<div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+						{ad.brand && (
+							<span className="truncate flex-1 mr-2">
+								<FontAwesomeIcon icon={faBox} className="mr-1" />
+								{ad.brand}
+							</span>
+						)}
+						{ad.condition && (
+							<span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
+								{ad.condition}
+							</span>
+						)}
+					</div>
+
+					{/* Rating */}
+					{ad.average_rating && (
+						<div className="flex items-center gap-1 mb-1">
+							<div className="flex">
+								{[1, 2, 3, 4, 5].map((star) => (
+									<FontAwesomeIcon
+										key={star}
+										icon={
+											star <= Math.floor(ad.average_rating)
+												? faStar
+												: star === Math.ceil(ad.average_rating) &&
+												  ad.average_rating % 1 !== 0
+												? faStarHalfAlt
+												: faStarEmpty
+										}
+										className={`text-xs ${
+											star <= Math.floor(ad.average_rating) ||
+											(star === Math.ceil(ad.average_rating) &&
+												ad.average_rating % 1 !== 0)
+												? "text-yellow-400"
+												: "text-gray-300"
+										}`}
+									/>
+								))}
+							</div>
+							<span className="text-xs text-gray-500">
+								({ad.average_rating.toFixed(1)})
+							</span>
+						</div>
+					)}
+
+					{/* View Details Button */}
+					<button
+						onClick={() => handleViewDetailsClick(ad)}
+						className="w-full mt-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors duration-200"
+					>
+						View Details
+					</button>
+				</div>
+			</div>
+		</div>
 	);
 
 	const renderRatingStars = (rating) => {
@@ -1086,119 +1087,486 @@ const SellerAds = () => {
 
 	return (
 		<>
-			<Navbar mode="seller" showSearch={false} showCategories={false} />
-			<div className="ads-management-page">
-				<Container fluid className="p-0">
-					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
-						<Col xs={12} md={9} lg={9} className="p-2">
-							<Row className="justify-content-center d-flex align-items-center">
-								<Col
-									xs={7}
-									md={8}
-									lg={6}
-									className="mb-1 mb-md-3 pt-2 pt-md-3 justify-content-end"
-								>
-									<div className="search-container d-flex align-items-center">
-										<FormControl
-											placeholder="Search ads..."
-											aria-label="Search ads"
-											aria-describedby="search-icon"
-											value={searchTerm}
-											onChange={handleSearchChange}
-											className="search-input text-center"
-										/>
+			<div className="min-h-screen bg-gray-50">
+				<Navbar mode="seller" showSearch={false} showCategories={false} />
+				<div className="flex">
+					<Sidebar />
+					<div className="flex-1">
+						<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6">
+							{/* Header Section */}
+							<div className="mb-4 sm:mb-6">
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+									<div>
+										<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+											Manage Your Ads
+										</h1>
+										<p className="text-sm sm:text-base text-gray-600 mt-1">
+											Create, edit, and manage your product listings
+										</p>
 									</div>
-								</Col>
-								<Col
-									xs={5}
-									md={4}
-									lg={3}
-									className="mb-1 mb-md-3 pt-2 pt-md-3 d-flex justify-content-start"
-								>
-									<Button
-										id="button"
-										variant="warning"
+									<button
 										onClick={() => setShowAddModal(true)}
+										className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors shadow-sm hover:shadow-md w-full sm:w-auto justify-center"
 									>
+										<FontAwesomeIcon icon={faPencilAlt} className="text-sm" />
 										Add New Ad
-									</Button>
-								</Col>
-							</Row>
+									</button>
+								</div>
+							</div>
+
+							{/* Search and Stats Section */}
+							<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
+								<div className="flex flex-col lg:flex-row gap-3">
+									{/* Search Bar */}
+									<div className="flex-1">
+										<div className="relative">
+											<input
+												type="text"
+												placeholder="Search your ads..."
+												value={searchTerm}
+												onChange={handleSearchChange}
+												className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm"
+											/>
+											<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+												<FontAwesomeIcon
+													icon={faPencilAlt}
+													className="h-4 w-4 text-gray-400"
+												/>
+											</div>
+										</div>
+									</div>
+
+									{/* Stats */}
+									<div className="flex gap-3">
+										<div className="text-center">
+											<div className="text-2xl font-bold text-green-600">
+												{ads.active.length}
+											</div>
+											<div className="text-xs text-gray-500">Active</div>
+										</div>
+										<div className="text-center">
+											<div className="text-2xl font-bold text-red-600">
+												{ads.deleted.length}
+											</div>
+											<div className="text-xs text-gray-500">Deleted</div>
+										</div>
+										<div className="text-center">
+											<div className="text-2xl font-bold text-blue-600">
+												{ads.active.length + ads.deleted.length}
+											</div>
+											<div className="text-xs text-gray-500">Total</div>
+										</div>
+									</div>
+								</div>
+							</div>
 
 							{/* Active Ads Section */}
-							<h5 className="mt-3">Active Ads</h5>
-							<Row>
+							<div className="mb-6">
+								<div className="flex items-center justify-between mb-3">
+									<h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+										Active Ads ({ads.active.length})
+									</h2>
+									<div className="h-px bg-gray-200 flex-1 mx-3"></div>
+								</div>
+
 								{filteredActiveAds.length > 0 ? (
-									filteredActiveAds.map(renderAdCard)
+									<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+										{filteredActiveAds.map(renderAdCard)}
+									</div>
 								) : (
-									<Col>
-										<p className="text-muted">No active ads found.</p>
-									</Col>
+									<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
+										<div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+											<FontAwesomeIcon
+												icon={faBox}
+												className="text-2xl text-gray-400"
+											/>
+										</div>
+										<h3 className="text-lg font-medium text-gray-900 mb-2">
+											No active ads found
+										</h3>
+										<p className="text-gray-500 mb-4">
+											Start by creating your first ad to showcase your products.
+										</p>
+										<button
+											onClick={() => setShowAddModal(true)}
+											className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+										>
+											<FontAwesomeIcon icon={faPencilAlt} className="text-sm" />
+											Create Your First Ad
+										</button>
+									</div>
 								)}
-							</Row>
+							</div>
 
 							{/* Deleted Ads Section */}
-							<h5 className="mt-4">Deleted Ads</h5>
-							<Row>
-								{filteredDeletedAds.length > 0 ? (
-									filteredDeletedAds.map(renderAdCard)
-								) : (
-									<Col>
-										<p className="text-muted">No deleted ads.</p>
-									</Col>
+							{ads.deleted.length > 0 && (
+								<div>
+									<div className="flex items-center justify-between mb-3">
+										<h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+											Deleted Ads ({ads.deleted.length})
+										</h2>
+										<div className="h-px bg-gray-200 flex-1 mx-3"></div>
+									</div>
+
+									<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+										{filteredDeletedAds.map(renderAdCard)}
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* ============================================================ START AD DETAILS MODAL ==================================================================================*/}
+
+			<Modal
+				centered
+				show={showDetailsModal}
+				onHide={handleModalClose}
+				size="xl"
+			>
+				<Modal.Header className="justify-content-center p-1 p-lg-2">
+					<Modal.Title>{selectedAd?.title || "Ad Details"}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="p-0 p-lg-2">
+					{selectedAd && (
+						<>
+							<div className="position-relative">
+								<Carousel
+									className="mb-4 custom-carousel"
+									activeIndex={viewActiveIndex}
+									onSelect={(selectedIndex) =>
+										setViewActiveIndex(selectedIndex)
+									}
+									controls={selectedAd.media && selectedAd.media.length > 1}
+									indicators={false}
+								>
+									{selectedAd.media && selectedAd.media.length > 0 ? (
+										selectedAd.media.map((image, index) => (
+											<Carousel.Item key={index}>
+												<img
+													className="d-block w-100 ad-image"
+													src={image}
+													alt={`Ad ${selectedAd.title} - view ${index + 1}`}
+													style={{ height: "300px", objectFit: "contain" }}
+												/>
+											</Carousel.Item>
+										))
+									) : (
+										<Carousel.Item>
+											<p className="text-center">No images available</p>
+										</Carousel.Item>
+									)}
+								</Carousel>
+
+								{/* 🔢 Fixed Image number overlay - outside carousel */}
+								{selectedAd.media && selectedAd.media.length > 1 && (
+									<div
+										className="position-absolute bottom-0 start-0 m-3 px-3 py-1 text-dark animate__animated animate__fadeIn"
+										style={{
+											fontSize: "0.9rem",
+											zIndex: 1050,
+											textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
+										}}
+									>
+										{viewActiveIndex + 1} / {selectedAd.media.length}
+									</div>
 								)}
-							</Row>
-						</Col>
-					</Row>
-				</Container>
 
-				{/* ============================================================ START AD DETAILS MODAL ==================================================================================*/}
+								{/* 🖼️ Image Thumbnails Preview - only show if more than 1 image */}
+								{selectedAd.media && selectedAd.media.length > 1 && (
+									<div
+										className="position-absolute bottom-0 end-0 m-3"
+										style={{ zIndex: 1050 }}
+									>
+										<div className="d-flex gap-2">
+											{selectedAd.media.map((image, index) => (
+												<div
+													key={index}
+													className={`thumbnail-preview ${
+														index === viewActiveIndex ? "active" : ""
+													}`}
+													onClick={() => setViewActiveIndex(index)}
+													style={{
+														width: "40px",
+														height: "40px",
+														cursor: "pointer",
+														border:
+															index === viewActiveIndex
+																? "2px solid #ffc107"
+																: "2px solid rgba(255,255,255,0.5)",
+														borderRadius: "8px",
+														overflow: "hidden",
+														opacity: index === viewActiveIndex ? 1 : 0.7,
+														transition: "all 0.3s ease",
+														backgroundColor: "rgba(0,0,0,0.1)",
+													}}
+													onMouseEnter={(e) => {
+														if (index !== viewActiveIndex) {
+															e.target.style.opacity = "0.9";
+															e.target.style.transform = "scale(1.05)";
+														}
+													}}
+													onMouseLeave={(e) => {
+														if (index !== viewActiveIndex) {
+															e.target.style.opacity = "0.7";
+															e.target.style.transform = "scale(1)";
+														}
+													}}
+												>
+													<img
+														src={image}
+														alt={`Thumbnail ${index + 1}`}
+														style={{
+															width: "100%",
+															height: "100%",
+															objectFit: "cover",
+															pointerEvents: "none",
+														}}
+													/>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
+							</div>
+							<Container className="ad-details mb-4 p-1 p-lg-2">
+								<Row>
+									<Col xs={6} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Price
+											</Card.Header>
+											<Card.Body className="text-center">
+												<em className="ad-price-label">Kshs: </em>
+												<strong className="text-success">
+													{selectedAd.price
+														? (() => {
+																const formattedPrice = parseFloat(
+																	selectedAd.price
+																).toFixed(2);
+																const [integerPart, decimalPart] =
+																	formattedPrice.split(".");
+																return (
+																	<>
+																		<span className="price-integer">
+																			{parseInt(
+																				integerPart,
+																				10
+																			).toLocaleString()}
+																		</span>
+																		<span style={{ fontSize: "16px" }}>.</span>
+																		<span className="price-decimal">
+																			{decimalPart}
+																		</span>
+																	</>
+																);
+														  })()
+														: "N/A"}
+												</strong>
+											</Card.Body>
+										</Card>
+									</Col>
+									<Col xs={6} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Category
+											</Card.Header>
+											<Card.Body className="text-center">
+												{selectedAd.category?.name || "N/A"}
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
 
-				<Modal
-					centered
-					show={showDetailsModal}
-					onHide={handleModalClose}
-					size="xl"
-				>
-					<Modal.Header className="justify-content-center p-1 p-lg-2">
-						<Modal.Title>{selectedAd?.title || "Ad Details"}</Modal.Title>
-					</Modal.Header>
-					<Modal.Body className="p-0 p-lg-2">
-						{selectedAd && (
-							<>
-								<div className="position-relative">
+								<Row>
+									<Col xs={6} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Quantity Sold
+											</Card.Header>
+											<Card.Body className="text-center">
+												{selectedAd.quantity_sold || 0}
+											</Card.Body>
+										</Card>
+									</Col>
+									<Col xs={6} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Sold Out
+											</Card.Header>
+											<Card.Body className="text-center">
+												{selectedAd.sold_out ? "Yes" : "No"}
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
+
+								<Row>
+									<Col xs={12}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Description
+											</Card.Header>
+											<Card.Body className="text-center">
+												{selectedAd.description}
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
+
+								<Row>
+									<Col xs={12} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Condition
+											</Card.Header>
+											<Card.Body className="text-center">
+												<p className="mb-0">
+													{selectedAd.condition === "brand_new" && (
+														<span
+															style={{
+																backgroundColor: "green",
+																color: "white",
+																padding: "4px 12px",
+																borderRadius: "20px",
+																fontWeight: "bold",
+																fontSize: "0.95rem",
+															}}
+														>
+															Brand New
+														</span>
+													)}
+													{selectedAd.condition === "second_hand" && (
+														<span
+															style={{
+																backgroundColor: "orange",
+																color: "white",
+																padding: "4px 12px",
+																borderRadius: "20px",
+																fontWeight: "bold",
+																fontSize: "0.95rem",
+															}}
+														>
+															Second Hand
+														</span>
+													)}
+													{!selectedAd.condition && (
+														<span className="text-muted">Not specified</span>
+													)}
+												</p>
+											</Card.Body>
+										</Card>
+									</Col>
+									<Col xs={12} md={6}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Rating
+											</Card.Header>
+											<Card.Body className="text-center">
+												<span className="star-rating">
+													{renderRatingStars(selectedAd.mean_rating || 0)}
+												</span>
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
+
+								<Row>
+									<Col xs={12}>
+										<Card className="mb-2 custom-card">
+											<Card.Header as="h6" className="justify-content-center">
+												Dimensions
+											</Card.Header>
+											<Card.Body className="text-center">
+												<Row>
+													<Col xs={6} md={6}>
+														<p>
+															<strong>Height:</strong> {selectedAd.item_height}{" "}
+															cm
+														</p>
+														<p>
+															<strong>Width:</strong> {selectedAd.item_width} cm
+														</p>
+													</Col>
+													<Col xs={6} md={6}>
+														<p>
+															<strong>Length:</strong> {selectedAd.item_length}{" "}
+															cm
+														</p>
+														<p>
+															<strong>Weight:</strong> {selectedAd.item_weight}{" "}
+															{selectedAd.weight_unit}
+														</p>
+													</Col>
+												</Row>
+											</Card.Body>
+										</Card>
+									</Col>
+								</Row>
+							</Container>
+							<h5 className="text-center" id="reviews">
+								Reviews
+							</h5>
+							{selectedAd.reviews && selectedAd.reviews.length > 0 ? (
+								<div className="reviews-container text-center p-1 p-lg-2">
+									{selectedAd.reviews.map((review, index) => (
+										<div className="custom-card p-2" key={index}>
+											<p className="review-comment">
+												<em>"{review.review}"</em>
+											</p>
+											<StarRating rating={review.rating} />
+										</div>
+									))}
+								</div>
+							) : (
+								<p className="text-center">No reviews yet</p>
+							)}
+						</>
+					)}
+				</Modal.Body>
+				<Modal.Footer className=" p-0 p-lg-1">
+					<Button variant="danger" onClick={handleModalClose}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* ============================================================ START EDIT AD MODAL ==================================================================================*/}
+
+			<Modal centered show={showEditModal} onHide={handleModalClose} size="xl">
+				<Modal.Header className="justify-content-center p-1 p-lg-2">
+					<Modal.Title>
+						{selectedAd ? `Edit ${selectedAd.title}` : "Edit Ad"}
+					</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="p-1 p-lg-2">
+					<Form>
+						<Form.Group className="mb-3 position-relative">
+							{editedAd.media && editedAd.media.length > 0 ? (
+								<>
 									<Carousel
-										className="mb-4 custom-carousel"
-										activeIndex={viewActiveIndex}
-										onSelect={(selectedIndex) =>
-											setViewActiveIndex(selectedIndex)
-										}
-										controls={selectedAd.media && selectedAd.media.length > 1}
+										activeIndex={activeIndex}
+										onSelect={(selectedIndex) => setActiveIndex(selectedIndex)}
+										className="custom-carousel"
+										controls={editedAd.media.length > 1}
 										indicators={false}
 									>
-										{selectedAd.media && selectedAd.media.length > 0 ? (
-											selectedAd.media.map((image, index) => (
-												<Carousel.Item key={index}>
-													<img
-														className="d-block w-100 ad-image"
-														src={image}
-														alt={`Ad ${selectedAd.title} - view ${index + 1}`}
-														style={{ height: "300px", objectFit: "contain" }}
-													/>
-												</Carousel.Item>
-											))
-										) : (
-											<Carousel.Item>
-												<p className="text-center">No images available</p>
+										{editedAd.media.map((image, index) => (
+											<Carousel.Item key={index}>
+												<img
+													className="d-block w-100"
+													src={image}
+													alt={`Ad - view ${index + 1}`}
+													style={{ height: "300px", objectFit: "contain" }}
+												/>
 											</Carousel.Item>
-										)}
+										))}
 									</Carousel>
 
-									{/* 🔢 Fixed Image number overlay - outside carousel */}
-									{selectedAd.media && selectedAd.media.length > 1 && (
+									{/* 🔢 Fixed Image number (bottom-left) - outside carousel */}
+									{editedAd.media.length > 1 && (
 										<div
 											className="position-absolute bottom-0 start-0 m-3 px-3 py-1 text-dark animate__animated animate__fadeIn"
 											style={{
@@ -1207,46 +1575,46 @@ const SellerAds = () => {
 												textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
 											}}
 										>
-											{viewActiveIndex + 1} / {selectedAd.media.length}
+											{activeIndex + 1} / {editedAd.media.length}
 										</div>
 									)}
 
 									{/* 🖼️ Image Thumbnails Preview - only show if more than 1 image */}
-									{selectedAd.media && selectedAd.media.length > 1 && (
+									{editedAd.media.length > 1 && (
 										<div
 											className="position-absolute bottom-0 end-0 m-3"
-											style={{ zIndex: 1050 }}
+											style={{ zIndex: 1040 }} // Lower than delete button
 										>
 											<div className="d-flex gap-2">
-												{selectedAd.media.map((image, index) => (
+												{editedAd.media.map((image, index) => (
 													<div
 														key={index}
 														className={`thumbnail-preview ${
-															index === viewActiveIndex ? "active" : ""
+															index === activeIndex ? "active" : ""
 														}`}
-														onClick={() => setViewActiveIndex(index)}
+														onClick={() => setActiveIndex(index)}
 														style={{
 															width: "40px",
 															height: "40px",
 															cursor: "pointer",
 															border:
-																index === viewActiveIndex
+																index === activeIndex
 																	? "2px solid #ffc107"
 																	: "2px solid rgba(255,255,255,0.5)",
 															borderRadius: "8px",
 															overflow: "hidden",
-															opacity: index === viewActiveIndex ? 1 : 0.7,
+															opacity: index === activeIndex ? 1 : 0.7,
 															transition: "all 0.3s ease",
 															backgroundColor: "rgba(0,0,0,0.1)",
 														}}
 														onMouseEnter={(e) => {
-															if (index !== viewActiveIndex) {
+															if (index !== activeIndex) {
 																e.target.style.opacity = "0.9";
 																e.target.style.transform = "scale(1.05)";
 															}
 														}}
 														onMouseLeave={(e) => {
-															if (index !== viewActiveIndex) {
+															if (index !== activeIndex) {
 																e.target.style.opacity = "0.7";
 																e.target.style.transform = "scale(1)";
 															}
@@ -1267,1125 +1635,806 @@ const SellerAds = () => {
 											</div>
 										</div>
 									)}
-								</div>
-								<Container className="ad-details mb-4 p-1 p-lg-2">
-									<Row>
-										<Col xs={6} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Price
-												</Card.Header>
-												<Card.Body className="text-center">
-													<em className="ad-price-label">Kshs: </em>
-													<strong className="text-success">
-														{selectedAd.price
-															? (() => {
-																	const formattedPrice = parseFloat(
-																		selectedAd.price
-																	).toFixed(2);
-																	const [integerPart, decimalPart] =
-																		formattedPrice.split(".");
-																	return (
-																		<>
-																			<span className="price-integer">
-																				{parseInt(
-																					integerPart,
-																					10
-																				).toLocaleString()}
-																			</span>
-																			<span style={{ fontSize: "16px" }}>
-																				.
-																			</span>
-																			<span className="price-decimal">
-																				{decimalPart}
-																			</span>
-																		</>
-																	);
-															  })()
-															: "N/A"}
-													</strong>
-												</Card.Body>
-											</Card>
-										</Col>
-										<Col xs={6} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Category
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.category?.name || "N/A"}
-												</Card.Body>
-											</Card>
-										</Col>
-									</Row>
 
-									<Row>
-										<Col xs={6} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Quantity Sold
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.quantity_sold || 0}
-												</Card.Body>
-											</Card>
-										</Col>
-										<Col xs={6} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Sold Out
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.sold_out ? "Yes" : "No"}
-												</Card.Body>
-											</Card>
-										</Col>
-									</Row>
+									{/* 🗑️ Delete button (top-right) for current image */}
+									<Button
+										variant="link"
+										onClick={() => handleDeleteImage(activeIndex)}
+										className="position-absolute top-0 end-0 m-2 text-danger"
+										style={{
+											fontSize: "1.2rem",
+											zIndex: 1050,
+											pointerEvents: "auto",
+										}}
+									>
+										<FontAwesomeIcon icon={faTrashCan} />
+									</Button>
+								</>
+							) : (
+								<p>No images available</p>
+							)}
+						</Form.Group>
 
-									<Row>
-										<Col xs={12}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Description
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.description}
-												</Card.Body>
-											</Card>
-										</Col>
-									</Row>
+						<Row className="mb-1 mb-lg-3">
+							<Col xs={12}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Title
+									</Form.Label>
+									<Form.Control
+										type="text"
+										placeholder="Enter ad title"
+										name="title"
+										id="button"
+										value={editedAd.title || ""}
+										onChange={handleInputChange}
+									/>
+								</Form.Group>
+							</Col>
+						</Row>
 
-									<Row>
-										<Col xs={12} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Condition
-												</Card.Header>
-												<Card.Body className="text-center">
-													<p className="mb-0">
-														{selectedAd.condition === "brand_new" && (
-															<span
-																style={{
-																	backgroundColor: "green",
-																	color: "white",
-																	padding: "4px 12px",
-																	borderRadius: "20px",
-																	fontWeight: "bold",
-																	fontSize: "0.95rem",
-																}}
-															>
-																Brand New
-															</span>
-														)}
-														{selectedAd.condition === "second_hand" && (
-															<span
-																style={{
-																	backgroundColor: "orange",
-																	color: "white",
-																	padding: "4px 12px",
-																	borderRadius: "20px",
-																	fontWeight: "bold",
-																	fontSize: "0.95rem",
-																}}
-															>
-																Second Hand
-															</span>
-														)}
-														{!selectedAd.condition && (
-															<span className="text-muted">Not specified</span>
-														)}
-													</p>
-												</Card.Body>
-											</Card>
-										</Col>
-										<Col xs={12} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Rating
-												</Card.Header>
-												<Card.Body className="text-center">
-													<span className="star-rating">
-														{renderRatingStars(selectedAd.mean_rating || 0)}
-													</span>
-												</Card.Body>
-											</Card>
-										</Col>
-									</Row>
-
-									<Row>
-										<Col xs={12}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Dimensions
-												</Card.Header>
-												<Card.Body className="text-center">
-													<Row>
-														<Col xs={6} md={6}>
-															<p>
-																<strong>Height:</strong>{" "}
-																{selectedAd.item_height} cm
-															</p>
-															<p>
-																<strong>Width:</strong> {selectedAd.item_width}{" "}
-																cm
-															</p>
-														</Col>
-														<Col xs={6} md={6}>
-															<p>
-																<strong>Length:</strong>{" "}
-																{selectedAd.item_length} cm
-															</p>
-															<p>
-																<strong>Weight:</strong>{" "}
-																{selectedAd.item_weight}{" "}
-																{selectedAd.weight_unit}
-															</p>
-														</Col>
-													</Row>
-												</Card.Body>
-											</Card>
-										</Col>
-									</Row>
-								</Container>
-								<h5 className="text-center" id="reviews">
-									Reviews
-								</h5>
-								{selectedAd.reviews && selectedAd.reviews.length > 0 ? (
-									<div className="reviews-container text-center p-1 p-lg-2">
-										{selectedAd.reviews.map((review, index) => (
-											<div className="custom-card p-2" key={index}>
-												<p className="review-comment">
-													<em>"{review.review}"</em>
-												</p>
-												<StarRating rating={review.rating} />
-											</div>
+						<Row className="mb-1 mb-lg-3">
+							<Col xs={6} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Category
+									</Form.Label>
+									<Form.Control
+										as="select"
+										name="category_id"
+										id="button"
+										value={selectedCategory}
+										onChange={handleCategoryChange}
+									>
+										<option value="">Select Category</option>
+										{categories.map((cat) => (
+											<option key={cat.id} value={cat.id}>
+												{cat.name}
+											</option>
 										))}
-									</div>
-								) : (
-									<p className="text-center">No reviews yet</p>
-								)}
-							</>
-						)}
-					</Modal.Body>
-					<Modal.Footer className=" p-0 p-lg-1">
-						<Button variant="danger" onClick={handleModalClose}>
-							Close
-						</Button>
-					</Modal.Footer>
-				</Modal>
+									</Form.Control>
+								</Form.Group>
+							</Col>
+							<Col xs={6} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Subcategory
+									</Form.Label>
+									<Form.Control
+										as="select"
+										name="subcategory_id"
+										id="button"
+										value={selectedSubcategory}
+										onChange={handleSubcategoryChange}
+									>
+										<option value="">Select Subcategory</option>
+										{subcategories.map((subcat) => (
+											<option key={subcat.id} value={subcat.id}>
+												{subcat.name}
+											</option>
+										))}
+									</Form.Control>
+								</Form.Group>
+							</Col>
+						</Row>
 
-				{/* ============================================================ START EDIT AD MODAL ==================================================================================*/}
+						<Row className="mb-1 mb-lg-3">
+							<Col xs={6} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Price
+									</Form.Label>
+									<Form.Control
+										type="number"
+										placeholder="Enter ad price"
+										name="price"
+										id="button"
+										value={editedAd.price || ""}
+										onChange={handleInputChange}
+									/>
+								</Form.Group>
+							</Col>
+							<Col xs={6} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Quantity in Stock
+									</Form.Label>
+									<Form.Control
+										type="number"
+										placeholder="Enter quantity in stock"
+										name="quantity"
+										id="button"
+										value={editedAd.quantity || ""}
+										onChange={handleInputChange}
+									/>
+								</Form.Group>
+							</Col>
+						</Row>
 
-				<Modal
-					centered
-					show={showEditModal}
-					onHide={handleModalClose}
-					size="xl"
-				>
-					<Modal.Header className="justify-content-center p-1 p-lg-2">
-						<Modal.Title>
-							{selectedAd ? `Edit ${selectedAd.title}` : "Edit Ad"}
-						</Modal.Title>
-					</Modal.Header>
-					<Modal.Body className="p-1 p-lg-2">
-						<Form>
-							<Form.Group className="mb-3 position-relative">
-								{editedAd.media && editedAd.media.length > 0 ? (
-									<>
-										<Carousel
-											activeIndex={activeIndex}
-											onSelect={(selectedIndex) =>
-												setActiveIndex(selectedIndex)
-											}
-											className="custom-carousel"
-											controls={editedAd.media.length > 1}
-											indicators={false}
-										>
-											{editedAd.media.map((image, index) => (
-												<Carousel.Item key={index}>
-													<img
-														className="d-block w-100"
-														src={image}
-														alt={`Ad - view ${index + 1}`}
-														style={{ height: "300px", objectFit: "contain" }}
-													/>
-												</Carousel.Item>
-											))}
-										</Carousel>
+						<Row className="mb-1 mb-lg-3">
+							<Col xs={12} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className=" text-center mb-0 fw-bold">
+										Brand
+									</Form.Label>
+									<Form.Control
+										type="text"
+										placeholder="Enter ad brand"
+										name="brand"
+										id="button"
+										value={editedAd.brand || ""}
+										onChange={handleInputChange}
+									/>
+								</Form.Group>
+							</Col>
+							<Col xs={12} md={6}>
+								<Form.Group className="d-flex flex-column align-items-center">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Manufacturer
+									</Form.Label>
+									<Form.Control
+										type="text"
+										placeholder="Enter ad manufacturer"
+										name="manufacturer"
+										id="button"
+										value={editedAd.manufacturer || ""}
+										onChange={handleInputChange}
+									/>
+								</Form.Group>
+							</Col>
+						</Row>
 
-										{/* 🔢 Fixed Image number (bottom-left) - outside carousel */}
-										{editedAd.media.length > 1 && (
-											<div
-												className="position-absolute bottom-0 start-0 m-3 px-3 py-1 text-dark animate__animated animate__fadeIn"
+						<Form.Group className="d-flex flex-column align-items-center mb-1 mb-lg-3">
+							<Form.Label className="text-center mb-0 fw-bold">
+								Add Images
+							</Form.Label>
+							<Form.Control
+								type="file"
+								id="button"
+								accept="image/*"
+								multiple
+								onChange={(e) => handleFileSelect(e.target.files, "edit")}
+							/>
+
+							{editedImages.length > 0 && (
+								<div className="image-preview d-flex flex-wrap justify-content-center mt-3">
+									{editedImages.map((file, index) => (
+										<div key={index} className="m-1 position-relative">
+											<button
+												type="button"
+												className="btn btn-danger btn-sm position-absolute"
 												style={{
-													fontSize: "0.9rem",
-													zIndex: 1050,
-													textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
+													top: 0,
+													right: 0,
+													borderRadius: "50%",
+													padding: "0 6px",
+													lineHeight: "1",
+													fontSize: "14px",
 												}}
+												onClick={() =>
+													setEditedImages((prev) =>
+														prev.filter((_, i) => i !== index)
+													)
+												}
 											>
-												{activeIndex + 1} / {editedAd.media.length}
-											</div>
-										)}
+												&times;
+											</button>
+											<img
+												src={URL.createObjectURL(file)}
+												alt={`new-img-${index}`}
+												style={{
+													width: "80px",
+													height: "80px",
+													objectFit: "cover",
+													borderRadius: "5px",
+													border: "1px solid #ccc",
+												}}
+											/>
+										</div>
+									))}
+								</div>
+							)}
+						</Form.Group>
 
-										{/* 🖼️ Image Thumbnails Preview - only show if more than 1 image */}
-										{editedAd.media.length > 1 && (
-											<div
-												className="position-absolute bottom-0 end-0 m-3"
-												style={{ zIndex: 1040 }} // Lower than delete button
+						<Form.Group className="d-flex flex-column align-items-center">
+							<Form.Label className="text-center mb-0 fw-bold">
+								Description
+							</Form.Label>
+							<Form.Control
+								as="textarea"
+								rows={3}
+								placeholder="Enter ad description"
+								name="description"
+								value={editedAd.description || ""}
+								onChange={handleInputChange}
+							/>
+						</Form.Group>
+
+						<Form.Group className="mb-2 w-100">
+							<Form.Label className="text-center mb-0 fw-bold w-100">
+								Condition
+							</Form.Label>
+							<Form.Control
+								as="select"
+								id="edit-condition"
+								className="mb-1 rounded-pill"
+								style={{ maxWidth: "100%" }}
+								value={editedAd.condition || ""}
+								onChange={(e) =>
+									setEditedAd({ ...editedAd, condition: e.target.value })
+								}
+								required
+							>
+								<option value="">Select Condition</option>
+								<option value="brand_new">Brand New</option>
+								<option value="second_hand">Second Hand</option>
+							</Form.Control>
+						</Form.Group>
+
+						<Card className="custom-card-seller">
+							<Card.Header className="justify-content-center fw-bold">
+								Dimensions
+							</Card.Header>
+							<Card.Body>
+								<Row className="mb-1 -mb-lg-3">
+									<Col xs={6} md={6}>
+										<Form.Group className="d-flex flex-column align-items-center">
+											<Form.Label className="text-center mb-0 fw-bold">
+												Length
+											</Form.Label>
+											<Form.Control
+												type="number"
+												placeholder="Enter ad length"
+												name="item_length"
+												value={editedAd.item_length || ""}
+												onChange={handleInputChange}
+											/>
+										</Form.Group>
+									</Col>
+									<Col xs={6} md={6}>
+										<Form.Group className="d-flex flex-column align-items-center">
+											<Form.Label className="text-center mb-0 fw-bold">
+												Width
+											</Form.Label>
+											<Form.Control
+												type="number"
+												placeholder="Enter ad width"
+												name="item_width"
+												value={editedAd.item_width || ""}
+												onChange={handleInputChange}
+											/>
+										</Form.Group>
+									</Col>
+								</Row>
+
+								<Row className="mb-1 mb-lg-3">
+									<Col xs={6} md={6}>
+										<Form.Group className="d-flex flex-column align-items-center">
+											<Form.Label className="text-center mb-0 fw-bold">
+												Height
+											</Form.Label>
+											<Form.Control
+												type="number"
+												placeholder="Enter ad height"
+												name="item_height"
+												value={editedAd.item_height || ""}
+												onChange={handleInputChange}
+											/>
+										</Form.Group>
+									</Col>
+									<Col xs={6} md={6}>
+										<Form.Group className="d-flex flex-column align-items-center">
+											<Form.Label className="text-center mb-0 fw-bold">
+												Weight
+											</Form.Label>
+											<Form.Control
+												type="number"
+												placeholder="Enter ad weight"
+												name="item_weight"
+												value={editedAd.item_weight || ""}
+												onChange={handleInputChange}
+											/>
+										</Form.Group>
+									</Col>
+								</Row>
+
+								<Row className="mb-3">
+									<Form.Group>
+										<Form.Label>Weight Unit</Form.Label>
+										<Row className="mb-3">
+											<Col xs={6} md={6}>
+												<Form.Check
+													type="checkbox"
+													name="weight_unit"
+													label="Grams"
+													checked={editedAd.weight_unit === "Grams"}
+													onChange={() => handleWeightUnitChange("Grams")}
+												/>
+											</Col>
+											<Col xs={6} md={6}>
+												<Form.Check
+													type="checkbox"
+													name="weight_unit"
+													label="Kilograms"
+													checked={editedAd.weight_unit === "Kilograms"}
+													onChange={() => handleWeightUnitChange("Kilograms")}
+												/>
+											</Col>
+										</Row>
+									</Form.Group>
+								</Row>
+							</Card.Body>
+						</Card>
+					</Form>
+				</Modal.Body>
+				<Modal.Footer className="p-0 p-lg-1">
+					<Button
+						variant="warning"
+						onClick={handleSaveEdit}
+						disabled={isSaving}
+					>
+						{isSaving ? "Saving..." : "Save Changes"}
+					</Button>
+					<Button variant="danger" onClick={handleModalClose}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* ============================================================  START ADD AD MODAL ==================================================================================*/}
+
+			<Modal
+				show={showAddModal}
+				onHide={() => setShowAddModal(false)}
+				size="xl"
+				centered
+				className="custom-modal"
+			>
+				<Modal.Header className="custom-modal-header justify-content-center p-1 p-lg-2">
+					<Modal.Title>Add Ad</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="custom-modal-body">
+					<Form>
+						<Row>
+							<Col md={8}>
+								<Form.Group className="mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Title
+									</Form.Label>
+									<Form.Control
+										id="title"
+										name="title"
+										type="text"
+										placeholder="Enter ad title"
+										value={formValues.title}
+										onChange={handleFormChange}
+										className="custom-input mb-1 rounded-pill"
+										isInvalid={!!formErrors.title}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.title}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Form.Group className="mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Description
+									</Form.Label>
+									<Form.Control
+										id="description"
+										name="description"
+										as="textarea"
+										rows={10}
+										placeholder="Enter ad description"
+										value={formValues.description}
+										onChange={handleFormChange}
+										className="custom-input mb-1"
+										isInvalid={!!formErrors.description}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.description}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								{/* Inside your modal */}
+								<Form.Group className="mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Media
+									</Form.Label>
+									<div className="upload-section position-relative">
+										<div className="upload-icon">&#8689;</div>
+										<div className="d-flex flex-column align-items-center">
+											<Button
+												variant="warning"
+												className="custom-upload-btn position-relative rounded-pill mb-1"
+												disabled={selectedImages.length >= 3}
 											>
-												<div className="d-flex gap-2">
-													{editedAd.media.map((image, index) => (
-														<div
-															key={index}
-															className={`thumbnail-preview ${
-																index === activeIndex ? "active" : ""
-															}`}
-															onClick={() => setActiveIndex(index)}
-															style={{
-																width: "40px",
-																height: "40px",
-																cursor: "pointer",
-																border:
-																	index === activeIndex
-																		? "2px solid #ffc107"
-																		: "2px solid rgba(255,255,255,0.5)",
-																borderRadius: "8px",
-																overflow: "hidden",
-																opacity: index === activeIndex ? 1 : 0.7,
-																transition: "all 0.3s ease",
-																backgroundColor: "rgba(0,0,0,0.1)",
-															}}
-															onMouseEnter={(e) => {
-																if (index !== activeIndex) {
-																	e.target.style.opacity = "0.9";
-																	e.target.style.transform = "scale(1.05)";
-																}
-															}}
-															onMouseLeave={(e) => {
-																if (index !== activeIndex) {
-																	e.target.style.opacity = "0.7";
-																	e.target.style.transform = "scale(1)";
-																}
-															}}
-														>
-															<img
-																src={image}
-																alt={`Thumbnail ${index + 1}`}
-																style={{
-																	width: "100%",
-																	height: "100%",
-																	objectFit: "cover",
-																	pointerEvents: "none",
-																}}
-															/>
-														</div>
-													))}
-												</div>
-											</div>
-										)}
+												{selectedImages.length < 3
+													? "Upload Images"
+													: "Maximum Reached (3)"}
+												<input
+													type="file"
+													accept="image/*"
+													multiple
+													onChange={(e) =>
+														handleFileSelect(e.target.files, "add")
+													}
+													style={{
+														position: "absolute",
+														top: 0,
+														left: 0,
+														width: "100%",
+														height: "100%",
+														opacity: 0,
+														cursor: "pointer",
+													}}
+												/>
+											</Button>
 
-										{/* 🗑️ Delete button (top-right) for current image */}
-										<Button
-											variant="link"
-											onClick={() => handleDeleteImage(activeIndex)}
-											className="position-absolute top-0 end-0 m-2 text-danger"
+											<small className="text-muted">
+												{selectedImages.length} of 3 images uploaded
+											</small>
+										</div>
+										<div className="upload-instructions">
+											Drag and Drop files Here
+										</div>
+										<div
+											className="image-preview mt-2"
 											style={{
-												fontSize: "1.2rem",
-												zIndex: 1050,
-												pointerEvents: "auto",
+												display: "flex",
+												flexDirection: "row",
+												overflowX: "auto",
+												gap: "10px",
+												padding: "10px 0",
 											}}
 										>
-											<FontAwesomeIcon icon={faTrashCan} />
-										</Button>
-									</>
-								) : (
-									<p>No images available</p>
-								)}
-							</Form.Group>
-
-							<Row className="mb-1 mb-lg-3">
-								<Col xs={12}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Title
-										</Form.Label>
-										<Form.Control
-											type="text"
-											placeholder="Enter ad title"
-											name="title"
-											id="button"
-											value={editedAd.title || ""}
-											onChange={handleInputChange}
-										/>
-									</Form.Group>
-								</Col>
-							</Row>
-
-							<Row className="mb-1 mb-lg-3">
-								<Col xs={6} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Category
-										</Form.Label>
-										<Form.Control
-											as="select"
-											name="category_id"
-											id="button"
-											value={selectedCategory}
-											onChange={handleCategoryChange}
-										>
-											<option value="">Select Category</option>
-											{categories.map((cat) => (
-												<option key={cat.id} value={cat.id}>
-													{cat.name}
-												</option>
-											))}
-										</Form.Control>
-									</Form.Group>
-								</Col>
-								<Col xs={6} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Subcategory
-										</Form.Label>
-										<Form.Control
-											as="select"
-											name="subcategory_id"
-											id="button"
-											value={selectedSubcategory}
-											onChange={handleSubcategoryChange}
-										>
-											<option value="">Select Subcategory</option>
-											{subcategories.map((subcat) => (
-												<option key={subcat.id} value={subcat.id}>
-													{subcat.name}
-												</option>
-											))}
-										</Form.Control>
-									</Form.Group>
-								</Col>
-							</Row>
-
-							<Row className="mb-1 mb-lg-3">
-								<Col xs={6} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Price
-										</Form.Label>
-										<Form.Control
-											type="number"
-											placeholder="Enter ad price"
-											name="price"
-											id="button"
-											value={editedAd.price || ""}
-											onChange={handleInputChange}
-										/>
-									</Form.Group>
-								</Col>
-								<Col xs={6} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Quantity in Stock
-										</Form.Label>
-										<Form.Control
-											type="number"
-											placeholder="Enter quantity in stock"
-											name="quantity"
-											id="button"
-											value={editedAd.quantity || ""}
-											onChange={handleInputChange}
-										/>
-									</Form.Group>
-								</Col>
-							</Row>
-
-							<Row className="mb-1 mb-lg-3">
-								<Col xs={12} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className=" text-center mb-0 fw-bold">
-											Brand
-										</Form.Label>
-										<Form.Control
-											type="text"
-											placeholder="Enter ad brand"
-											name="brand"
-											id="button"
-											value={editedAd.brand || ""}
-											onChange={handleInputChange}
-										/>
-									</Form.Group>
-								</Col>
-								<Col xs={12} md={6}>
-									<Form.Group className="d-flex flex-column align-items-center">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Manufacturer
-										</Form.Label>
-										<Form.Control
-											type="text"
-											placeholder="Enter ad manufacturer"
-											name="manufacturer"
-											id="button"
-											value={editedAd.manufacturer || ""}
-											onChange={handleInputChange}
-										/>
-									</Form.Group>
-								</Col>
-							</Row>
-
-							<Form.Group className="d-flex flex-column align-items-center mb-1 mb-lg-3">
-								<Form.Label className="text-center mb-0 fw-bold">
-									Add Images
-								</Form.Label>
-								<Form.Control
-									type="file"
-									id="button"
-									accept="image/*"
-									multiple
-									onChange={(e) => handleFileSelect(e.target.files, "edit")}
-								/>
-
-								{editedImages.length > 0 && (
-									<div className="image-preview d-flex flex-wrap justify-content-center mt-3">
-										{editedImages.map((file, index) => (
-											<div key={index} className="m-1 position-relative">
-												<button
-													type="button"
-													className="btn btn-danger btn-sm position-absolute"
-													style={{
-														top: 0,
-														right: 0,
-														borderRadius: "50%",
-														padding: "0 6px",
-														lineHeight: "1",
-														fontSize: "14px",
-													}}
-													onClick={() =>
-														setEditedImages((prev) =>
-															prev.filter((_, i) => i !== index)
-														)
-													}
+											{selectedImages.map((imageUrl, index) => (
+												<div
+													key={index}
+													className="image-container position-relative"
+													style={{ flexShrink: 0 }}
 												>
-													&times;
-												</button>
-												<img
-													src={URL.createObjectURL(file)}
-													alt={`new-img-${index}`}
-													style={{
-														width: "80px",
-														height: "80px",
-														objectFit: "cover",
-														borderRadius: "5px",
-														border: "1px solid #ccc",
-													}}
-												/>
-											</div>
-										))}
-									</div>
-								)}
-							</Form.Group>
-
-							<Form.Group className="d-flex flex-column align-items-center">
-								<Form.Label className="text-center mb-0 fw-bold">
-									Description
-								</Form.Label>
-								<Form.Control
-									as="textarea"
-									rows={3}
-									placeholder="Enter ad description"
-									name="description"
-									value={editedAd.description || ""}
-									onChange={handleInputChange}
-								/>
-							</Form.Group>
-
-							<Form.Group className="mb-2 w-100">
-								<Form.Label className="text-center mb-0 fw-bold w-100">
-									Condition
-								</Form.Label>
-								<Form.Control
-									as="select"
-									id="edit-condition"
-									className="mb-1 rounded-pill"
-									style={{ maxWidth: "100%" }}
-									value={editedAd.condition || ""}
-									onChange={(e) =>
-										setEditedAd({ ...editedAd, condition: e.target.value })
-									}
-									required
-								>
-									<option value="">Select Condition</option>
-									<option value="brand_new">Brand New</option>
-									<option value="second_hand">Second Hand</option>
-								</Form.Control>
-							</Form.Group>
-
-							<Card className="custom-card-seller">
-								<Card.Header className="justify-content-center fw-bold">
-									Dimensions
-								</Card.Header>
-								<Card.Body>
-									<Row className="mb-1 -mb-lg-3">
-										<Col xs={6} md={6}>
-											<Form.Group className="d-flex flex-column align-items-center">
-												<Form.Label className="text-center mb-0 fw-bold">
-													Length
-												</Form.Label>
-												<Form.Control
-													type="number"
-													placeholder="Enter ad length"
-													name="item_length"
-													value={editedAd.item_length || ""}
-													onChange={handleInputChange}
-												/>
-											</Form.Group>
-										</Col>
-										<Col xs={6} md={6}>
-											<Form.Group className="d-flex flex-column align-items-center">
-												<Form.Label className="text-center mb-0 fw-bold">
-													Width
-												</Form.Label>
-												<Form.Control
-													type="number"
-													placeholder="Enter ad width"
-													name="item_width"
-													value={editedAd.item_width || ""}
-													onChange={handleInputChange}
-												/>
-											</Form.Group>
-										</Col>
-									</Row>
-
-									<Row className="mb-1 mb-lg-3">
-										<Col xs={6} md={6}>
-											<Form.Group className="d-flex flex-column align-items-center">
-												<Form.Label className="text-center mb-0 fw-bold">
-													Height
-												</Form.Label>
-												<Form.Control
-													type="number"
-													placeholder="Enter ad height"
-													name="item_height"
-													value={editedAd.item_height || ""}
-													onChange={handleInputChange}
-												/>
-											</Form.Group>
-										</Col>
-										<Col xs={6} md={6}>
-											<Form.Group className="d-flex flex-column align-items-center">
-												<Form.Label className="text-center mb-0 fw-bold">
-													Weight
-												</Form.Label>
-												<Form.Control
-													type="number"
-													placeholder="Enter ad weight"
-													name="item_weight"
-													value={editedAd.item_weight || ""}
-													onChange={handleInputChange}
-												/>
-											</Form.Group>
-										</Col>
-									</Row>
-
-									<Row className="mb-3">
-										<Form.Group>
-											<Form.Label>Weight Unit</Form.Label>
-											<Row className="mb-3">
-												<Col xs={6} md={6}>
-													<Form.Check
-														type="checkbox"
-														name="weight_unit"
-														label="Grams"
-														checked={editedAd.weight_unit === "Grams"}
-														onChange={() => handleWeightUnitChange("Grams")}
-													/>
-												</Col>
-												<Col xs={6} md={6}>
-													<Form.Check
-														type="checkbox"
-														name="weight_unit"
-														label="Kilograms"
-														checked={editedAd.weight_unit === "Kilograms"}
-														onChange={() => handleWeightUnitChange("Kilograms")}
-													/>
-												</Col>
-											</Row>
-										</Form.Group>
-									</Row>
-								</Card.Body>
-							</Card>
-						</Form>
-					</Modal.Body>
-					<Modal.Footer className="p-0 p-lg-1">
-						<Button
-							variant="warning"
-							onClick={handleSaveEdit}
-							disabled={isSaving}
-						>
-							{isSaving ? "Saving..." : "Save Changes"}
-						</Button>
-						<Button variant="danger" onClick={handleModalClose}>
-							Close
-						</Button>
-					</Modal.Footer>
-				</Modal>
-
-				{/* ============================================================  START ADD AD MODAL ==================================================================================*/}
-
-				<Modal
-					show={showAddModal}
-					onHide={() => setShowAddModal(false)}
-					size="xl"
-					centered
-					className="custom-modal"
-				>
-					<Modal.Header className="custom-modal-header justify-content-center p-1 p-lg-2">
-						<Modal.Title>Add Ad</Modal.Title>
-					</Modal.Header>
-					<Modal.Body className="custom-modal-body">
-						<Form>
-							<Row>
-								<Col md={8}>
-									<Form.Group className="mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Title
-										</Form.Label>
-										<Form.Control
-											id="title"
-											name="title"
-											type="text"
-											placeholder="Enter ad title"
-											value={formValues.title}
-											onChange={handleFormChange}
-											className="custom-input mb-1 rounded-pill"
-											isInvalid={!!formErrors.title}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.title}
-										</Form.Control.Feedback>
-									</Form.Group>
-
-									<Form.Group className="mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Description
-										</Form.Label>
-										<Form.Control
-											id="description"
-											name="description"
-											as="textarea"
-											rows={10}
-											placeholder="Enter ad description"
-											value={formValues.description}
-											onChange={handleFormChange}
-											className="custom-input mb-1"
-											isInvalid={!!formErrors.description}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.description}
-										</Form.Control.Feedback>
-									</Form.Group>
-
-									{/* Inside your modal */}
-									<Form.Group className="mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Media
-										</Form.Label>
-										<div className="upload-section position-relative">
-											<div className="upload-icon">&#8689;</div>
-											<div className="d-flex flex-column align-items-center">
-												<Button
-													variant="warning"
-													className="custom-upload-btn position-relative rounded-pill mb-1"
-													disabled={selectedImages.length >= 3}
-												>
-													{selectedImages.length < 3
-														? "Upload Images"
-														: "Maximum Reached (3)"}
-													<input
-														type="file"
-														accept="image/*"
-														multiple
-														onChange={(e) =>
-															handleFileSelect(e.target.files, "add")
-														}
+													<button
+														type="button"
+														className="btn btn-danger btn-image position-absolute d-flex justify-content-center align-items-center"
+														onClick={() => removeImage(index)}
 														style={{
-															position: "absolute",
-															top: 0,
-															left: 0,
-															width: "100%",
-															height: "100%",
-															opacity: 0,
-															cursor: "pointer",
+															right: "-8px",
+															top: "-8px",
+															borderRadius: "50%",
+															padding: 0,
+															zIndex: 1,
+															height: "22px",
+															width: "22px",
+															display: "flex",
+															justifyContent: "center",
+															alignItems: "center",
+															fontSize: "14px",
+															lineHeight: 1,
+															border: "none",
+														}}
+													>
+														&times;
+													</button>
+													<img
+														src={
+															typeof imageUrl === "string"
+																? imageUrl
+																: URL.createObjectURL(imageUrl)
+														}
+														alt={`preview ${index + 1}`}
+														className="img-thumbnail"
+														style={{
+															width: "80px",
+															height: "80px",
+															objectFit: "cover",
+															margin: 0,
 														}}
 													/>
-												</Button>
-
-												<small className="text-muted">
-													{selectedImages.length} of 3 images uploaded
-												</small>
-											</div>
-											<div className="upload-instructions">
-												Drag and Drop files Here
-											</div>
-											<div
-												className="image-preview mt-2"
-												style={{
-													display: "flex",
-													flexDirection: "row",
-													overflowX: "auto",
-													gap: "10px",
-													padding: "10px 0",
-												}}
-											>
-												{selectedImages.map((imageUrl, index) => (
-													<div
-														key={index}
-														className="image-container position-relative"
-														style={{ flexShrink: 0 }}
-													>
-														<button
-															type="button"
-															className="btn btn-danger btn-image position-absolute d-flex justify-content-center align-items-center"
-															onClick={() => removeImage(index)}
-															style={{
-																right: "-8px",
-																top: "-8px",
-																borderRadius: "50%",
-																padding: 0,
-																zIndex: 1,
-																height: "22px",
-																width: "22px",
-																display: "flex",
-																justifyContent: "center",
-																alignItems: "center",
-																fontSize: "14px",
-																lineHeight: 1,
-																border: "none",
-															}}
-														>
-															&times;
-														</button>
-														<img
-															src={
-																typeof imageUrl === "string"
-																	? imageUrl
-																	: URL.createObjectURL(imageUrl)
-															}
-															alt={`preview ${index + 1}`}
-															className="img-thumbnail"
-															style={{
-																width: "80px",
-																height: "80px",
-																objectFit: "cover",
-																margin: 0,
-															}}
-														/>
-													</div>
-												))}
-											</div>
+												</div>
+											))}
 										</div>
+									</div>
 
-										{/* Preview Uploaded Images in a row at bottom */}
-									</Form.Group>
-									<Form.Group className="mb-2 w-100">
-										<Form.Label className="text-center mb-0 fw-bold w-100">
-											Condition
-										</Form.Label>
-										<Form.Control
-											as="select"
-											id="condition"
-											name="condition"
-											className="mb-1 rounded-pill"
-											style={{ maxWidth: "100%" }}
-											value={formValues.condition || ""}
-											onChange={(e) =>
-												setFormValues({
-													...formValues,
-													condition: e.target.value,
-												})
-											}
-											isInvalid={!!formErrors.condition}
-										>
-											<option value="">Select Condition</option>
-											<option value="brand_new">Brand New</option>
-											<option value="second_hand">Second Hand</option>
-											<option value="refurbished">Refurbished</option>
-										</Form.Control>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.condition}
-										</Form.Control.Feedback>
-									</Form.Group>
-								</Col>
-
-								<Col md={4}>
-									<Form.Group
-										xs={6}
-										className="d-flex flex-column align-items-center mb-2"
+									{/* Preview Uploaded Images in a row at bottom */}
+								</Form.Group>
+								<Form.Group className="mb-2 w-100">
+									<Form.Label className="text-center mb-0 fw-bold w-100">
+										Condition
+									</Form.Label>
+									<Form.Control
+										as="select"
+										id="condition"
+										name="condition"
+										className="mb-1 rounded-pill"
+										style={{ maxWidth: "100%" }}
+										value={formValues.condition || ""}
+										onChange={(e) =>
+											setFormValues({
+												...formValues,
+												condition: e.target.value,
+											})
+										}
+										isInvalid={!!formErrors.condition}
 									>
-										<Form.Label className="text-center mb-0 fw-bold">
-											Category
-										</Form.Label>
-										<Form.Control
-											id="category_id"
-											name="category"
-											as="select"
-											className="custom-input mb-1 rounded-pill"
-											value={selectedCategory}
-											onChange={(e) => setSelectedCategory(e.target.value)}
-											isInvalid={!!formErrors.category}
-										>
-											<option value="">Select Category</option>
-											{categories.map((category) => (
-												<option key={category.id} value={category.id}>
-													{category.name}
-												</option>
-											))}
-										</Form.Control>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.category}
-										</Form.Control.Feedback>
-									</Form.Group>
+										<option value="">Select Condition</option>
+										<option value="brand_new">Brand New</option>
+										<option value="second_hand">Second Hand</option>
+										<option value="refurbished">Refurbished</option>
+									</Form.Control>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.condition}
+									</Form.Control.Feedback>
+								</Form.Group>
+							</Col>
 
-									<Form.Group
-										xs={6}
-										className="d-flex flex-column align-items-center mb-2"
+							<Col md={4}>
+								<Form.Group
+									xs={6}
+									className="d-flex flex-column align-items-center mb-2"
+								>
+									<Form.Label className="text-center mb-0 fw-bold">
+										Category
+									</Form.Label>
+									<Form.Control
+										id="category_id"
+										name="category"
+										as="select"
+										className="custom-input mb-1 rounded-pill"
+										value={selectedCategory}
+										onChange={(e) => setSelectedCategory(e.target.value)}
+										isInvalid={!!formErrors.category}
 									>
-										<Form.Label className="text-center mb-0 fw-bold">
-											Sub-Category
-										</Form.Label>
-										<Form.Control
-											id="subcategory_id"
-											name="subcategory"
-											as="select"
-											className="custom-input mb-1 rounded-pill"
-											value={selectedSubcategory}
-											onChange={(e) => setSelectedSubcategory(e.target.value)}
-											isInvalid={!!formErrors.subcategory}
-										>
-											<option value="">Select Sub-Category</option>
-											{subcategories.map((subcategory) => (
-												<option key={subcategory.id} value={subcategory.id}>
-													{subcategory.name}
-												</option>
-											))}
-										</Form.Control>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.subcategory}
-										</Form.Control.Feedback>
-									</Form.Group>
+										<option value="">Select Category</option>
+										{categories.map((category) => (
+											<option key={category.id} value={category.id}>
+												{category.name}
+											</option>
+										))}
+									</Form.Control>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.category}
+									</Form.Control.Feedback>
+								</Form.Group>
 
+								<Form.Group
+									xs={6}
+									className="d-flex flex-column align-items-center mb-2"
+								>
+									<Form.Label className="text-center mb-0 fw-bold">
+										Sub-Category
+									</Form.Label>
+									<Form.Control
+										id="subcategory_id"
+										name="subcategory"
+										as="select"
+										className="custom-input mb-1 rounded-pill"
+										value={selectedSubcategory}
+										onChange={(e) => setSelectedSubcategory(e.target.value)}
+										isInvalid={!!formErrors.subcategory}
+									>
+										<option value="">Select Sub-Category</option>
+										{subcategories.map((subcategory) => (
+											<option key={subcategory.id} value={subcategory.id}>
+												{subcategory.name}
+											</option>
+										))}
+									</Form.Control>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.subcategory}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Form.Group className="d-flex flex-column align-items-center mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Price
+									</Form.Label>
+									<Form.Control
+										id="price"
+										name="price"
+										type="text"
+										placeholder="Enter ad price"
+										value={formValues.price}
+										onChange={handleFormChange}
+										className="custom-input mb-1 rounded-pill"
+										isInvalid={!!formErrors.price}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.price}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Form.Group className="d-flex flex-column align-items-center mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Quantity
+									</Form.Label>
+									<Form.Control
+										id="quantity"
+										name="quantity"
+										type="text"
+										placeholder="Enter quantity"
+										value={formValues.quantity}
+										onChange={handleFormChange}
+										className="custom-input mb-1 rounded-pill"
+										isInvalid={!!formErrors.quantity}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.quantity}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Form.Group className="d-flex flex-column align-items-center mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Brand
+									</Form.Label>
+									<Form.Control
+										id="brand"
+										name="brand"
+										type="text"
+										placeholder="Enter brand"
+										value={formValues.brand}
+										onChange={handleFormChange}
+										className="custom-input mb-1 rounded-pill"
+										isInvalid={!!formErrors.brand}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.brand}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Form.Group className="d-flex flex-column align-items-center mb-2">
+									<Form.Label className="text-center mb-0 fw-bold">
+										Manufacturer
+									</Form.Label>
+									<Form.Control
+										id="manufacturer"
+										name="manufacturer"
+										type="text"
+										placeholder="Enter manufacturer"
+										value={formValues.manufacturer}
+										onChange={handleFormChange}
+										className="custom-input mb-1 rounded-pill"
+										isInvalid={!!formErrors.brand}
+									/>
+									<Form.Control.Feedback type="invalid">
+										{formErrors.manufacturer}
+									</Form.Control.Feedback>
+								</Form.Group>
+
+								<Container className="p-0">
 									<Form.Group className="d-flex flex-column align-items-center mb-2">
 										<Form.Label className="text-center mb-0 fw-bold">
-											Price
+											Item Dimensions
 										</Form.Label>
-										<Form.Control
-											id="price"
-											name="price"
-											type="text"
-											placeholder="Enter ad price"
-											value={formValues.price}
-											onChange={handleFormChange}
-											className="custom-input mb-1 rounded-pill"
-											isInvalid={!!formErrors.price}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.price}
-										</Form.Control.Feedback>
-									</Form.Group>
+										<Row>
+											<Col xs={6} lg={12}>
+												<Form.Control
+													id="item_length"
+													name="item_length"
+													type="text"
+													placeholder="Length"
+													value={formValues.item_length}
+													onChange={handleFormChange}
+													className="custom-input mb-2 rounded-pill"
+												/>
+											</Col>
+											<Col xs={6} lg={12}>
+												<Form.Control
+													id="item_width"
+													name="item_width"
+													type="text"
+													placeholder="Width"
+													value={formValues.item_width}
+													onChange={handleFormChange}
+													className="custom-input mb-2 rounded-pill"
+												/>
+											</Col>
+										</Row>
 
-									<Form.Group className="d-flex flex-column align-items-center mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Quantity
-										</Form.Label>
-										<Form.Control
-											id="quantity"
-											name="quantity"
-											type="text"
-											placeholder="Enter quantity"
-											value={formValues.quantity}
-											onChange={handleFormChange}
-											className="custom-input mb-1 rounded-pill"
-											isInvalid={!!formErrors.quantity}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.quantity}
-										</Form.Control.Feedback>
+										<Row>
+											<Col xs={6} lg={12}>
+												<Form.Control
+													id="item_height"
+													name="item_height"
+													type="text"
+													placeholder="Height"
+													value={formValues.item_height}
+													onChange={handleFormChange}
+													className="custom-input rounded-pill"
+												/>
+											</Col>
+											<Col xs={6} lg={12}>
+												<Form.Control
+													id="item_weight"
+													name="item_weight"
+													type="text"
+													placeholder="Weight"
+													value={formValues.item_weight}
+													onChange={handleFormChange}
+													className="custom-input mb-1 rounded-pill"
+												/>
+											</Col>
+										</Row>
 									</Form.Group>
-
-									<Form.Group className="d-flex flex-column align-items-center mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Brand
-										</Form.Label>
-										<Form.Control
-											id="brand"
-											name="brand"
-											type="text"
-											placeholder="Enter brand"
-											value={formValues.brand}
-											onChange={handleFormChange}
-											className="custom-input mb-1 rounded-pill"
-											isInvalid={!!formErrors.brand}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.brand}
-										</Form.Control.Feedback>
-									</Form.Group>
-
-									<Form.Group className="d-flex flex-column align-items-center mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Manufacturer
-										</Form.Label>
-										<Form.Control
-											id="manufacturer"
-											name="manufacturer"
-											type="text"
-											placeholder="Enter manufacturer"
-											value={formValues.manufacturer}
-											onChange={handleFormChange}
-											className="custom-input mb-1 rounded-pill"
-											isInvalid={!!formErrors.brand}
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.manufacturer}
-										</Form.Control.Feedback>
-									</Form.Group>
-
-									<Container className="p-0">
+									<Row>
 										<Form.Group className="d-flex flex-column align-items-center mb-2">
-											<Form.Label className="text-center mb-0 fw-bold">
-												Item Dimensions
+											<Form.Label className="text-center fw-bold">
+												Weight Unit
 											</Form.Label>
 											<Row>
-												<Col xs={6} lg={12}>
-													<Form.Control
-														id="item_length"
-														name="item_length"
-														type="text"
-														placeholder="Length"
-														value={formValues.item_length}
-														onChange={handleFormChange}
-														className="custom-input mb-2 rounded-pill"
+												<Col
+													xs={6}
+													md={6}
+													className="d-flex justify-content-center"
+												>
+													<Form.Check
+														type="checkbox"
+														label="Grams"
+														checked={weightUnit === "Grams"}
+														onChange={() => handleAddWeightUnitChange("Grams")}
 													/>
 												</Col>
-												<Col xs={6} lg={12}>
-													<Form.Control
-														id="item_width"
-														name="item_width"
-														type="text"
-														placeholder="Width"
-														value={formValues.item_width}
-														onChange={handleFormChange}
-														className="custom-input mb-2 rounded-pill"
-													/>
-												</Col>
-											</Row>
-
-											<Row>
-												<Col xs={6} lg={12}>
-													<Form.Control
-														id="item_height"
-														name="item_height"
-														type="text"
-														placeholder="Height"
-														value={formValues.item_height}
-														onChange={handleFormChange}
-														className="custom-input rounded-pill"
-													/>
-												</Col>
-												<Col xs={6} lg={12}>
-													<Form.Control
-														id="item_weight"
-														name="item_weight"
-														type="text"
-														placeholder="Weight"
-														value={formValues.item_weight}
-														onChange={handleFormChange}
-														className="custom-input mb-1 rounded-pill"
+												<Col
+													xs={6}
+													md={6}
+													className="d-flex justify-content-center"
+												>
+													<Form.Check
+														type="checkbox"
+														label="Kilograms"
+														checked={weightUnit === "Kilograms"}
+														onChange={() =>
+															handleAddWeightUnitChange("Kilograms")
+														}
 													/>
 												</Col>
 											</Row>
 										</Form.Group>
-										<Row>
-											<Form.Group className="d-flex flex-column align-items-center mb-2">
-												<Form.Label className="text-center fw-bold">
-													Weight Unit
-												</Form.Label>
-												<Row>
-													<Col
-														xs={6}
-														md={6}
-														className="d-flex justify-content-center"
-													>
-														<Form.Check
-															type="checkbox"
-															label="Grams"
-															checked={weightUnit === "Grams"}
-															onChange={() =>
-																handleAddWeightUnitChange("Grams")
-															}
-														/>
-													</Col>
-													<Col
-														xs={6}
-														md={6}
-														className="d-flex justify-content-center"
-													>
-														<Form.Check
-															type="checkbox"
-															label="Kilograms"
-															checked={weightUnit === "Kilograms"}
-															onChange={() =>
-																handleAddWeightUnitChange("Kilograms")
-															}
-														/>
-													</Col>
-												</Row>
-											</Form.Group>
-										</Row>
-									</Container>
-								</Col>
-							</Row>
-						</Form>
-					</Modal.Body>
-					<Modal.Footer className="p-0 p-lg-1">
-						{/* Progress Bar */}
-						{uploading && (
-							<div className="progress mt-2 w-100">
-								<div
-									className="progress-bar progress-bar-striped progress-bar-animated bg-success"
-									role="progressbar"
-									style={{
-										width: `${uploadProgress}%`,
-										transition: "width 0.3s ease-in-out",
-									}}
-									aria-valuenow={uploadProgress}
-									aria-valuemin="0"
-									aria-valuemax="100"
-								>
-									{uploadProgress}%
-								</div>
+									</Row>
+								</Container>
+							</Col>
+						</Row>
+					</Form>
+				</Modal.Body>
+				<Modal.Footer className="p-0 p-lg-1">
+					{/* Progress Bar */}
+					{uploading && (
+						<div className="progress mt-2 w-100">
+							<div
+								className="progress-bar progress-bar-striped progress-bar-animated bg-success"
+								role="progressbar"
+								style={{
+									width: `${uploadProgress}%`,
+									transition: "width 0.3s ease-in-out",
+								}}
+								aria-valuenow={uploadProgress}
+								aria-valuemin="0"
+								aria-valuemax="100"
+							>
+								{uploadProgress}%
 							</div>
-						)}
+						</div>
+					)}
 
-						{/* Buttons */}
-						<Button
-							type="button"
-							variant="warning"
-							onClick={handleAddNewAd}
-							disabled={uploading}
-						>
-							{uploading ? "Uploading..." : "Add Ad"}
-						</Button>
+					{/* Buttons */}
+					<Button
+						type="button"
+						variant="warning"
+						onClick={handleAddNewAd}
+						disabled={uploading}
+					>
+						{uploading ? "Uploading..." : "Add Ad"}
+					</Button>
 
-						<Button
-							variant="danger"
-							onClick={() => setShowAddModal(false)}
-							disabled={uploading}
-						>
-							Close
-						</Button>
-					</Modal.Footer>
-				</Modal>
-			</div>
+					<Button
+						variant="danger"
+						onClick={() => setShowAddModal(false)}
+						disabled={uploading}
+					>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
 
 			<AlertModal
 				isVisible={showAlertModal}

@@ -34,6 +34,8 @@ module.exports = {
 	// Production optimizations
 	...(!isDev && {
 		optimization: {
+			usedExports: true,
+			sideEffects: false,
 			splitChunks: {
 				chunks: "all",
 				maxInitialRequests: 25,

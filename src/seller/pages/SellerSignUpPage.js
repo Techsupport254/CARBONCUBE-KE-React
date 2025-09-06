@@ -1,23 +1,19 @@
 import { useState, useEffect } from "react";
-import {
-	Container,
-	Row,
-	Col,
-	Form,
-	Button,
-	Alert,
-	ProgressBar,
-} from "react-bootstrap";
 import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import AlertModal from "../../components/AlertModal";
 import axios from "axios";
-import ReactDatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+	faUser,
+	faEnvelope,
+	faPhone,
+	faMapMarkerAlt,
+	faBuilding,
+	faFileAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-import TopNavbarMinimal from "../../components/TopNavBarMinimal";
+import Navbar from "../../components/Navbar";
 import "../css/SellerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -53,34 +49,114 @@ function SellerSignUpPage({ onSignup }) {
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
 
-	// SEO Implementation
+	// Enhanced SEO Implementation
 	useSEO({
-		title: "Seller Sign Up - Carbon Cube Kenya",
+		title: "Become a Seller - Carbon Cube Kenya | Start Selling Today",
 		description:
-			"Join Carbon Cube Kenya as a seller. Start selling your products on Kenya's trusted online marketplace with verified buyer protection.",
+			"Join Carbon Cube Kenya as a verified seller and start selling to customers across Kenya. Register your business today and enjoy our secure marketplace platform with seller protection and growth tools.",
 		keywords:
-			"seller signup, become a seller, Carbon Cube Kenya seller registration, Kenya marketplace seller, online selling",
-		url: "https://carboncube-ke.com/seller-signup",
+			"seller signup, become a seller, Carbon Cube Kenya seller registration, Kenya marketplace seller, online selling, seller registration, verified seller, business registration Kenya",
+		url: `${window.location.origin}/seller-signup`,
+		type: "website",
+		image: "https://carboncube-ke.com/logo.png",
+		author: "Carbon Cube Kenya Team",
 		structuredData: {
 			"@context": "https://schema.org",
 			"@type": "WebPage",
 			name: "Seller Sign Up - Carbon Cube Kenya",
 			description: "Create your seller account on Carbon Cube Kenya",
-			url: "https://carboncube-ke.com/seller-signup",
+			url: `${window.location.origin}/seller-signup`,
 			mainEntity: {
 				"@type": "WebApplication",
 				name: "Carbon Cube Kenya Seller Registration",
 				applicationCategory: "BusinessApplication",
 				operatingSystem: "Web Browser",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "KES",
+					description: "Free seller registration with verification",
+				},
 			},
 		},
+		additionalStructuredData: [
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				mainEntity: [
+					{
+						"@type": "Question",
+						name: "Is seller registration free on Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Yes, creating a seller account on Carbon Cube Kenya is free. We only charge a small commission on successful sales.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "What documents do I need to become a seller?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "You need business registration documents, ID, and proof of address. We verify all sellers to ensure quality for buyers.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "How long does seller verification take?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Seller verification typically takes 1-3 business days after submitting all required documents.",
+						},
+					},
+				],
+			},
+		],
+		alternateLanguages: [
+			{ lang: "en", url: `${window.location.origin}/seller-signup` },
+			{ lang: "sw", url: `${window.location.origin}/sw/seller-signup` },
+		],
+		customMetaTags: [
+			{ name: "signup:type", content: "seller" },
+			{ name: "signup:cost", content: "free" },
+			{ name: "signup:verification", content: "required" },
+			{ name: "signup:commission", content: "small commission on sales" },
+			{ property: "og:signup:type", content: "seller" },
+			{ property: "og:signup:cost", content: "free" },
+			{ property: "og:signup:verification", content: "required" },
+			{
+				property: "og:signup:commission",
+				content: "small commission on sales",
+			},
+		],
+		imageWidth: 1200,
+		imageHeight: 630,
+		themeColor: "#FFD700",
+		viewport:
+			"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
+		// AI Search Optimization
+		aiSearchOptimized: true,
+		contentType: "business_registration",
+		expertiseLevel: "expert",
+		contentDepth: "comprehensive",
+		aiFriendlyFormat: true,
+		conversationalKeywords: [
+			"how to become a seller Carbon Cube Kenya",
+			"start selling online Kenya",
+			"register business marketplace Kenya",
+			"become verified seller Kenya",
+			"join Carbon Cube as seller",
+			"online selling platform Kenya",
+			"business registration marketplace Kenya",
+			"start e-commerce business Kenya",
+		],
+		aiCitationOptimized: true,
 	});
 
 	// Pilot phase configuration - can be disabled in production
 	const PILOT_PHASE_ENABLED =
 		process.env.REACT_APP_PILOT_PHASE_ENABLED !== "false";
 
-	const nextStep = () => {
+	const nextStep = async () => {
 		const newErrors = {};
 
 		if (step === 1) {
@@ -101,6 +177,24 @@ function SellerSignUpPage({ onSignup }) {
 					newErrors[field] = "This field is required";
 				}
 			});
+
+			// Check if email already exists
+			if (formData.email && !newErrors.email) {
+				const emailExists = await checkEmailExists(formData.email);
+				if (emailExists) {
+					newErrors.email =
+						"This email is already registered. Please use a different email address.";
+				}
+			}
+
+			// Check if username already exists
+			if (formData.username && !newErrors.username) {
+				const usernameExists = await checkUsernameExists(formData.username);
+				if (usernameExists) {
+					newErrors.username =
+						"This username is already taken. Please choose a different username.";
+				}
+			}
 		}
 
 		if (step === 2) {
@@ -163,6 +257,100 @@ function SellerSignUpPage({ onSignup }) {
 	const [submittingSignup, setSubmittingSignup] = useState(false);
 	const [verifyingOtp, setVerifyingOtp] = useState(false);
 
+	const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
+	const [usernameCheckTimeout, setUsernameCheckTimeout] = useState(null);
+
+	const handleEmailChange = async (e) => {
+		const email = e.target.value;
+		handleChange(e);
+
+		// Clear previous email error
+		if (errors.email) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.email;
+				return newErrors;
+			});
+		}
+
+		// Validate email format immediately
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (email && !emailRegex.test(email)) {
+			setErrors((prev) => ({
+				...prev,
+				email: "Please enter a valid email address",
+			}));
+			return;
+		}
+
+		// Clear any existing timeout
+		if (emailCheckTimeout) {
+			clearTimeout(emailCheckTimeout);
+		}
+
+		// Check if email exists only when user stops typing (debounced)
+		if (email && emailRegex.test(email) && email.length > 5) {
+			const timeoutId = setTimeout(async () => {
+				const emailExists = await checkEmailExists(email);
+				if (emailExists) {
+					setErrors((prev) => ({
+						...prev,
+						email:
+							"This email is already registered. Please use a different email address.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setEmailCheckTimeout(timeoutId);
+		}
+	};
+
+	const handleUsernameChange = async (e) => {
+		const username = e.target.value;
+		handleChange(e);
+
+		// Clear previous username error
+		if (errors.username) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.username;
+				return newErrors;
+			});
+		}
+
+		// Validate username format immediately
+		const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+		if (username && !usernameRegex.test(username)) {
+			setErrors((prev) => ({
+				...prev,
+				username:
+					"Username must be 3-20 characters and contain only letters, numbers, underscores, and hyphens",
+			}));
+			return;
+		}
+
+		// Clear any existing timeout
+		if (usernameCheckTimeout) {
+			clearTimeout(usernameCheckTimeout);
+		}
+
+		// Check if username exists only when user stops typing (debounced)
+		if (username && usernameRegex.test(username) && username.length >= 3) {
+			const timeoutId = setTimeout(async () => {
+				const usernameExists = await checkUsernameExists(username);
+				if (usernameExists) {
+					setErrors((prev) => ({
+						...prev,
+						username:
+							"This username is already taken. Please choose a different username.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setUsernameCheckTimeout(timeoutId);
+		}
+	};
+
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData({
@@ -174,6 +362,18 @@ function SellerSignUpPage({ onSignup }) {
 			[name]: null,
 		});
 	};
+
+	// Cleanup email and username check timeouts on unmount
+	useEffect(() => {
+		return () => {
+			if (emailCheckTimeout) {
+				clearTimeout(emailCheckTimeout);
+			}
+			if (usernameCheckTimeout) {
+				clearTimeout(usernameCheckTimeout);
+			}
+		};
+	}, [emailCheckTimeout, usernameCheckTimeout]);
 
 	useEffect(() => {
 		// Fetch options for dropdowns from the API
@@ -402,14 +602,60 @@ function SellerSignUpPage({ onSignup }) {
 			} else if (err.response?.data?.error) {
 				// Single string error (e.g. from image or document upload)
 				serverErrors.general = err.response.data.error;
+			} else if (err.response?.data?.message) {
+				// Alternative error message format
+				serverErrors.general = err.response.data.message;
 			} else {
 				serverErrors.general = "An unknown error occurred. Please try again.";
 			}
+
+			// Log detailed error for debugging
+			console.error("Processed errors:", serverErrors);
 
 			setErrors(serverErrors);
 		} finally {
 			setVerifyingOtp(false);
 			setSubmittingSignup(false);
+		}
+	};
+
+	const checkEmailExists = async (email) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/api/email/exists`,
+				{ email: email.toLowerCase().trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking email:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
+	const checkUsernameExists = async (username) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/api/username/exists`,
+				{ username: username.trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking username:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
 		}
 	};
 
@@ -424,703 +670,854 @@ function SellerSignUpPage({ onSignup }) {
 		return Object.keys(newErrors).length === 0;
 	};
 
-	let datepickerRef;
-
 	return (
 		<>
-			<TopNavbarMinimal />
-			<Container fluid className="login-container">
-				<Row
-					className="justify-content-center align-items-center"
-					style={{ minHeight: "100vh" }}
-				>
-					<Col xs={11} md={10} lg={6}>
-						<div className="card border-0 shadow-lg overflow-hidden">
-							<Row className="g-0">
-								{/* Left Branding Section */}
-								<Col lg={4} className="d-none d-lg-block">
-									<div
-										className="h-100 d-flex flex-column justify-content-between text-white p-4"
-										style={{
-											background:
-												"linear-gradient(135deg, #000000 0%, #111111 50%, #1a1a1a 100%)",
-										}}
-									>
-										<div className="pt-4">
-											<h2 className="fw-bold d-flex align-items-center">
-												<span className="text-white me-2">Seller</span>
-												<span className="text-warning">Portal</span>
-											</h2>
-											<p className="text-light opacity-75 mt-3">
-												Join our growing network of Kenyan businesses and take
-												your brand online.
-											</p>
-										</div>
+			<Navbar mode="minimal" showSearch={false} showCategories={false} />
+			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
+				<div className="w-full max-w-4xl">
+					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+						<div className="flex flex-col lg:flex-row min-h-[600px]">
+							{/* Left Branding Section */}
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 flex-col justify-between">
+								<div className="pt-2">
+									<h2 className="text-2xl font-bold mb-3">
+										<span className="text-white">Seller</span>
+										<span className="text-yellow-400">Portal</span>
+									</h2>
+									<p className="text-gray-300 opacity-90 text-xs leading-relaxed">
+										Join our growing network of Kenyan businesses and take your
+										brand online.
+									</p>
+								</div>
 
-										<div className="px-2 py-4">
-											<h5 className="text-warning mb-3">Why Sell with us?</h5>
-											<ul className="list-unstyled">
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Reach thousands of potential customers
-													</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Boost your business visibility online
-													</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Easy-to-use tools to manage your listings
-													</span>
-												</li>
-												<li className="mb-2 d-flex align-items-center">
-													<span className="me-2 text-warning">✓</span>
-													<span className="small">
-														Support and resources for business growth
-													</span>
-												</li>
-											</ul>
-										</div>
+								<div className="px-1 py-4">
+									<h5 className="text-yellow-400 mb-3 text-sm font-semibold">
+										Why Sell with us?
+									</h5>
+									<ul className="space-y-2">
+										<li className="flex items-center">
+											<span className="mr-2 text-yellow-400 text-xs">✓</span>
+											<span className="text-xs text-gray-300">
+												Reach thousands of potential customers
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Boost your business visibility online
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Easy-to-use tools to manage your listings
+											</span>
+										</li>
+										<li className="flex items-center">
+											<span className="mr-3 text-yellow-400 text-sm">✓</span>
+											<span className="text-sm text-gray-300">
+												Support and resources for business growth
+											</span>
+										</li>
+									</ul>
+								</div>
 
-										<div className="bg-dark bg-opacity-50 p-3 rounded-3 mt-2">
-											<div className="d-flex align-items-center">
-												{/* <div className="rounded-circle bg-warning" style={{ width: "30px", height: "30px" }}></div> */}
-												<div className="ms-2">
-													<small className="fw-bold">Vision:</small>
-												</div>
-											</div>
-											<p className="fst-italic small mb-2">
-												"To be Kenya’s most trusted and innovative online
-												marketplace."
-											</p>
-										</div>
+								<div className="bg-black bg-opacity-50 p-3 rounded-lg mt-2">
+									<div className="flex items-center mb-1">
+										<div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></div>
+										<small className="font-semibold text-xs">Vision:</small>
 									</div>
-								</Col>
+									<p className="italic text-xs text-gray-300">
+										"To be Kenya's most trusted and innovative online
+										marketplace."
+									</p>
+								</div>
+							</div>
 
-								{/* Right Branding Section */}
-								<Col lg={8}>
-									<div
-										className="card-body p-4 p-lg-5 h-100 d-flex flex-column justify-content-between"
-										style={{ backgroundColor: "#e0e0e0" }}
-									>
-										<h3 className="fw-bold text-center mb-4">Seller Sign Up</h3>
-										<Form onSubmit={handleSubmit}>
-											{errors.general && (
-												<Alert variant="danger">{errors.general}</Alert>
-											)}
+							{/* Right Form Section */}
+							<div className="w-full lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10 flex items-center">
+								<div className="w-full max-w-md mx-auto">
+									{/* Header Section */}
+									<div className="text-center mb-8">
+										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+											Seller Sign Up
+										</h3>
+										<p className="text-gray-600 text-sm">
+											Create your seller account
+										</p>
+									</div>
 
-											{step === 1 && (
-												<>
-													<Row>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Control
-																	type="text"
-																	placeholder="Full Name"
-																	name="fullname"
-																	id="button"
-																	className="mb-2 text-center"
-																	value={formData.fullname}
-																	onChange={handleChange}
-																	isInvalid={!!errors.fullname}
+									<form onSubmit={handleSubmit} className="space-y-6">
+										{errors.general && (
+											<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+												{errors.general}
+											</div>
+										)}
+
+										{step === 1 && (
+											<>
+												{/* Step 1 Errors */}
+												{(errors.fullname ||
+													errors.username ||
+													errors.phone ||
+													errors.email ||
+													errors.enterprise_name ||
+													errors.permit_number ||
+													errors.address) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.fullname && (
+																<li>Full Name: {errors.fullname}</li>
+															)}
+															{errors.username && (
+																<li>Username: {errors.username}</li>
+															)}
+															{errors.phone && <li>Phone: {errors.phone}</li>}
+															{errors.email && <li>Email: {errors.email}</li>}
+															{errors.enterprise_name && (
+																<li>
+																	Enterprise Name: {errors.enterprise_name}
+																</li>
+															)}
+															{errors.permit_number && (
+																<li>Permit Number: {errors.permit_number}</li>
+															)}
+															{errors.address && (
+																<li>Address: {errors.address}</li>
+															)}
+														</ul>
+													</div>
+												)}
+												{/* Personal Information Section */}
+												<div className="space-y-6">
+													{/* Full Name */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Full Name
+														</label>
+														<div className="relative">
+															<FontAwesomeIcon
+																icon={faUser}
+																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+															/>
+															<input
+																type="text"
+																placeholder="Enter your full name"
+																name="fullname"
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.fullname
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.fullname}
+																onChange={handleChange}
+															/>
+														</div>
+														{errors.fullname && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.fullname}
+															</div>
+														)}
+													</div>
+
+													{/* Username and Phone - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Username
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faUser}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.fullname}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Control
+																<input
 																	type="text"
-																	placeholder="Username"
+																	placeholder="Enter username"
 																	name="username"
-																	id="button"
-																	className="mb-2 text-center"
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.username
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.username}
-																	onChange={handleChange}
-																	isInvalid={!!errors.username}
+																	onChange={handleUsernameChange}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.username && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.username}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Phone Number
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faPhone}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+																/>
+																<input
 																	type="text"
-																	placeholder="Phone Number"
+																	placeholder="Enter phone number"
 																	name="phone_number"
-																	id="button"
-																	className="mb-2 text-center"
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.phone_number
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.phone_number}
 																	onChange={handleChange}
-																	isInvalid={!!errors.phone_number}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.phone_number && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.phone_number}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col md={6}>
-															<Form.Group>
-																<Form.Control
-																	type="email"
-																	placeholder="Email"
-																	name="email"
-																	id="button"
-																	className="mb-2 text-center"
-																	value={formData.email}
-																	onChange={handleChange}
-																	isInvalid={!!errors.email}
-																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.email}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
+																</div>
+															)}
+														</div>
+													</div>
 
-													<Row>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Select
-																	as="select"
-																	name="gender"
-																	className="text-center rounded-pill mb-2"
-																	value={formData.gender}
-																	onChange={handleChange}
-																	isInvalid={!!errors.gender}
-																>
-																	<option value="" disabled hidden>
-																		Gender
+													{/* Email */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Email Address
+														</label>
+														<div className="relative">
+															<FontAwesomeIcon
+																icon={faEnvelope}
+																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+															/>
+															<input
+																type="email"
+																placeholder="Enter your email address"
+																name="email"
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.email
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.email}
+																onChange={handleEmailChange}
+															/>
+														</div>
+														{errors.email && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.email}
+															</div>
+														)}
+													</div>
+
+													{/* Gender and Age Group - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Gender
+															</label>
+															<select
+																name="gender"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.gender
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.gender}
+																onChange={handleChange}
+															>
+																<option value="" disabled hidden>
+																	Select gender
+																</option>
+																{["Male", "Female", "Other"].map((gender) => (
+																	<option key={gender} value={gender}>
+																		{gender}
 																	</option>
-																	{["Male", "Female", "Other"].map((gender) => (
-																		<option key={gender} value={gender}>
-																			{gender}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
+																))}
+															</select>
+															{errors.gender && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.gender}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Select
-																	name="age_group_id"
-																	className="text-center rounded-pill mb-2 rounded-pill"
-																	value={formData.age_group_id}
-																	onChange={handleChange}
-																	isInvalid={!!errors.age_group_id}
-																>
-																	<option value="" disabled hidden>
-																		Age Group
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Age Group
+															</label>
+															<select
+																name="age_group_id"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.age_group_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.age_group_id}
+																onChange={handleChange}
+															>
+																<option value="" disabled hidden>
+																	Select age group
+																</option>
+																{options.age_groups.map((group) => (
+																	<option key={group.id} value={group.id}>
+																		{group.name}
 																	</option>
-																	{options.age_groups.map((group) => (
-																		<option key={group.id} value={group.id}>
-																			{group.name}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
+																))}
+															</select>
+															{errors.age_group_id && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.age_group_id}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
+																</div>
+															)}
+														</div>
+													</div>
+												</div>
 
-													<Row>
-														<Col xs={12} md={12}>
-															<Form.Group>
-																<Form.Control
+												{/* Business Information Section */}
+												<div className="space-y-6">
+													{/* Enterprise Name and Business Permit - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Enterprise Name
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faBuilding}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+																/>
+																<input
 																	type="text"
-																	placeholder="Enterprise Name"
+																	placeholder="Enter enterprise name"
 																	name="enterprise_name"
-																	id="button"
-																	className="mb-2 text-center"
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.enterprise_name
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.enterprise_name}
 																	onChange={handleChange}
-																	//isInvalid={!!errors.enterprise_name}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.enterprise_name && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.enterprise_name}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={12} md={12}>
-															<Form.Group>
-																<Form.Control
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Business Permit Number (optional)
+															</label>
+															<div className="relative">
+																<FontAwesomeIcon
+																	icon={faFileAlt}
+																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+																/>
+																<input
 																	type="text"
-																	placeholder="Business Permit Number (optional)"
+																	placeholder="Enter business permit number"
 																	name="business_registration_number"
-																	id="button"
-																	className="mb-2 text-center"
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																		errors.business_registration_number
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.business_registration_number}
 																	onChange={handleChange}
-																	//isInvalid={!!errors.business_registration_number}
 																/>
-																<Form.Control.Feedback type="invalid">
+															</div>
+															{errors.business_registration_number && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.business_registration_number}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col md={12}>
-															<Form.Group>
-																<Form.Control
-																	type="text"
-																	placeholder="Physical Address"
-																	name="location"
-																	id="button"
-																	className="mb-2 text-center"
-																	value={formData.location}
-																	onChange={handleChange}
-																	isInvalid={!!errors.location}
-																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.location}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<div className="d-flex justify-content-center mt-3">
-														<Button
-															variant="dark"
-															className="rounded-pill w-75"
-															onClick={nextStep}
-														>
-															Continue
-														</Button>
+																</div>
+															)}
+														</div>
 													</div>
-												</>
-											)}
 
-											{step === 2 && (
-												<>
-													<Row>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Control
-																	type="text"
-																	placeholder="City"
-																	name="city"
-																	id="button"
-																	className="mb-2 text-center"
-																	value={formData.city}
-																	onChange={handleChange}
-																	isInvalid={!!errors.city}
-																/>
-																<Form.Control.Feedback type="invalid">
+													{/* Physical Address */}
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															Physical Address
+														</label>
+														<div className="relative">
+															<FontAwesomeIcon
+																icon={faMapMarkerAlt}
+																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+															/>
+															<input
+																type="text"
+																placeholder="Enter physical address"
+																name="location"
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.location
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.location}
+																onChange={handleChange}
+															/>
+														</div>
+														{errors.location && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.location}
+															</div>
+														)}
+													</div>
+												</div>
+
+												<div className="pt-4">
+													<button
+														type="button"
+														className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] text-sm shadow-md hover:shadow-lg"
+														onClick={nextStep}
+													>
+														Continue
+													</button>
+												</div>
+											</>
+										)}
+
+										{step === 2 && (
+											<>
+												{/* Step 2 Errors */}
+												{(errors.county ||
+													errors.document_type ||
+													errors.document_expiry_date ||
+													errors.document_url ||
+													errors.profile_picture ||
+													errors.password ||
+													errors.password_confirmation ||
+													errors.terms) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.county && (
+																<li>County: {errors.county}</li>
+															)}
+															{errors.document_type && (
+																<li>Document Type: {errors.document_type}</li>
+															)}
+															{errors.document_expiry_date && (
+																<li>
+																	Document Expiry Date:{" "}
+																	{errors.document_expiry_date}
+																</li>
+															)}
+															{errors.document_url && (
+																<li>Document Upload: {errors.document_url}</li>
+															)}
+															{errors.profile_picture && (
+																<li>
+																	Profile Picture: {errors.profile_picture}
+																</li>
+															)}
+															{errors.password && (
+																<li>Password: {errors.password}</li>
+															)}
+															{errors.password_confirmation && (
+																<li>
+																	Password Confirmation:{" "}
+																	{errors.password_confirmation}
+																</li>
+															)}
+															{errors.terms && <li>Terms: {errors.terms}</li>}
+														</ul>
+													</div>
+												)}
+												{/* Location Information Section */}
+												<div className="space-y-6">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																City
+															</label>
+															<input
+																type="text"
+																placeholder="Enter your city"
+																name="city"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.city
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.city}
+																onChange={handleChange}
+															/>
+															{errors.city && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.city}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={6} md={6}>
-															<Form.Group>
-																<Form.Control
-																	type="text"
-																	placeholder="Zip Code"
-																	name="zipcode"
-																	id="button"
-																	className="mb-2 text-center"
-																	value={formData.zipcode}
-																	onChange={handleChange}
-																	isInvalid={!!errors.zipcode}
-																/>
-																<Form.Control.Feedback type="invalid">
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Zip Code
+															</label>
+															<input
+																type="text"
+																placeholder="Enter zip code"
+																name="zipcode"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.zipcode
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.zipcode}
+																onChange={handleChange}
+															/>
+															{errors.zipcode && (
+																<div className="text-red-500 text-xs mt-1">
 																	{errors.zipcode}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col xs={6}>
-															<Form.Group>
-																<Form.Select
-																	name="county_id"
-																	value={formData.county_id}
-																	id="button"
-																	onChange={handleChange}
-																	className="mb-2 text-center"
-																	isInvalid={!!errors.county_id}
-																>
-																	<option value="">Select County</option>
-																	{options.counties.map((county) => (
-																		<option key={county.id} value={county.id}>
-																			{county.name}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
-																	{errors.county_id}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-														<Col xs={6}>
-															<Form.Group>
-																<Form.Select
-																	name="sub_county_id"
-																	value={formData.sub_county_id}
-																	onChange={handleChange}
-																	className="mb-2 text-center"
-																	id="button"
-																	isInvalid={!!errors.sub_county_id}
-																	disabled={!formData.county_id}
-																>
-																	<option value="">Select Sub-County</option>
-																	{subCounties.map((sub) => (
-																		<option key={sub.id} value={sub.id}>
-																			{sub.name}
-																		</option>
-																	))}
-																</Form.Select>
-																<Form.Control.Feedback type="invalid">
-																	{errors.sub_county_id}
-																</Form.Control.Feedback>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row>
-														<Col xs={6}>
-															<Form.Group>
-																<Form.Select
-																	name="document_type_id"
-																	value={formData.document_type_id}
-																	id="button"
-																	onChange={handleChange}
-																	className="mb-2 text-center"
-																	isInvalid={!!errors.document_type_id}
-																>
-																	<option value="">
-																		Select Document Type (optional)
+																</div>
+															)}
+														</div>
+													</div>
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																County
+															</label>
+															<select
+																name="county_id"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.county_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.county_id}
+																onChange={handleChange}
+															>
+																<option value="">Select County</option>
+																{options.counties.map((county) => (
+																	<option key={county.id} value={county.id}>
+																		{county.name}
 																	</option>
-																	{options.document_types.map(
-																		(document_type) => (
-																			<option
-																				key={document_type.id}
-																				value={document_type.id}
-																			>
-																				{document_type.name}
-																			</option>
-																		)
-																	)}
-																</Form.Select>
-																{/* <Form.Control.Feedback type="invalid">{errors.document_type_id}</Form.Control.Feedback> */}
-															</Form.Group>
-														</Col>
+																))}
+															</select>
+															{errors.county_id && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.county_id}
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Sub-County
+															</label>
+															<select
+																name="sub_county_id"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.sub_county_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.sub_county_id}
+																onChange={handleChange}
+																disabled={!formData.county_id}
+															>
+																<option value="">Select Sub-County</option>
+																{subCounties.map((sub) => (
+																	<option key={sub.id} value={sub.id}>
+																		{sub.name}
+																	</option>
+																))}
+															</select>
+															{errors.sub_county_id && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.sub_county_id}
+																</div>
+															)}
+														</div>
+													</div>
+												</div>
 
-														<Col xs={6} md={6}>
-															<Form.Group className="mb-2">
-																<div className="position-relative">
-																	<ReactDatePicker
-																		ref={(el) => (datepickerRef = el)}
-																		selected={
-																			formData.document_expiry_date
-																				? new Date(
-																						formData.document_expiry_date
-																				  )
-																				: null
-																		}
-																		onChange={(date) =>
-																			handleChange({
-																				target: {
-																					name: "document_expiry_date",
-																					value: date
-																						? date.toISOString().split("T")[0]
-																						: "",
-																				},
-																			})
-																		}
-																		className="form-control text-center rounded-pill mb-0 pr-5"
-																		placeholderText="Document Expiry Date"
-																		dateFormat="yyyy/MM/dd"
-																		showMonthDropdown
-																		showYearDropdown
-																		dropdownMode="select"
+												{/* Document Information Section */}
+												<div className="space-y-6">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Document Type (optional)
+															</label>
+															<select
+																name="document_type_id"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.document_type_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.document_type_id}
+																onChange={handleChange}
+															>
+																<option value="">
+																	Select Document Type (optional)
+																</option>
+																{options.document_types.map((document_type) => (
+																	<option
+																		key={document_type.id}
+																		value={document_type.id}
+																	>
+																		{document_type.name}
+																	</option>
+																))}
+															</select>
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Document Expiry Date (optional)
+															</label>
+															<input
+																type="date"
+																name="document_expiry_date"
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.document_expiry_date
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.document_expiry_date}
+																onChange={handleChange}
+															/>
+														</div>
+													</div>
+												</div>
+
+												{/* File Upload Section */}
+												<div className="space-y-6">
+													{/* Document Upload */}
+													<div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+														<label className="block text-sm font-semibold text-gray-700 mb-3">
+															Upload Document (optional)
+														</label>
+														<input
+															type="file"
+															accept=".pdf, image/jpeg, image/jpg, image/png"
+															id="documentUpload"
+															onChange={(e) => {
+																const file = e.target.files[0];
+																if (file) {
+																	if (file.size > 5 * 1024 * 1024) {
+																		setAlertModalMessage(
+																			"The document must be 5MB or smaller."
+																		);
+																		setAlertModalConfig({
+																			icon: "error",
+																			title: "Upload Error",
+																			confirmText: "OK",
+																			showCancel: false,
+																			onConfirm: () => setShowAlertModal(false),
+																		});
+																		setShowAlertModal(true);
+																		return;
+																	}
+																	setFormData({
+																		...formData,
+																		document_url: file,
+																	});
+																	const fileURL = URL.createObjectURL(file);
+																	setPreviewURL(fileURL);
+																}
+															}}
+															className="hidden"
+														/>
+														<div className="flex items-center justify-center">
+															<label
+																htmlFor="documentUpload"
+																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+															>
+																<svg
+																	className="w-5 h-5 mr-2"
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth={2}
+																		d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
 																	/>
-																	<div
-																		onClick={() => datepickerRef.setOpen(true)}
-																		style={{
-																			position: "absolute",
-																			top: "50%",
-																			right: "10px",
-																			transform: "translateY(-50%)",
-																			cursor: "pointer",
+																</svg>
+																Choose Document
+															</label>
+														</div>
+
+														{formData.document_url && (
+															<div className="mt-4 text-center">
+																<div className="relative inline-block">
+																	<button
+																		className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full shadow-lg text-white transition-colors duration-200 text-sm flex items-center justify-center"
+																		onClick={() => {
+																			setFormData({
+																				...formData,
+																				document_url: null,
+																			});
+																			setPreviewURL(null);
 																		}}
 																	>
-																		<FontAwesomeIcon
-																			icon={faCalendarAlt}
-																			style={{
-																				color: "#aaa",
-																			}}
+																		×
+																	</button>
+
+																	{previewURL &&
+																	formData.document_url.type.startsWith(
+																		"image/"
+																	) ? (
+																		<img
+																			src={previewURL}
+																			alt="Document Preview"
+																			className="max-w-[200px] rounded-lg border-2 border-gray-300 shadow-md"
 																		/>
-																	</div>
-																	{/* {errors.document_expiry_date && (
-                                    <div className="invalid-feedback">{errors.document_expiry_date}</div>
-                                  )} */}
-																</div>
-															</Form.Group>
-														</Col>
-													</Row>
-
-													<Row className="mb-2">
-														{/* Document Upload */}
-														<Col md={6}>
-															<motion.div
-																initial={{ opacity: 0, y: 20 }}
-																animate={{ opacity: 1, y: 0 }}
-																transition={{ duration: 0.5, ease: "easeOut" }}
-															>
-																<Form.Group controlId="businessPermit">
-																	<Form.Label className="fw-bold text-center d-block">
-																		Upload Document (optional)
-																	</Form.Label>
-
-																	<Form.Control
-																		type="file"
-																		accept=".pdf, image/jpeg, image/jpg, image/png"
-																		id="documentUpload"
-																		onChange={(e) => {
-																			const file = e.target.files[0];
-																			if (file) {
-																				if (file.size > 5 * 1024 * 1024) {
-																					setAlertModalMessage(
-																						"The document must be 5MB or smaller."
-																					);
-																					setAlertModalConfig({
-																						icon: "error",
-																						title: "Upload Error",
-																						confirmText: "OK",
-																						showCancel: false,
-																						onConfirm: () =>
-																							setShowAlertModal(false),
-																					});
-																					setShowAlertModal(true);
-																					return;
-																				}
-																				setFormData({
-																					...formData,
-																					document_url: file,
-																				});
-																				const fileURL =
-																					URL.createObjectURL(file);
-																				setPreviewURL(fileURL);
-																			}
-																		}}
-																		style={{ display: "none" }}
-																		//isInvalid={!!errors.document_url}
-																	/>
-																	<Form.Control.Feedback type="invalid">
-																		{errors.document_url}
-																	</Form.Control.Feedback>
-
-																	<div className="text-center">
-																		<label
-																			htmlFor="documentUpload"
-																			className="btn btn-warning rounded-pill px-4"
-																		>
-																			📎 Choose Document
-																		</label>
-																	</div>
-
-																	{formData.document_url && (
-																		<div className="text-center mt-1">
-																			<div className="position-relative d-inline-block">
-																				<Button
-																					variant="white"
-																					size="sm"
-																					className="position-absolute top-0 start-0 m-1 p-1 rounded-circle shadow-sm"
-																					style={{
-																						zIndex: 2,
-																						width: "22px",
-																						height: "22px",
-																						fontSize: "12px",
-																						lineHeight: "1",
-																					}}
-																					onClick={() => {
-																						setFormData({
-																							...formData,
-																							document_url: null,
-																						});
-																						setPreviewURL(null);
-																					}}
-																				>
-																					❌
-																				</Button>
-
-																				{previewURL &&
-																				formData.document_url.type.startsWith(
-																					"image/"
-																				) ? (
-																					<img
-																						src={previewURL}
-																						alt="Document Preview"
-																						style={{
-																							maxWidth: "150px",
-																							borderRadius: "8px",
-																							border: "1px solid #ccc",
-																						}}
-																					/>
-																				) : (
-																					<a
-																						href={previewURL}
-																						target="_blank"
-																						rel="noopener noreferrer"
-																						className="text-primary d-inline-block"
-																					>
-																						📄 Preview Document
-																					</a>
-																				)}
-																			</div>
-																		</div>
-																	)}
-																</Form.Group>
-															</motion.div>
-														</Col>
-
-														{/* Profile Picture Upload */}
-														<Col md={6}>
-															<motion.div
-																initial={{ opacity: 0, y: 20 }}
-																animate={{ opacity: 1, y: 0 }}
-																transition={{ duration: 0.5, ease: "easeOut" }}
-															>
-																<Form.Group controlId="profilePicture">
-																	<Form.Label className="fw-bold text-center d-block">
-																		Profile Picture (optional)
-																	</Form.Label>
-
-																	<Form.Control
-																		type="file"
-																		accept="image/jpeg, image/jpg, image/png, image/webp"
-																		id="profilePictureUpload"
-																		onChange={(e) => {
-																			const file = e.target.files[0];
-																			if (file) {
-																				if (file.size > 5 * 1024 * 1024) {
-																					setAlertModalMessage(
-																						"The profile picture must be 5MB or smaller."
-																					);
-																					setAlertModalConfig({
-																						icon: "error",
-																						title: "Upload Error",
-																						confirmText: "OK",
-																						showCancel: false,
-																						onConfirm: () =>
-																							setShowAlertModal(false),
-																					});
-																					setShowAlertModal(true);
-																					return;
-																				}
-																				setFormData({
-																					...formData,
-																					profile_picture: file,
-																				});
-																				const fileURL =
-																					URL.createObjectURL(file);
-																				setProfilePreviewURL(fileURL);
-																			}
-																		}}
-																		style={{ display: "none" }}
-																		//isInvalid={!!errors.profile_picture}
-																	/>
-																	<Form.Control.Feedback type="invalid">
-																		{errors.profile_picture}
-																	</Form.Control.Feedback>
-
-																	<div className="text-center">
-																		<label
-																			htmlFor="profilePictureUpload"
-																			className="btn btn-warning rounded-pill px-4"
-																		>
-																			📷 Choose Profile Picture
-																		</label>
-																	</div>
-
-																	{formData.profile_picture && (
-																		<div className="text-center mt-1 ">
-																			<div className="position-relative d-inline-block">
-																				<Button
-																					variant="white"
-																					size="sm"
-																					className="position-absolute top-0 start-0 m-1 p-1 rounded-circle shadow-sm"
-																					style={{
-																						zIndex: 2,
-																						width: "22px",
-																						height: "22px",
-																						fontSize: "12px",
-																						lineHeight: "1",
-																					}}
-																					onClick={() => {
-																						setFormData({
-																							...formData,
-																							profile_picture: null,
-																						});
-																						setProfilePreviewURL(null);
-																					}}
-																				>
-																					❌
-																				</Button>
-
-																				<img
-																					src={profilePreviewURL}
-																					alt="Profile Preview"
-																					style={{
-																						maxWidth: "150px",
-																						borderRadius: "8px",
-																						border: "1px solid #ccc",
-																					}}
+																	) : (
+																		<div className="bg-white border-2 border-gray-300 rounded-lg p-4 shadow-md">
+																			<svg
+																				className="w-12 h-12 mx-auto text-gray-400 mb-2"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth={2}
+																					d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 																				/>
-																			</div>
+																			</svg>
+																			<a
+																				href={previewURL}
+																				target="_blank"
+																				rel="noopener noreferrer"
+																				className="text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium"
+																			>
+																				📄 Preview Document
+																			</a>
 																		</div>
 																	)}
-																</Form.Group>
-															</motion.div>
-														</Col>
-													</Row>
+																</div>
+															</div>
+														)}
+													</div>
 
-													<Row>
-														<Col md={6}>
-															<Form.Group className="position-relative">
-																<Form.Control
+													{/* Profile Picture Upload */}
+													<div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+														<label className="block text-sm font-semibold text-gray-700 mb-3">
+															Profile Picture (optional)
+														</label>
+														<input
+															type="file"
+															accept="image/jpeg, image/jpg, image/png, image/webp"
+															id="profilePictureUpload"
+															onChange={(e) => {
+																const file = e.target.files[0];
+																if (file) {
+																	if (file.size > 5 * 1024 * 1024) {
+																		setAlertModalMessage(
+																			"The profile picture must be 5MB or smaller."
+																		);
+																		setAlertModalConfig({
+																			icon: "error",
+																			title: "Upload Error",
+																			confirmText: "OK",
+																			showCancel: false,
+																			onConfirm: () => setShowAlertModal(false),
+																		});
+																		setShowAlertModal(true);
+																		return;
+																	}
+																	setFormData({
+																		...formData,
+																		profile_picture: file,
+																	});
+																	const fileURL = URL.createObjectURL(file);
+																	setProfilePreviewURL(fileURL);
+																}
+															}}
+															className="hidden"
+														/>
+														<div className="flex items-center justify-center">
+															<label
+																htmlFor="profilePictureUpload"
+																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+															>
+																<svg
+																	className="w-5 h-5 mr-2"
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth={2}
+																		d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+																	/>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth={2}
+																		d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+																	/>
+																</svg>
+																Choose Profile Picture
+															</label>
+														</div>
+
+														{formData.profile_picture && (
+															<div className="mt-4 text-center">
+																<div className="relative inline-block">
+																	<button
+																		className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full shadow-lg text-white transition-colors duration-200 text-sm flex items-center justify-center"
+																		onClick={() => {
+																			setFormData({
+																				...formData,
+																				profile_picture: null,
+																			});
+																			setProfilePreviewURL(null);
+																		}}
+																	>
+																		×
+																	</button>
+
+																	<img
+																		src={profilePreviewURL}
+																		alt="Profile Preview"
+																		className="max-w-[200px] rounded-lg border-2 border-gray-300 shadow-md"
+																	/>
+																</div>
+															</div>
+														)}
+													</div>
+												</div>
+
+												{/* Password Fields */}
+												<div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+													<h4 className="text-sm font-semibold text-gray-700 mb-4">
+														Account Security
+													</h4>
+													<div className="space-y-6">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Password
+															</label>
+															<div className="relative">
+																<input
 																	type={showPassword ? "text" : "password"}
-																	placeholder="Password"
+																	placeholder="Enter your password"
 																	name="password"
-																	id="button"
-																	className=" text-center rounded-pill mb-2"
+																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																		errors.password
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.password}
 																	onChange={handleChange}
-																	isInvalid={!!errors.password}
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.password}
-																</Form.Control.Feedback>
 																<div
 																	onClick={() => setShowPassword(!showPassword)}
-																	style={{
-																		position: "absolute",
-																		top: "50%",
-																		right: "15px",
-																		transform: "translateY(-50%)",
-																		cursor: "pointer",
-																		color: "#6c757d",
-																	}}
+																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
 																>
 																	<AnimatePresence mode="wait" initial={false}>
 																		{showPassword ? (
@@ -1131,7 +1528,7 @@ function SellerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<EyeSlash />
+																				<EyeSlash size={16} />
 																			</motion.span>
 																		) : (
 																			<motion.span
@@ -1141,43 +1538,43 @@ function SellerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<Eye />
+																				<Eye size={16} />
 																			</motion.span>
 																		)}
 																	</AnimatePresence>
 																</div>
-															</Form.Group>
-														</Col>
+															</div>
+															{errors.password && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.password}
+																</div>
+															)}
+														</div>
 
-														<Col md={6}>
-															<Form.Group className="position-relative">
-																<Form.Control
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Confirm Password
+															</label>
+															<div className="relative">
+																<input
 																	type={
 																		showConfirmPassword ? "text" : "password"
 																	}
-																	placeholder="Confirm Password"
+																	placeholder="Confirm your password"
 																	name="password_confirmation"
-																	id="button"
-																	className="mb-2 text-center"
+																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																		errors.password_confirmation
+																			? "border-red-500 focus:ring-red-400"
+																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																	} focus:outline-none`}
 																	value={formData.password_confirmation}
 																	onChange={handleChange}
-																	isInvalid={!!errors.password_confirmation}
 																/>
-																<Form.Control.Feedback type="invalid">
-																	{errors.password_confirmation}
-																</Form.Control.Feedback>
 																<div
 																	onClick={() =>
 																		setShowConfirmPassword(!showConfirmPassword)
 																	}
-																	style={{
-																		position: "absolute",
-																		top: "50%",
-																		right: "15px",
-																		transform: "translateY(-50%)",
-																		cursor: "pointer",
-																		color: "#6c757d",
-																	}}
+																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
 																>
 																	<AnimatePresence mode="wait" initial={false}>
 																		{showConfirmPassword ? (
@@ -1188,7 +1585,7 @@ function SellerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<EyeSlash />
+																				<EyeSlash size={16} />
 																			</motion.span>
 																		) : (
 																			<motion.span
@@ -1198,172 +1595,225 @@ function SellerSignUpPage({ onSignup }) {
 																				exit={{ opacity: 0, scale: 0.8 }}
 																				transition={{ duration: 0.2 }}
 																			>
-																				<Eye />
+																				<Eye size={16} />
 																			</motion.span>
 																		)}
 																	</AnimatePresence>
 																</div>
-															</Form.Group>
-														</Col>
-													</Row>
-													<Form.Group className="mb-2">
-														<Form.Check
-															type="checkbox"
-															label="Agree to Terms and Conditions and receive SMS/emails."
-															name="terms"
-															checked={terms}
-															onChange={(e) => setTerms(e.target.checked)}
-														/>
-														{errors.terms && (
-															<div className="text-danger mt-1">
-																{errors.terms}
 															</div>
-														)}
-													</Form.Group>
+															{errors.password_confirmation && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.password_confirmation}
+																</div>
+															)}
+														</div>
+													</div>
+												</div>
 
-													<Row className="mt-3">
-														<Col className="d-flex justify-content-between">
-															<Button
-																variant="dark"
-																className="rounded-pill w-25"
-																onClick={prevStep}
-															>
-																Back
-															</Button>
-															<Button
-																variant="warning"
-																type="submit"
-																className="rounded-pill w-25"
-																disabled={!terms || submittingSignup}
-															>
-																{submittingSignup
-																	? "Sending OTP..."
-																	: "Request OTP"}
-															</Button>
-														</Col>
-													</Row>
-												</>
-											)}
+												{/* Terms and Conditions */}
+												<div className="flex items-center pt-1">
+													<input
+														type="checkbox"
+														id="terms2"
+														className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
+														checked={terms}
+														onChange={(e) => setTerms(e.target.checked)}
+													/>
+													<label
+														htmlFor="terms2"
+														className="text-sm text-gray-600 cursor-pointer"
+													>
+														Agree to Terms and Conditions and receive
+														SMS/emails.
+													</label>
+												</div>
+												{errors.terms && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.terms}
+													</div>
+												)}
 
-											{step === 3 && (
-												<>
-													<Form.Group>
-														<Form.Control
+												<div className="flex justify-between gap-4 pt-4">
+													<button
+														type="button"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														onClick={prevStep}
+													>
+														Back
+													</button>
+													<button
+														type="submit"
+														disabled={!terms || submittingSignup}
+														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+													>
+														{submittingSignup
+															? "Sending OTP..."
+															: "Request OTP"}
+													</button>
+												</div>
+											</>
+										)}
+
+										{step === 3 && (
+											<>
+												{/* Step 3 Errors */}
+												{(errors.otp || errors.terms) && (
+													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+														<div className="font-semibold mb-2">
+															Please fix the following errors:
+														</div>
+														<ul className="list-disc list-inside space-y-1">
+															{errors.otp && <li>OTP Code: {errors.otp}</li>}
+															{errors.terms && <li>Terms: {errors.terms}</li>}
+														</ul>
+													</div>
+												)}
+												{/* OTP Verification Section */}
+												<div className="space-y-6">
+													<div>
+														<label className="block text-sm font-medium text-gray-700 mb-2">
+															OTP Code
+														</label>
+														<input
 															type="text"
-															placeholder="Enter OTP sent to email"
+															placeholder="Enter OTP sent to your email"
 															name="otp"
-															className="mb-2 text-center rounded-pill"
+															className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.otp
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
 															value={otpCode}
 															onChange={(e) => setOtpCode(e.target.value)}
-															isInvalid={!!errors.otp}
 														/>
-														<Form.Control.Feedback type="invalid">
-															{errors.otp}
-														</Form.Control.Feedback>
-													</Form.Group>
+														{errors.otp && (
+															<div className="text-red-500 text-xs mt-1">
+																{errors.otp}
+															</div>
+														)}
+													</div>
 
-													<Form.Group className="mb-2">
-														<Form.Check
+													<div className="flex items-center pt-1">
+														<input
 															type="checkbox"
-															label="Agree to Terms and Conditions and receive SMS/emails."
-															name="terms"
+															id="terms3"
+															className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
 															checked={terms}
 															onChange={(e) => setTerms(e.target.checked)}
 														/>
-														{errors.terms && (
-															<div className="text-danger mt-1">
-																{errors.terms}
-															</div>
-														)}
-													</Form.Group>
+														<label
+															htmlFor="terms3"
+															className="text-sm text-gray-600 cursor-pointer"
+														>
+															Agree to Terms and Conditions and receive
+															SMS/emails.
+														</label>
+													</div>
+													{errors.terms && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.terms}
+														</div>
+													)}
+												</div>
 
-													<Row className="mt-3">
-														<Col className="d-flex justify-content-between">
-															<Button
-																variant="dark"
-																className="rounded-pill w-25"
-																onClick={prevStep}
-															>
-																Back
-															</Button>
+												<div className="flex justify-between gap-4 pt-4">
+													<button
+														type="button"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														onClick={prevStep}
+													>
+														Back
+													</button>
 
-															<Button
-																variant="warning"
-																className="rounded-pill w-50"
-																onClick={verifyOtpCode}
-																disabled={
-																	!terms ||
-																	otpCode.trim().length === 0 ||
-																	verifyingOtp
-																}
-															>
-																{verifyingOtp
-																	? "Verifying OTP..."
-																	: "Verify & Finish Sign Up"}
-															</Button>
-														</Col>
-													</Row>
-												</>
-											)}
+													<button
+														type="button"
+														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+														onClick={verifyOtpCode}
+														disabled={
+															!terms ||
+															otpCode.trim().length === 0 ||
+															verifyingOtp
+														}
+													>
+														{verifyingOtp
+															? "Verifying OTP..."
+															: "Complete Sign Up"}
+													</button>
+												</div>
+											</>
+										)}
 
-											<div className="divider">
-												<span>or continue with</span>
+										<div className="relative my-6">
+											<div className="absolute inset-0 flex items-center">
+												<div className="w-full border-t border-gray-200"></div>
 											</div>
-
-											<div className="d-flex justify-content-around">
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Google size={25} />
-												</Button>
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Facebook size={25} />
-												</Button>
-												<Button
-													variant="warning rounded-pill"
-													className="social-btn"
-												>
-													<Apple size={25} />
-												</Button>
+											<div className="relative flex justify-center text-sm">
+												<span className="px-4 bg-white text-gray-500">
+													or continue with
+												</span>
 											</div>
+										</div>
 
-											<div className="text-center mt-2">
-												Already have an account?{" "}
-												<a href="./login" className="login-link">
-													Sign In
-												</a>
-											</div>
-										</Form>
+										<div className="flex justify-center space-x-3 mb-6">
+											<button
+												type="button"
+												className="w-11 h-11 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Google size={16} />
+											</button>
+											<button
+												type="button"
+												className="w-11 h-11 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Facebook size={16} />
+											</button>
+											<button
+												type="button"
+												className="w-11 h-11 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+											>
+												<Apple size={16} />
+											</button>
+										</div>
 
-										<AlertModal
-											isVisible={showAlertModal}
-											message={alertModalMessage}
-											onClose={() => setShowAlertModal(false)}
-											icon={alertModalConfig.icon}
-											title={alertModalConfig.title}
-											confirmText={alertModalConfig.confirmText}
-											cancelText={alertModalConfig.cancelText}
-											showCancel={alertModalConfig.showCancel}
-											onConfirm={alertModalConfig.onConfirm}
-										/>
-
-										<ProgressBar
-											now={Math.round((step / 3) * 100)}
-											className=" mt-3 rounded-pill"
-											variant="warning"
-											style={{ height: "8px" }}
-										/>
-									</div>
-								</Col>
-							</Row>
+										<div className="text-center">
+											<p className="text-gray-600 mb-4 text-sm">
+												Already have an account?
+											</p>
+											<a
+												href="./login"
+												className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200 text-sm font-medium"
+											>
+												Sign In
+											</a>
+										</div>
+									</form>
+								</div>
+							</div>
 						</div>
-					</Col>
-				</Row>
-			</Container>
+					</div>
+				</div>
+
+				<div className="mt-4">
+					<div className="w-full bg-gray-200 rounded-full h-2">
+						<div
+							className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+							style={{ width: `${Math.round((step / 3) * 100)}%` }}
+						></div>
+					</div>
+				</div>
+
+				<AlertModal
+					isVisible={showAlertModal}
+					message={alertModalMessage}
+					onClose={() => setShowAlertModal(false)}
+					icon={alertModalConfig.icon}
+					title={alertModalConfig.title}
+					confirmText={alertModalConfig.confirmText}
+					cancelText={alertModalConfig.cancelText}
+					showCancel={alertModalConfig.showCancel}
+					onConfirm={alertModalConfig.onConfirm}
+				/>
+			</div>
 		</>
 	);
 }

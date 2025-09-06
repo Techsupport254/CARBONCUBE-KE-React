@@ -56,6 +56,7 @@ const AdminProfile = lazy(() => import("./admin/pages/Profile"));
 const SellerSignUpPage = lazy(() => import("./seller/pages/SellerSignUpPage"));
 const SellerAnalytics = lazy(() => import("./seller/pages/SellerAnalytics"));
 const SellerAds = lazy(() => import("./seller/pages/SellerAds"));
+const SellerShop = lazy(() => import("./seller/pages/SellerShop"));
 const SellerMessages = lazy(() => import("./seller/pages/SellerMessages"));
 const SellerNotifications = lazy(() =>
 	import("./seller/pages/SellerNotifications")
@@ -160,6 +161,9 @@ function App() {
 		if (user.name) {
 			sessionStorage.setItem("userName", user.name);
 		}
+		if (user.username) {
+			sessionStorage.setItem("userUsername", user.username);
+		}
 		if (user.email) {
 			sessionStorage.setItem("userEmail", user.email);
 		}
@@ -171,6 +175,7 @@ function App() {
 		sessionStorage.removeItem("token");
 		sessionStorage.removeItem("userRole");
 		sessionStorage.removeItem("userName");
+		sessionStorage.removeItem("userUsername");
 		sessionStorage.removeItem("userEmail");
 		setUserRole(null);
 		setIsAuthenticated(false);
@@ -327,6 +332,10 @@ function App() {
 							<Route
 								path="ads"
 								element={<SellerAds onLogout={handleLogout} />}
+							/>
+							<Route
+								path="dashboard"
+								element={<SellerShop onLogout={handleLogout} />}
 							/>
 							<Route
 								path="messages"

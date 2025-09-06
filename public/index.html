@@ -264,10 +264,19 @@
 		<!-- Twitter Card -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:site" content="@carboncube_kenya" />
-		<meta name="twitter:title" content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace" />
-		<meta name="twitter:description" content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers. Designed for trust, simplicity, and growth, our platform empowers businesses to showcase their products, gain visibility, and thrive in today's digital economy." />
+		<meta
+			name="twitter:title"
+			content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
+		/>
+		<meta
+			name="twitter:description"
+			content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers. Designed for trust, simplicity, and growth, our platform empowers businesses to showcase their products, gain visibility, and thrive in today's digital economy."
+		/>
 		<meta name="twitter:image" content="https://carboncube-ke.com/logo.png" />
-		<meta name="twitter:image:alt" content="Carbon Cube Kenya - Kenya's Trusted Digital Marketplace" />
+		<meta
+			name="twitter:image:alt"
+			content="Carbon Cube Kenya - Kenya's Trusted Digital Marketplace"
+		/>
 
 		<!-- Resource Hints for Performance -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -279,11 +288,19 @@
 		<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
-		<!-- Font Loading -->
+		<!-- Font Loading - Optimized for performance -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-			rel="stylesheet"
+			rel="preload"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
 		/>
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+				rel="stylesheet"
+			/>
+		</noscript>
 
 		<!-- Canonical URL -->
 		<link rel="canonical" href="https://carboncube-ke.com/" />
@@ -375,55 +392,119 @@
 			}
 		</script>
 
-		<!-- Analytics Loading -->
+		<!-- Analytics Loading - Completely deferred -->
 		<script>
 			// Defer analytics loading to improve initial page load
 			window.addEventListener("load", function () {
-				// Google Analytics
-				(function (i, s, o, g, r, a, m) {
-					i["GoogleAnalyticsObject"] = r;
-					(i[r] =
-						i[r] ||
-						function () {
-							(i[r].q = i[r].q || []).push(arguments);
-						}),
-						(i[r].l = 1 * new Date());
-					(a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
-					a.async = 1;
-					a.src = g;
-					m.parentNode.insertBefore(a, m);
-				})(
-					window,
-					document,
-					"script",
-					"https://www.googletagmanager.com/gtag/js?id=G-JCS1KWM0GH",
-					"ga"
-				);
+				// Add a small delay to ensure page is fully loaded
+				setTimeout(function () {
+					// Google Analytics
+					(function (i, s, o, g, r, a, m) {
+						i["GoogleAnalyticsObject"] = r;
+						(i[r] =
+							i[r] ||
+							function () {
+								(i[r].q = i[r].q || []).push(arguments);
+							}),
+							(i[r].l = 1 * new Date());
+						(a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+						a.async = 1;
+						a.src = g;
+						m.parentNode.insertBefore(a, m);
+					})(
+						window,
+						document,
+						"script",
+						"https://www.googletagmanager.com/gtag/js?id=G-JCS1KWM0GH",
+						"ga"
+					);
 
-				ga("create", "G-JCS1KWM0GH", "auto");
-				ga("send", "pageview");
+					ga("create", "G-JCS1KWM0GH", "auto");
+					ga("send", "pageview");
 
-				// Matomo Analytics
-				var _mtm = (window._mtm = window._mtm || []);
-				_mtm.push({
-					"mtm.startTime": new Date().getTime(),
-					event: "mtm.Start",
-				});
-				var d = document,
-					g = d.createElement("script"),
-					s = d.getElementsByTagName("script")[0];
-				g.async = true;
-				g.src =
-					"https://cdn.matomo.cloud/carboncubeke.matomo.cloud/container_6Rza2oIF.js";
-				s.parentNode.insertBefore(g, s);
+					// Matomo Analytics
+					var _mtm = (window._mtm = window._mtm || []);
+					_mtm.push({
+						"mtm.startTime": new Date().getTime(),
+						event: "mtm.Start",
+					});
+					var d = document,
+						g = d.createElement("script"),
+						s = d.getElementsByTagName("script")[0];
+					g.async = true;
+					g.src =
+						"https://cdn.matomo.cloud/carboncubeke.matomo.cloud/container_6Rza2oIF.js";
+					s.parentNode.insertBefore(g, s);
+				}, 1000); // 1 second delay
 			});
 		</script>
 
+		<!-- Critical CSS for above-the-fold content -->
 		<style>
-			title {
-				font-family: "Inter", sans-serif;
+			/* Critical styles for initial render */
+			body {
+				background-color: #e0e0e0;
+				margin: 0;
+				padding: 0;
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+					"Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+					"Helvetica Neue", sans-serif;
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing: grayscale;
+			}
+
+			#root {
+				min-height: 100vh;
+			}
+
+			/* Loading spinner styles */
+			.loading-spinner {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 200px;
+			}
+
+			/* Critical banner styles */
+			.banner-container {
+				width: 100%;
+				max-width: 1280px;
+				margin: 0 auto;
+				position: relative;
+			}
+
+			/* Prevent layout shift */
+			img {
+				max-width: 100%;
+				height: auto;
+			}
+
+			/* Critical navbar styles */
+			.navbar {
+				background-color: #ffffff;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 			}
 		</style>
+
+		<!-- Non-critical CSS loading -->
+		<script>
+			// Load non-critical CSS after page load
+			function loadCSS(href) {
+				var link = document.createElement("link");
+				link.rel = "stylesheet";
+				link.href = href;
+				link.media = "print";
+				link.onload = function () {
+					this.media = "all";
+				};
+				document.head.appendChild(link);
+			}
+
+			// Load CSS after DOM is ready
+			document.addEventListener("DOMContentLoaded", function () {
+				// Load any additional non-critical CSS here
+			});
+		</script>
 	</head>
 
 	<body style="background-color: #e0e0e0">

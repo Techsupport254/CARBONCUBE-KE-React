@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useNewMessageListener from "../hooks/useNewMessageListener";
 import {
 	faSearch,
 	faFilter,
@@ -9,7 +10,8 @@ import {
 	faChevronDown,
 	faUser,
 	faSignOutAlt,
-	faStore,
+	faSignInAlt,
+	faTachometerAlt,
 	faHome,
 	faHeart,
 	faCog,
@@ -22,7 +24,8 @@ import {
 	faShieldAlt,
 	faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import Spinner from "react-spinkit";
+import { CircleLoader } from "react-spinners";
+import apiService from "../services/apiService";
 
 // Custom hook for click outside
 const useClickOutside = (ref, handler, excludeRefs = []) => {
@@ -79,12 +82,60 @@ const Navbar = ({
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [userRole, setUserRole] = useState(null);
 	const [userName, setUserName] = useState("");
+	const [userUsername, setUserUsername] = useState("");
 	const [userEmail, setUserEmail] = useState("");
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const [wishlistCount, setWishlistCount] = useState(0);
+	const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
+	// Ref to debounce dropdown selections
+	const dropdownDebounceRef = useRef(null);
+	const isDropdownProcessingRef = useRef(false);
+
+	// Listen for new messages in real-time
+	const handleNewMessage = useCallback((data) => {
+		console.log("Navbar: handleNewMessage called with:", data);
+		// Dispatch a custom event to refresh unread count
+		window.dispatchEvent(new CustomEvent("newMessage"));
+		console.log("Navbar: Custom event 'newMessage' dispatched");
+	}, []);
+
+	// Get user ID from token for real-time messaging
+	const getUserId = useCallback(() => {
+		const token = sessionStorage.getItem("token");
+		if (token) {
+			try {
+				// Check if token has the correct JWT format (3 parts separated by dots)
+				const parts = token.split(".");
+				if (parts.length !== 3) {
+					console.error("Invalid JWT token format:", token);
+					return null;
+				}
+
+				const payload = JSON.parse(atob(parts[1]));
+				const userId =
+					payload.seller_id ||
+					payload.buyer_id ||
+					payload.user_id ||
+					payload.id;
+				return userId;
+			} catch (error) {
+				console.error("Error decoding token:", error);
+				return null;
+			}
+		}
+		return null;
+	}, []);
+
+	// Use the new message listener hook
+	useNewMessageListener(
+		userRole,
+		isLoggedIn ? getUserId() : null,
+		handleNewMessage
+	);
 
 	// Refs for click outside functionality
 	const dropdownRef = useRef(null);
@@ -118,11 +169,13 @@ const Navbar = ({
 		const token = sessionStorage.getItem("token");
 		const role = sessionStorage.getItem("userRole");
 		const name = sessionStorage.getItem("userName");
+		const username = sessionStorage.getItem("userUsername");
 		const email = sessionStorage.getItem("userEmail");
 
 		setIsLoggedIn(!!token);
 		setUserRole(role);
 		setUserName(name || "");
+		setUserUsername(username || "");
 		setUserEmail(email || "");
 
 		// Fetch categories only for buyer mode or when search is enabled
@@ -154,6 +207,36 @@ const Navbar = ({
 		}
 	}, [isLoggedIn, userRole]);
 
+	const fetchUnreadMessageCount = useCallback(async () => {
+		if (!isLoggedIn || !userRole) return;
+
+		try {
+			const token = sessionStorage.getItem("token");
+			const apiUrl = `${
+				process.env.REACT_APP_BACKEND_URL
+			}/${userRole.toLowerCase()}/conversations/unread_count`;
+
+			const response = await fetch(apiUrl, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				setUnreadMessageCount(data.count || 0);
+			} else {
+				console.error(
+					"Failed to fetch unread count:",
+					response.status,
+					response.statusText
+				);
+			}
+		} catch (error) {
+			console.error("Error fetching unread message count:", error);
+		}
+	}, [isLoggedIn, userRole]);
+
 	// Fetch wishlist count when user logs in
 	useEffect(() => {
 		if (isLoggedIn && userRole === "buyer") {
@@ -163,22 +246,72 @@ const Navbar = ({
 		}
 	}, [isLoggedIn, userRole, fetchWishlistCount]);
 
+	// Function to refresh unread message count (can be called from other components)
+	const refreshUnreadMessageCount = useCallback(() => {
+		if (isLoggedIn && userRole) {
+			fetchUnreadMessageCount();
+		}
+	}, [isLoggedIn, userRole, fetchUnreadMessageCount]);
+
+	// Expose refresh function to window for debugging
+	useEffect(() => {
+		window.refreshUnreadCount = refreshUnreadMessageCount;
+		return () => {
+			delete window.refreshUnreadCount;
+		};
+	}, [refreshUnreadMessageCount]);
+
+	// Fetch unread message count when user logs in
+	useEffect(() => {
+		if (isLoggedIn && userRole) {
+			fetchUnreadMessageCount();
+		} else {
+			setUnreadMessageCount(0);
+		}
+	}, [isLoggedIn, userRole, fetchUnreadMessageCount]);
+
+	// Cleanup effect to clear debounce timeout on unmount
+	useEffect(() => {
+		return () => {
+			if (dropdownDebounceRef.current) {
+				clearTimeout(dropdownDebounceRef.current);
+				dropdownDebounceRef.current = null;
+			}
+			isDropdownProcessingRef.current = false;
+		};
+	}, []);
+
+	// Listen for message read events and new messages to refresh unread count
+	useEffect(() => {
+		const handleMessageRead = () => {
+			refreshUnreadMessageCount();
+		};
+
+		const handleNewMessage = () => {
+			console.log(
+				"Navbar: Event listener 'newMessage' triggered, refreshing unread count"
+			);
+			refreshUnreadMessageCount();
+		};
+
+		// Listen for custom events when messages are read or new messages arrive
+		window.addEventListener("messageRead", handleMessageRead);
+		window.addEventListener("messageDelivered", handleMessageRead);
+		window.addEventListener("newMessage", handleNewMessage);
+
+		return () => {
+			window.removeEventListener("messageRead", handleMessageRead);
+			window.removeEventListener("messageDelivered", handleMessageRead);
+			window.removeEventListener("newMessage", handleNewMessage);
+		};
+	}, [refreshUnreadMessageCount]);
+
 	const fetchCategories = async () => {
 		try {
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`
-			);
-			if (!response.ok) throw new Error("Failed to fetch categories");
-
-			const categoryData = await response.json();
-
-			const subcategoryResponse = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`
-			);
-			if (!subcategoryResponse.ok)
-				throw new Error("Failed to fetch subcategories");
-
-			const subcategoryData = await subcategoryResponse.json();
+			const [categoryData, subcategoryData] = await apiService.batchFetch([
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
+			]);
 
 			const categoriesWithSubcategories = categoryData.map((category) => ({
 				...category,
@@ -194,17 +327,49 @@ const Navbar = ({
 	};
 
 	const handleCategorySelect = async (categoryId) => {
-		setIsDropdownOpen(false);
-		if (onCategoryChange) {
-			onCategoryChange(categoryId);
+		// Prevent multiple simultaneous selections
+		if (isDropdownProcessingRef.current) {
+			return;
 		}
+
+		setIsDropdownOpen(false);
+		isDropdownProcessingRef.current = true;
+
+		// Clear any existing debounce
+		if (dropdownDebounceRef.current) {
+			clearTimeout(dropdownDebounceRef.current);
+		}
+
+		// Debounce the category selection to prevent rapid updates
+		dropdownDebounceRef.current = setTimeout(() => {
+			if (onCategoryChange) {
+				onCategoryChange(categoryId);
+			}
+			isDropdownProcessingRef.current = false;
+		}, 150); // Increased delay to prevent rapid-fire updates
 	};
 
 	const handleSubcategorySelect = async (subcategoryId) => {
-		setIsDropdownOpen(false);
-		if (onSubcategoryChange) {
-			onSubcategoryChange(subcategoryId);
+		// Prevent multiple simultaneous selections
+		if (isDropdownProcessingRef.current) {
+			return;
 		}
+
+		setIsDropdownOpen(false);
+		isDropdownProcessingRef.current = true;
+
+		// Clear any existing debounce
+		if (dropdownDebounceRef.current) {
+			clearTimeout(dropdownDebounceRef.current);
+		}
+
+		// Debounce the subcategory selection to prevent rapid updates
+		dropdownDebounceRef.current = setTimeout(() => {
+			if (onSubcategoryChange) {
+				onSubcategoryChange(subcategoryId);
+			}
+			isDropdownProcessingRef.current = false;
+		}, 150); // Increased delay to prevent rapid-fire updates
 	};
 
 	const onSubmit = async (e) => {
@@ -217,11 +382,14 @@ const Navbar = ({
 		sessionStorage.removeItem("token");
 		sessionStorage.removeItem("userRole");
 		sessionStorage.removeItem("userName");
+		sessionStorage.removeItem("userUsername");
 		sessionStorage.removeItem("userEmail");
 		setIsLoggedIn(false);
 		setUserRole(null);
 		setUserName("");
+		setUserUsername("");
 		setUserEmail("");
+		setUnreadMessageCount(0);
 		window.location.href = "/login";
 	};
 
@@ -251,6 +419,11 @@ const Navbar = ({
 				];
 			case "seller":
 				return [
+					{
+						href: "/seller/dashboard",
+						label: "Dashboard",
+						icon: faTachometerAlt,
+					},
 					{ href: "/seller/ads", label: "Ads", icon: faBox },
 					{ href: "/seller/analytics", label: "Analytics", icon: faChartBar },
 					{ href: "/seller/messages", label: "Messages", icon: faEnvelope },
@@ -263,7 +436,7 @@ const Navbar = ({
 					{ href: "/admin/ads", label: "Ads", icon: faBox },
 					{ href: "/admin/categories", label: "Categories", icon: faList },
 					{ href: "/admin/tiers", label: "Tiers", icon: faList },
-					{ href: "/admin/sellers", label: "Sellers", icon: faStore },
+					{ href: "/admin/sellers", label: "Sellers", icon: faUsers },
 					{ href: "/admin/buyers", label: "Buyers", icon: faUsers },
 					{ href: "/admin/content", label: "CMS", icon: faFileAlt },
 					{ href: "/admin/promotions", label: "Promotions", icon: faPercent },
@@ -318,16 +491,30 @@ const Navbar = ({
 
 	const getDisplayName = () => {
 		if (!isLoggedIn) return "Guest";
-		return userName || "User";
+		return userUsername || userName || "User";
+	};
+
+	const getFullDisplayName = () => {
+		if (!isLoggedIn) return "Guest";
+		return userName || userUsername || "User";
 	};
 
 	const getUserInitials = () => {
-		if (!isLoggedIn || !userName) return "G";
-		const names = userName.split(" ");
-		if (names.length >= 2) {
-			return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+		if (!isLoggedIn) return "G";
+		const displayName = userName || userUsername;
+		if (!displayName) return "U";
+
+		// If it's a full name, use first letters of first and last name
+		if (userName) {
+			const names = displayName.split(" ");
+			if (names.length >= 2) {
+				return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+			}
+			return displayName[0].toUpperCase();
 		}
-		return userName[0].toUpperCase();
+
+		// If it's a username (single word), use first two characters
+		return displayName.substring(0, 2).toUpperCase();
 	};
 
 	const renderSearchBar = () => {
@@ -460,7 +647,7 @@ const Navbar = ({
 							className="flex-shrink-0 h-[36px] sm:h-[42px] w-10 sm:w-12 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
 						>
 							{isSearchLoading ? (
-								<Spinner animation="border" size="sm" />
+								<CircleLoader size={16} color="#1f2937" />
 							) : (
 								<FontAwesomeIcon icon={faSearch} className="text-sm" />
 							)}
@@ -472,7 +659,9 @@ const Navbar = ({
 	};
 
 	const renderUserMenu = () => {
-		if (!showUserMenu) return null;
+		if (!isLoggedIn) {
+			return null;
+		}
 
 		return (
 			<div className="relative" ref={userMenuRef}>
@@ -510,7 +699,7 @@ const Navbar = ({
 									</div>
 									<div className="flex-1 min-w-0">
 										<div className="text-sm font-medium text-gray-900 truncate">
-											{getDisplayName()}
+											{getFullDisplayName()}
 										</div>
 										<div className="text-xs text-gray-500">
 											{formatRole(userRole)}
@@ -544,10 +733,19 @@ const Navbar = ({
 										{wishlistCount > 99 ? "99+" : wishlistCount}
 									</span>
 								)}
+								{/* Show unread message count badge for messages link */}
+								{(link.href === "/buyer/messages" ||
+									link.href === "/seller/messages" ||
+									link.href === "/admin/messages") &&
+									unreadMessageCount > 0 && (
+										<span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-lg">
+											{unreadMessageCount > 99 ? "99+" : unreadMessageCount}
+										</span>
+									)}
 							</button>
 						))}
 
-						{isLoggedIn && mode !== "minimal" && (
+						{isLoggedIn && (
 							<>
 								<hr className="my-2 border-gray-200" />
 								<button
@@ -642,12 +840,28 @@ const Navbar = ({
 								</div>
 							)}
 
-						{/* User Menu - Only show for logged in users */}
+						{/* User Menu - Always show for logged in users */}
 						{isLoggedIn && renderUserMenu()}
 					</div>
 
-					{/* Mobile menu button */}
-					<div className="md:hidden" ref={mobileMenuButtonRef}>
+					{/* Mobile menu button and sign out */}
+					<div
+						className="md:hidden flex items-center space-x-2"
+						ref={mobileMenuButtonRef}
+					>
+						{/* Sign out button for mobile - always visible when logged in */}
+						{isLoggedIn && (
+							<button
+								onClick={handleLogout}
+								className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-300 hover:bg-red-900 transition-colors duration-200"
+								aria-label="Sign out"
+								title="Sign out"
+							>
+								<FontAwesomeIcon icon={faSignOutAlt} />
+							</button>
+						)}
+
+						{/* Mobile menu toggle */}
 						<button
 							onClick={toggleMobileMenu}
 							className="w-8 h-8 flex items-center justify-center rounded-lg text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 transition-colors duration-200"
@@ -765,7 +979,7 @@ const Navbar = ({
 											className="flex-shrink-0 h-[36px] w-10 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-r-full font-medium disabled:opacity-50 transition-colors duration-200 flex items-center justify-center"
 										>
 											{isSearchLoading ? (
-												<Spinner animation="border" size="sm" />
+												<CircleLoader size={16} color="#1f2937" />
 											) : (
 												<FontAwesomeIcon icon={faSearch} className="text-sm" />
 											)}
@@ -810,6 +1024,15 @@ const Navbar = ({
 												{wishlistCount > 99 ? "99+" : wishlistCount}
 											</span>
 										)}
+										{/* Show unread message count badge for messages link */}
+										{(link.href === "/buyer/messages" ||
+											link.href === "/seller/messages" ||
+											link.href === "/admin/messages") &&
+											unreadMessageCount > 0 && (
+												<span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-lg">
+													{unreadMessageCount > 99 ? "99+" : unreadMessageCount}
+												</span>
+											)}
 									</button>
 								))}
 
@@ -823,14 +1046,14 @@ const Navbar = ({
 												onClick={() => handleNavigation("/login")}
 												className="inline-flex items-center px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
 											>
-												<FontAwesomeIcon icon={faStore} className="mr-2" />
+												<FontAwesomeIcon icon={faSignInAlt} className="mr-2" />
 												Sign in
 											</button>
 										</div>
 									)}
 
 								{/* Logout for logged-in users (mobile) */}
-								{isLoggedIn && mode !== "minimal" && (
+								{isLoggedIn && (
 									<>
 										<hr className="my-2 border-gray-700" />
 										<button

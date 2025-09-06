@@ -11,6 +11,14 @@ import {
 	faShoppingBag,
 } from "@fortawesome/free-solid-svg-icons";
 
+// Add CSS for line clamping
+const lineClampStyle = {
+	display: "-webkit-box",
+	WebkitLineClamp: 2,
+	WebkitBoxOrient: "vertical",
+	overflow: "hidden",
+};
+
 const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 	const [reviews, setReviews] = useState([]);
 	const [statistics, setStatistics] = useState(null);
@@ -144,40 +152,40 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 			show={show}
 			onHide={handleClose}
 			centered
-			size="xl"
+			size="lg"
 			className="reviews-modal"
 		>
-			<Modal.Header className="border-0 pb-0 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-t-2xl">
+			<Modal.Header className="border-0 pb-2">
 				<div className="flex items-center justify-between w-full">
 					<div className="flex items-center space-x-3">
-						<div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center shadow-lg">
+						<div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
 							<FontAwesomeIcon
 								icon={faStar}
-								className="text-gray-900 text-xl"
+								className="text-gray-900 text-sm"
 							/>
 						</div>
 						<div>
-							<Modal.Title className="text-xl font-bold text-white mb-1">
+							<Modal.Title className="text-lg font-semibold text-gray-900">
 								{shopName} Reviews
 							</Modal.Title>
 							{statistics && (
-								<p className="text-gray-300 text-sm">
+								<p className="text-gray-500 text-sm">
 									{statistics.total_reviews} reviews •{" "}
-									{statistics.average_rating} average rating
+									{statistics.average_rating} avg
 								</p>
 							)}
 						</div>
 					</div>
 					<button
 						onClick={handleClose}
-						className="text-gray-300 hover:text-white transition-colors"
+						className="text-gray-400 hover:text-gray-600 transition-colors"
 					>
-						<FontAwesomeIcon icon={faTimes} className="text-xl" />
+						<FontAwesomeIcon icon={faTimes} className="text-lg" />
 					</button>
 				</div>
 			</Modal.Header>
 
-			<Modal.Body className="pt-0">
+			<Modal.Body className="pt-0 max-h-96 overflow-y-auto">
 				{isLoading && reviews.length === 0 ? (
 					<div className="flex justify-center items-center py-8">
 						<Spinner animation="border" variant="warning" />
@@ -190,57 +198,21 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 						</Button>
 					</div>
 				) : (
-					<div className="space-y-6">
-						{/* Statistics Section */}
+					<div className="space-y-3">
+						{/* Compact Statistics */}
 						{statistics && statistics.total_reviews > 0 && (
-							<div className="bg-gray-50 rounded-lg p-4">
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{/* Average Rating */}
-									<div className="text-center">
-										<div className="text-4xl font-bold text-gray-900 mb-2">
+							<div className="bg-gray-50 rounded-lg p-3 mb-4">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center space-x-3">
+										<div className="text-2xl font-bold text-gray-900">
 											{statistics.average_rating}
 										</div>
-										<div className="flex justify-center mb-2">
+										<div className="flex">
 											{renderStars(statistics.average_rating)}
 										</div>
-										<p className="text-sm text-gray-600">
-											Based on {statistics.total_reviews} reviews
-										</p>
 									</div>
-
-									{/* Rating Distribution */}
-									<div>
-										<h4 className="font-semibold text-gray-900 mb-3">
-											Rating Distribution
-										</h4>
-										<div className="space-y-2">
-											{statistics.rating_distribution
-												.slice()
-												.reverse()
-												.map((dist) => (
-													<div
-														key={dist.rating}
-														className="flex items-center space-x-2"
-													>
-														<span className="text-sm font-medium text-gray-700 w-8">
-															{dist.rating}
-														</span>
-														<FontAwesomeIcon
-															icon={faStar}
-															className="text-yellow-400 text-xs"
-														/>
-														<div className="flex-1 bg-gray-200 rounded-full h-2">
-															<div
-																className="bg-yellow-400 h-2 rounded-full"
-																style={{ width: `${dist.percentage}%` }}
-															></div>
-														</div>
-														<span className="text-xs text-gray-600 w-12">
-															{dist.count}
-														</span>
-													</div>
-												))}
-										</div>
+									<div className="text-sm text-gray-600">
+										{statistics.total_reviews} reviews
 									</div>
 								</div>
 							</div>
@@ -248,84 +220,79 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 
 						{/* Reviews List */}
 						{reviews.length === 0 ? (
-							<div className="text-center py-8">
-								<div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-									<FontAwesomeIcon
-										icon={faStar}
-										className="text-gray-400 text-2xl"
-									/>
+							<div className="text-center py-6">
+								<div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+									<FontAwesomeIcon icon={faStar} className="text-gray-400" />
 								</div>
-								<h3 className="text-lg font-medium text-gray-900 mb-2">
+								<h3 className="text-base font-medium text-gray-900 mb-1">
 									No Reviews Yet
 								</h3>
-								<p className="text-gray-500">
+								<p className="text-sm text-gray-500">
 									This shop doesn't have any reviews yet.
 								</p>
 							</div>
 						) : (
-							<div className="space-y-4">
+							<div className="space-y-3">
 								{reviews.map((review) => (
 									<div
 										key={review.id}
-										className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+										className="border-b border-gray-100 pb-3 last:border-b-0"
 									>
-										{/* Review Header */}
-										<div className="flex items-start justify-between mb-3">
-											<div className="flex items-center space-x-3">
-												<div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+										{/* Compact Review Header */}
+										<div className="flex items-center justify-between mb-2">
+											<div className="flex items-center space-x-2">
+												<div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
 													<FontAwesomeIcon
 														icon={faUser}
-														className="text-gray-500"
+														className="text-gray-500 text-xs"
 													/>
 												</div>
-												<div>
-													<h4 className="font-medium text-gray-900">
-														{review.buyer.name}
-													</h4>
-													<div className="flex items-center space-x-2">
-														<div className="flex">
-															{renderStars(review.rating)}
-														</div>
-														<span className="text-sm text-gray-500">
-															{formatDate(review.created_at)}
-														</span>
-													</div>
-												</div>
+												<span className="text-sm font-medium text-gray-900">
+													{review.buyer.name}
+												</span>
+												<div className="flex">{renderStars(review.rating)}</div>
 											</div>
+											<span className="text-xs text-gray-500">
+												{formatDate(review.created_at)}
+											</span>
 										</div>
 
 										{/* Review Content */}
-										<div className="mb-3">
-											<p className="text-gray-700 leading-relaxed">
-												{review.review}
-											</p>
-										</div>
+										<p
+											className="text-sm text-gray-700 mb-2"
+											style={lineClampStyle}
+										>
+											{review.review}
+										</p>
 
-										{/* Product Info */}
-										<div className="bg-gray-50 rounded-lg p-3 mb-3">
-											<div className="flex items-center space-x-2 text-sm text-gray-600">
-												<FontAwesomeIcon icon={faShoppingBag} />
-												<span className="font-medium">Product:</span>
-												<span>{review.ad.title}</span>
-												<span className="text-yellow-600 font-semibold">
-													KSh {review.ad.price?.toLocaleString()}
-												</span>
-											</div>
+										{/* Compact Product Info */}
+										<div className="flex items-center space-x-1 text-xs text-gray-500">
+											<FontAwesomeIcon
+												icon={faShoppingBag}
+												className="text-xs"
+											/>
+											<span>{review.ad.title}</span>
+											<span className="text-yellow-600 font-medium">
+												KSh {review.ad.price?.toLocaleString()}
+											</span>
 										</div>
 
 										{/* Seller Reply */}
 										{review.seller_reply && (
-											<div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg p-3">
-												<div className="flex items-center space-x-2 mb-2">
+											<div className="mt-2 bg-yellow-50 rounded p-2">
+												<div className="flex items-center space-x-1 mb-1">
 													<FontAwesomeIcon
 														icon={faReply}
-														className="text-yellow-600"
+														className="text-yellow-600 text-xs"
 													/>
-													<span className="font-medium text-yellow-800">
+													<span className="text-xs font-medium text-yellow-800">
 														Seller Response
 													</span>
 												</div>
-												<p className="text-yellow-700 leading-relaxed">
+												<p
+													className="text-xs text-yellow-700"
+													style={lineClampStyle}
+												>
 													{review.seller_reply}
 												</p>
 											</div>
@@ -335,12 +302,13 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 
 								{/* Load More Button */}
 								{hasMore && (
-									<div className="text-center pt-4">
+									<div className="text-center pt-3">
 										<Button
 											variant="outline-warning"
+											size="sm"
 											onClick={handleLoadMore}
 											disabled={isLoading}
-											className="px-6 py-2"
+											className="px-4 py-1"
 										>
 											{isLoading ? (
 												<>
@@ -352,7 +320,7 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 													Loading...
 												</>
 											) : (
-												"Load More Reviews"
+												"Load More"
 											)}
 										</Button>
 									</div>

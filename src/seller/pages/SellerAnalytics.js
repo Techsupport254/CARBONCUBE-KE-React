@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import Sidebar from "../components/Sidebar";
-import TopNavbar from "../components/TopNavbar";
+import Navbar from "../../components/Navbar";
 import ClickEventsStats from "../components/ClickEventsStats";
 import TopWishListedAds from "../components/TopWishListedAds";
 import WishListStats from "../components/WishListStats";
@@ -259,39 +259,39 @@ const SellerAnalytics = () => {
 
 	return (
 		<>
-			<TopNavbar />
+			<Navbar mode="seller" showSearch={false} showCategories={false} />
 			<div className="min-h-screen bg-gray-50">
 				<div className="flex">
 					{/* Sidebar */}
 					<Sidebar />
 
 					{/* Main Content */}
-					<div className="flex-1 p-6">
+					<div className="flex-1 p-2 sm:p-4 lg:p-6">
 						<div className="max-w-7xl mx-auto">
 							{/* Subscription Countdown */}
-							<div className="mb-6">
+							<div className="mb-4 sm:mb-6">
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Subscription Countdown
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										<CountDownDisplay />
 									</div>
 								</div>
 							</div>
 
 							{/* Analytics Cards */}
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
 								{/* Total Ads Card */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Total Ads
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 2 ? (
 											<div className="text-center">
 												<div className="text-3xl font-bold text-blue-600">
@@ -324,12 +324,12 @@ const SellerAnalytics = () => {
 
 								{/* Total Reviews Card */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Total Reviews
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 3 ? (
 											<div className="text-center">
 												<button
@@ -368,12 +368,12 @@ const SellerAnalytics = () => {
 
 								{/* Average Rating Card */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Average Rating
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										<div className="text-center">
 											<div className="text-3xl font-bold text-yellow-500">
 												{average_rating.toFixed(1)}
@@ -401,15 +401,15 @@ const SellerAnalytics = () => {
 							</div>
 
 							{/* Charts Section */}
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
 								{/* Top Wishlisted Ads */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Top Wishlisted Ads
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{top_wishlisted_ads.length > 0 ? (
 											<TopWishListedAds data={top_wishlisted_ads} />
 										) : (
@@ -428,12 +428,12 @@ const SellerAnalytics = () => {
 
 								{/* Competitor Stats */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Competitor Stats
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 3 ? (
 											<CompetitorStats data={analyticsData.competitor_stats} />
 										) : (
@@ -459,15 +459,15 @@ const SellerAnalytics = () => {
 							</div>
 
 							{/* More Charts Section */}
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
 								{/* Click Events Stats */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Click Events Stats
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 2 ? (
 											<ClickEventsStats
 												data={
@@ -498,12 +498,12 @@ const SellerAnalytics = () => {
 
 								{/* Wish List Stats */}
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Wish List Stats
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 3 ? (
 											<WishListStats
 												data={analyticsData.basic_wishlist_stats}
@@ -531,14 +531,14 @@ const SellerAnalytics = () => {
 							</div>
 
 							{/* Buyer Demographics */}
-							<div className="mb-6">
+							<div className="mb-4 sm:mb-6">
 								<div className="bg-white rounded-xl shadow-lg border border-gray-100">
-									<div className="px-6 py-4 border-b border-gray-100">
-										<h3 className="text-lg font-semibold text-gray-800">
+									<div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+										<h3 className="text-base sm:text-lg font-semibold text-gray-800">
 											Buyer Demographics
 										</h3>
 									</div>
-									<div className="p-6">
+									<div className="p-3 sm:p-6">
 										{tierId >= 3 ? (
 											<BuyerDemographics
 												data={{
@@ -580,6 +580,7 @@ const SellerAnalytics = () => {
 					backdrop="static"
 					keyboard={false}
 					dialogClassName="glass-modal"
+					className="modal-responsive"
 				>
 					<Modal.Header className="text-white py-2 justify-content-center">
 						<Modal.Title className="fw-bold">
@@ -587,51 +588,56 @@ const SellerAnalytics = () => {
 						</Modal.Title>
 					</Modal.Header>
 
-					<Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+					<Modal.Body
+						style={{ maxHeight: "60vh", overflowY: "auto" }}
+						className="p-2 sm:p-4"
+					>
 						{loadingReviews ? (
-							<div className="text-center py-5">
+							<div className="text-center py-3 sm:py-5">
 								<Spinner animation="border" variant="primary" />
-								<p className="mt-3 text-muted">Loading reviews...</p>
+								<p className="mt-3 text-muted text-sm sm:text-base">
+									Loading reviews...
+								</p>
 							</div>
 						) : reviews.length > 0 ? (
 							reviews.map((review, idx) => (
 								<div
 									key={review.id || idx}
-									className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 p-4"
+									className="bg-white rounded-lg shadow-sm border border-gray-100 mb-3 sm:mb-4 p-3 sm:p-4"
 								>
-									<div className="flex items-start space-x-4">
+									<div className="flex items-start space-x-2 sm:space-x-4">
 										<img
 											src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
 												review.buyer_name
 											)}&background=random`}
-											className="w-12 h-12 rounded-full"
+											className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0"
 											alt="Avatar"
 										/>
-										<div className="flex-1">
-											<div className="flex justify-between items-center mb-2">
+										<div className="flex-1 min-w-0">
+											<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-1">
 												<div className="flex items-center space-x-2">
-													<h6 className="font-semibold text-gray-800">
+													<h6 className="font-semibold text-gray-800 text-sm sm:text-base truncate">
 														{review.buyer_name || `Buyer #${review.buyer_id}`}
 													</h6>
 													<div className="flex text-yellow-400">
 														{[...Array(5)].map((_, i) => (
 															<span
 																key={i}
-																className={
+																className={`text-xs sm:text-sm ${
 																	i < review.rating
 																		? "text-yellow-400"
 																		: "text-gray-300"
-																}
+																}`}
 															>
 																★
 															</span>
 														))}
-														<span className="text-gray-500 text-sm ml-1">
+														<span className="text-gray-500 text-xs sm:text-sm ml-1">
 															({review.rating}/5)
 														</span>
 													</div>
 												</div>
-												<span className="text-gray-500 text-sm">
+												<span className="text-gray-500 text-xs sm:text-sm">
 													{review.updated_at
 														? isToday(new Date(review.updated_at))
 															? `Today at ${format(
@@ -643,14 +649,14 @@ const SellerAnalytics = () => {
 												</span>
 											</div>
 
-											<p className="text-gray-600 italic mb-3">
+											<p className="text-gray-600 italic mb-3 text-sm sm:text-base">
 												{review.review || "No review provided."}
 											</p>
 
 											{editingReplyId === review.id ? (
-												<div className="bg-gray-50 p-4 rounded-lg border-l-4 border-green-500 ml-6">
+												<div className="bg-gray-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-500 ml-2 sm:ml-6">
 													<Form.Group controlId={`replyText-${review.id}`}>
-														<Form.Label className="text-green-600 font-medium mb-2 block">
+														<Form.Label className="text-green-600 font-medium mb-2 block text-sm sm:text-base">
 															Your Reply:
 														</Form.Label>
 														<Form.Control
@@ -658,13 +664,13 @@ const SellerAnalytics = () => {
 															rows={3}
 															value={replyDraft}
 															onChange={(e) => setReplyDraft(e.target.value)}
-															className="border-gray-300 focus:border-green-500 focus:ring-green-500"
+															className="border-gray-300 focus:border-green-500 focus:ring-green-500 text-sm sm:text-base"
 														/>
 													</Form.Group>
 													<div className="text-right mt-3">
 														<Button
 															variant="success"
-															className="rounded-full px-4 py-1 text-sm"
+															className="rounded-full px-3 sm:px-4 py-1 text-xs sm:text-sm"
 															onClick={() => handleReplySave(review.id)}
 														>
 															<i className="bi bi-check-circle mr-1"></i> Save
@@ -672,11 +678,11 @@ const SellerAnalytics = () => {
 													</div>
 												</div>
 											) : review.seller_reply ? (
-												<div className="bg-gray-50 p-4 rounded-lg border-l-4 border-green-500 ml-6 relative">
-													<strong className="text-green-600 block mb-2">
+												<div className="bg-gray-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-500 ml-2 sm:ml-6 relative">
+													<strong className="text-green-600 block mb-2 text-sm sm:text-base">
 														Your Reply:
 													</strong>
-													<p className="italic text-gray-700 pr-8">
+													<p className="italic text-gray-700 pr-6 sm:pr-8 text-sm sm:text-base">
 														{review.seller_reply}
 													</p>
 													<button
@@ -685,13 +691,13 @@ const SellerAnalytics = () => {
 													>
 														<FontAwesomeIcon
 															icon={faPencilAlt}
-															className="text-sm"
+															className="text-xs sm:text-sm"
 														/>
 													</button>
 												</div>
 											) : (
 												<button
-													className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-1 rounded-full text-sm transition-colors"
+													className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm transition-colors"
 													onClick={() => handleReplyClick(review)}
 												>
 													Reply
@@ -702,17 +708,23 @@ const SellerAnalytics = () => {
 								</div>
 							))
 						) : (
-							<div className="text-center text-gray-500 py-8">
-								<div className="text-4xl mb-3">
+							<div className="text-center text-gray-500 py-6 sm:py-8">
+								<div className="text-3xl sm:text-4xl mb-3">
 									<FontAwesomeIcon icon={faComments} />
 								</div>
-								<p>No reviews have been submitted yet.</p>
+								<p className="text-sm sm:text-base">
+									No reviews have been submitted yet.
+								</p>
 							</div>
 						)}
 					</Modal.Body>
 
-					<Modal.Footer className="py-2">
-						<Button variant="danger" onClick={() => setShowReviewsModal(false)}>
+					<Modal.Footer className="py-2 px-2 sm:px-4">
+						<Button
+							variant="danger"
+							onClick={() => setShowReviewsModal(false)}
+							className="text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2"
+						>
 							<i className="bi bi-x-circle mr-1"></i> Close
 						</Button>
 					</Modal.Footer>

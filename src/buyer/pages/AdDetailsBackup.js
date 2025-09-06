@@ -6,31 +6,29 @@ import {
 	faStar,
 	faStarHalfAlt,
 	faStar as faStarEmpty,
+	faPhone,
 	faHeart,
 	faEdit,
 	faComments,
 	faSpinner,
+	faTimes,
 	faCheck,
 	faExclamationTriangle,
 	faUser,
 	faBuilding,
 	faTag,
 	faBox,
+	faRuler,
+	faWeightHanging,
+	faMapMarkerAlt,
 	faShieldAlt,
+	faEye,
 	faArrowLeft,
 	faArrowRight,
 	faChevronLeft,
 	faChevronRight,
 	faArrowDown,
-	faShare,
-	faShareAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-	faFacebook,
-	faTwitter,
-	faWhatsapp,
-	faLinkedin,
-} from "@fortawesome/free-brands-svg-icons";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { motion } from "framer-motion";
@@ -40,6 +38,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useSEO from "../../hooks/useSEO";
+import { generateProductSEO } from "../../utils/seoHelpers";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl, getFallbackImage } from "../../utils/imageUtils";
@@ -51,6 +50,7 @@ const AdDetails = () => {
 	const [relatedAds, setRelatedAds] = useState([]);
 	const [error, setError] = useState(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false); // Manage sidebar state
+	const [searchQuery, setSearchQuery] = useState(""); // Manage search query state
 	const [wish_listLoading, setBookmarkLoading] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [reviews, setReviews] = useState([]);
@@ -78,7 +78,6 @@ const AdDetails = () => {
 	const [totalSellerAdsCount, setTotalSellerAdsCount] = useState(0);
 	const [isLargeScreen, setIsLargeScreen] = useState(false);
 	const [showAllRelatedProducts, setShowAllRelatedProducts] = useState(false);
-	const [showShareModal, setShowShareModal] = useState(false);
 
 	// Authentication state
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -102,74 +101,6 @@ const AdDetails = () => {
 		setShowAllRelatedProducts(!showAllRelatedProducts);
 	};
 
-	// Social sharing functions
-	const handleShare = () => {
-		setShowShareModal(true);
-	};
-
-	const handleCloseShareModal = () => {
-		setShowShareModal(false);
-	};
-
-	const shareToFacebook = () => {
-		const url = encodeURIComponent(window.location.href);
-		const text = encodeURIComponent(`${ad?.title} - Carbon Cube Kenya`);
-		window.open(
-			`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
-			"_blank",
-			"width=600,height=400"
-		);
-	};
-
-	const shareToTwitter = () => {
-		const url = encodeURIComponent(window.location.href);
-		const text = encodeURIComponent(
-			`Check out this product: ${ad?.title} on Carbon Cube Kenya`
-		);
-		window.open(
-			`https://twitter.com/intent/tweet?url=${url}&text=${text}`,
-			"_blank",
-			"width=600,height=400"
-		);
-	};
-
-	const shareToWhatsApp = () => {
-		const text = encodeURIComponent(
-			`Check out this product: ${ad?.title} on Carbon Cube Kenya - ${window.location.href}`
-		);
-		window.open(`https://wa.me/?text=${text}`, "_blank");
-	};
-
-	const shareToLinkedIn = () => {
-		const url = encodeURIComponent(window.location.href);
-		const title = encodeURIComponent(
-			ad?.title || "Product on Carbon Cube Kenya"
-		);
-		window.open(
-			`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`,
-			"_blank",
-			"width=600,height=400"
-		);
-	};
-
-	const copyToClipboard = async () => {
-		try {
-			await navigator.clipboard.writeText(window.location.href);
-			setAlertModalConfig({
-				isVisible: true,
-				title: "Link Copied!",
-				message: "Product link has been copied to your clipboard.",
-				icon: "success",
-				confirmText: "Great!",
-				showCancel: false,
-				onClose: () =>
-					setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
-			});
-		} catch (err) {
-			console.error("Failed to copy: ", err);
-		}
-	};
-
 	// Check screen size for related products display
 	useEffect(() => {
 		const checkScreenSize = () => {
@@ -182,436 +113,9 @@ const AdDetails = () => {
 		return () => window.removeEventListener("resize", checkScreenSize);
 	}, []);
 
-	// Generate comprehensive SEO data based on ad content
+	// Generate SEO data based on ad content - only when ad is loaded
 	const seoData = ad
-		? {
-				title: `${ad.title} | ${ad.brand || "Product"} - KSh ${
-					ad.price
-						? Number(ad.price).toLocaleString("en-KE", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-						  })
-						: "N/A"
-				}`,
-				description: (() => {
-					const price = ad.price
-						? Number(ad.price).toLocaleString("en-KE", {
-								minimumFractionDigits: 2,
-								maximumFractionDigits: 2,
-						  })
-						: "N/A";
-					const condition =
-						ad.condition === "brand_new"
-							? "Brand new"
-							: ad.condition === "second_hand"
-							? "Used"
-							: "Refurbished";
-					const sellerTier = ad.seller_tier_name || "Free";
-
-					if (ad.description) {
-						return `${ad.description.substring(0, 160)}... Buy ${
-							ad.title
-						} for KSh ${price} on Carbon Cube Kenya. ${condition} ${
-							ad.category_name
-						} from ${sellerTier} tier verified seller. Free shipping available.`;
-					} else {
-						return `Buy ${ad.title} for KSh ${price} on Carbon Cube Kenya. ${condition} ${ad.category_name} from verified seller. Fast delivery across Kenya.`;
-					}
-				})(),
-				keywords: `${ad.title}, ${ad.brand || ""}, ${ad.category_name}, ${
-					ad.subcategory_name
-				}, ${
-					ad.condition
-				}, Carbon Cube Kenya, online shopping Kenya, Kenya marketplace, ${
-					ad.seller_tier_name || "Free"
-				} tier seller, buy online Kenya, Kenya e-commerce, ${
-					ad.manufacturer || ""
-				}, ${ad.item_height ? `${ad.item_height}cm` : ""}, ${
-					ad.item_weight ? `${ad.item_weight}g` : ""
-				}`,
-				url: `${window.location.origin}/ads/${adId}`,
-				type: "product",
-				image:
-					ad.media_urls && ad.media_urls.length > 0 ? ad.media_urls[0] : null,
-				author: `${
-					ad.seller_enterprise_name || ad.seller_name || "Seller"
-				} Team`,
-				structuredData: {
-					"@context": "https://schema.org",
-					"@type": "Product",
-					name: ad.title,
-					description:
-						ad.description || `${ad.title} available on Carbon Cube Kenya`,
-					image: ad.media_urls && ad.media_urls.length > 0 ? ad.media_urls : [],
-					sku: ad.id?.toString(),
-					mpn: ad.manufacturer_part_number || ad.id?.toString(),
-					gtin: ad.gtin || ad.barcode,
-					brand: {
-						"@type": "Brand",
-						name: ad.brand || "Unknown",
-						url: ad.brand
-							? `https://carboncube.co.ke/brands/${ad.brand
-									.toLowerCase()
-									.replace(/\s+/g, "-")}`
-							: undefined,
-					},
-					manufacturer: {
-						"@type": "Organization",
-						name: ad.manufacturer || ad.brand || "Unknown",
-						url: ad.manufacturer
-							? `https://carboncube.co.ke/manufacturers/${ad.manufacturer
-									.toLowerCase()
-									.replace(/\s+/g, "-")}`
-							: undefined,
-					},
-					offers: {
-						"@type": "Offer",
-						price: ad.price ? Number(ad.price).toFixed(2) : "0.00",
-						priceCurrency: "KES",
-						priceValidUntil: new Date(
-							Date.now() + 30 * 24 * 60 * 60 * 1000
-						).toISOString(),
-						availability:
-							ad.quantity > 0
-								? "https://schema.org/InStock"
-								: "https://schema.org/OutOfStock",
-						itemCondition:
-							ad.condition === "brand_new"
-								? "https://schema.org/NewCondition"
-								: ad.condition === "second_hand"
-								? "https://schema.org/UsedCondition"
-								: "https://schema.org/RefurbishedCondition",
-						seller: {
-							"@type": "Organization",
-							name:
-								ad.seller_enterprise_name || ad.seller_name || "Unknown Seller",
-							url: `https://carboncube.co.ke/sellers/${ad.seller_id}`,
-						},
-						url: `${window.location.origin}/ads/${adId}`,
-						shippingDetails: {
-							"@type": "OfferShippingDetails",
-							shippingRate: {
-								"@type": "MonetaryAmount",
-								value: "0",
-								currency: "KES",
-							},
-							deliveryTime: {
-								"@type": "ShippingDeliveryTime",
-								businessDays: {
-									"@type": "OpeningHoursSpecification",
-									dayOfWeek: [
-										"Monday",
-										"Tuesday",
-										"Wednesday",
-										"Thursday",
-										"Friday",
-									],
-									opens: "09:00",
-									closes: "17:00",
-								},
-							},
-						},
-					},
-					category: ad.category_name,
-					additionalProperty: [
-						{
-							"@type": "PropertyValue",
-							name: "Subcategory",
-							value: ad.subcategory_name,
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Height",
-							value: ad.item_height ? `${ad.item_height} cm` : "Not specified",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Width",
-							value: ad.item_width ? `${ad.item_width} cm` : "Not specified",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Length",
-							value: ad.item_length ? `${ad.item_length} cm` : "Not specified",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Weight",
-							value: ad.item_weight
-								? `${ad.item_weight} ${ad.weight_unit || "Grams"}`
-								: "Not specified",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Seller Tier",
-							value: ad.seller_tier_name || "Free",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Quantity Available",
-							value: ad.quantity?.toString() || "0",
-						},
-					],
-					aggregateRating:
-						ad.rating || ad.mean_rating || ad.average_rating
-							? {
-									"@type": "AggregateRating",
-									ratingValue: ad.rating || ad.mean_rating || ad.average_rating,
-									reviewCount:
-										ad.review_count ||
-										ad.reviews_count ||
-										ad.total_reviews ||
-										0,
-									bestRating: 5,
-									worstRating: 1,
-							  }
-							: undefined,
-					url: `${window.location.origin}/ads/${adId}`,
-					datePublished: ad.created_at,
-					dateModified: ad.updated_at || ad.created_at,
-				},
-				additionalStructuredData: [
-					{
-						"@context": "https://schema.org",
-						"@type": "BreadcrumbList",
-						itemListElement: [
-							{
-								"@type": "ListItem",
-								position: 1,
-								name: "Home",
-								item: `${window.location.origin}/`,
-							},
-							{
-								"@type": "ListItem",
-								position: 2,
-								name: ad.category_name,
-								item: `${window.location.origin}/categories/${ad.category_id}`,
-							},
-							{
-								"@type": "ListItem",
-								position: 3,
-								name: ad.subcategory_name,
-								item: `${window.location.origin}/categories/${ad.category_id}/${ad.subcategory_id}`,
-							},
-							{
-								"@type": "ListItem",
-								position: 4,
-								name: ad.title,
-								item: `${window.location.origin}/ads/${adId}`,
-							},
-						],
-					},
-					{
-						"@context": "https://schema.org",
-						"@type": "Organization",
-						name: "Carbon Cube Kenya",
-						url: "https://carboncube.co.ke",
-						logo: "https://carboncube.co.ke/logo.png",
-						description:
-							"Kenya's leading online marketplace for buying and selling products",
-						address: {
-							"@type": "PostalAddress",
-							addressCountry: "KE",
-							addressLocality: "Nairobi",
-							addressRegion: "Nairobi",
-						},
-						contactPoint: {
-							"@type": "ContactPoint",
-							telephone: "+254-XXX-XXXXXX",
-							contactType: "customer service",
-							availableLanguage: ["English", "Swahili"],
-						},
-						sameAs: [
-							"https://facebook.com/carboncubekenya",
-							"https://twitter.com/CarbonCubeKE",
-							"https://instagram.com/carboncubekenya",
-						],
-					},
-					{
-						"@context": "https://schema.org",
-						"@type": "WebSite",
-						name: "Carbon Cube Kenya",
-						url: "https://carboncube.co.ke",
-						potentialAction: {
-							"@type": "SearchAction",
-							target: "https://carboncube.co.ke/search?q={search_term_string}",
-							"query-input": "required name=search_term_string",
-						},
-					},
-					// Enhanced Product Collection Schema
-					{
-						"@context": "https://schema.org",
-						"@type": "CollectionPage",
-						name: `${ad.category_name} - ${ad.subcategory_name}`,
-						description: `Browse ${ad.subcategory_name} products in ${ad.category_name} category`,
-						url: `${window.location.origin}/categories/${ad.category_id}/${ad.subcategory_id}`,
-						mainEntity: {
-							"@type": "ItemList",
-							name: `${ad.subcategory_name} Products`,
-							numberOfItems: 1,
-							itemListElement: [
-								{
-									"@type": "ListItem",
-									position: 1,
-									item: {
-										"@type": "Product",
-										name: ad.title,
-										url: `${window.location.origin}/ads/${adId}`,
-									},
-								},
-							],
-						},
-					},
-					// FAQ Schema for Common Questions
-					{
-						"@context": "https://schema.org",
-						"@type": "FAQPage",
-						mainEntity: [
-							{
-								"@type": "Question",
-								name: `What is the condition of ${ad.title}?`,
-								acceptedAnswer: {
-									"@type": "Answer",
-									text: `This ${ad.title} is in ${
-										ad.condition === "brand_new"
-											? "brand new"
-											: ad.condition === "second_hand"
-											? "used"
-											: "refurbished"
-									} condition.`,
-								},
-							},
-							{
-								"@type": "Question",
-								name: `Is ${ad.title} available for delivery?`,
-								acceptedAnswer: {
-									"@type": "Answer",
-									text: `Yes, ${ad.title} is available for delivery across Kenya with free shipping.`,
-								},
-							},
-							{
-								"@type": "Question",
-								name: `What is the price of ${ad.title}?`,
-								acceptedAnswer: {
-									"@type": "Answer",
-									text: `${ad.title} is priced at KSh ${
-										ad.price ? Number(ad.price).toLocaleString("en-KE") : "N/A"
-									}.`,
-								},
-							},
-						],
-					},
-					// Review Schema
-					...(ad.rating || ad.mean_rating || ad.average_rating
-						? [
-								{
-									"@context": "https://schema.org",
-									"@type": "Review",
-									itemReviewed: {
-										"@type": "Product",
-										name: ad.title,
-										description:
-											ad.description ||
-											`${ad.title} available on Carbon Cube Kenya`,
-									},
-									reviewRating: {
-										"@type": "Rating",
-										ratingValue:
-											ad.rating || ad.mean_rating || ad.average_rating,
-										bestRating: 5,
-										worstRating: 1,
-									},
-									author: {
-										"@type": "Organization",
-										name: "Carbon Cube Kenya Customers",
-									},
-									datePublished: ad.created_at,
-									publisher: {
-										"@type": "Organization",
-										name: "Carbon Cube Kenya",
-									},
-								},
-						  ]
-						: []),
-				],
-				// Advanced SEO Features
-				alternateLanguages: [
-					{ lang: "en", url: `${window.location.origin}/ads/${adId}` },
-					{ lang: "sw", url: `${window.location.origin}/sw/ads/${adId}` },
-				],
-				customMetaTags: [
-					{
-						name: "product:price:amount",
-						content: ad.price ? Number(ad.price).toFixed(2) : "0.00",
-					},
-					{ name: "product:price:currency", content: "KES" },
-					{
-						name: "product:availability",
-						content: ad.quantity > 0 ? "in stock" : "out of stock",
-					},
-					{ name: "product:condition", content: ad.condition || "new" },
-					{ name: "product:brand", content: ad.brand || "Unknown" },
-					{ name: "product:category", content: ad.category_name || "General" },
-					{ name: "product:retailer", content: "Carbon Cube Kenya" },
-					{
-						name: "product:retailer_part_no",
-						content: ad.id?.toString() || "",
-					},
-					{
-						property: "og:price:amount",
-						content: ad.price ? Number(ad.price).toFixed(2) : "0.00",
-					},
-					{ property: "og:price:currency", content: "KES" },
-					{
-						property: "og:availability",
-						content: ad.quantity > 0 ? "in stock" : "out of stock",
-					},
-					{ property: "og:condition", content: ad.condition || "new" },
-					{ property: "og:brand", content: ad.brand || "Unknown" },
-					{ property: "og:category", content: ad.category_name || "General" },
-					{ property: "og:retailer", content: "Carbon Cube Kenya" },
-					{ property: "og:retailer_part_no", content: ad.id?.toString() || "" },
-					{
-						property: "article:author",
-						content: ad.seller_enterprise_name || ad.seller_name || "Seller",
-					},
-					{
-						property: "article:published_time",
-						content: ad.created_at || new Date().toISOString(),
-					},
-					{
-						property: "article:modified_time",
-						content: ad.updated_at || ad.created_at || new Date().toISOString(),
-					},
-					{
-						property: "article:section",
-						content: ad.category_name || "Products",
-					},
-					{ property: "article:tag", content: ad.subcategory_name || "" },
-				],
-				imageWidth: 1200,
-				imageHeight: 630,
-				themeColor: "#FFD700",
-				viewport:
-					"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
-				// AI Search Optimization
-				aiSearchOptimized: true,
-				contentType: "product",
-				expertiseLevel: "expert",
-				contentDepth: "comprehensive",
-				aiFriendlyFormat: true,
-				conversationalKeywords: [
-					`where to buy ${ad.title} in Kenya`,
-					`best price for ${ad.title} Kenya`,
-					`${ad.brand || "product"} ${ad.title} Kenya`,
-					`buy ${ad.title} online Kenya`,
-					`${ad.condition} ${ad.title} Kenya`,
-					`verified seller ${ad.title}`,
-					`Carbon Cube Kenya ${ad.title}`,
-					`secure purchase ${ad.title}`,
-				],
-				aiCitationOptimized: true,
-		  }
+		? generateProductSEO(ad)
 		: {
 				title: "Product Details - Carbon Cube Kenya",
 				description: "Loading product details...",
@@ -1266,6 +770,10 @@ const AdDetails = () => {
 		setSidebarOpen(!sidebarOpen); // Toggle the sidebar open state
 	};
 
+	const handleSearch = () => {
+		// Implement search functionality here
+	};
+
 	const handleAddToWishlist = async () => {
 		if (!ad) return;
 
@@ -1350,22 +858,7 @@ const AdDetails = () => {
 
 	const renderRatingStars = (rating, reviewCount) => {
 		if (typeof rating !== "number" || rating < 0) {
-			return (
-				<div className="flex items-center space-x-2">
-					<div className="flex items-center space-x-1">
-						{[...Array(5)].map((_, index) => (
-							<FontAwesomeIcon
-								key={`empty-${index}`}
-								icon={faStarEmpty}
-								className="text-gray-300 text-sm"
-							/>
-						))}
-					</div>
-					<span className="text-sm text-gray-500 italic">
-						{rating.toFixed(1)}/5 ({reviewCount} Ratings)
-					</span>
-				</div>
-			);
+			return <div className="text-gray-400">Invalid rating</div>;
 		}
 
 		const fullStars = Math.floor(Math.max(0, Math.min(rating, 5)));
@@ -1379,25 +872,25 @@ const AdDetails = () => {
 						<FontAwesomeIcon
 							key={`full-${index}`}
 							icon={faStar}
-							className="text-yellow-400 text-sm"
+							className="text-yellow-400 text-lg"
 						/>
 					))}
 					{halfStar && (
 						<FontAwesomeIcon
 							icon={faStarHalfAlt}
-							className="text-yellow-400 text-sm"
+							className="text-yellow-400 text-lg"
 						/>
 					)}
 					{[...Array(emptyStars)].map((_, index) => (
 						<FontAwesomeIcon
 							key={`empty-${index}`}
 							icon={faStarEmpty}
-							className="text-gray-300 text-sm"
+							className="text-gray-300 text-lg"
 						/>
 					))}
 				</div>
-				<span className="text-sm text-gray-500 italic">
-					{rating.toFixed(1)}/5 ({reviewCount} Ratings)
+				<span className="text-sm text-gray-500">
+					<em>{rating.toFixed(1)}/5</em> <em>({reviewCount} Ratings)</em>
 				</span>
 			</div>
 		);
@@ -1714,7 +1207,7 @@ const AdDetails = () => {
 					</div>
 
 					{/* Main Content Area */}
-					<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 relative z-0">
+					<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8">
 						{ad && (
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
@@ -1722,6 +1215,7 @@ const AdDetails = () => {
 								transition={{ duration: 0.5 }}
 								className="space-y-2 sm:space-y-6 lg:space-y-8"
 							>
+								<div className="space-y-2 sm:space-y-6 lg:space-y-8">
 								{/* Breadcrumb */}
 								<nav className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 md:mb-6 overflow-x-auto pb-2">
 									<button
@@ -1752,7 +1246,7 @@ const AdDetails = () => {
 
 								{/* Product Title */}
 								<div className="mb-4 sm:mb-6">
-									<h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black leading-tight">
+									<h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
 										{ad.title}
 									</h1>
 								</div>
@@ -1762,11 +1256,8 @@ const AdDetails = () => {
 									const borderColor = getBorderColor(ad.seller_tier);
 									return (
 										<div
-											className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl shadow-lg sm:shadow-xl overflow-hidden relative w-full"
-											style={{
-												border: `2px solid ${borderColor}`,
-												position: "relative",
-											}}
+											className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl shadow-lg sm:shadow-xl overflow-hidden relative"
+											style={{ border: `2px solid ${borderColor}` }}
 										>
 											{/* Tier Badge */}
 											<div className="absolute top-3 right-3 z-30">
@@ -1778,13 +1269,13 @@ const AdDetails = () => {
 												</div>
 											</div>
 
-											<div className="grid grid-cols-1 xl:grid-cols-2 gap-0 w-full">
+											<div className="grid grid-cols-1 xl:grid-cols-2 gap-0">
 												{/* Image Gallery */}
-												<div className="relative p-2 sm:p-3 md:p-4 lg:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] overflow-hidden">
+												<div className="relative p-2 sm:p-3 md:p-4 lg:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]">
 													{/* Product Status Badge */}
 													<div className="absolute top-3 left-3 z-20">
 														<div
-															className={`px-2 py-1 text-white rounded text-xs font-medium shadow-lg ${
+															className={`px-2 py-1 text-white rounded text-xs font-medium ${
 																ad.quantity > 0 ? "bg-green-600" : "bg-red-600"
 															}`}
 														>
@@ -1843,11 +1334,9 @@ const AdDetails = () => {
 												</div>
 
 												{/* Product Info */}
-												<div className="p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 bg-white w-full">
+												<div className="p-3 sm:p-4 md:p-6 lg:p-8 xl:p-10 bg-white">
 													<div className="space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
-														{/* Basic Info */}
-														<div className="space-y-2 sm:space-y-3 lg:space-y-4">
-															{/* Product Meta */}
+														{/* Product Meta */}
 															<div className="mb-4 sm:mb-6">
 																<table className="w-full">
 																	<tbody>
@@ -1942,16 +1431,16 @@ const AdDetails = () => {
 																					className={
 																						showFullDescription
 																							? ""
-																							: "line-clamp-3"
+																							: ""
 																					}
 																					style={
 																						!showFullDescription
 																							? {
-																									display: "-webkit-box",
-																									WebkitLineClamp: 3,
-																									WebkitBoxOrient: "vertical",
-																									overflow: "hidden",
-																							  }
+																								display: "-webkit-box",
+																								WebkitLineClamp: 3,
+																								WebkitBoxOrient: "vertical",
+																								overflow: "hidden",
+																							}
 																							: {}
 																					}
 																				>
@@ -1959,15 +1448,13 @@ const AdDetails = () => {
 																				</p>
 																				<button
 																					onClick={() =>
-																						setShowFullDescription(
-																							!showFullDescription
-																						)
+																						setShowFullDescription(!showFullDescription)
 																					}
 																					className="text-blue-600 hover:text-blue-800 text-xs font-medium mt-2 transition-colors"
 																				>
 																					{showFullDescription
-																						? "Show less"
-																						: "Read more"}
+																						? "Show Less"
+																						: "Show More"}
 																				</button>
 																			</>
 																		) : (
@@ -1977,99 +1464,77 @@ const AdDetails = () => {
 																</div>
 															)}
 
-															{/* Price and Condition Card */}
-															<div className="w-full bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm">
-																<div className="flex flex-wrap items-center justify-between gap-3">
-																	{/* Price */}
-																	<div className="flex items-center space-x-1">
-																		<span className="text-sm sm:text-base text-gray-600">
-																			KSh
-																		</span>
-																		<span className="text-xl sm:text-2xl font-bold text-gray-900">
-																			{ad.price
-																				? Number(ad.price).toLocaleString(
-																						"en-KE",
-																						{
-																							minimumFractionDigits: 2,
-																							maximumFractionDigits: 2,
-																						}
-																				  )
-																				: "N/A"}
-																		</span>
-																	</div>
-
-																	{/* Condition */}
-																	<div className="flex items-center">
-																		<span
-																			className={`px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm font-semibold rounded-lg text-white whitespace-nowrap ${
-																				ad.condition === "brand_new"
-																					? "bg-green-500"
-																					: ad.condition === "second_hand"
-																					? "bg-orange-500"
-																					: ad.condition === "refurbished"
-																					? "bg-blue-500"
-																					: "bg-gray-500"
-																			}`}
-																		>
-																			{ad.condition === "brand_new"
-																				? "Brand New"
+															{/* Condition Badge */}
+															<div className="w-full flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+																<div className="flex items-center space-x-4 flex-1">
+																	<span className="text-lg font-bold text-gray-900">
+																		KSh{" "}
+																		{ad.price
+																			? Number(ad.price).toFixed(2)
+																			: "N/A"}
+																	</span>
+																	<span
+																		className={`px-2 py-1 text-xs font-medium rounded text-white ${
+																			ad.condition === "brand_new"
+																				? "bg-green-600"
 																				: ad.condition === "second_hand"
-																				? "Used"
+																				? "bg-orange-500"
 																				: ad.condition === "refurbished"
-																				? "Refurbished"
-																				: ad.condition || "Unknown"}
-																		</span>
-																	</div>
-
-																	{/* Listing Date */}
-																	<div className="text-xs sm:text-sm text-gray-500">
-																		Listed{" "}
-																		{ad.created_at
-																			? new Date(
-																					ad.created_at
-																			  ).toLocaleDateString("en-US", {
-																					day: "numeric",
-																					month: "long",
-																					year: "numeric",
-																			  })
-																			: "Recently"}
-																	</div>
+																				? "bg-blue-600"
+																				: "bg-gray-600"
+																		}`}
+																	>
+																		{ad.condition === "brand_new"
+																			? "Brand New"
+																			: ad.condition === "second_hand"
+																			? "Used"
+																			: ad.condition === "refurbished"
+																			? "Refurbished"
+																			: ad.condition || "Unknown"}
+																	</span>
+																</div>
+																<div className="text-xs text-gray-600 ml-4">
+																	Listed{" "}
+																	{ad.created_at
+																		? new Date(
+																				ad.created_at
+																		  ).toLocaleDateString("en-US", {
+																				day: "numeric",
+																				month: "long",
+																				year: "numeric",
+																		  })
+																		: "Recently"}
 																</div>
 															</div>
-														</div>
 
 														{/* Rating Section */}
 														<div
 															onClick={handleShowModal}
-															className="group cursor-pointer w-full bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-200"
+															className="group cursor-pointer p-4 bg-white/90 backdrop-blur-md rounded-xl border border-white/20 hover:bg-white/95 hover:shadow-xl transition-all duration-300 shadow-lg"
 														>
-															<div className="flex items-center justify-between">
-																<div className="flex items-center space-x-2">
+															<div className="flex items-center justify-between mb-2">
+																<p className="text-xs font-semibold text-gray-800">
 																	<FontAwesomeIcon
 																		icon={faStar}
-																		className="text-yellow-500 text-sm"
+																		className="mr-1 text-yellow-500"
 																	/>
-																	<span className="text-sm font-medium text-gray-900">
-																		Rating
-																	</span>
-																</div>
+																	Rating
+																</p>
 																<FontAwesomeIcon
 																	icon={faChevronRight}
-																	className="text-gray-400 text-sm group-hover:text-gray-600 transition-colors"
+																	className="text-gray-400 text-xs group-hover:text-gray-600 transition-colors"
 																/>
 															</div>
-															<div className="mt-2">
-																{renderRatingStars(
-																	ad.rating ||
-																		ad.mean_rating ||
-																		ad.average_rating ||
-																		0,
-																	ad.review_count ||
-																		ad.reviews_count ||
-																		ad.total_reviews ||
-																		0
-																)}
-															</div>
+															{renderRatingStars(
+																ad.rating ||
+																	ad.mean_rating ||
+																	ad.average_rating ||
+																	0,
+																ad.review_count ||
+																	ad.reviews_count ||
+																	ad.total_reviews ||
+																	0
+															)}
 														</div>
 
 														{/* Seller Section */}
@@ -2150,7 +1615,7 @@ const AdDetails = () => {
 															)}
 
 															{/* Secondary Actions */}
-															<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+															<div className="grid grid-cols-3 gap-2">
 																<button
 																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
 																	disabled={!ad || wish_listLoading}
@@ -2190,27 +1655,11 @@ const AdDetails = () => {
 																		Chat
 																	</span>
 																</button>
-
-																<button
-																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
-																	onClick={handleShare}
-																>
-																	<FontAwesomeIcon
-																		icon={faShareAlt}
-																		className="text-green-600"
-																	/>
-																	<span className="text-xs font-medium text-gray-700">
-																		Share
-																	</span>
-																</button>
 															</div>
 														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-									);
-								})()}
 
 								{/* Related Products */}
 								<div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 lg:p-8 border border-gray-100">
@@ -2347,13 +1796,15 @@ const AdDetails = () => {
 										</div>
 									)}
 								</div>
+								</div>
 							</motion.div>
 						)}
 					</div>
 				</div>
+			</div>
 
-				{/* Modals */}
-				<Modal centered show={showModal} onHide={handleCloseModal} size="lg">
+			{/* Modals */}
+			<Modal centered show={showModal} onHide={handleCloseModal} size="lg">
 					<Modal.Header className="border-0 pb-0">
 						<Modal.Title className="text-xl font-bold text-gray-900">
 							<FontAwesomeIcon icon={faStar} className="mr-2 text-yellow-500" />
@@ -2721,83 +2172,6 @@ const AdDetails = () => {
 					</Modal.Body>
 				</Modal>
 
-				{/* Share Modal */}
-				<Modal
-					centered
-					show={showShareModal}
-					onHide={handleCloseShareModal}
-					size="sm"
-				>
-					<Modal.Header className="border-0 pb-0">
-						<Modal.Title className="text-xl font-bold text-gray-900">
-							<FontAwesomeIcon
-								icon={faShareAlt}
-								className="mr-2 text-green-500"
-							/>
-							Share Product
-						</Modal.Title>
-					</Modal.Header>
-					<Modal.Body className="pt-0">
-						<div className="space-y-4">
-							<p className="text-gray-600 text-sm">
-								Share this product with your friends and family
-							</p>
-
-							<div className="grid grid-cols-2 gap-3">
-								<button
-									onClick={shareToFacebook}
-									className="flex items-center justify-center space-x-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-								>
-									<FontAwesomeIcon icon={faFacebook} className="text-lg" />
-									<span className="text-sm font-medium">Facebook</span>
-								</button>
-
-								<button
-									onClick={shareToTwitter}
-									className="flex items-center justify-center space-x-2 p-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
-								>
-									<FontAwesomeIcon icon={faTwitter} className="text-lg" />
-									<span className="text-sm font-medium">Twitter</span>
-								</button>
-
-								<button
-									onClick={shareToWhatsApp}
-									className="flex items-center justify-center space-x-2 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-								>
-									<FontAwesomeIcon icon={faWhatsapp} className="text-lg" />
-									<span className="text-sm font-medium">WhatsApp</span>
-								</button>
-
-								<button
-									onClick={shareToLinkedIn}
-									className="flex items-center justify-center space-x-2 p-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
-								>
-									<FontAwesomeIcon icon={faLinkedin} className="text-lg" />
-									<span className="text-sm font-medium">LinkedIn</span>
-								</button>
-							</div>
-
-							<div className="pt-2">
-								<button
-									onClick={copyToClipboard}
-									className="w-full flex items-center justify-center space-x-2 p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-								>
-									<FontAwesomeIcon icon={faShare} className="text-lg" />
-									<span className="text-sm font-medium">Copy Link</span>
-								</button>
-							</div>
-						</div>
-					</Modal.Body>
-					<Modal.Footer className="border-0 pt-0">
-						<button
-							className="w-full px-6 py-2 bg-gray-500 text-white rounded-xl font-semibold hover:bg-gray-600 transition-colors"
-							onClick={handleCloseShareModal}
-						>
-							Close
-						</button>
-					</Modal.Footer>
-				</Modal>
-
 				{/* Alert Modal */}
 				<AlertModal {...alertModalConfig} />
 
@@ -2823,7 +2197,6 @@ const AdDetails = () => {
 						</Toast.Body>
 					</Toast>
 				</ToastContainer>
-			</div>
 		</>
 	);
 };

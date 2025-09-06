@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Carousel from "react-bootstrap/Carousel";
-import { bannerImages, getResponsiveImageSrc } from "../../utils/imageConfig";
+import {
+	bannerImages,
+	getResponsiveImageSrc,
+	getResponsiveImageSrcSet,
+} from "../../utils/imageConfig";
 
 // Simple banner images with responsive sources
 const simpleBanners = bannerImages.map((banner) => ({
@@ -78,7 +82,7 @@ const Banner = () => {
 	}, []);
 
 	return (
-		<div className="w-full max-w-7xl mx-auto text-center overflow-visible relative z-1">
+		<div className="w-full max-w-7xl mx-auto text-center overflow-visible relative z-0">
 			{isLoading ? (
 				<div className="w-full mx-auto px-0">
 					<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-b-xl animate-pulse aspect-[16/9]"></div>
@@ -101,7 +105,13 @@ const Banner = () => {
 									height={banner.height}
 									className="w-full h-auto object-contain"
 									loading={index === 0 ? "eager" : "lazy"}
-									sizes="100vw"
+									fetchpriority={index === 0 ? "high" : "auto"}
+									sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1280px) 100vw, 100vw"
+									srcSet={getResponsiveImageSrcSet(banner.name)}
+									onError={(e) => {
+										console.warn(`Failed to load banner image: ${banner.src}`);
+										e.target.style.display = "none";
+									}}
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 

@@ -55,12 +55,16 @@ const WishListStats = ({ data }) => {
 
 	const options = {
 		responsive: true,
+		maintainAspectRatio: false,
 		plugins: {
 			legend: {
 				position: "top",
 				labels: {
 					usePointStyle: true, // Ensures circular legend markers
 					pointStyle: "circle", // Explicitly sets them to circles
+					font: {
+						size: window.innerWidth < 640 ? 10 : 12,
+					},
 				},
 			},
 			tooltip: {
@@ -74,23 +78,35 @@ const WishListStats = ({ data }) => {
 				beginAtZero: true,
 				min: 0,
 				max: Math.ceil(maxWishlistCount / 10) * 10,
-				ticks: { stepSize: 10 },
+				ticks: {
+					stepSize: 10,
+					font: {
+						size: window.innerWidth < 640 ? 10 : 12,
+					},
+				},
+			},
+			x: {
+				ticks: {
+					font: {
+						size: window.innerWidth < 640 ? 10 : 12,
+					},
+				},
 			},
 		},
 	};
 
 	return (
-		<div>
+		<div className="w-full">
 			{/* Wishlist Trends Chart */}
-			<div className="p-2">
-				<h5 className="font-semibold text-gray-800 mb-3">
+			<div className="p-1 sm:p-2">
+				<h5 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">
 					Wish List Trends (Last 5 Months)
 				</h5>
-				<div>
+				<div className="h-64 sm:h-80">
 					{Array.isArray(latestTrends) && latestTrends.length > 0 ? (
 						<Bar data={chartData} options={options} />
 					) : (
-						<div className="text-center py-8 text-gray-500">
+						<div className="text-center py-8 text-gray-500 text-sm sm:text-base">
 							No trends available
 						</div>
 					)}
