@@ -6,7 +6,7 @@ const axios = require("axios");
 const API_BASE_URL =
 	process.env.REACT_APP_BACKEND_URL ||
 	process.env.API_URL ||
-	"https://carboncube-ke.com/api";
+	"https://carboncube-ke.com";
 const SITE_BASE_URL =
 	process.env.REACT_APP_SITE_URL ||
 	process.env.SITE_URL ||
@@ -15,9 +15,11 @@ const SITE_BASE_URL =
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
 console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
 
-// Force current date for sitemap generation
-const CURRENT_DATE = new Date().toISOString().split("T")[0];
-const BUILD_TIMESTAMP = new Date().toISOString();
+// Force current date for sitemap generation - use UTC to ensure consistency
+const now = new Date();
+// Force to September 7th, 2025 for correct date
+const CURRENT_DATE = "2025-09-07";
+const BUILD_TIMESTAMP = now.toISOString();
 
 console.log(`🚀 Starting dynamic sitemap generation...`);
 console.log(`📅 Current Date: ${CURRENT_DATE}`);
@@ -48,14 +50,6 @@ const staticRoutes = [
 		priority: "0.8",
 		keywords:
 			"products, buy online Kenya, marketplace products, verified sellers, secure shopping, ecommerce Kenya",
-	},
-	{
-		path: "/shop",
-		lastmod: CURRENT_DATE,
-		changefreq: "hourly",
-		priority: "0.8",
-		keywords:
-			"shop online Kenya, Carbon Cube Kenya shop, marketplace shopping, online store Kenya, verified products",
 	},
 	{
 		path: "/about-us",
@@ -351,6 +345,59 @@ function generateAdUrls(ads) {
 	return adUrls;
 }
 
+// Fetch sellers for shop pages
+async function fetchSellers() {
+	try {
+		console.log("📡 Fetching sellers for shop pages...");
+		console.log(`📡 Sellers API: ${API_BASE_URL}/sellers`);
+		
+		const sellersResponse = await axios
+			.get(`${API_BASE_URL}/sellers`, {
+				timeout: 15000,
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+				}
+			})
+			.catch((error) => {
+				console.error(`Sellers API Error: ${error.message}`);
+				console.error(`Status: ${error.response?.status}`);
+				return { data: [] };
+			});
+
+		console.log(`📡 Sellers Response Status: ${sellersResponse.status || "N/A"}`);
+		
+		const sellers = Array.isArray(sellersResponse.data) 
+			? sellersResponse.data 
+			: [];
+
+		console.log(`Found ${sellers.length} sellers`);
+		return sellers;
+	} catch (error) {
+		console.error("Error fetching sellers:", error.message);
+		return [];
+	}
+}
+
+// Generate seller shop URLs
+function generateSellerShopUrls(sellers) {
+	const shopUrls = [];
+
+	(Array.isArray(sellers) ? sellers : []).forEach((seller) => {
+		if (seller.id && seller.slug) {
+			shopUrls.push({
+				path: `/shop/${seller.slug}`,
+				lastmod: CURRENT_DATE,
+				changefreq: "weekly",
+				priority: "0.7",
+				keywords: `${seller.name || seller.slug}, ${seller.name || seller.slug} Kenya, Carbon Cube Kenya seller, online shop Kenya, verified seller, marketplace shop`,
+			});
+		}
+	});
+
+	return shopUrls;
+}
+
 // Generate XML sitemap
 function generateSitemapXML(urls) {
 	const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>
@@ -521,20 +568,23 @@ async function generateDynamicSitemap() {
 		const { categories, subcategories } =
 			await fetchCategoriesAndSubcategories();
 		const ads = await fetchAds();
+		const sellers = await fetchSellers();
 
 		// Generate URLs
 		const categoryUrls = generateCategoryUrls(categories);
 		const subcategoryUrls = generateSubcategoryUrls(subcategories, categories);
 		const adUrls = generateAdUrls(ads);
+		const shopUrls = generateSellerShopUrls(sellers);
 
 		// Combine all URLs
-		const allUrls = [...staticRoutes, ...categoryUrls, ...subcategoryUrls, ...adUrls];
+		const allUrls = [...staticRoutes, ...categoryUrls, ...subcategoryUrls, ...adUrls, ...shopUrls];
 
 		console.log(`📊 Generated ${allUrls.length} URLs total:`);
 		console.log(`   - ${staticRoutes.length} static routes`);
 		console.log(`   - ${categoryUrls.length} category pages`);
 		console.log(`   - ${subcategoryUrls.length} subcategory pages`);
 		console.log(`   - ${adUrls.length} individual ad pages`);
+		console.log(`   - ${shopUrls.length} seller shop pages`);
 
 		// Generate sitemap XML
 		const sitemapXML = generateSitemapXML(allUrls);
