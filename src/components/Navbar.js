@@ -97,10 +97,8 @@ const Navbar = ({
 
 	// Listen for new messages in real-time
 	const handleNewMessage = useCallback((data) => {
-		console.log("Navbar: handleNewMessage called with:", data);
 		// Dispatch a custom event to refresh unread count
 		window.dispatchEvent(new CustomEvent("newMessage"));
-		console.log("Navbar: Custom event 'newMessage' dispatched");
 	}, []);
 
 	// Get user ID from token for real-time messaging
@@ -111,7 +109,7 @@ const Navbar = ({
 				// Check if token has the correct JWT format (3 parts separated by dots)
 				const parts = token.split(".");
 				if (parts.length !== 3) {
-					console.error("Invalid JWT token format:", token);
+					// Silently handle invalid JWT token format
 					return null;
 				}
 
@@ -123,7 +121,7 @@ const Navbar = ({
 					payload.id;
 				return userId;
 			} catch (error) {
-				console.error("Error decoding token:", error);
+				// Silently handle token decode errors
 				return null;
 			}
 		}
@@ -203,7 +201,7 @@ const Navbar = ({
 				setWishlistCount(data.count || 0);
 			}
 		} catch (error) {
-			console.error("Error fetching wishlist count:", error);
+			// Silently handle wishlist count errors
 		}
 	}, [isLoggedIn, userRole]);
 
@@ -226,14 +224,10 @@ const Navbar = ({
 				const data = await response.json();
 				setUnreadMessageCount(data.count || 0);
 			} else {
-				console.error(
-					"Failed to fetch unread count:",
-					response.status,
-					response.statusText
-				);
+				// Silently handle unread count fetch errors
 			}
 		} catch (error) {
-			console.error("Error fetching unread message count:", error);
+			// Silently handle unread message count errors
 		}
 	}, [isLoggedIn, userRole]);
 
@@ -288,9 +282,6 @@ const Navbar = ({
 		};
 
 		const handleNewMessage = () => {
-			console.log(
-				"Navbar: Event listener 'newMessage' triggered, refreshing unread count"
-			);
 			refreshUnreadMessageCount();
 		};
 
@@ -322,7 +313,7 @@ const Navbar = ({
 
 			setCategories(categoriesWithSubcategories);
 		} catch (error) {
-			console.error("Error fetching categories:", error);
+			// Silently handle categories fetch errors
 		}
 	};
 

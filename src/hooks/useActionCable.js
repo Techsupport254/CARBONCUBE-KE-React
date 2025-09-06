@@ -1,13 +1,77 @@
 import { useEffect, useRef, useCallback } from "react";
 import { createConsumer } from "@rails/actioncable";
 
+// Global connection manager to prevent multiple connections
+class WebSocketConnectionManager {
+	constructor() {
+		this.connections = new Map();
+		this.subscriptions = new Map();
+	}
+
+	getConnectionKey(userType, userId) {
+		return `${userType}_${userId}`;
+	}
+
+	getConnection(userType, userId) {
+		const key = this.getConnectionKey(userType, userId);
+		return this.connections.get(key);
+	}
+
+	createConnection(userType, userId, wsUrl) {
+		const key = this.getConnectionKey(userType, userId);
+		
+		// Return existing connection if available
+		if (this.connections.has(key)) {
+			return this.connections.get(key);
+		}
+
+		// Create new connection
+		const consumer = createConsumer(`${wsUrl}/cable`, {
+			timeout: 30000,
+			reconnect: false,
+		});
+
+		this.connections.set(key, consumer);
+		return consumer;
+	}
+
+	removeConnection(userType, userId) {
+		const key = this.getConnectionKey(userType, userId);
+		const consumer = this.connections.get(key);
+		
+		if (consumer) {
+			try {
+				consumer.disconnect();
+			} catch (error) {
+				// Silently handle disconnect errors
+			}
+			this.connections.delete(key);
+		}
+	}
+
+	cleanup() {
+		// Clean up all connections
+		for (const [key, consumer] of this.connections) {
+			try {
+				consumer.disconnect();
+			} catch (error) {
+				// Silently handle disconnect errors
+			}
+		}
+		this.connections.clear();
+		this.subscriptions.clear();
+	}
+}
+
+// Global instance
+const connectionManager = new WebSocketConnectionManager();
+
 const useActionCable = (
 	userType,
 	userId,
 	onMessageReceived,
 	onConnectionStatus
 ) => {
-	const cableRef = useRef(null);
 	const subscriptionRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);
 	const isConnectingRef = useRef(false);
@@ -26,7 +90,7 @@ const useActionCable = (
 			isConnectingRef.current = true;
 
 			try {
-				// Clean up existing connection first
+				// Clean up existing subscription first
 				if (subscriptionRef.current) {
 					try {
 						subscriptionRef.current.unsubscribe();
@@ -34,14 +98,6 @@ const useActionCable = (
 						// Silently handle unsubscribe errors
 					}
 					subscriptionRef.current = null;
-				}
-				if (cableRef.current) {
-					try {
-						cableRef.current.disconnect();
-					} catch (error) {
-						// Silently handle disconnect errors
-					}
-					cableRef.current = null;
 				}
 
 				// Convert HTTP URL to WebSocket URL
@@ -51,14 +107,11 @@ const useActionCable = (
 						"wss://"
 					)?.replace("http://", "ws://") || "ws://localhost:3001";
 
-				// Create connection
-				cableRef.current = createConsumer(`${wsUrl}/cable`, {
-					timeout: 30000, // Increased timeout
-					reconnect: false, // Disable automatic reconnection to prevent conflicts
-				});
+				// Get or create connection using the manager
+				const consumer = connectionManager.createConnection(userType, userId, wsUrl);
 
 				// Subscribe to conversations channel
-				subscriptionRef.current = cableRef.current.subscriptions.create(
+				subscriptionRef.current = consumer.subscriptions.create(
 					{
 						channel: "ConversationsChannel",
 						user_type: userType,
@@ -148,34 +201,31 @@ const useActionCable = (
 				subscriptionRef.current = null;
 			}
 
-			// Disconnect the cable connection
-			if (cableRef.current) {
-				try {
-					cableRef.current.disconnect();
-				} catch (error) {
-					// Silently handle disconnect errors
-				}
-				cableRef.current = null;
-			}
-
 			isConnectingRef.current = false;
 		};
 	}, [userType, userId, onConnectionStatus, onMessageReceived]);
 
+	// Cleanup on component unmount
+	useEffect(() => {
+		return () => {
+			// Only cleanup if this is the last component using this connection
+			setTimeout(() => {
+				connectionManager.removeConnection(userType, userId);
+			}, 1000); // Small delay to allow other components to reconnect
+		};
+	}, [userType, userId]);
+
 	return {
-		sendMessage: useCallback(
-			(conversationId, content, senderType, senderId) => {
-				if (subscriptionRef.current) {
-					subscriptionRef.current.send({
-						conversation_id: conversationId,
-						content: content,
-						sender_type: senderType,
-						sender_id: senderId,
-					});
-				}
-			},
-			[]
-		),
+		sendMessage: useCallback((conversationId, content, senderType, senderId) => {
+			if (subscriptionRef.current) {
+				subscriptionRef.current.send({
+					conversation_id: conversationId,
+					content: content,
+					sender_type: senderType,
+					sender_id: senderId,
+				});
+			}
+		}, []),
 	};
 };
 

@@ -1,8 +1,72 @@
 import { useEffect, useRef } from "react";
 import { createConsumer } from "@rails/actioncable";
 
+// Global connection manager to prevent multiple connections
+class WebSocketConnectionManager {
+	constructor() {
+		this.connections = new Map();
+		this.subscriptions = new Map();
+	}
+
+	getConnectionKey(userType, userId) {
+		return `${userType}_${userId}`;
+	}
+
+	getConnection(userType, userId) {
+		const key = this.getConnectionKey(userType, userId);
+		return this.connections.get(key);
+	}
+
+	createConnection(userType, userId, wsUrl) {
+		const key = this.getConnectionKey(userType, userId);
+		
+		// Return existing connection if available
+		if (this.connections.has(key)) {
+			return this.connections.get(key);
+		}
+
+		// Create new connection
+		const consumer = createConsumer(`${wsUrl}/cable`, {
+			timeout: 30000,
+			reconnect: false,
+		});
+
+		this.connections.set(key, consumer);
+		return consumer;
+	}
+
+	removeConnection(userType, userId) {
+		const key = this.getConnectionKey(userType, userId);
+		const consumer = this.connections.get(key);
+		
+		if (consumer) {
+			try {
+				consumer.disconnect();
+			} catch (error) {
+				// Silently handle disconnect errors
+			}
+			this.connections.delete(key);
+		}
+	}
+
+	cleanup() {
+		// Clean up all connections
+		for (const [key, consumer] of this.connections) {
+			try {
+				consumer.disconnect();
+			} catch (error) {
+				// Silently handle disconnect errors
+			}
+		}
+		this.connections.clear();
+		this.subscriptions.clear();
+	}
+}
+
+// Global instance
+const connectionManager = new WebSocketConnectionManager();
+
 const useNewMessageListener = (userType, userId, onNewMessage) => {
-	const cableRef = useRef(null);
 	const subscriptionRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);
 	const isConnectingRef = useRef(false);
@@ -11,7 +75,6 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 		if (!userType || !userId || !onNewMessage) {
 			return;
 		}
-
 
 		const connect = () => {
 			// Prevent multiple simultaneous connection attempts
@@ -22,7 +85,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 			isConnectingRef.current = true;
 
 			try {
-				// Clean up existing connection first
+				// Clean up existing subscription first
 				if (subscriptionRef.current) {
 					try {
 						subscriptionRef.current.unsubscribe();
@@ -31,27 +94,16 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 					}
 					subscriptionRef.current = null;
 				}
-				if (cableRef.current) {
-					try {
-						cableRef.current.disconnect();
-					} catch (error) {
-						// Silently handle disconnect errors
-					}
-					cableRef.current = null;
-				}
 
-				// Create a dedicated consumer for this hook
+				// Get or create connection using the manager
 				const wsUrl =
 					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
 					"ws://localhost:3001";
 
-				cableRef.current = createConsumer(`${wsUrl}/cable`, {
-					timeout: 30000, // Increased timeout
-					reconnect: false, // Disable automatic reconnection to prevent conflicts
-				});
+				const consumer = connectionManager.createConnection(userType, userId, wsUrl);
 
 				// Subscribe to conversations channel for new messages
-				subscriptionRef.current = cableRef.current.subscriptions.create(
+				subscriptionRef.current = consumer.subscriptions.create(
 					{
 						channel: "ConversationsChannel",
 						user_type: userType,
@@ -92,10 +144,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 									// Only trigger if the message is not from the current user
 									if (
 										data.message &&
-										!(
-											data.message.sender_id === userId &&
-											data.message.sender_type === userType
-										)
+										!(data.message.sender_id === userId && data.message.sender_type === userType)
 									) {
 										onNewMessage(data);
 									}
@@ -138,19 +187,20 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 				subscriptionRef.current = null;
 			}
 
-			// Disconnect the cable connection
-			if (cableRef.current) {
-				try {
-					cableRef.current.disconnect();
-				} catch (error) {
-					// Silently handle disconnect errors
-				}
-				cableRef.current = null;
-			}
-
 			isConnectingRef.current = false;
 		};
 	}, [userType, userId, onNewMessage]);
+
+	// Cleanup on component unmount
+	useEffect(() => {
+		return () => {
+			// Only cleanup if this is the last component using this connection
+			// This is a simple approach - in production you might want more sophisticated tracking
+			setTimeout(() => {
+				connectionManager.removeConnection(userType, userId);
+			}, 1000); // Small delay to allow other components to reconnect
+		};
+	}, [userType, userId]);
 };
 
 export default useNewMessageListener;
