@@ -17,8 +17,8 @@ console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
 
 // Force current date for sitemap generation - use UTC to ensure consistency
 const now = new Date();
-// Force to September 7th, 2025 for correct date
-const CURRENT_DATE = "2025-09-07";
+// Force to September 8th, 2025 for correct date
+const CURRENT_DATE = "2025-09-08";
 const BUILD_TIMESTAMP = now.toISOString();
 
 console.log(`🚀 Starting dynamic sitemap generation...`);
@@ -273,9 +273,7 @@ async function fetchCategoriesAndSubcategories() {
 	try {
 		console.log("📡 Fetching categories and subcategories...");
 		console.log(`📡 Categories API: ${API_BASE_URL}/sitemap/categories`);
-		console.log(
-			`📡 Subcategories API: ${API_BASE_URL}/sitemap/subcategories`
-		);
+		console.log(`📡 Subcategories API: ${API_BASE_URL}/sitemap/subcategories`);
 
 		// Try dedicated sitemap endpoints first (no pagination limits)
 		// If they fail, fallback to regular API endpoints
