@@ -6,7 +6,7 @@ const axios = require("axios");
 const API_BASE_URL =
 	process.env.REACT_APP_BACKEND_URL ||
 	process.env.API_URL ||
-	"https://carboncube-ke.com";
+	"https://carboncube-ke.com/api";
 const SITE_BASE_URL =
 	process.env.REACT_APP_SITE_URL ||
 	process.env.SITE_URL ||
@@ -272,9 +272,9 @@ function getFallbackSellers() {
 async function fetchCategoriesAndSubcategories() {
 	try {
 		console.log("📡 Fetching categories and subcategories...");
-		console.log(`📡 Categories API: ${API_BASE_URL}/api/sitemap/categories`);
+		console.log(`📡 Categories API: ${API_BASE_URL}/sitemap/categories`);
 		console.log(
-			`📡 Subcategories API: ${API_BASE_URL}/api/sitemap/subcategories`
+			`📡 Subcategories API: ${API_BASE_URL}/sitemap/subcategories`
 		);
 
 		// Try dedicated sitemap endpoints first (no pagination limits)
@@ -283,7 +283,7 @@ async function fetchCategoriesAndSubcategories() {
 
 		[categoriesResponse, subcategoriesResponse] = await Promise.all([
 			axios
-				.get(`${API_BASE_URL}/api/sitemap/categories`, {
+				.get(`${API_BASE_URL}/sitemap/categories`, {
 					timeout: 15000,
 					headers: {
 						Accept: "application/json",
@@ -306,7 +306,7 @@ async function fetchCategoriesAndSubcategories() {
 					return { data: [], status: error.response?.status };
 				}),
 			axios
-				.get(`${API_BASE_URL}/api/sitemap/subcategories`, {
+				.get(`${API_BASE_URL}/sitemap/subcategories`, {
 					timeout: 15000,
 					headers: {
 						Accept: "application/json",
@@ -365,7 +365,7 @@ async function fetchCategoriesAndSubcategories() {
 
 			[categoriesResponse, subcategoriesResponse] = await Promise.all([
 				axios
-					.get(`${API_BASE_URL}/api/buyer/categories`, {
+					.get(`${API_BASE_URL}/buyer/categories`, {
 						timeout: 15000,
 						headers: {
 							Accept: "application/json",
@@ -381,7 +381,7 @@ async function fetchCategoriesAndSubcategories() {
 						return { data: [], status: error.response?.status };
 					}),
 				axios
-					.get(`${API_BASE_URL}/api/buyer/subcategories`, {
+					.get(`${API_BASE_URL}/buyer/subcategories`, {
 						timeout: 15000,
 						headers: {
 							Accept: "application/json",
@@ -551,10 +551,10 @@ function generateSubcategoryUrls(subcategories, categories) {
 async function fetchAds() {
 	try {
 		console.log("📡 Fetching individual ads...");
-		console.log(`📡 Ads API: ${API_BASE_URL}/api/sitemap/ads`);
+		console.log(`📡 Ads API: ${API_BASE_URL}/sitemap/ads`);
 
 		const adsResponse = await axios
-			.get(`${API_BASE_URL}/api/sitemap/ads`, {
+			.get(`${API_BASE_URL}/sitemap/ads`, {
 				timeout: 30000, // Longer timeout for large dataset
 				headers: {
 					Accept: "application/json",
@@ -630,10 +630,10 @@ function generateAdUrls(ads) {
 async function fetchSellers() {
 	try {
 		console.log("📡 Fetching sellers for shop pages...");
-		console.log(`📡 Sellers API: ${API_BASE_URL}/api/sitemap/sellers`);
+		console.log(`📡 Sellers API: ${API_BASE_URL}/sitemap/sellers`);
 
 		const sellersResponse = await axios
-			.get(`${API_BASE_URL}/api/sitemap/sellers`, {
+			.get(`${API_BASE_URL}/sitemap/sellers`, {
 				timeout: 15000,
 				headers: {
 					Accept: "application/json",
