@@ -78,18 +78,14 @@ export const logClickEvent = async (
 		});
 
 		if (!response.ok) {
-			console.warn(
-				"Failed to log click event:",
-				response.status,
-				response.statusText
-			);
+			// Silently handle failed requests - don't spam console
 			return false;
 		}
 
 		// Note: result variable removed as it was unused
 		return true;
 	} catch (error) {
-		console.error("Error logging click event:", error);
+		// Silently handle errors - don't spam console
 		return false;
 	}
 };
@@ -125,12 +121,13 @@ export const logAdSearch = async (
 		});
 
 		if (!response.ok) {
-			console.warn("Failed to log ad search");
+			// Silently handle failed requests - don't spam console
+			return false;
 		}
 
 		return response.ok;
 	} catch (error) {
-		console.error("Error logging ad search:", error);
+		// Silently handle errors - don't spam console
 		return false;
 	}
 };
@@ -161,12 +158,13 @@ export const logSubcategoryClick = async (subcategory, category) => {
 		});
 
 		if (!response.ok) {
-			console.warn("Failed to log subcategory click");
+			// Silently handle failed requests - don't spam console
+			return false;
 		}
 
 		return response.ok;
 	} catch (error) {
-		console.error("Error logging subcategory click:", error);
+		// Silently handle errors - don't spam console
 		return false;
 	}
 };

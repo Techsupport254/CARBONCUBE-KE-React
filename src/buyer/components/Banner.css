@@ -206,7 +206,8 @@
 
 @media screen and (max-width: 1023px) {
     .banner {
-        height: 40vh;
+        height: 50vh;
+        min-height: 300px;
     }
 
     .banner .content h1 {
@@ -227,14 +228,31 @@
 }
 
 @media screen and (max-width: 767px) {
+    .banner {
+        height: 45vh;
+        min-height: 250px;
+    }
+
     .banner .content h1 {
         font-size: 5em;
     }
 
     .carousel-image {
         background-size: contain;
-        height: 30vh;
-        margin-top: -22px;
-        /* z-index: 3; */
+        height: 45vh;
+        min-height: 250px;
+        margin-top: 0;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .banner {
+        height: 40vh;
+        min-height: 200px;
+    }
+
+    .carousel-image {
+        height: 40vh;
+        min-height: 200px;
     }
 }

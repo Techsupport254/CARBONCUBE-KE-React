@@ -1,32 +1,25 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Container, Row, Col, Card, Button, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBox } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import Spinner from "react-spinkit";
-import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
-import { Cloudinary } from "cloudinary-core";
 import "../css/SellerAds.css";
 import Swal from "sweetalert2";
-import AlertModal from "../../components/AlertModal";
 
 const AddNewAd = () => {
-	const [loading, setLoading] = useState(false);
-	const [searchTerm, setSearchTerm] = useState("");
 	const [categories, setCategories] = useState([]);
 	const [subcategories, setSubcategories] = useState([]);
 	const [selectedCategory, setSelectedCategory] = useState("");
 	const [selectedSubcategory, setSelectedSubcategory] = useState("");
-	const [isSaving, setIsSaving] = useState(false);
 	const [weightUnit, setWeightUnit] = useState("Grams");
 	const [uploading, setUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
-	const [alertVisible, setAlertVisible] = useState(false);
-	const [editedImages, setEditedImages] = useState([]);
 	const [selectedImages, setSelectedImages] = useState([]);
-	const [activeIndex, setActiveIndex] = useState(0);
-	const [viewActiveIndex, setViewActiveIndex] = useState(0);
+	const [editedImages, setEditedImages] = useState([]);
+	const [loading] = useState(false);
+	const [scanningImages, setScanningImages] = useState([]);
 	const navigate = useNavigate();
 	const [formErrors, setFormErrors] = useState({});
 
@@ -44,19 +37,6 @@ const AddNewAd = () => {
 		weight_unit: "",
 		item_weight: "",
 	});
-
-	const [showAlertModal, setShowAlertModal] = useState(false);
-	const [alertModalMessage, setAlertModalMessage] = useState("");
-	const [alertModalConfig, setAlertModalConfig] = useState({
-		icon: "",
-		title: "",
-		confirmText: "",
-		cancelText: "",
-		showCancel: false,
-		onConfirm: () => {},
-	});
-
-	const sellerId = sessionStorage.getItem("sellerId");
 
 	const nsfwModelRef = useRef(null);
 
@@ -125,12 +105,6 @@ const AddNewAd = () => {
 	}, [loadNSFWModel]);
 
 	useEffect(() => {
-		if (showAlertModal) {
-			setWeightUnit("Grams"); // Default value on open
-		}
-	}, [showAlertModal]);
-
-	useEffect(() => {
 		const firstErrorKey = Object.keys(formErrors)[0];
 		if (firstErrorKey) {
 			const el = document.querySelector(`[name="${firstErrorKey}"]`);
@@ -158,13 +132,6 @@ const AddNewAd = () => {
 		setFormValues((prevState) => ({
 			...prevState,
 			subcategory_id, // Update subcategory_id
-		}));
-	};
-
-	const handleWeightUnitChange = (unit) => {
-		setFormValues((prev) => ({
-			...prev,
-			weight_unit: unit,
 		}));
 	};
 
@@ -271,16 +238,13 @@ const AddNewAd = () => {
 
 		if (Object.keys(newErrors).length > 0) {
 			setFormErrors(newErrors);
-			setAlertModalMessage("Please fill in all required fields.");
-			setAlertModalConfig({
+			Swal.fire({
 				icon: "warning",
-				title: "Required Fields Missing",
-				confirmText: "OK",
-				cancelText: "",
-				showCancel: false,
-				onConfirm: () => setShowAlertModal(false),
+				title: "Missing Required Information",
+				text: "Please complete all required fields to create your product listing.",
+				confirmButtonText: "Complete Fields",
+				confirmButtonColor: "#eab308",
 			});
-			setShowAlertModal(true);
 			return;
 		}
 
@@ -308,18 +272,13 @@ const AddNewAd = () => {
 			}
 
 			if (safeImages.length === 0) {
-				setAlertModalMessage(
-					"All selected images were blocked. Please upload appropriate images."
-				);
-				setAlertModalConfig({
+				Swal.fire({
 					icon: "warning",
-					title: "Images Blocked",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => setShowAlertModal(false),
+					title: "Images Not Suitable",
+					text: "All selected images were flagged as inappropriate. Please upload suitable product images.",
+					confirmButtonText: "Upload Different Images",
+					confirmButtonColor: "#eab308",
 				});
-				setShowAlertModal(true);
 				setUploading(false);
 				return;
 			}
@@ -377,75 +336,63 @@ const AddNewAd = () => {
 							xhr.status === 403 &&
 							response.error?.includes("Ad creation limit")
 						) {
-							setAlertModalMessage(response.error);
-							setAlertModalConfig({
+							Swal.fire({
 								icon: "warning",
 								title: "Ad Limit Reached",
-								confirmText: "Upgrade Tier",
-								cancelText: "Close",
-								showCancel: true,
-								onConfirm: () => {
-									setShowAlertModal(false);
+								text: response.error,
+								showCancelButton: true,
+								confirmButtonText: "Upgrade Tier",
+								cancelButtonText: "Close",
+								confirmButtonColor: "#eab308",
+								cancelButtonColor: "#6b7280",
+							}).then((result) => {
+								if (result.isConfirmed) {
 									navigate("/seller/tiers");
-								},
+								}
 							});
-							setShowAlertModal(true);
 							setUploading(false);
 							return;
 						}
 
 						if (xhr.status >= 200 && xhr.status < 300) {
 							const result = response;
-							setAlertModalMessage("Ad added successfully!");
-							setAlertModalConfig({
+							Swal.fire({
 								icon: "success",
-								title: "Ad Added",
-								confirmText: "OK",
-								cancelText: "",
-								showCancel: false,
-								onConfirm: () => {
-									setShowAlertModal(false);
-									navigate("/seller/ads");
-								},
+								title: "Product Created Successfully",
+								text: `"${title}" has been successfully added to your store!`,
+								confirmButtonText: "View Products",
+								confirmButtonColor: "#eab308",
+							}).then(() => {
+								navigate("/seller/ads");
 							});
-							setShowAlertModal(true);
 							resolve(result);
 						} else {
 							// Handle validation errors
 							if (response.errors && Array.isArray(response.errors)) {
 								const errorMessage = response.errors.join(", ");
-								setAlertModalMessage(`Error adding ad: ${errorMessage}`);
-								setAlertModalConfig({
+								Swal.fire({
 									icon: "error",
-									title: "Add Ad Failed",
-									confirmText: "OK",
-									cancelText: "",
-									showCancel: false,
-									onConfirm: () => setShowAlertModal(false),
+									title: "Product Creation Failed",
+									text: `Unable to create product: ${errorMessage}`,
+									confirmButtonText: "Try Again",
+									confirmButtonColor: "#eab308",
 								});
-								setShowAlertModal(true);
 							} else if (response.error) {
-								setAlertModalMessage(`Error adding ad: ${response.error}`);
-								setAlertModalConfig({
+								Swal.fire({
 									icon: "error",
-									title: "Add Ad Failed",
-									confirmText: "OK",
-									cancelText: "",
-									showCancel: false,
-									onConfirm: () => setShowAlertModal(false),
+									title: "Product Creation Failed",
+									text: `Unable to create product: ${response.error}`,
+									confirmButtonText: "Try Again",
+									confirmButtonColor: "#eab308",
 								});
-								setShowAlertModal(true);
 							} else {
-								setAlertModalMessage(`Error adding ad: ${xhr.responseText}`);
-								setAlertModalConfig({
+								Swal.fire({
 									icon: "error",
-									title: "Add Ad Failed",
-									confirmText: "OK",
-									cancelText: "",
-									showCancel: false,
-									onConfirm: () => setShowAlertModal(false),
+									title: "Product Creation Failed",
+									text: "Unable to create product. Please check your connection and try again.",
+									confirmButtonText: "Try Again",
+									confirmButtonColor: "#eab308",
 								});
-								setShowAlertModal(true);
 							}
 							reject(new Error(`Upload failed with status: ${xhr.status}`));
 						}
@@ -462,18 +409,13 @@ const AddNewAd = () => {
 			await uploadPromise;
 
 			if (skippedImages > 0) {
-				setAlertModalMessage(
-					`${skippedImages} image(s) were flagged as explicit and were not uploaded.`
-				);
-				setAlertModalConfig({
+				Swal.fire({
 					icon: "warning",
-					title: "Images Filtered",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => setShowAlertModal(false),
+					title: "Some Images Filtered",
+					text: `${skippedImages} image(s) were flagged as inappropriate and were not included in your product listing.`,
+					confirmButtonText: "Continue",
+					confirmButtonColor: "#eab308",
 				});
-				setShowAlertModal(true);
 			}
 
 			// Reset
@@ -500,16 +442,13 @@ const AddNewAd = () => {
 				// Error message already shown in xhr.onload
 				return;
 			}
-			setAlertModalMessage("Failed to add ad. Please try again.");
-			setAlertModalConfig({
+			Swal.fire({
 				icon: "error",
-				title: "Add Ad Failed",
-				confirmText: "OK",
-				cancelText: "",
-				showCancel: false,
-				onConfirm: () => setShowAlertModal(false),
+				title: "Connection Error",
+				text: "Unable to create product. Please check your internet connection and try again.",
+				confirmButtonText: "Try Again",
+				confirmButtonColor: "#eab308",
 			});
-			setShowAlertModal(true);
 		} finally {
 			setUploading(false);
 			setUploadProgress(0);
@@ -532,16 +471,13 @@ const AddNewAd = () => {
 			// Limit number of images allowed
 			const allowableSlots = MAX_IMAGES - currentCount;
 			if (allowableSlots <= 0) {
-				setAlertModalMessage(`You can only upload up to ${MAX_IMAGES} images.`);
-				setAlertModalConfig({
+				Swal.fire({
 					icon: "warning",
 					title: "Upload Limit Reached",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => setShowAlertModal(false),
+					text: `You can only upload up to ${MAX_IMAGES} images.`,
+					confirmButtonText: "OK",
+					confirmButtonColor: "#eab308",
 				});
-				setShowAlertModal(true);
 				return;
 			}
 
@@ -564,34 +500,97 @@ const AddNewAd = () => {
 					invalidFiles.length === 1 ? "" : "s"
 				}.`;
 
-				setAlertModalMessage(alertMessage);
-				setAlertModalConfig({
+				Swal.fire({
 					icon: "warning",
 					title: "File Too Large",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => {
-						setShowAlertModal(false);
-						if (validFiles.length > 0) {
-							if (mode === "edit") {
-								setEditedImages((prev) => [...prev, ...validFiles]);
-							} else {
-								setSelectedImages((prev) => [...prev, ...validFiles]);
-							}
+					text: alertMessage,
+					confirmButtonText: "OK",
+					confirmButtonColor: "#eab308",
+				}).then(() => {
+					if (validFiles.length > 0) {
+						// Add valid files to state immediately
+						if (mode === "edit") {
+							setEditedImages((prev) => [...prev, ...validFiles]);
+						} else {
+							setSelectedImages((prev) => [...prev, ...validFiles]);
 						}
-					},
+
+						// Mark images as scanning and check for NSFW content
+						const fileIds = validFiles.map(
+							(file, index) => `${file.name}-${index}`
+						);
+						setScanningImages((prev) => [...prev, ...fileIds]);
+
+						// Check each file for NSFW content asynchronously
+						validFiles.forEach(async (file, index) => {
+							const fileId = `${file.name}-${index}`;
+							const isNSFW = await checkImage(file);
+
+							// Remove from scanning
+							setScanningImages((prev) => prev.filter((id) => id !== fileId));
+
+							if (isNSFW) {
+								// Remove unsafe image from state
+								if (mode === "edit") {
+									setEditedImages((prev) => prev.filter((img) => img !== file));
+								} else {
+									setSelectedImages((prev) =>
+										prev.filter((img) => img !== file)
+									);
+								}
+
+								// Show error message
+								Swal.fire({
+									icon: "error",
+									title: "Inappropriate Content Detected",
+									text: `"${file.name}" contains inappropriate content and has been removed.`,
+									confirmButtonText: "OK",
+									confirmButtonColor: "#eab308",
+								});
+							}
+						});
+					}
 				});
-				setShowAlertModal(true);
 			} else {
-				// All files are valid and within limit
+				// All files are valid and within limit - add to state immediately
 				if (mode === "edit") {
 					setEditedImages((prev) => [...prev, ...validFiles]);
 				} else {
 					setSelectedImages((prev) => [...prev, ...validFiles]);
 				}
 
-				// Images added successfully
+				// Mark images as scanning and check for NSFW content
+				const fileIds = validFiles.map(
+					(file, index) => `${file.name}-${index}`
+				);
+				setScanningImages((prev) => [...prev, ...fileIds]);
+
+				// Check each file for NSFW content asynchronously
+				validFiles.forEach(async (file, index) => {
+					const fileId = `${file.name}-${index}`;
+					const isNSFW = await checkImage(file);
+
+					// Remove from scanning
+					setScanningImages((prev) => prev.filter((id) => id !== fileId));
+
+					if (isNSFW) {
+						// Remove unsafe image from state
+						if (mode === "edit") {
+							setEditedImages((prev) => prev.filter((img) => img !== file));
+						} else {
+							setSelectedImages((prev) => prev.filter((img) => img !== file));
+						}
+
+						// Show error message
+						Swal.fire({
+							icon: "error",
+							title: "Inappropriate Content Detected",
+							text: `"${file.name}" contains inappropriate content and has been removed.`,
+							confirmButtonText: "OK",
+							confirmButtonColor: "#eab308",
+						});
+					}
+				});
 			}
 		} catch (error) {
 			console.error("Error processing selected images:", error);
@@ -615,350 +614,549 @@ const AddNewAd = () => {
 			<div className="min-h-screen bg-gray-50">
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex">
-					<Sidebar />
-					<div className="flex-1">
-						<div className="max-w-4xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6">
-							{/* Header Section */}
-							<div className="mb-4 sm:mb-6">
-								<div className="flex items-center gap-4 mb-4">
-									<Button
-										variant="outline-secondary"
-										onClick={() => navigate("/seller/ads")}
-										className="flex items-center gap-2"
-									>
-										<FontAwesomeIcon icon={faArrowLeft} />
-										Back to Ads
-									</Button>
-									<div>
-										<h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-											Add New Product
-										</h1>
-										<p className="text-sm sm:text-base text-gray-600 mt-1">
-											Create a new product listing for your store
-										</p>
-									</div>
-								</div>
-							</div>
+					<div className="flex-1 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto w-full">
+						{/* Header */}
+						<div className="mb-4 sm:mb-6">
+							<button
+								onClick={() => navigate("/seller/ads")}
+								className="flex items-center text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 transition-colors text-sm sm:text-base"
+							>
+								<FontAwesomeIcon
+									icon={faArrowLeft}
+									className="mr-2 text-xs sm:text-sm"
+								/>
+								<span className="hidden xs:inline">Back to Products</span>
+								<span className="xs:hidden">Back</span>
+							</button>
 
-							{/* Form Section */}
-							<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+							<div className="mb-6">
+								<h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 break-words leading-tight mb-2">
+									Add New Product
+								</h1>
+								<p className="text-gray-600 text-xs sm:text-sm">
+									Create a new product listing for your store
+								</p>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+							{/* Main Content */}
+							<div className="lg:col-span-3 space-y-3 sm:space-y-4 lg:space-y-6">
 								<Form>
-									<Row>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Title *</Form.Label>
-												<Form.Control
+									{/* Basic Information Section */}
+									<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+										<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+											Basic Information
+										</h2>
+
+										<div className="space-y-4">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Product Title *
+												</label>
+												<input
 													type="text"
 													name="title"
 													value={formValues.title}
 													onChange={handleFormChange}
-													isInvalid={!!formErrors.title}
-													placeholder="Enter product title"
+													className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
+														formErrors.title
+															? "border-red-300"
+															: "border-gray-300"
+													}`}
+													placeholder="Enter a descriptive product title"
 												/>
-												<Form.Control.Feedback type="invalid">
-													{formErrors.title}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Brand *</Form.Label>
-												<Form.Control
-													type="text"
-													name="brand"
-													value={formValues.brand}
+												{formErrors.title && (
+													<p className="text-red-600 text-sm mt-1">
+														{formErrors.title}
+													</p>
+												)}
+											</div>
+
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-1">
+														Brand *
+													</label>
+													<input
+														type="text"
+														name="brand"
+														value={formValues.brand}
+														onChange={handleFormChange}
+														className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
+															formErrors.brand
+																? "border-red-300"
+																: "border-gray-300"
+														}`}
+														placeholder="Enter brand name"
+													/>
+													{formErrors.brand && (
+														<p className="text-red-600 text-sm mt-1">
+															{formErrors.brand}
+														</p>
+													)}
+												</div>
+
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-1">
+														Manufacturer *
+													</label>
+													<input
+														type="text"
+														name="manufacturer"
+														value={formValues.manufacturer}
+														onChange={handleFormChange}
+														className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
+															formErrors.manufacturer
+																? "border-red-300"
+																: "border-gray-300"
+														}`}
+														placeholder="Enter manufacturer name"
+													/>
+													{formErrors.manufacturer && (
+														<p className="text-red-600 text-sm mt-1">
+															{formErrors.manufacturer}
+														</p>
+													)}
+												</div>
+											</div>
+
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-1">
+													Product Description *
+												</label>
+												<textarea
+													name="description"
+													value={formValues.description}
 													onChange={handleFormChange}
-													isInvalid={!!formErrors.brand}
-													placeholder="Enter brand name"
+													rows={4}
+													className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors resize-none ${
+														formErrors.description
+															? "border-red-300"
+															: "border-gray-300"
+													}`}
+													placeholder="Describe your product in detail..."
 												/>
-												<Form.Control.Feedback type="invalid">
-													{formErrors.brand}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-									</Row>
+												{formErrors.description && (
+													<p className="text-red-600 text-sm mt-1">
+														{formErrors.description}
+													</p>
+												)}
+											</div>
+										</div>
+									</div>
 
-									<Form.Group className="mb-3">
-										<Form.Label>Description *</Form.Label>
-										<Form.Control
-											as="textarea"
-											rows={3}
-											name="description"
-											value={formValues.description}
-											onChange={handleFormChange}
-											isInvalid={!!formErrors.description}
-											placeholder="Enter product description"
-										/>
-										<Form.Control.Feedback type="invalid">
-											{formErrors.description}
-										</Form.Control.Feedback>
-									</Form.Group>
+									{/* Images Section */}
+									<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+										<div className="flex justify-between items-center mb-3 sm:mb-4">
+											<h2 className="text-base sm:text-lg font-semibold text-gray-900">
+												Product Images
+											</h2>
+											<div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+												<span>{selectedImages.length}/3</span>
+											</div>
+										</div>
 
-									<Row>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Price (Kshs) *</Form.Label>
-												<Form.Control
+										{/* Images Grid */}
+										<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 mb-4">
+											{/* Selected Images */}
+											{selectedImages.map((image, index) => {
+												const fileId = `${image.name}-${index}`;
+												const isScanning = scanningImages.includes(fileId);
+
+												return (
+													<div
+														key={index}
+														className="relative bg-gray-50 rounded-lg overflow-hidden border-2 border-dashed border-yellow-300"
+													>
+														<div className="relative bg-white aspect-square">
+															<img
+																src={URL.createObjectURL(image)}
+																alt={`Preview ${index + 1}`}
+																className="w-full h-full object-contain"
+																style={{ backgroundColor: "#f9fafb" }}
+															/>
+															{/* Scanning overlay */}
+															{isScanning && (
+																<div className="absolute inset-0 bg-yellow-500 bg-opacity-20 flex items-center justify-center">
+																	<div className="bg-white rounded-lg px-3 py-2 shadow-lg">
+																		<div className="flex items-center gap-2">
+																			<div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+																			<span className="text-yellow-700 font-medium text-sm">
+																				Scanning...
+																			</span>
+																		</div>
+																	</div>
+																</div>
+															)}
+															<div className="absolute top-2 right-2">
+																<button
+																	onClick={() => removeImage(index)}
+																	className="w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-colors shadow-lg"
+																	title="Remove image"
+																>
+																	×
+																</button>
+															</div>
+															<div className="absolute bottom-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+																{index + 1}
+															</div>
+														</div>
+													</div>
+												);
+											})}
+
+											{/* Upload Area */}
+											{selectedImages.length < 3 && (
+												<div className="relative bg-gray-50 rounded-lg overflow-hidden">
+													<input
+														type="file"
+														multiple
+														accept="image/*"
+														onChange={(e) => handleFileSelect(e.target.files)}
+														className="hidden"
+														id="image-upload-input"
+													/>
+													<label
+														htmlFor="image-upload-input"
+														className="relative bg-white aspect-square border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors cursor-pointer flex flex-col items-center justify-center text-gray-600 hover:text-gray-800"
+													>
+														<FontAwesomeIcon
+															icon={faBox}
+															className="text-xl mb-2"
+														/>
+														<span className="text-xs font-medium text-center px-2">
+															Add Image
+														</span>
+													</label>
+												</div>
+											)}
+										</div>
+
+										{/* No Images State */}
+										{selectedImages.length === 0 && (
+											<div className="text-center py-6 sm:py-8 text-gray-500">
+												<FontAwesomeIcon
+													icon={faBox}
+													className="text-4xl sm:text-6xl mb-3 sm:mb-4 text-gray-300"
+												/>
+												<p className="text-sm sm:text-base text-gray-500 mb-4">
+													No images selected
+												</p>
+												<label
+													htmlFor="image-upload-input"
+													className="inline-flex items-center px-4 py-2 bg-yellow-500 text-white text-sm rounded-md hover:bg-yellow-600 transition-colors cursor-pointer"
+												>
+													<FontAwesomeIcon icon={faBox} className="mr-2" />
+													Select Images
+												</label>
+											</div>
+										)}
+									</div>
+								</Form>
+							</div>
+
+							{/* Sidebar */}
+							<div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
+								{/* Price & Inventory */}
+								<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+									<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+										Pricing & Inventory
+									</h2>
+									<div className="space-y-3">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Price (Kshs) *
+											</label>
+											<div className="relative">
+												<span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+													Ksh
+												</span>
+												<input
 													type="number"
 													name="price"
 													value={formValues.price}
 													onChange={handleFormChange}
-													isInvalid={!!formErrors.price}
-													placeholder="Enter price"
+													className={`w-full pl-12 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
+														formErrors.price
+															? "border-red-300"
+															: "border-gray-300"
+													}`}
+													placeholder="0.00"
 												/>
-												<Form.Control.Feedback type="invalid">
+											</div>
+											{formErrors.price && (
+												<p className="text-red-600 text-sm mt-1">
 													{formErrors.price}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Quantity *</Form.Label>
-												<Form.Control
-													type="number"
-													name="quantity"
-													value={formValues.quantity}
-													onChange={handleFormChange}
-													isInvalid={!!formErrors.quantity}
-													placeholder="Enter quantity"
-												/>
-												<Form.Control.Feedback type="invalid">
+												</p>
+											)}
+										</div>
+
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Quantity in Stock *
+											</label>
+											<input
+												type="number"
+												name="quantity"
+												value={formValues.quantity}
+												onChange={handleFormChange}
+												className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
+													formErrors.quantity
+														? "border-red-300"
+														: "border-gray-300"
+												}`}
+												placeholder="Enter quantity"
+											/>
+											{formErrors.quantity && (
+												<p className="text-red-600 text-sm mt-1">
 													{formErrors.quantity}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-									</Row>
+												</p>
+											)}
+										</div>
+									</div>
+								</div>
 
-									<Row>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Manufacturer *</Form.Label>
-												<Form.Control
-													type="text"
-													name="manufacturer"
-													value={formValues.manufacturer}
-													onChange={handleFormChange}
-													isInvalid={!!formErrors.manufacturer}
-													placeholder="Enter manufacturer"
-												/>
-												<Form.Control.Feedback type="invalid">
-													{formErrors.manufacturer}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Condition *</Form.Label>
-												<Form.Select
-													name="condition"
-													value={formValues.condition}
-													onChange={handleFormChange}
-													isInvalid={!!formErrors.condition}
-												>
-													<option value="">Select condition</option>
-													<option value="brand_new">Brand New</option>
-													<option value="second_hand">Second Hand</option>
-													<option value="refurbished">Refurbished</option>
-												</Form.Select>
-												<Form.Control.Feedback type="invalid">
+								{/* Product Details */}
+								<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+									<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+										Product Details
+									</h2>
+									<div className="space-y-3">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Condition *
+											</label>
+											<select
+												name="condition"
+												value={formValues.condition}
+												onChange={handleFormChange}
+												className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors bg-white ${
+													formErrors.condition
+														? "border-red-300"
+														: "border-gray-300"
+												}`}
+											>
+												<option value="">Select condition</option>
+												<option value="brand_new">Brand New</option>
+												<option value="second_hand">Second Hand</option>
+												<option value="refurbished">Refurbished</option>
+											</select>
+											{formErrors.condition && (
+												<p className="text-red-600 text-sm mt-1">
 													{formErrors.condition}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-									</Row>
+												</p>
+											)}
+										</div>
 
-									<Row>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Category *</Form.Label>
-												<Form.Select
-													value={selectedCategory}
-													onChange={handleCategoryChange}
-													isInvalid={!!formErrors.category}
-												>
-													<option value="">Select category</option>
-													{categories.map((category) => (
-														<option key={category.id} value={category.id}>
-															{category.name}
-														</option>
-													))}
-												</Form.Select>
-												<Form.Control.Feedback type="invalid">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Category *
+											</label>
+											<select
+												value={selectedCategory}
+												onChange={handleCategoryChange}
+												className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors bg-white ${
+													formErrors.category
+														? "border-red-300"
+														: "border-gray-300"
+												}`}
+											>
+												<option value="">Select category</option>
+												{categories.map((category) => (
+													<option key={category.id} value={category.id}>
+														{category.name}
+													</option>
+												))}
+											</select>
+											{formErrors.category && (
+												<p className="text-red-600 text-sm mt-1">
 													{formErrors.category}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Subcategory *</Form.Label>
-												<Form.Select
-													value={selectedSubcategory}
-													onChange={handleSubcategoryChange}
-													isInvalid={!!formErrors.subcategory}
-													disabled={!selectedCategory}
-												>
-													<option value="">Select subcategory</option>
-													{subcategories.map((subcategory) => (
-														<option key={subcategory.id} value={subcategory.id}>
-															{subcategory.name}
-														</option>
-													))}
-												</Form.Select>
-												<Form.Control.Feedback type="invalid">
-													{formErrors.subcategory}
-												</Form.Control.Feedback>
-											</Form.Group>
-										</Col>
-									</Row>
+												</p>
+											)}
+										</div>
 
-									<Row>
-										<Col md={4}>
-											<Form.Group className="mb-3">
-												<Form.Label>Length (cm)</Form.Label>
-												<Form.Control
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Subcategory *
+											</label>
+											<select
+												value={selectedSubcategory}
+												onChange={handleSubcategoryChange}
+												disabled={!selectedCategory}
+												className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors bg-white disabled:bg-gray-50 disabled:text-gray-400 ${
+													formErrors.subcategory
+														? "border-red-300"
+														: "border-gray-300"
+												}`}
+											>
+												<option value="">
+													{!selectedCategory
+														? "First select a category"
+														: "Select subcategory"}
+												</option>
+												{subcategories.map((subcategory) => (
+													<option key={subcategory.id} value={subcategory.id}>
+														{subcategory.name}
+													</option>
+												))}
+											</select>
+											{formErrors.subcategory && (
+												<p className="text-red-600 text-sm mt-1">
+													{formErrors.subcategory}
+												</p>
+											)}
+										</div>
+									</div>
+								</div>
+
+								{/* Dimensions */}
+								<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+									<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+										Dimensions
+										<span className="text-sm text-gray-500 font-normal ml-2">
+											(Optional)
+										</span>
+									</h2>
+									<div className="space-y-3">
+										<div className="grid grid-cols-3 gap-2">
+											<div>
+												<label className="block text-xs text-gray-600 mb-1">
+													Length (cm)
+												</label>
+												<input
 													type="number"
 													name="item_length"
 													value={formValues.item_length}
 													onChange={handleFormChange}
-													placeholder="Length"
+													className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+													placeholder="L"
 												/>
-											</Form.Group>
-										</Col>
-										<Col md={4}>
-											<Form.Group className="mb-3">
-												<Form.Label>Width (cm)</Form.Label>
-												<Form.Control
+											</div>
+											<div>
+												<label className="block text-xs text-gray-600 mb-1">
+													Width (cm)
+												</label>
+												<input
 													type="number"
 													name="item_width"
 													value={formValues.item_width}
 													onChange={handleFormChange}
-													placeholder="Width"
+													className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+													placeholder="W"
 												/>
-											</Form.Group>
-										</Col>
-										<Col md={4}>
-											<Form.Group className="mb-3">
-												<Form.Label>Height (cm)</Form.Label>
-												<Form.Control
+											</div>
+											<div>
+												<label className="block text-xs text-gray-600 mb-1">
+													Height (cm)
+												</label>
+												<input
 													type="number"
 													name="item_height"
 													value={formValues.item_height}
 													onChange={handleFormChange}
-													placeholder="Height"
+													className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+													placeholder="H"
 												/>
-											</Form.Group>
-										</Col>
-									</Row>
-
-									<Row>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Weight</Form.Label>
-												<Form.Control
-													type="number"
-													name="item_weight"
-													value={formValues.item_weight}
-													onChange={handleFormChange}
-													placeholder="Enter weight"
-												/>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group className="mb-3">
-												<Form.Label>Weight Unit</Form.Label>
-												<div className="d-flex gap-2">
-													<Button
-														variant={
-															weightUnit === "Grams"
-																? "primary"
-																: "outline-primary"
-														}
-														size="sm"
-														onClick={() => handleAddWeightUnitChange("Grams")}
-													>
-														Grams
-													</Button>
-													<Button
-														variant={
-															weightUnit === "Kilograms"
-																? "primary"
-																: "outline-primary"
-														}
-														size="sm"
-														onClick={() =>
-															handleAddWeightUnitChange("Kilograms")
-														}
-													>
-														Kilograms
-													</Button>
-												</div>
-											</Form.Group>
-										</Col>
-									</Row>
-
-									<Form.Group className="mb-4">
-										<Form.Label>Product Images (Max 3)</Form.Label>
-										<Form.Control
-											type="file"
-											multiple
-											accept="image/*"
-											onChange={(e) => handleFileSelect(e.target.files)}
-										/>
-										{selectedImages.length > 0 && (
-											<div className="mt-2">
-												<small className="text-muted">
-													{selectedImages.length} image(s) selected
-												</small>
-											</div>
-										)}
-									</Form.Group>
-
-									{uploading && (
-										<div className="mb-3">
-											<div className="text-center">
-												<div className="text-sm text-gray-600 mb-2">
-													Uploading... {uploadProgress}%
-												</div>
-												<div className="w-full bg-gray-200 rounded-full h-2.5">
-													<div
-														className="bg-blue-600 h-2.5 rounded-full"
-														style={{ width: `${uploadProgress}%` }}
-													></div>
-												</div>
 											</div>
 										</div>
-									)}
 
-									<div className="flex gap-3 justify-end">
-										<Button
-											variant="secondary"
-											onClick={() => navigate("/seller/ads")}
-											disabled={uploading}
-										>
-											Cancel
-										</Button>
-										<Button
-											variant="primary"
-											onClick={handleAddNewAd}
-											disabled={uploading}
-											className="bg-yellow-500 hover:bg-yellow-600 border-yellow-500"
-										>
-											{uploading ? "Adding..." : "Add Product"}
-										</Button>
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Weight
+											</label>
+											<input
+												type="number"
+												name="item_weight"
+												value={formValues.item_weight}
+												onChange={handleFormChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
+												placeholder="Enter weight"
+											/>
+										</div>
+
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-1">
+												Weight Unit
+											</label>
+											<div className="flex gap-2">
+												<button
+													type="button"
+													onClick={() => handleAddWeightUnitChange("Grams")}
+													className={`flex-1 py-2 px-3 text-sm border rounded-md font-medium transition-colors ${
+														weightUnit === "Grams"
+															? "bg-yellow-500 text-white border-yellow-500"
+															: "bg-white text-gray-700 border-gray-300 hover:border-yellow-400"
+													}`}
+												>
+													Grams
+												</button>
+												<button
+													type="button"
+													onClick={() => handleAddWeightUnitChange("Kilograms")}
+													className={`flex-1 py-2 px-3 text-sm border rounded-md font-medium transition-colors ${
+														weightUnit === "Kilograms"
+															? "bg-yellow-500 text-white border-yellow-500"
+															: "bg-white text-gray-700 border-gray-300 hover:border-yellow-400"
+													}`}
+												>
+													Kilograms
+												</button>
+											</div>
+										</div>
 									</div>
-								</Form>
+								</div>
+							</div>
+						</div>
+
+						{/* Upload Progress and Action Buttons */}
+						<div className="lg:col-span-5 mt-6">
+							{uploading && (
+								<div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+									<div className="flex items-center justify-between mb-3">
+										<h4 className="text-base font-semibold text-gray-900">
+											Creating Product...
+										</h4>
+										<span className="text-gray-700 font-medium">
+											{uploadProgress}%
+										</span>
+									</div>
+									<div className="w-full bg-gray-200 rounded-full h-2">
+										<div
+											className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+											style={{ width: `${uploadProgress}%` }}
+										/>
+									</div>
+									<p className="text-gray-600 text-sm mt-2">
+										Please wait while we create your product listing...
+									</p>
+								</div>
+							)}
+
+							<div className="bg-white rounded-lg shadow-sm p-4">
+								<div className="flex flex-col sm:flex-row gap-3 justify-end">
+									<button
+										type="button"
+										onClick={() => navigate("/seller/ads")}
+										disabled={uploading}
+										className="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Cancel
+									</button>
+									<button
+										type="button"
+										onClick={handleAddNewAd}
+										disabled={uploading}
+										className="px-6 py-2 bg-yellow-500 text-white font-medium rounded-md hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										{uploading ? "Creating Product..." : "Create Product"}
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-
-			<AlertModal
-				show={showAlertModal}
-				onHide={() => setShowAlertModal(false)}
-				message={alertModalMessage}
-				config={alertModalConfig}
-			/>
 		</>
 	);
 };

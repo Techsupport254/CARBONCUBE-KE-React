@@ -30,7 +30,7 @@ const ProductImageGallery = ({
 				<img
 					src={validUrl}
 					alt={`Product ${index + 1}`}
-					className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+					className="w-full h-full object-cover transition-transform duration-300"
 					onError={() => handleImageError(index)}
 					loading="lazy"
 				/>
@@ -44,14 +44,26 @@ const ProductImageGallery = ({
 
 	if (!ad?.images || ad.images.length === 0) {
 		return (
-			<div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden bg-gray-100">
-				<img
-					src={getFallbackImage()}
-					alt="Product"
-					className="w-full h-full object-cover"
-				/>
-				<div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-full text-xs font-medium">
-					1 / 1
+			<div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+				<div className="text-gray-400">
+					<svg
+						width="64"
+						height="64"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="1.5"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="mb-3"
+					>
+						<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+						<circle cx="8.5" cy="8.5" r="1.5" />
+						<polyline points="21,15 16,10 5,21" />
+					</svg>
+				</div>
+				<div className="text-sm text-gray-500 font-medium text-center px-4">
+					No Image Available
 				</div>
 			</div>
 		);

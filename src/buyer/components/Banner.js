@@ -115,26 +115,26 @@ const Banner = () => {
 								/>
 								<div className="absolute bottom-0 left-0 w-full h-[50%] bg-gradient-to-b from-transparent to-gray-300 z-5"></div>
 
-								{/* Banner Text Overlay - Centered in first half of banner - Only on last banner */}
+								{/* Banner Text Overlay - Centered and responsive - Only on last banner */}
 								{index === simpleBanners.length - 1 && (
-									<div className="absolute inset-0 flex items-center justify-center z-10">
-										<div className="text-center text-white transform -translate-y-1/3">
-											<div className="bg-black bg-opacity-40 backdrop-blur-md rounded-3xl px-10 py-8 border border-white border-opacity-30 shadow-2xl max-w-2xl mx-4">
-												<h1 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-2xl bg-gradient-to-r from-white via-yellow-100 to-orange-100 bg-clip-text text-transparent">
+									<div className="absolute inset-0 flex items-center justify-center z-10 px-4 sm:px-6 md:px-8">
+										<div className="text-center text-white w-full max-w-4xl">
+											<div className="bg-black bg-opacity-40 backdrop-blur-md rounded-2xl sm:rounded-3xl px-6 py-6 sm:px-10 sm:py-8 border border-white border-opacity-30 shadow-2xl mx-auto">
+												<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-3 sm:mb-4 drop-shadow-2xl bg-gradient-to-r from-white via-yellow-100 to-orange-100 bg-clip-text text-transparent leading-tight">
 													Carbon Cube
 												</h1>
-												<div className="w-32 h-1.5 bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 mx-auto mb-6 rounded-full shadow-lg"></div>
-												<p className="text-xl md:text-2xl font-semibold drop-shadow-lg text-gray-50 leading-relaxed">
+												<div className="w-20 sm:w-24 md:w-32 h-1 sm:h-1.5 bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400 mx-auto mb-4 sm:mb-6 rounded-full shadow-lg"></div>
+												<p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold drop-shadow-lg text-gray-50 leading-relaxed px-2">
 													Premium Automotive Parts & Accessories
 												</p>
-												<div className="mt-6 flex justify-center space-x-3">
-													<div className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-md"></div>
+												<div className="mt-4 sm:mt-6 flex justify-center space-x-2 sm:space-x-3">
+													<div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-400 rounded-full animate-pulse shadow-md"></div>
 													<div
-														className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-md"
+														className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-pulse shadow-md"
 														style={{ animationDelay: "0.2s" }}
 													></div>
 													<div
-														className="w-3 h-3 bg-orange-400 rounded-full animate-pulse shadow-md"
+														className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-400 rounded-full animate-pulse shadow-md"
 														style={{ animationDelay: "0.4s" }}
 													></div>
 												</div>

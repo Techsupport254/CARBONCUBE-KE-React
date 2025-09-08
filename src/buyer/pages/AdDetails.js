@@ -40,6 +40,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useSEO from "../../hooks/useSEO";
+import { generateProductSEO } from "../../utils/seoHelpers";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl, getFallbackImage } from "../../utils/imageUtils";
@@ -619,7 +620,7 @@ const AdDetails = () => {
 				url: `${window.location.origin}/ads/${adId}`,
 				type: "product",
 		  };
-	useSEO(seoData);
+	const seoComponent = useSEO(seoData);
 
 	// Initialize authentication state
 	useEffect(() => {
@@ -1458,16 +1459,28 @@ const AdDetails = () => {
 		return (
 			<div className="w-full h-full rounded-2xl overflow-hidden relative">
 				{/* Default Image Case */}
-				{!ad.media_urls || ad.media_urls.length === 0 ? (
-					<div className="w-full h-full flex items-center justify-center rounded-2xl">
-						<div className="text-center">
-							<FontAwesomeIcon
-								icon={faBox}
-								className="text-gray-400 text-6xl mb-4"
-							/>
-							<p className="text-gray-500 text-lg font-medium">
-								No Image Available
-							</p>
+				{(!ad.media_urls || ad.media_urls.length === 0) &&
+				(!ad.media || ad.media.length === 0) ? (
+					<div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center rounded-2xl">
+						<div className="text-gray-400">
+							<svg
+								width="64"
+								height="64"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								className="mb-3"
+							>
+								<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+								<circle cx="8.5" cy="8.5" r="1.5" />
+								<polyline points="21,15 16,10 5,21" />
+							</svg>
+						</div>
+						<div className="text-sm text-gray-500 font-medium text-center px-4">
+							No Image Available
 						</div>
 					</div>
 				) : (
@@ -1478,11 +1491,11 @@ const AdDetails = () => {
 								setCarouselActiveIndex(selectedIndex)
 							}
 							className="h-full"
-							controls={ad.media_urls.length > 1}
+							controls={(ad.media_urls || ad.media || []).length > 1}
 							indicators={false}
 							interval={null}
 						>
-							{ad.media_urls.map((url, index) => (
+							{(ad.media_urls || ad.media || []).map((url, index) => (
 								<Carousel.Item key={index} className="h-full">
 									<div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
 										<img
@@ -1490,26 +1503,58 @@ const AdDetails = () => {
 											src={getValidImageUrl(url)}
 											alt={`Product ${index + 1}`}
 											onError={(e) => {
-												e.target.src = getFallbackImage();
+												e.target.style.display = "none";
+												e.target.nextSibling.style.display = "flex";
 											}}
 										/>
+										{/* Fallback for failed image */}
+										<div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl hidden">
+											<div className="text-gray-400">
+												<svg
+													width="48"
+													height="48"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="1.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													className="mb-2"
+												>
+													<rect
+														x="3"
+														y="3"
+														width="18"
+														height="18"
+														rx="2"
+														ry="2"
+													/>
+													<circle cx="8.5" cy="8.5" r="1.5" />
+													<polyline points="21,15 16,10 5,21" />
+												</svg>
+											</div>
+											<div className="text-xs text-gray-500 font-medium text-center px-2">
+												No Image
+											</div>
+										</div>
 									</div>
 								</Carousel.Item>
 							))}
 						</Carousel>
 
 						{/* Image Counter */}
-						{ad.media_urls.length > 1 && (
+						{(ad.media_urls || ad.media || []).length > 1 && (
 							<div className="absolute bottom-16 left-4 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm z-30">
-								{carouselActiveIndex + 1} / {ad.media_urls.length}
+								{carouselActiveIndex + 1} /{" "}
+								{(ad.media_urls || ad.media || []).length}
 							</div>
 						)}
 
 						{/* Thumbnail Navigation */}
-						{ad.media_urls && ad.media_urls.length > 1 && (
+						{(ad.media_urls || ad.media || []).length > 1 && (
 							<div className="absolute bottom-16 right-4 z-30">
 								<div className="flex gap-2">
-									{ad.media_urls.map((image, index) => (
+									{(ad.media_urls || ad.media || []).map((image, index) => (
 										<div
 											key={index}
 											className={`cursor-pointer transition-all duration-300 rounded-lg overflow-hidden border-2 ${
@@ -1528,9 +1573,36 @@ const AdDetails = () => {
 												alt={`Thumbnail ${index + 1}`}
 												className="w-full h-full object-cover"
 												onError={(e) => {
-													e.target.src = getFallbackImage();
+													e.target.style.display = "none";
+													e.target.nextSibling.style.display = "flex";
 												}}
 											/>
+											{/* Fallback for failed thumbnail */}
+											<div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 hidden">
+												<div className="text-gray-400">
+													<svg
+														width="16"
+														height="16"
+														viewBox="0 0 24 24"
+														fill="none"
+														stroke="currentColor"
+														strokeWidth="1.5"
+														strokeLinecap="round"
+														strokeLinejoin="round"
+													>
+														<rect
+															x="3"
+															y="3"
+															width="18"
+															height="18"
+															rx="2"
+															ry="2"
+														/>
+														<circle cx="8.5" cy="8.5" r="1.5" />
+														<polyline points="21,15 16,10 5,21" />
+													</svg>
+												</div>
+											</div>
 										</div>
 									))}
 								</div>
@@ -1698,6 +1770,7 @@ const AdDetails = () => {
 
 	return (
 		<>
+			{seoComponent}
 			<Navbar
 				mode="buyer"
 				onSidebarToggle={handleSidebarToggle}
@@ -2128,68 +2201,84 @@ const AdDetails = () => {
 														{/* Action Buttons */}
 														<div className="space-y-3">
 															{/* Primary Action - Contact */}
-															{showSellerDetails && seller ? (
-																<a
-																	href={`tel:${seller.phone_number}`}
-																	className="block w-full"
-																>
-																	<button className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900">
-																		{seller.phone_number}
-																	</button>
-																</a>
-															) : (
-																<button
-																	className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900"
-																	onClick={handleRevealSellerDetails}
-																	disabled={loading}
-																>
-																	{loading
-																		? "Loading..."
-																		: "Reveal Seller Contact"}
-																</button>
+															{userRole !== "seller" && (
+																<>
+																	{showSellerDetails && seller ? (
+																		<a
+																			href={`tel:${seller.phone_number}`}
+																			className="block w-full"
+																		>
+																			<button className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900">
+																				{seller.phone_number}
+																			</button>
+																		</a>
+																	) : (
+																		<button
+																			className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900"
+																			onClick={handleRevealSellerDetails}
+																			disabled={loading}
+																		>
+																			{loading
+																				? "Loading..."
+																				: "Reveal Seller Contact"}
+																		</button>
+																	)}
+																</>
 															)}
 
 															{/* Secondary Actions */}
-															<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-																<button
-																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
-																	disabled={!ad || wish_listLoading}
-																	onClick={handleAddToWishlist}
-																>
-																	<FontAwesomeIcon
-																		icon={faHeart}
-																		className="text-red-500"
-																	/>
-																	<span className="text-xs font-medium text-gray-700">
-																		Wishlist
-																	</span>
-																</button>
+															<div
+																className={`grid gap-2 ${
+																	userRole === "seller"
+																		? "grid-cols-1"
+																		: "grid-cols-2 sm:grid-cols-4"
+																}`}
+															>
+																{userRole !== "seller" && (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		disabled={!ad || wish_listLoading}
+																		onClick={handleAddToWishlist}
+																	>
+																		<FontAwesomeIcon
+																			icon={faHeart}
+																			className="text-red-500"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Wishlist
+																		</span>
+																	</button>
+																)}
 
-																<button
-																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
-																	onClick={handleShowReviewModal}
-																>
-																	<FontAwesomeIcon
-																		icon={faEdit}
-																		className="text-yellow-600"
-																	/>
-																	<span className="text-xs font-medium text-gray-700">
-																		Review
-																	</span>
-																</button>
+																{userRole !== "seller" && (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		onClick={handleShowReviewModal}
+																	>
+																		<FontAwesomeIcon
+																			icon={faEdit}
+																			className="text-yellow-600"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Review
+																		</span>
+																	</button>
+																)}
 
-																<button
-																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
-																	onClick={handleOpenChatModal}
-																>
-																	<FontAwesomeIcon
-																		icon={faComments}
-																		className="text-blue-600"
-																	/>
-																	<span className="text-xs font-medium text-gray-700">
-																		Chat
-																	</span>
-																</button>
+																{userRole !== "seller" && (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		onClick={handleOpenChatModal}
+																	>
+																		<FontAwesomeIcon
+																			icon={faComments}
+																			className="text-blue-600"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Chat
+																		</span>
+																	</button>
+																)}
 
 																<button
 																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
@@ -2278,11 +2367,9 @@ const AdDetails = () => {
 																</div>
 																<div className="flex flex-col h-full">
 																	{/* Ad image */}
-																	<Card.Img
-																		variant="top"
-																		loading="lazy"
-																		src={
-																			relatedAd.first_media_url
+																	<div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
+																		{(() => {
+																			const imageUrl = relatedAd.first_media_url
 																				? relatedAd.first_media_url
 																						.replace(/\n/g, "")
 																						.trim()
@@ -2298,20 +2385,71 @@ const AdDetails = () => {
 																				? relatedAd.media[0]
 																						.replace(/\n/g, "")
 																						.trim()
-																				: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
-																		}
-																		alt={relatedAd.title || "Product Image"}
-																		className="object-contain w-full h-auto aspect-square rounded-lg transition-opacity duration-300 ease-in-out"
-																		onLoad={(e) => {
-																			e.target.style.opacity = "1";
-																		}}
-																		onError={(e) => {
-																			// Use a data URI as fallback to prevent infinite loops
-																			e.target.src =
-																				"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
-																			e.target.style.opacity = "1";
-																		}}
-																	/>
+																				: null;
+
+																			return imageUrl ? (
+																				<img
+																					src={imageUrl}
+																					alt={
+																						relatedAd.title || "Product Image"
+																					}
+																					className="w-full h-full object-contain transition-opacity duration-300 ease-in-out"
+																					onLoad={(e) => {
+																						e.target.style.opacity = "1";
+																					}}
+																					onError={(e) => {
+																						e.target.style.display = "none";
+																						e.target.nextSibling.style.display =
+																							"flex";
+																					}}
+																				/>
+																			) : null;
+																		})()}
+																		{/* Fallback for no image */}
+																		<div
+																			className={`w-full h-full flex flex-col items-center justify-center ${(() => {
+																				const hasImage =
+																					relatedAd.first_media_url ||
+																					(relatedAd.media_urls &&
+																						Array.isArray(
+																							relatedAd.media_urls
+																						) &&
+																						relatedAd.media_urls.length > 0) ||
+																					(relatedAd.media &&
+																						Array.isArray(relatedAd.media) &&
+																						relatedAd.media.length > 0);
+																				return hasImage ? "hidden" : "flex";
+																			})()}`}
+																		>
+																			<div className="text-gray-400">
+																				<svg
+																					width="32"
+																					height="32"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					strokeWidth="1.5"
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					className="mb-1"
+																				>
+																					<rect
+																						x="3"
+																						y="3"
+																						width="18"
+																						height="18"
+																						rx="2"
+																						ry="2"
+																					/>
+																					<circle cx="8.5" cy="8.5" r="1.5" />
+																					<polyline points="21,15 16,10 5,21" />
+																				</svg>
+																			</div>
+																			<div className="text-xs text-gray-500 font-medium text-center px-2">
+																				No Image
+																			</div>
+																		</div>
+																	</div>
 
 																	{/* Ad title - now inside the card */}
 																	<div className="px-2 py-1 bg-white">
@@ -2598,19 +2736,53 @@ const AdDetails = () => {
 										>
 											{/* Product Image Container */}
 											<div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 p-2">
-												<img
-													className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-													src={
+												{item.media && item.media.length > 0 ? (
+													<img
+														className="w-full h-full object-contain transition-transform duration-300"
+														src={item.media[0]}
+														alt={item.title || "Seller product image"}
+														onError={(e) => {
+															e.target.style.display = "none";
+															e.target.nextSibling.style.display = "flex";
+														}}
+													/>
+												) : null}
+												{/* Fallback for no image */}
+												<div
+													className={`w-full h-full flex flex-col items-center justify-center ${
 														item.media && item.media.length > 0
-															? item.media[0]
-															: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
-													}
-													alt={item.title || "Seller product image"}
-													onError={(e) => {
-														e.target.src =
-															"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
-													}}
-												/>
+															? "hidden"
+															: "flex"
+													}`}
+												>
+													<div className="text-gray-400">
+														<svg
+															width="48"
+															height="48"
+															viewBox="0 0 24 24"
+															fill="none"
+															stroke="currentColor"
+															strokeWidth="1.5"
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															className="mb-2"
+														>
+															<rect
+																x="3"
+																y="3"
+																width="18"
+																height="18"
+																rx="2"
+																ry="2"
+															/>
+															<circle cx="8.5" cy="8.5" r="1.5" />
+															<polyline points="21,15 16,10 5,21" />
+														</svg>
+													</div>
+													<div className="text-xs text-gray-500 font-medium text-center px-2">
+														No Image
+													</div>
+												</div>
 
 												{/* Price Tag */}
 												<div className="absolute top-3 right-3">

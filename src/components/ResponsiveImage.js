@@ -17,8 +17,13 @@ const ResponsiveImage = ({
 
 	// Generate responsive srcSet for Cloudinary images
 	const generateSrcSet = (imageSrc) => {
-		if (!imageSrc || imageSrc.includes("banner-") || imageSrc.startsWith("/")) {
-			return undefined; // Don't generate srcSet for local images or banners
+		if (
+			!imageSrc ||
+			imageSrc.includes("banner-") ||
+			imageSrc.startsWith("/") ||
+			imageSrc.startsWith("data:")
+		) {
+			return undefined; // Don't generate srcSet for local images, banners, or data URIs
 		}
 
 		// For Cloudinary images, generate responsive sizes
@@ -80,18 +85,31 @@ const ResponsiveImage = ({
 			/>
 			{imageError && (
 				<div
-					className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-400"
+					className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center"
 					style={{
 						aspectRatio: width && height ? `${width}/${height}` : "auto",
 					}}
 				>
-					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-						<path
-							fillRule="evenodd"
-							d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-							clipRule="evenodd"
-						/>
-					</svg>
+					<div className="text-gray-400">
+						<svg
+							width="48"
+							height="48"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							className="mb-2"
+						>
+							<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+							<circle cx="8.5" cy="8.5" r="1.5" />
+							<polyline points="21,15 16,10 5,21" />
+						</svg>
+					</div>
+					<div className="text-xs text-gray-500 font-medium text-center px-2">
+						No Image
+					</div>
 				</div>
 			)}
 		</div>

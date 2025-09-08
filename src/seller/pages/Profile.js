@@ -14,6 +14,9 @@ import {
 	faExclamationTriangle,
 	faEye,
 	faEyeSlash,
+	faUser,
+	faBuilding,
+	faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -943,7 +946,7 @@ const SellerProfile = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-white">
+		<div className="min-h-screen bg-gray-50">
 			<Navbar mode="seller" showSearch={false} showCategories={false} />
 
 			<div className="flex">
@@ -951,48 +954,40 @@ const SellerProfile = () => {
 				<div className="flex-1">
 					<div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
 						{/* Header */}
-						<div className="flex flex-col gap-4 mb-6 sm:mb-8">
-							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-								<div>
-									<h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">
+						<div className="mb-6 sm:mb-8">
+							<div className="flex items-start justify-between">
+								<div className="text-left">
+									<h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-left">
 										Profile
 									</h1>
-									<p className="text-gray-500 text-xs sm:text-sm mt-1">
-										Manage your account information
+									<p className="text-gray-600 text-sm sm:text-base mt-1 text-left">
+										Manage your account information and business details
 									</p>
 								</div>
-								<div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
+								<div className="flex gap-2">
 									{!editMode && (
 										<button
 											onClick={handleEditClick}
-											className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
+											className="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors"
 										>
-											<FontAwesomeIcon
-												icon={faEdit}
-												className="text-xs sm:text-sm"
-											/>
-											<span className="hidden xs:inline">Edit Profile</span>
-											<span className="xs:hidden">Edit</span>
+											<FontAwesomeIcon icon={faEdit} className="text-sm" />
+											<span>Edit</span>
 										</button>
 									)}
 									<button
 										onClick={handleDeleteAccount}
-										className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
+										className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
 									>
-										<FontAwesomeIcon
-											icon={faTrash}
-											className="text-xs sm:text-sm"
-										/>
-										<span className="hidden xs:inline">Delete Account</span>
-										<span className="xs:hidden">Delete</span>
+										<FontAwesomeIcon icon={faTrash} className="text-sm" />
+										<span>Delete</span>
 									</button>
 								</div>
 							</div>
 						</div>
 
 						{/* Profile Card */}
-						<div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
-							<div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+						<div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 sm:mb-8">
+							<div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8">
 								{/* Profile Picture */}
 								<div className="flex-shrink-0">
 									<div className="relative">
@@ -1004,11 +999,11 @@ const SellerProfile = () => {
 												<img
 													src={imagePreview || profile.profile_picture}
 													alt="Profile"
-													className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200"
+													className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-gray-200"
 												/>
 											) : (
-												<div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-900 flex items-center justify-center border-2 border-gray-200">
-													<span className="text-white text-lg sm:text-2xl font-bold">
+												<div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-800 flex items-center justify-center border-2 border-gray-200">
+													<span className="text-white text-xl sm:text-2xl font-bold">
 														{profile.fullname
 															? profile.fullname.charAt(0).toUpperCase()
 															: profile.enterprise_name
@@ -1020,7 +1015,7 @@ const SellerProfile = () => {
 										</div>
 										{editMode && (
 											<button
-												className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full flex items-center justify-center transition-colors shadow-md"
+												className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full flex items-center justify-center transition-colors border border-white"
 												onClick={handleImageClick}
 											>
 												<FontAwesomeIcon icon={faCamera} className="text-xs" />
@@ -1035,46 +1030,48 @@ const SellerProfile = () => {
 										className="hidden"
 									/>
 									{editMode && (
-										<p className="text-xs text-gray-500 mt-2 text-center">
+										<p className="text-xs text-gray-500 mt-2 text-left">
 											Click to change photo
 										</p>
 									)}
 								</div>
 
 								{/* Profile Info */}
-								<div className="flex-1 text-center sm:text-left">
-									<h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">
+								<div className="flex-1 text-left">
+									<h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 text-left">
 										{profile.fullname || "Your Name"}
 									</h2>
-									<p className="text-gray-600 mb-2 text-sm sm:text-base">
+									<p className="text-gray-600 mb-2 text-base sm:text-lg font-medium text-left">
 										@{profile.username || "username"}
 									</p>
-									<p className="text-gray-500 text-xs sm:text-sm mb-3">
+									<p className="text-gray-500 text-sm sm:text-base mb-4 text-left">
 										{profile.enterprise_name || "Enterprise Name"}
 									</p>
-									<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
-										<span className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2">
+									<div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-6 text-sm text-gray-600">
+										<span className="flex items-center gap-2 text-left">
 											<FontAwesomeIcon
 												icon={faEnvelope}
-												className="text-gray-400 text-xs sm:text-sm"
+												className="text-gray-400 text-sm"
 											/>
-											<span className="truncate">
+											<span className="truncate font-medium">
 												{profile.email || "Email"}
 											</span>
 										</span>
-										<span className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2">
+										<span className="flex items-center gap-2 text-left">
 											<FontAwesomeIcon
 												icon={faPhone}
-												className="text-gray-400 text-xs sm:text-sm"
+												className="text-gray-400 text-sm"
 											/>
-											{profile.phone_number || "Phone"}
+											<span className="font-medium">
+												{profile.phone_number || "Phone"}
+											</span>
 										</span>
-										<span className="flex items-center justify-center sm:justify-start gap-1 sm:gap-2">
+										<span className="flex items-center gap-2 text-left">
 											<FontAwesomeIcon
 												icon={faMapMarkerAlt}
-												className="text-gray-400 text-xs sm:text-sm"
+												className="text-gray-400 text-sm"
 											/>
-											<span className="truncate">
+											<span className="truncate font-medium">
 												{profile.location || "Location"}
 											</span>
 										</span>
@@ -1084,12 +1081,20 @@ const SellerProfile = () => {
 						</div>
 
 						{/* Form */}
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
 							{/* Personal Information */}
-							<div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-								<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 sm:mb-6">
-									Personal Information
-								</h3>
+							<div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
+								<div className="flex items-center gap-3 mb-6">
+									<div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+										<FontAwesomeIcon
+											icon={faUser}
+											className="text-gray-600 text-sm"
+										/>
+									</div>
+									<h3 className="text-lg sm:text-xl font-bold text-gray-900">
+										Personal Information
+									</h3>
+								</div>
 								<div className="space-y-4">
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1195,10 +1200,18 @@ const SellerProfile = () => {
 							</div>
 
 							{/* Business Information */}
-							<div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-								<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 sm:mb-6">
-									Business Information
-								</h3>
+							<div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
+								<div className="flex items-center gap-3 mb-6">
+									<div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+										<FontAwesomeIcon
+											icon={faBuilding}
+											className="text-gray-600 text-sm"
+										/>
+									</div>
+									<h3 className="text-lg sm:text-xl font-bold text-gray-900">
+										Business Information
+									</h3>
+								</div>
 								<div className="space-y-4">
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1235,7 +1248,7 @@ const SellerProfile = () => {
 											value={profile.description || ""}
 											onChange={handleChange}
 											disabled={!editMode}
-											rows={3}
+											rows={6}
 											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 disabled:bg-gray-50 disabled:cursor-not-allowed resize-none text-sm"
 											placeholder="Tell customers about your business..."
 										/>
@@ -1244,10 +1257,18 @@ const SellerProfile = () => {
 							</div>
 
 							{/* Contact Information */}
-							<div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-								<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 sm:mb-6">
-									Contact Information
-								</h3>
+							<div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
+								<div className="flex items-center gap-3 mb-6">
+									<div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+										<FontAwesomeIcon
+											icon={faEnvelope}
+											className="text-gray-600 text-sm"
+										/>
+									</div>
+									<h3 className="text-lg sm:text-xl font-bold text-gray-900">
+										Contact Information
+									</h3>
+								</div>
 								<div className="space-y-4">
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1319,17 +1340,25 @@ const SellerProfile = () => {
 						</div>
 
 						{/* Document Management */}
-						<div className="mt-4 sm:mt-6 bg-white border border-gray-200 rounded-lg p-4 sm:p-6 w-full">
-							<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 sm:mb-6">
-								Document Management
-							</h3>
-							<div className="space-y-4 sm:space-y-6">
+						<div className="mt-6 sm:mt-8 bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
+							<div className="flex items-center gap-3 mb-6">
+								<div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+									<FontAwesomeIcon
+										icon={faFileAlt}
+										className="text-gray-600 text-sm"
+									/>
+								</div>
+								<h3 className="text-lg sm:text-xl font-bold text-gray-900">
+									Document Management
+								</h3>
+							</div>
+							<div className="space-y-6">
 								{/* Document Types List */}
 								<div>
-									<h4 className="text-sm sm:text-base font-medium text-gray-800 mb-3 sm:mb-4">
+									<h4 className="text-base font-semibold text-gray-800 mb-4">
 										Your Documents
 									</h4>
-									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+									<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 										{documentTypes.map((docType) => {
 											const existingDoc = sellerDocuments.find(
 												(doc) =>
@@ -1340,19 +1369,19 @@ const SellerProfile = () => {
 											return (
 												<div
 													key={docType.id}
-													className="border border-gray-200 rounded-lg p-4 w-full min-w-0"
+													className="border border-gray-200 rounded-lg p-6 w-full min-w-0 bg-white"
 												>
-													<div className="flex items-start justify-between mb-4 gap-2">
-														<h5 className="font-medium text-gray-900 text-base leading-tight">
+													<div className="flex items-start justify-between mb-4 gap-3">
+														<h5 className="font-semibold text-gray-900 text-base leading-tight">
 															{docType.name}
 														</h5>
 														<span
-															className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0 ${
+															className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 ${
 																existingDoc?.document_verified
-																	? "bg-green-100 text-green-800"
+																	? "bg-green-100 text-green-800 border border-green-200"
 																	: existingDoc
-																	? "bg-yellow-100 text-yellow-800"
-																	: "bg-gray-100 text-gray-800"
+																	? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+																	: "bg-gray-100 text-gray-800 border border-gray-200"
 															}`}
 														>
 															{existingDoc?.document_verified
@@ -1363,14 +1392,14 @@ const SellerProfile = () => {
 														</span>
 													</div>
 													{existingDoc ? (
-														<div className="space-y-3">
+														<div className="space-y-4">
 															{/* Document Preview */}
-															<div className="flex items-center gap-3 min-w-0">
+															<div className="flex items-center gap-4 min-w-0">
 																{existingDoc.document_url ? (
 																	existingDoc.document_url
 																		.toLowerCase()
 																		.includes(".pdf") ? (
-																		<div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center">
+																		<div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center border border-red-200">
 																			<svg
 																				className="w-8 h-8 text-red-600"
 																				fill="currentColor"
@@ -1396,7 +1425,7 @@ const SellerProfile = () => {
 																		/>
 																	)
 																) : (
-																	<div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+																	<div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
 																		<svg
 																			className="w-8 h-8 text-gray-400"
 																			fill="none"
@@ -1413,7 +1442,7 @@ const SellerProfile = () => {
 																	</div>
 																)}
 																<div className="flex-1 min-w-0">
-																	<p className="text-sm font-medium text-gray-900 truncate">
+																	<p className="text-sm font-semibold text-gray-900 truncate">
 																		{docType.name}
 																	</p>
 																	<p className="text-xs text-gray-500 truncate">
@@ -1434,7 +1463,7 @@ const SellerProfile = () => {
 																			"_blank"
 																		)
 																	}
-																	className="text-xs px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors w-full sm:w-auto text-center"
+																	className="text-xs px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors w-full sm:w-auto text-center font-medium"
 																>
 																	View Document
 																</button>
@@ -1443,7 +1472,7 @@ const SellerProfile = () => {
 																		onClick={() =>
 																			handleDocumentUpload(docType.id)
 																		}
-																		className="text-xs px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded transition-colors w-full sm:w-auto text-center"
+																		className="text-xs px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors w-full sm:w-auto text-center font-medium"
 																	>
 																		Update
 																	</button>
@@ -1451,11 +1480,11 @@ const SellerProfile = () => {
 															</div>
 														</div>
 													) : pendingDocuments[docType.id] ? (
-														<div className="space-y-3">
+														<div className="space-y-4">
 															{/* Pending Document Preview */}
-															<div className="flex items-center gap-3 min-w-0">
+															<div className="flex items-center gap-4 min-w-0">
 																{documentPreviews[docType.id] === "pdf" ? (
-																	<div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center">
+																	<div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center border border-red-200">
 																		<svg
 																			className="w-8 h-8 text-red-600"
 																			fill="currentColor"
@@ -1472,11 +1501,11 @@ const SellerProfile = () => {
 																	<img
 																		src={documentPreviews[docType.id]}
 																		alt="Document preview"
-																		className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+																		className="w-16 h-16 object-cover rounded-xl border border-gray-200"
 																	/>
 																)}
 																<div className="flex-1 min-w-0">
-																	<p className="text-sm font-medium text-gray-900 truncate">
+																	<p className="text-sm font-semibold text-gray-900 truncate">
 																		{pendingDocuments[docType.id].name}
 																	</p>
 																	<p className="text-xs text-gray-500 truncate">
@@ -1489,13 +1518,13 @@ const SellerProfile = () => {
 																	</p>
 																</div>
 															</div>
-															<p className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">
+															<p className="text-xs text-yellow-700 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200 font-medium">
 																Ready to upload when you save
 															</p>
 														</div>
 													) : (
-														<div className="text-center py-6">
-															<div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+														<div className="text-center py-8">
+															<div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4 border border-gray-200">
 																<svg
 																	className="w-8 h-8 text-gray-400"
 																	fill="none"
@@ -1510,7 +1539,7 @@ const SellerProfile = () => {
 																	/>
 																</svg>
 															</div>
-															<p className="text-sm text-gray-500 mb-4">
+															<p className="text-sm text-gray-500 mb-4 font-medium">
 																No document uploaded
 															</p>
 															{editMode && (
@@ -1518,7 +1547,7 @@ const SellerProfile = () => {
 																	onClick={() =>
 																		handleDocumentUpload(docType.id)
 																	}
-																	className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-medium"
+																	className="text-xs px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-lg transition-all duration-200 font-medium"
 																>
 																	Upload Document
 																</button>
@@ -1739,37 +1768,26 @@ const SellerProfile = () => {
 
 						{/* Edit Actions */}
 						{editMode && (
-							<div className="mt-4 sm:mt-6 bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-								<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between">
+							<div className="mt-6 sm:mt-8 bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
+								<div className="flex flex-col sm:flex-row gap-4 justify-between">
 									<button
 										onClick={handleEditClick}
-										className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors"
+										className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
 									>
-										<FontAwesomeIcon
-											icon={faTimes}
-											className="text-xs sm:text-sm"
-										/>
+										<FontAwesomeIcon icon={faTimes} className="text-sm" />
 										Cancel
 									</button>
 									<button
 										onClick={handleSaveClick}
 										disabled={isSaving}
-										className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs sm:text-sm font-medium transition-colors disabled:opacity-50"
+										className="flex items-center justify-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										{isSaving ? (
 											<Spinner animation="border" size="sm" />
 										) : (
-											<FontAwesomeIcon
-												icon={faSave}
-												className="text-xs sm:text-sm"
-											/>
+											<FontAwesomeIcon icon={faSave} className="text-sm" />
 										)}
-										<span className="hidden xs:inline">
-											{isSaving ? "Saving..." : "Save Changes"}
-										</span>
-										<span className="xs:hidden">
-											{isSaving ? "Saving..." : "Save"}
-										</span>
+										<span>{isSaving ? "Saving..." : "Save Changes"}</span>
 									</button>
 								</div>
 							</div>
@@ -1781,20 +1799,20 @@ const SellerProfile = () => {
 			{/* Change Password Modal */}
 			{showChangePasswordModal && (
 				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-					<div className="bg-white rounded-lg shadow-xl max-w-md w-full p-4 sm:p-6">
-						<div className="flex items-center justify-between mb-4 sm:mb-6">
-							<h3 className="text-lg font-semibold text-gray-900">
+					<div className="bg-white rounded-lg border border-gray-200 max-w-md w-full p-6 sm:p-8">
+						<div className="flex items-center justify-between mb-6">
+							<h3 className="text-xl font-bold text-gray-900">
 								Change Password
 							</h3>
 							<button
 								onClick={() => setShowChangePasswordModal(false)}
-								className="text-gray-400 hover:text-gray-600 transition-colors"
+								className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
 							>
 								<FontAwesomeIcon icon={faTimes} />
 							</button>
 						</div>
 
-						<div className="space-y-4 sm:space-y-6">
+						<div className="space-y-4">
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-1">
 									Current Password
@@ -1907,7 +1925,7 @@ const SellerProfile = () => {
 							</div>
 						</div>
 
-						<div className="flex gap-3 sm:gap-4 mt-6 sm:mt-8">
+						<div className="flex gap-4 mt-6">
 							<button
 								onClick={() => setShowChangePasswordModal(false)}
 								className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"

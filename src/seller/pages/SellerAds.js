@@ -1,102 +1,75 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-	Container,
-	Row,
-	Col,
-	Card,
-	Button,
-	Modal,
-	Carousel,
-	Form,
-} from "react-bootstrap";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faTrashCan,
 	faStar,
-	faStarHalfAlt,
-	faStar as faStarEmpty,
 	faPencilAlt,
 	faRotateLeft,
 	faBox,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
 import { useNavigate } from "react-router-dom";
 import Spinner from "react-spinkit";
 import Navbar from "../../components/Navbar";
-// import { Cloudinary } from 'cloudinary-core';
-// Lazy-load heavy libs instead of bundling upfront
-import "../css/SellerAds.css";
-import Swal from "sweetalert2";
-import AlertModal from "../../components/AlertModal";
+import useSEO from "../../hooks/useSEO";
 
 const SellerAds = () => {
 	const [ads, setAds] = useState({ active: [], deleted: [] });
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [showDetailsModal, setShowDetailsModal] = useState(false);
-	const [showEditModal, setShowEditModal] = useState(false);
-	const [selectedAd, setSelectedAd] = useState(null);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [showAddModal, setShowAddModal] = useState(false);
-	const [categories, setCategories] = useState([]);
-	const [subcategories, setSubcategories] = useState([]);
-	const [selectedCategory, setSelectedCategory] = useState("");
-	const [selectedSubcategory, setSelectedSubcategory] = useState("");
-	const [isSaving, setIsSaving] = useState(false);
-	const [weightUnit, setWeightUnit] = useState("Grams");
-	const [uploading, setUploading] = useState(false);
-	const [uploadProgress, setUploadProgress] = useState(0);
-	const [alertVisible, setAlertVisible] = useState(false);
-	const [adToDelete, setAdToDelete] = useState(null);
-	const [editedImages, setEditedImages] = useState([]);
-	const [selectedImages, setSelectedImages] = useState([]);
-	const [activeIndex, setActiveIndex] = useState(0);
-	const [viewActiveIndex, setViewActiveIndex] = useState(0);
+	const [filter, setFilter] = useState("active"); // "active", "all", "deleted"
 	const navigate = useNavigate();
-	const [formErrors, setFormErrors] = useState({});
-
-	const [editedAd, setEditedAd] = useState({
-		item_length: "",
-		item_width: "",
-		item_height: "",
-		item_weight: "",
-		weight_unit: "Grams", // Default weight unit
-		media: [], // Assuming 'images' holds the URLs of the ad images
-	});
-
-	const [formValues, setFormValues] = useState({
-		title: "",
-		description: "",
-		price: "",
-		quantity: "",
-		brand: "",
-		manufacturer: "",
-		condition: "",
-		item_length: "",
-		item_width: "",
-		item_height: "",
-		weight_unit: "",
-		item_weight: "",
-	});
-
-	const [showAlertModal, setShowAlertModal] = useState(false);
-	const [alertModalMessage, setAlertModalMessage] = useState("");
-	const [alertModalConfig, setAlertModalConfig] = useState({
-		icon: "",
-		title: "",
-		confirmText: "",
-		cancelText: "",
-		showCancel: false,
-		onConfirm: () => {},
-	});
 
 	const sellerId = sessionStorage.getItem("sellerId");
 
-	const nsfwModelRef = useRef(null);
-
-	const removeImage = (index) => {
-		setSelectedImages((prev) => prev.filter((_, i) => i !== index));
-	};
+	// SEO Implementation - Private seller dashboard, should not be indexed
+	useSEO({
+		title: "Manage Your Ads - Seller Dashboard | Carbon Cube Kenya",
+		description:
+			"Manage your product listings and ads on Carbon Cube Kenya. Create, edit, and track your product advertisements from your seller dashboard.",
+		keywords:
+			"seller dashboard, manage ads, product listings, Carbon Cube Kenya, seller tools, ad management",
+		url: `${window.location.origin}/seller/ads`,
+		robots: "noindex, nofollow, noarchive, nosnippet",
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+			{ name: "seller:dashboard_type", content: "ads_management" },
+			{ name: "seller:page_function", content: "manage_product_listings" },
+			{ name: "seller:privacy_level", content: "private" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "Seller Ads Management - Carbon Cube Kenya",
+			description:
+				"Private seller dashboard for managing product listings and advertisements",
+			url: `${window.location.origin}/seller/ads`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+			audience: {
+				"@type": "Audience",
+				audienceType: "Sellers",
+			},
+			accessMode: "private",
+			accessModeSufficient: "seller_authentication",
+		},
+		// Additional SEO features for seller dashboard
+		section: "Seller Dashboard",
+		tags: ["Seller Tools", "Ad Management", "Dashboard", "Private"],
+		conversationalKeywords: [
+			"how to manage my ads on Carbon Cube Kenya",
+			"seller dashboard Carbon Cube Kenya",
+			"manage product listings Kenya",
+			"seller tools Carbon Cube",
+			"ad management dashboard",
+		],
+	});
 
 	useEffect(() => {
 		const fetchAds = async () => {
@@ -140,390 +113,8 @@ const SellerAds = () => {
 		fetchAds();
 	}, [sellerId]);
 
-	useEffect(() => {
-		const fetchCategories = async () => {
-			try {
-				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/seller/categories`
-				);
-				if (!response.ok) {
-					throw new Error("Network response was not ok");
-				}
-				const data = await response.json();
-				setCategories(data);
-			} catch (error) {
-				console.error("Error fetching categories:", error);
-			}
-		};
-
-		fetchCategories();
-	}, []);
-
-	useEffect(() => {
-		if (selectedCategory) {
-			const fetchSubcategories = async () => {
-				try {
-					const response = await fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/seller/subcategories?category_id=${selectedCategory}`
-					);
-					if (!response.ok) {
-						throw new Error("Network response was not ok");
-					}
-					const data = await response.json();
-					setSubcategories(data);
-
-					// Set the selected subcategory to the one stored in the ad data
-					setSelectedSubcategory(editedAd.subcategory_id);
-				} catch (error) {
-					console.error("Error fetching subcategories:", error);
-				}
-			};
-
-			fetchSubcategories();
-		}
-	}, [selectedCategory, editedAd.subcategory_id]); // Dependency on both selectedCategory and editedAd.subcategory_id
-
-	// Load the NSFW model (lazy) when needed
-	const loadNSFWModel = useCallback(async () => {
-		if (!nsfwModelRef.current) {
-			const [{ load }, { enableProdMode }] = await Promise.all([
-				import("nsfwjs"),
-				import("@tensorflow/tfjs"),
-			]);
-			enableProdMode?.();
-			nsfwModelRef.current = await load();
-		}
-	}, []);
-
-	useEffect(() => {
-		loadNSFWModel();
-	}, [loadNSFWModel]);
-
-	useEffect(() => {
-		if (showAddModal) {
-			setWeightUnit("Grams"); // Default value on open
-		}
-	}, [showAddModal]);
-
-	useEffect(() => {
-		const firstErrorKey = Object.keys(formErrors)[0];
-		if (firstErrorKey) {
-			const el = document.querySelector(`[name="${firstErrorKey}"]`);
-			if (el && el.scrollIntoView) {
-				el.scrollIntoView({ behavior: "smooth", block: "center" });
-				el.focus();
-			}
-		}
-	}, [formErrors]);
-
-	const handleCategoryChange = (event) => {
-		const category_id = event.target.value;
-		setSelectedCategory(category_id);
-		setSelectedSubcategory(""); // Reset subcategory when a new category is selected
-		setEditedAd((prevState) => ({
-			...prevState,
-			category_id, // Use category_id to match the server expectation
-			subcategory_id: "", // Clear subcategory_id
-		}));
-	};
-
-	const handleSubcategoryChange = (event) => {
-		const subcategory_id = event.target.value;
-		setSelectedSubcategory(subcategory_id);
-		setEditedAd((prevState) => ({
-			...prevState,
-			subcategory_id, // Update subcategory_id
-		}));
-	};
-
-	const handleWeightUnitChange = (unit) => {
-		setEditedAd((prev) => ({
-			...prev,
-			weight_unit: unit,
-		}));
-	};
-
-	const handleAddWeightUnitChange = (unit) => {
-		setWeightUnit((prevUnit) => (prevUnit === unit ? "Grams" : unit));
-	};
-
-	const handleFormChange = (e) => {
-		const { id, value } = e.target;
-		setFormValues((prevValues) => ({ ...prevValues, [id]: value }));
-	};
-
-	// Function to check if an image is NSFW
-	const checkImage = async (file) => {
-		if (!nsfwModelRef.current) {
-			console.warn("NSFW model is not loaded yet. Loading now...");
-			await loadNSFWModel(); // Ensure model is loaded
-		}
-
-		return new Promise((resolve) => {
-			const reader = new FileReader();
-			reader.onload = async (event) => {
-				const img = new Image();
-				img.src = event.target.result;
-				img.onload = async () => {
-					if (!nsfwModelRef.current) {
-						console.error("NSFW model failed to load.");
-						resolve(false); // Assume safe if model fails
-						return;
-					}
-
-					try {
-						const predictions = await nsfwModelRef.current.classify(img);
-						// Build a map for easier thresholding
-						const predictionMap = {};
-						predictions.forEach(({ className, probability }) => {
-							predictionMap[className] = probability;
-						});
-
-						// Calibrated thresholds to reduce false positives
-						const pornProb = predictionMap["Porn"] || 0;
-						const hentaiProb = predictionMap["Hentai"] || 0;
-						const sexyProb = predictionMap["Sexy"] || 0;
-						const neutralProb = predictionMap["Neutral"] || 0;
-						const drawingProb = predictionMap["Drawing"] || 0;
-
-						// Unsafe if explicit categories are very confident
-						const isExplicit =
-							pornProb >= 0.7 || hentaiProb >= 0.7 || sexyProb >= 0.8;
-						// Strongly safe if neutral/drawing dominate
-						const isClearlySafe =
-							neutralProb + drawingProb >= 0.6 &&
-							sexyProb < 0.6 &&
-							pornProb < 0.6 &&
-							hentaiProb < 0.6;
-
-						if (isExplicit) {
-							resolve(true);
-						} else if (isClearlySafe) {
-							resolve(false);
-						} else {
-							// For ambiguous cases, default to safe to avoid over-blocking
-							resolve(false);
-						}
-					} catch (error) {
-						console.error("Error classifying image:", error);
-						resolve(false); // Assume safe if classification fails
-					}
-				};
-			};
-			reader.readAsDataURL(file);
-		});
-	};
-
-	const handleAddNewAd = async (e) => {
-		if (e && e.preventDefault) e.preventDefault();
-
-		const {
-			title,
-			description,
-			price,
-			quantity,
-			brand,
-			manufacturer,
-			item_length,
-			item_width,
-			item_height,
-			item_weight,
-			condition,
-		} = formValues;
-
-		const newErrors = {};
-
-		if (!title.trim()) newErrors.title = "Title is required";
-		if (!description.trim()) newErrors.description = "Description is required";
-		if (!price) newErrors.price = "Price is required";
-		if (!quantity) newErrors.quantity = "Quantity is required";
-		if (!brand.trim()) newErrors.brand = "Brand is required";
-		if (!manufacturer.trim())
-			newErrors.manufacturer = "Manufacturer is required";
-		if (!condition) newErrors.condition = "Condition is required";
-		if (!selectedCategory) newErrors.category = "Category is required";
-		if (!selectedSubcategory) newErrors.subcategory = "Subcategory is required";
-
-		if (Object.keys(newErrors).length > 0) {
-			setFormErrors(newErrors);
-			alert("Please fill in all required fields.");
-			return;
-		}
-
-		setUploading(true);
-		setUploadProgress(0);
-		setFormErrors({}); // clear previous
-
-		try {
-			let safeImages = [];
-			let skippedImages = 0;
-
-			if (selectedImages.length > 0) {
-				await loadNSFWModel();
-
-				for (let i = 0; i < selectedImages.length; i++) {
-					const file = selectedImages[i];
-					const isUnsafe = await checkImage(file);
-					if (isUnsafe) {
-						console.warn("Blocked unsafe image:", file.name);
-						skippedImages++;
-						continue;
-					}
-					safeImages.push(file);
-				}
-			}
-
-			if (safeImages.length === 0) {
-				alert(
-					"All selected images were blocked. Please upload appropriate images."
-				);
-				setUploading(false);
-				return;
-			}
-
-			const formData = new FormData();
-			formData.append("ad[title]", title);
-			formData.append("ad[description]", description);
-			formData.append("ad[category_id]", selectedCategory);
-			formData.append("ad[subcategory_id]", selectedSubcategory);
-			formData.append("ad[price]", parseInt(price));
-			formData.append("ad[quantity]", parseInt(quantity));
-			formData.append("ad[brand]", brand);
-			formData.append("ad[manufacturer]", manufacturer);
-			formData.append("ad[condition]", condition);
-			if (item_length)
-				formData.append("ad[item_length]", parseFloat(item_length));
-			if (item_width) formData.append("ad[item_width]", parseFloat(item_width));
-			if (item_height)
-				formData.append("ad[item_height]", parseFloat(item_height));
-			if (item_weight)
-				formData.append("ad[item_weight]", parseFloat(item_weight));
-			// Ensure weight_unit is always valid
-			const validWeightUnit =
-				weightUnit && ["Grams", "Kilograms"].includes(weightUnit)
-					? weightUnit
-					: "Grams";
-			formData.append("ad[weight_unit]", validWeightUnit);
-
-			safeImages.forEach((file) => {
-				formData.append("ad[media][]", file);
-			});
-
-			const uploadPromise = new Promise((resolve, reject) => {
-				const xhr = new XMLHttpRequest();
-				xhr.open("POST", `${process.env.REACT_APP_BACKEND_URL}/seller/ads`);
-				xhr.setRequestHeader(
-					"Authorization",
-					"Bearer " + sessionStorage.getItem("token")
-				);
-
-				xhr.upload.onprogress = (event) => {
-					if (event.lengthComputable) {
-						const percentCompleted = Math.round(
-							(event.loaded / event.total) * 100
-						);
-						setUploadProgress(percentCompleted);
-					}
-				};
-
-				xhr.onload = () => {
-					try {
-						const response = JSON.parse(xhr.responseText);
-
-						if (
-							xhr.status === 403 &&
-							response.error?.includes("Ad creation limit")
-						) {
-							setAlertModalMessage(response.error);
-							setAlertModalConfig({
-								icon: "warning",
-								title: "Ad Limit Reached",
-								confirmText: "Upgrade Tier",
-								cancelText: "Close",
-								showCancel: true,
-								onConfirm: () => {
-									setShowAlertModal(false);
-									navigate("/seller/tiers");
-								},
-							});
-							setShowAlertModal(true);
-							setUploading(false);
-							return;
-						}
-
-						if (xhr.status >= 200 && xhr.status < 300) {
-							const result = response;
-							setAds((prevAds) => ({
-								...prevAds,
-								active: [result, ...prevAds.active], // Add new ad at the beginning (newest first)
-							}));
-
-							resolve(result);
-						} else {
-							// Handle validation errors
-							if (response.errors && Array.isArray(response.errors)) {
-								const errorMessage = response.errors.join(", ");
-								alert(`Error adding ad: ${errorMessage}`);
-							} else if (response.error) {
-								alert(`Error adding ad: ${response.error}`);
-							} else {
-								alert(`Error adding ad: ${xhr.responseText}`);
-							}
-							reject(new Error(`Upload failed with status: ${xhr.status}`));
-						}
-					} catch (err) {
-						console.error("Failed to parse response:", err);
-						reject(new Error("Invalid JSON response"));
-					}
-				};
-
-				xhr.onerror = () => reject(new Error("Network error during upload"));
-				xhr.send(formData);
-			});
-
-			await uploadPromise;
-
-			if (skippedImages > 0) {
-				alert(
-					`${skippedImages} image(s) were flagged as explicit and were not uploaded.`
-				);
-			}
-
-			// Reset
-			setFormValues({
-				title: "",
-				description: "",
-				price: "",
-				quantity: "",
-				brand: "",
-				manufacturer: "",
-				condition: "",
-				item_length: "",
-				item_width: "",
-				item_height: "",
-				item_weight: "",
-			});
-			setSelectedCategory("");
-			setSelectedSubcategory("");
-			setWeightUnit("Grams");
-			setSelectedImages([]);
-			setShowAddModal(false);
-		} catch (error) {
-			console.error("Error adding ad:", error);
-			if (error.message.includes("Upload failed")) {
-				// Error message already shown in xhr.onload
-				return;
-			}
-			alert("Failed to add ad. Please try again.");
-		} finally {
-			setUploading(false);
-			setUploadProgress(0);
-		}
-	};
-
 	const handleViewDetailsClick = (ad) => {
-		setSelectedAd(ad);
-		setShowDetailsModal(true);
+		navigate(`/seller/ads/${ad.id}`);
 	};
 
 	const handleEditAd = (adId) => {
@@ -533,302 +124,37 @@ const SellerAds = () => {
 			return;
 		}
 
-		// Find ad in active list
-		const ad = ads.active.find((p) => p.id === adId);
-
-		if (!ad) {
-			console.error("Ad not found in active ads");
-			return;
-		}
-
-		setSelectedAd(ad);
-		setEditedAd({ ...ad });
-		setSelectedCategory(ad.category_id);
-		setSelectedSubcategory(ad.subcategory_id);
-		setShowEditModal(true);
+		// Navigate to edit page
+		navigate(`/seller/ads/${adId}/edit`);
 	};
 
 	const handleSearchChange = (e) => {
 		setSearchTerm(e.target.value);
 	};
 
-	const filteredActiveAds = ads.active.filter((ad) =>
-		ad.title.toLowerCase().includes(searchTerm.toLowerCase())
-	);
-	const filteredDeletedAds = ads.deleted.filter((ad) =>
-		ad.title.toLowerCase().includes(searchTerm.toLowerCase())
-	);
-
-	const resetForm = () => {
-		setFormValues({
-			title: "",
-			description: "",
-			price: "",
-			quantity: "",
-			brand: "",
-			manufacturer: "",
-			condition: "",
-			item_length: "",
-			item_width: "",
-			item_height: "",
-			item_weight: "",
-		});
-		setSelectedCategory("");
-		setSelectedSubcategory("");
-		setWeightUnit("Grams");
-		setSelectedImages([]);
-		setUploadProgress(0);
-		setUploading(false);
-	};
-
-	const handleModalClose = () => {
-		setShowDetailsModal(false);
-		setShowEditModal(false);
-		setShowAddModal(false);
-		resetForm(); // 👈 clear form values when modal closes
-		setEditedImages([]); // reset new image files
-	};
-
-	const handleSaveEdit = async () => {
-		setIsSaving(true);
-
-		try {
-			const formData = new FormData();
-
-			// Helper function: Append only if value is non-empty
-			const appendIfValid = (key) => {
-				const value = editedAd[key];
-				if (value !== "" && value !== null && value !== undefined) {
-					formData.append(`ad[${key}]`, value);
-				}
-			};
-
-			// Append basic fields
-			appendIfValid("title");
-			appendIfValid("description");
-			appendIfValid("category_id");
-			appendIfValid("subcategory_id");
-			appendIfValid("price");
-			appendIfValid("quantity");
-			appendIfValid("brand");
-			appendIfValid("manufacturer");
-			appendIfValid("condition");
-
-			// Append dimensions and weight fields only if valid
-			appendIfValid("item_length");
-			appendIfValid("item_width");
-			appendIfValid("item_height");
-			appendIfValid("item_weight");
-
-			// Weight unit - append always, defaulting to 'Grams' if empty or missing
-			formData.append(
-				"ad[weight_unit]",
-				editedAd.weight_unit && editedAd.weight_unit !== ""
-					? editedAd.weight_unit
-					: "Grams"
-			);
-
-			// NSFW image filtering if images exist
-			if (editedImages && editedImages.length > 0) {
-				await loadNSFWModel();
-
-				const safeImages = [];
-
-				for (let file of editedImages) {
-					const isUnsafe = await checkImage(file);
-					if (!isUnsafe) {
-						safeImages.push(file);
-					} else {
-						console.warn("Unsafe image blocked:", file.name);
-					}
-				}
-
-				if (safeImages.length === 0) {
-					alert("All selected images were flagged and blocked.");
-					setIsSaving(false);
-					return;
-				}
-
-				safeImages.forEach((file) => {
-					formData.append("ad[media][]", file);
-				});
-			}
-
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/seller/ads/${editedAd.id}`,
-				{
-					method: "PUT",
-					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
-						// Do NOT set Content-Type here! Let fetch set it for FormData.
-					},
-					body: formData,
-				}
-			);
-
-			if (!response.ok) {
-				throw new Error("Network response was not ok");
-			}
-
-			const updatedAd = await response.json();
-			setAds((prev) => ({
-				...prev,
-				active: prev.active.map((p) => (p.id === updatedAd.id ? updatedAd : p)),
-			}));
-
-			setShowEditModal(false);
-			setEditedImages([]); // Reset after successful update
-		} catch (error) {
-			console.error("Error saving changes:", error);
-		} finally {
-			setIsSaving(false);
+	// Get filtered ads based on current filter
+	const getFilteredAds = () => {
+		let adsToFilter = [];
+		switch (filter) {
+			case "active":
+				adsToFilter = ads.active;
+				break;
+			case "deleted":
+				adsToFilter = ads.deleted;
+				break;
+			case "all":
+				adsToFilter = [...ads.active, ...ads.deleted];
+				break;
+			default:
+				adsToFilter = ads.active;
 		}
+
+		return adsToFilter.filter((ad) =>
+			ad.title.toLowerCase().includes(searchTerm.toLowerCase())
+		);
 	};
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setEditedAd((prevState) => ({
-			...prevState,
-			[name]: value,
-		}));
-	};
-
-	const MAX_IMAGES = 3;
-
-	const handleFileSelect = async (files, mode = "add") => {
-		if (!files || files.length === 0) return;
-
-		try {
-			const fileArray = Array.from(files);
-			const maxSize = 5 * 1024 * 1024;
-
-			// Determine current image count based on mode
-			const currentCount =
-				mode === "edit" ? editedImages.length : selectedImages.length;
-
-			// Limit number of images allowed
-			const allowableSlots = MAX_IMAGES - currentCount;
-			if (allowableSlots <= 0) {
-				setAlertModalMessage(`You can only upload up to ${MAX_IMAGES} images.`);
-				setAlertModalConfig({
-					icon: "warning",
-					title: "Upload Limit Reached",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => setShowAlertModal(false),
-				});
-				setShowAlertModal(true);
-				return;
-			}
-
-			const filesWithinLimit = fileArray.slice(0, allowableSlots);
-
-			const validFiles = filesWithinLimit.filter(
-				(file) => file.size <= maxSize
-			);
-			const invalidFiles = filesWithinLimit.filter(
-				(file) => file.size > maxSize
-			);
-
-			if (invalidFiles.length > 0) {
-				const invalidNames = invalidFiles
-					.map((file) => `"${file.name}"`)
-					.join(", ");
-				const alertMessage = `${invalidNames} ${
-					invalidFiles.length === 1 ? "exceeds" : "exceed"
-				} 5MB. Please select smaller image${
-					invalidFiles.length === 1 ? "" : "s"
-				}.`;
-
-				setAlertModalMessage(alertMessage);
-				setAlertModalConfig({
-					icon: "warning",
-					title: "File Too Large",
-					confirmText: "OK",
-					cancelText: "",
-					showCancel: false,
-					onConfirm: () => {
-						setShowAlertModal(false);
-						if (validFiles.length > 0) {
-							if (mode === "edit") {
-								setEditedImages((prev) => [...prev, ...validFiles]);
-							} else {
-								setSelectedImages((prev) => [...prev, ...validFiles]);
-							}
-						}
-					},
-				});
-				setShowAlertModal(true);
-			} else {
-				// All files are valid and within limit
-				if (mode === "edit") {
-					setEditedImages((prev) => [...prev, ...validFiles]);
-				} else {
-					setSelectedImages((prev) => [...prev, ...validFiles]);
-				}
-
-				// Images added successfully
-			}
-		} catch (error) {
-			console.error("Error processing selected images:", error);
-		}
-	};
-
-	const handleDeleteImage = async (index) => {
-		try {
-			const updatedMedia = [...editedAd.media];
-			updatedMedia.splice(index, 1); // remove image by index
-
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/seller/ads/${editedAd.id}`,
-				{
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
-					},
-					body: JSON.stringify({ ad: { media: updatedMedia } }),
-				}
-			);
-
-			if (!response.ok) throw new Error("Failed to update ad");
-
-			const updatedAd = await response.json();
-
-			setEditedAd(updatedAd);
-			setAds((prevAds) => ({
-				...prevAds,
-				active: prevAds.active.map((p) =>
-					p.id === updatedAd.id ? updatedAd : p
-				),
-			}));
-
-			// Trigger AlertModal
-			setAlertModalMessage("Image has been deleted successfully.");
-			setAlertModalConfig({
-				icon: "success",
-				title: "Image Deleted",
-				confirmText: "OK",
-				showCancel: false,
-			});
-			setShowAlertModal(true);
-
-			// Image deleted successfully
-		} catch (error) {
-			console.error("Error deleting image:", error);
-
-			// Optional: Show error in AlertModal
-			setAlertModalMessage("Failed to delete image. Please try again.");
-			setAlertModalConfig({
-				icon: "error",
-				title: "Error",
-				confirmText: "OK",
-				showCancel: false,
-			});
-			setShowAlertModal(true);
-		}
-	};
+	const filteredAds = getFilteredAds();
 
 	const handleRestoreAd = async (adId) => {
 		try {
@@ -857,22 +183,21 @@ const SellerAds = () => {
 	};
 
 	const renderAdCard = (ad) => (
-		<div key={ad.id} className="group">
-			<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+		<div key={ad.id} className="group h-full">
+			<div
+				className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 h-full flex flex-col cursor-pointer"
+				onClick={() => handleViewDetailsClick(ad)}
+			>
 				{/* Image Section */}
-				<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
+				<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
 					{ad.media && ad.media.length > 0 ? (
 						<img
 							src={ad.media[0]}
 							alt={ad.title}
-							className="w-full h-full object-contain cursor-pointer group-hover:scale-105 transition-transform duration-200"
-							onClick={() => handleViewDetailsClick(ad)}
+							className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
 						/>
 					) : (
-						<div
-							className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center cursor-pointer group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200"
-							onClick={() => handleViewDetailsClick(ad)}
-						>
+						<div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200">
 							<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
 								<svg
 									width="48"
@@ -921,33 +246,15 @@ const SellerAds = () => {
 						</div>
 					)}
 
-					{/* Rating Badge - Top Right */}
-					{ad.average_rating && (
+					{/* Average Rating Badge - Top Right */}
+					{ad.mean_rating && ad.mean_rating > 0 && (
 						<div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1">
-							<div className="flex">
-								{[1, 2, 3, 4, 5].map((star) => (
-									<FontAwesomeIcon
-										key={star}
-										icon={
-											star <= Math.floor(ad.average_rating)
-												? faStar
-												: star === Math.ceil(ad.average_rating) &&
-												  ad.average_rating % 1 !== 0
-												? faStarHalfAlt
-												: faStarEmpty
-										}
-										className={`text-xs ${
-											star <= Math.floor(ad.average_rating) ||
-											(star === Math.ceil(ad.average_rating) &&
-												ad.average_rating % 1 !== 0)
-												? "text-yellow-400"
-												: "text-gray-300"
-										}`}
-									/>
-								))}
-							</div>
+							<FontAwesomeIcon
+								icon={faStar}
+								className="text-xs text-yellow-400"
+							/>
 							<span className="text-xs text-gray-600 font-medium">
-								{ad.average_rating.toFixed(1)}
+								{ad.mean_rating.toFixed(1)}
 							</span>
 						</div>
 					)}
@@ -998,8 +305,8 @@ const SellerAds = () => {
 							<button
 								onClick={(e) => {
 									e.stopPropagation();
-									setAdToDelete(ad);
-									setAlertVisible(true);
+									// TODO: Implement delete functionality
+									alert("Delete functionality not implemented yet");
 								}}
 								className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
 								title="Delete Ad"
@@ -1024,14 +331,14 @@ const SellerAds = () => {
 				</div>
 
 				{/* Content Section */}
-				<div className="p-2 sm:p-3">
+				<div className="p-2 sm:p-3 flex flex-col flex-grow">
 					{/* Title */}
-					<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200">
+					<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
 						{ad.title}
 					</h3>
 
 					{/* Price */}
-					<div className="flex items-center justify-between mb-1">
+					<div className="flex items-center justify-between">
 						<span className="text-sm sm:text-base font-bold text-green-600">
 							Kshs {parseFloat(ad.price).toLocaleString()}
 						</span>
@@ -1041,86 +348,10 @@ const SellerAds = () => {
 							</span>
 						)}
 					</div>
-
-					{/* Brand */}
-					{ad.brand && (
-						<div className="flex items-center text-xs text-gray-500 mb-1">
-							<FontAwesomeIcon icon={faBox} className="mr-1" />
-							<span className="truncate">{ad.brand}</span>
-						</div>
-					)}
-
-					{/* View Details Button */}
-					<button
-						onClick={() => handleViewDetailsClick(ad)}
-						className="w-full mt-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors duration-200"
-					>
-						View Details
-					</button>
 				</div>
 			</div>
 		</div>
 	);
-
-	const renderRatingStars = (rating) => {
-		if (typeof rating !== "number" || rating < 0) {
-			console.error("Invalid rating value:", rating);
-			return <div className="rating-stars">Invalid rating</div>;
-		}
-
-		const fullStars = Math.floor(Math.max(0, Math.min(rating, 5)));
-		const halfStar = rating % 1 >= 0.5;
-		const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-
-		return (
-			<div className="rating-stars">
-				{[...Array(fullStars)].map((_, index) => (
-					<FontAwesomeIcon
-						key={index}
-						icon={faStar}
-						className="rating-star filled"
-					/>
-				))}
-				{halfStar && (
-					<FontAwesomeIcon
-						icon={faStarHalfAlt}
-						className="rating-star half-filled"
-					/>
-				)}
-				{[...Array(emptyStars)].map((_, index) => (
-					<FontAwesomeIcon
-						key={index}
-						icon={faStarEmpty}
-						className="rating-star empty"
-					/>
-				))}
-			</div>
-		);
-	};
-
-	const StarRating = ({ rating }) => {
-		const fullStars = Math.floor(rating);
-		const halfStar = rating % 1 >= 0.5;
-		const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-
-		return (
-			<span className="star-rating">
-				{[...Array(fullStars)].map((_, index) => (
-					<FontAwesomeIcon key={index} icon={faStar} className="star filled" />
-				))}
-				{halfStar && (
-					<FontAwesomeIcon icon={faStarHalfAlt} className="star half-filled" />
-				)}
-				{[...Array(emptyStars)].map((_, index) => (
-					<FontAwesomeIcon
-						key={index}
-						icon={faStarEmpty}
-						className="star empty"
-					/>
-				))}
-			</span>
-		);
-	};
 
 	if (loading) {
 		return (
@@ -1143,7 +374,6 @@ const SellerAds = () => {
 			<div className="min-h-screen bg-gray-50">
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex">
-					<Sidebar />
 					<div className="flex-1">
 						<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6">
 							{/* Header Section */}
@@ -1158,7 +388,7 @@ const SellerAds = () => {
 										</p>
 									</div>
 									<button
-										onClick={() => setShowAddModal(true)}
+										onClick={() => navigate("/seller/add-ad")}
 										className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors shadow-sm hover:shadow-md w-full sm:w-auto justify-center"
 									>
 										<FontAwesomeIcon icon={faPencilAlt} className="text-sm" />
@@ -1167,7 +397,7 @@ const SellerAds = () => {
 								</div>
 							</div>
 
-							{/* Search and Stats Section */}
+							{/* Search and Filter Section */}
 							<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
 								<div className="flex flex-col lg:flex-row gap-3">
 									{/* Search Bar */}
@@ -1189,42 +419,58 @@ const SellerAds = () => {
 										</div>
 									</div>
 
-									{/* Stats */}
-									<div className="flex gap-3">
-										<div className="text-center">
-											<div className="text-2xl font-bold text-green-600">
-												{ads.active.length}
-											</div>
-											<div className="text-xs text-gray-500">Active</div>
-										</div>
-										<div className="text-center">
-											<div className="text-2xl font-bold text-red-600">
-												{ads.deleted.length}
-											</div>
-											<div className="text-xs text-gray-500">Deleted</div>
-										</div>
-										<div className="text-center">
-											<div className="text-2xl font-bold text-blue-600">
-												{ads.active.length + ads.deleted.length}
-											</div>
-											<div className="text-xs text-gray-500">Total</div>
-										</div>
+									{/* Filter Buttons */}
+									<div className="flex gap-2">
+										<button
+											onClick={() => setFilter("active")}
+											className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+												filter === "active"
+													? "bg-green-100 text-green-800 border border-green-300"
+													: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+											}`}
+										>
+											Active ({ads.active.length})
+										</button>
+										<button
+											onClick={() => setFilter("all")}
+											className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+												filter === "all"
+													? "bg-blue-100 text-blue-800 border border-blue-300"
+													: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+											}`}
+										>
+											All ({ads.active.length + ads.deleted.length})
+										</button>
+										<button
+											onClick={() => setFilter("deleted")}
+											className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+												filter === "deleted"
+													? "bg-red-100 text-red-800 border border-red-300"
+													: "bg-gray-100 text-gray-600 hover:bg-gray-200"
+											}`}
+										>
+											Deleted ({ads.deleted.length})
+										</button>
 									</div>
 								</div>
 							</div>
 
-							{/* Active Ads Section */}
+							{/* Ads Section */}
 							<div className="mb-6">
 								<div className="flex items-center justify-between mb-3">
 									<h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-										Active Ads ({ads.active.length})
+										{filter === "active" &&
+											`Active Ads (${filteredAds.length})`}
+										{filter === "deleted" &&
+											`Deleted Ads (${filteredAds.length})`}
+										{filter === "all" && `All Ads (${filteredAds.length})`}
 									</h2>
 									<div className="h-px bg-gray-200 flex-1 mx-3"></div>
 								</div>
 
-								{filteredActiveAds.length > 0 ? (
-									<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-										{filteredActiveAds.map(renderAdCard)}
+								{filteredAds.length > 0 ? (
+									<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+										{filteredAds.map(renderAdCard)}
 									</div>
 								) : (
 									<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
@@ -1235,1398 +481,36 @@ const SellerAds = () => {
 											/>
 										</div>
 										<h3 className="text-lg font-medium text-gray-900 mb-2">
-											No active ads found
+											{filter === "active" && "No active ads found"}
+											{filter === "deleted" && "No deleted ads found"}
+											{filter === "all" && "No ads found"}
 										</h3>
 										<p className="text-gray-500 mb-4">
-											Start by creating your first ad to showcase your products.
+											{filter === "active" &&
+												"Start by creating your first ad to showcase your products."}
+											{filter === "deleted" &&
+												"You haven't deleted any ads yet."}
+											{filter === "all" && "You don't have any ads yet."}
 										</p>
-										<button
-											onClick={() => setShowAddModal(true)}
-											className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
-										>
-											<FontAwesomeIcon icon={faPencilAlt} className="text-sm" />
-											Create Your First Ad
-										</button>
+										{filter === "active" && (
+											<button
+												onClick={() => navigate("/seller/add-ad")}
+												className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+											>
+												<FontAwesomeIcon
+													icon={faPencilAlt}
+													className="text-sm"
+												/>
+												Create Your First Ad
+											</button>
+										)}
 									</div>
 								)}
 							</div>
-
-							{/* Deleted Ads Section */}
-							{ads.deleted.length > 0 && (
-								<div>
-									<div className="flex items-center justify-between mb-3">
-										<h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-											Deleted Ads ({ads.deleted.length})
-										</h2>
-										<div className="h-px bg-gray-200 flex-1 mx-3"></div>
-									</div>
-
-									<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-										{filteredDeletedAds.map(renderAdCard)}
-									</div>
-								</div>
-							)}
 						</div>
 					</div>
 				</div>
 			</div>
-
-			{/* ============================================================ START AD DETAILS MODAL ==================================================================================*/}
-
-			<Modal
-				centered
-				show={showDetailsModal}
-				onHide={handleModalClose}
-				size="xl"
-			>
-				<Modal.Header className="justify-content-center p-1 p-lg-2">
-					<Modal.Title>{selectedAd?.title || "Ad Details"}</Modal.Title>
-				</Modal.Header>
-				<Modal.Body className="p-0 p-lg-2">
-					{selectedAd && (
-						<>
-							<div className="position-relative">
-								<Carousel
-									className="mb-4 custom-carousel"
-									activeIndex={viewActiveIndex}
-									onSelect={(selectedIndex) =>
-										setViewActiveIndex(selectedIndex)
-									}
-									controls={selectedAd.media && selectedAd.media.length > 1}
-									indicators={false}
-								>
-									{selectedAd.media && selectedAd.media.length > 0 ? (
-										selectedAd.media.map((image, index) => (
-											<Carousel.Item key={index}>
-												<img
-													className="d-block w-100 ad-image"
-													src={image}
-													alt={`Ad ${selectedAd.title} - view ${index + 1}`}
-													style={{ height: "300px", objectFit: "contain" }}
-												/>
-											</Carousel.Item>
-										))
-									) : (
-										<Carousel.Item>
-											<div
-												className="d-flex flex-column align-items-center justify-content-center bg-gradient-to-br from-gray-100 to-gray-200"
-												style={{ height: "300px" }}
-											>
-												<svg
-													width="64"
-													height="64"
-													viewBox="0 0 24 24"
-													fill="none"
-													stroke="currentColor"
-													strokeWidth="1.5"
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													className="text-gray-400 mb-3"
-												>
-													<rect
-														x="3"
-														y="3"
-														width="18"
-														height="18"
-														rx="2"
-														ry="2"
-													/>
-													<circle cx="8.5" cy="8.5" r="1.5" />
-													<polyline points="21,15 16,10 5,21" />
-												</svg>
-												<p className="text-gray-500 mb-0 font-medium">
-													No images available
-												</p>
-												<small className="text-gray-400">
-													Add images to showcase your product
-												</small>
-											</div>
-										</Carousel.Item>
-									)}
-								</Carousel>
-
-								{/* 🔢 Fixed Image number overlay - outside carousel */}
-								{selectedAd.media && selectedAd.media.length > 1 && (
-									<div
-										className="position-absolute bottom-0 start-0 m-3 px-3 py-1 text-dark animate__animated animate__fadeIn"
-										style={{
-											fontSize: "0.9rem",
-											zIndex: 1050,
-											textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
-										}}
-									>
-										{viewActiveIndex + 1} / {selectedAd.media.length}
-									</div>
-								)}
-
-								{/* 🖼️ Image Thumbnails Preview - only show if more than 1 image */}
-								{selectedAd.media && selectedAd.media.length > 1 && (
-									<div
-										className="position-absolute bottom-0 end-0 m-3"
-										style={{ zIndex: 1050 }}
-									>
-										<div className="d-flex gap-2">
-											{selectedAd.media.map((image, index) => (
-												<div
-													key={index}
-													className={`thumbnail-preview ${
-														index === viewActiveIndex ? "active" : ""
-													}`}
-													onClick={() => setViewActiveIndex(index)}
-													style={{
-														width: "40px",
-														height: "40px",
-														cursor: "pointer",
-														border:
-															index === viewActiveIndex
-																? "2px solid #ffc107"
-																: "2px solid rgba(255,255,255,0.5)",
-														borderRadius: "8px",
-														overflow: "hidden",
-														opacity: index === viewActiveIndex ? 1 : 0.7,
-														transition: "all 0.3s ease",
-														backgroundColor: "rgba(0,0,0,0.1)",
-													}}
-													onMouseEnter={(e) => {
-														if (index !== viewActiveIndex) {
-															e.target.style.opacity = "0.9";
-															e.target.style.transform = "scale(1.05)";
-														}
-													}}
-													onMouseLeave={(e) => {
-														if (index !== viewActiveIndex) {
-															e.target.style.opacity = "0.7";
-															e.target.style.transform = "scale(1)";
-														}
-													}}
-												>
-													<img
-														src={image}
-														alt={`Thumbnail ${index + 1}`}
-														style={{
-															width: "100%",
-															height: "100%",
-															objectFit: "cover",
-															pointerEvents: "none",
-														}}
-													/>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
-							</div>
-							<Container className="ad-details mb-4 p-1 p-lg-2">
-								<Row>
-									<Col xs={6} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Price
-											</Card.Header>
-											<Card.Body className="text-center">
-												<em className="ad-price-label">Kshs: </em>
-												<strong className="text-success">
-													{selectedAd.price
-														? (() => {
-																const formattedPrice = parseFloat(
-																	selectedAd.price
-																).toFixed(2);
-																const [integerPart, decimalPart] =
-																	formattedPrice.split(".");
-																return (
-																	<>
-																		<span className="price-integer">
-																			{parseInt(
-																				integerPart,
-																				10
-																			).toLocaleString()}
-																		</span>
-																		<span style={{ fontSize: "16px" }}>.</span>
-																		<span className="price-decimal">
-																			{decimalPart}
-																		</span>
-																	</>
-																);
-														  })()
-														: "N/A"}
-												</strong>
-											</Card.Body>
-										</Card>
-									</Col>
-									<Col xs={6} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Category
-											</Card.Header>
-											<Card.Body className="text-center">
-												{selectedAd.category?.name || "N/A"}
-											</Card.Body>
-										</Card>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col xs={6} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Quantity Sold
-											</Card.Header>
-											<Card.Body className="text-center">
-												{selectedAd.quantity_sold || 0}
-											</Card.Body>
-										</Card>
-									</Col>
-									<Col xs={6} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Sold Out
-											</Card.Header>
-											<Card.Body className="text-center">
-												{selectedAd.sold_out ? "Yes" : "No"}
-											</Card.Body>
-										</Card>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col xs={12}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Description
-											</Card.Header>
-											<Card.Body className="text-center">
-												{selectedAd.description}
-											</Card.Body>
-										</Card>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col xs={12} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Condition
-											</Card.Header>
-											<Card.Body className="text-center">
-												<p className="mb-0">
-													{selectedAd.condition === "brand_new" && (
-														<span
-															style={{
-																backgroundColor: "green",
-																color: "white",
-																padding: "4px 12px",
-																borderRadius: "20px",
-																fontWeight: "bold",
-																fontSize: "0.95rem",
-															}}
-														>
-															Brand New
-														</span>
-													)}
-													{selectedAd.condition === "second_hand" && (
-														<span
-															style={{
-																backgroundColor: "orange",
-																color: "white",
-																padding: "4px 12px",
-																borderRadius: "20px",
-																fontWeight: "bold",
-																fontSize: "0.95rem",
-															}}
-														>
-															Second Hand
-														</span>
-													)}
-													{!selectedAd.condition && (
-														<span className="text-muted">Not specified</span>
-													)}
-												</p>
-											</Card.Body>
-										</Card>
-									</Col>
-									<Col xs={12} md={6}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Rating
-											</Card.Header>
-											<Card.Body className="text-center">
-												<span className="star-rating">
-													{renderRatingStars(selectedAd.mean_rating || 0)}
-												</span>
-											</Card.Body>
-										</Card>
-									</Col>
-								</Row>
-
-								<Row>
-									<Col xs={12}>
-										<Card className="mb-2 custom-card">
-											<Card.Header as="h6" className="justify-content-center">
-												Dimensions
-											</Card.Header>
-											<Card.Body className="text-center">
-												<Row>
-													<Col xs={6} md={6}>
-														<p>
-															<strong>Height:</strong> {selectedAd.item_height}{" "}
-															cm
-														</p>
-														<p>
-															<strong>Width:</strong> {selectedAd.item_width} cm
-														</p>
-													</Col>
-													<Col xs={6} md={6}>
-														<p>
-															<strong>Length:</strong> {selectedAd.item_length}{" "}
-															cm
-														</p>
-														<p>
-															<strong>Weight:</strong> {selectedAd.item_weight}{" "}
-															{selectedAd.weight_unit}
-														</p>
-													</Col>
-												</Row>
-											</Card.Body>
-										</Card>
-									</Col>
-								</Row>
-							</Container>
-							<h5 className="text-center" id="reviews">
-								Reviews
-							</h5>
-							{selectedAd.reviews && selectedAd.reviews.length > 0 ? (
-								<div className="reviews-container text-center p-1 p-lg-2">
-									{selectedAd.reviews.map((review, index) => (
-										<div className="custom-card p-2" key={index}>
-											<p className="review-comment">
-												<em>"{review.review}"</em>
-											</p>
-											<StarRating rating={review.rating} />
-										</div>
-									))}
-								</div>
-							) : (
-								<p className="text-center">No reviews yet</p>
-							)}
-						</>
-					)}
-				</Modal.Body>
-				<Modal.Footer className=" p-0 p-lg-1">
-					<Button variant="danger" onClick={handleModalClose}>
-						Close
-					</Button>
-				</Modal.Footer>
-			</Modal>
-
-			{/* ============================================================ START EDIT AD MODAL ==================================================================================*/}
-
-			<Modal centered show={showEditModal} onHide={handleModalClose} size="xl">
-				<Modal.Header className="justify-content-center p-1 p-lg-2">
-					<Modal.Title>
-						{selectedAd ? `Edit ${selectedAd.title}` : "Edit Ad"}
-					</Modal.Title>
-				</Modal.Header>
-				<Modal.Body className="p-1 p-lg-2">
-					<Form>
-						<Form.Group className="mb-3 position-relative">
-							{editedAd.media && editedAd.media.length > 0 ? (
-								<>
-									<Carousel
-										activeIndex={activeIndex}
-										onSelect={(selectedIndex) => setActiveIndex(selectedIndex)}
-										className="custom-carousel"
-										controls={editedAd.media.length > 1}
-										indicators={false}
-									>
-										{editedAd.media.map((image, index) => (
-											<Carousel.Item key={index}>
-												<img
-													className="d-block w-100"
-													src={image}
-													alt={`Ad - view ${index + 1}`}
-													style={{ height: "300px", objectFit: "contain" }}
-												/>
-											</Carousel.Item>
-										))}
-									</Carousel>
-
-									{/* 🔢 Fixed Image number (bottom-left) - outside carousel */}
-									{editedAd.media.length > 1 && (
-										<div
-											className="position-absolute bottom-0 start-0 m-3 px-3 py-1 text-dark animate__animated animate__fadeIn"
-											style={{
-												fontSize: "0.9rem",
-												zIndex: 1050,
-												textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
-											}}
-										>
-											{activeIndex + 1} / {editedAd.media.length}
-										</div>
-									)}
-
-									{/* 🖼️ Image Thumbnails Preview - only show if more than 1 image */}
-									{editedAd.media.length > 1 && (
-										<div
-											className="position-absolute bottom-0 end-0 m-3"
-											style={{ zIndex: 1040 }} // Lower than delete button
-										>
-											<div className="d-flex gap-2">
-												{editedAd.media.map((image, index) => (
-													<div
-														key={index}
-														className={`thumbnail-preview ${
-															index === activeIndex ? "active" : ""
-														}`}
-														onClick={() => setActiveIndex(index)}
-														style={{
-															width: "40px",
-															height: "40px",
-															cursor: "pointer",
-															border:
-																index === activeIndex
-																	? "2px solid #ffc107"
-																	: "2px solid rgba(255,255,255,0.5)",
-															borderRadius: "8px",
-															overflow: "hidden",
-															opacity: index === activeIndex ? 1 : 0.7,
-															transition: "all 0.3s ease",
-															backgroundColor: "rgba(0,0,0,0.1)",
-														}}
-														onMouseEnter={(e) => {
-															if (index !== activeIndex) {
-																e.target.style.opacity = "0.9";
-																e.target.style.transform = "scale(1.05)";
-															}
-														}}
-														onMouseLeave={(e) => {
-															if (index !== activeIndex) {
-																e.target.style.opacity = "0.7";
-																e.target.style.transform = "scale(1)";
-															}
-														}}
-													>
-														<img
-															src={image}
-															alt={`Thumbnail ${index + 1}`}
-															style={{
-																width: "100%",
-																height: "100%",
-																objectFit: "cover",
-																pointerEvents: "none",
-															}}
-														/>
-													</div>
-												))}
-											</div>
-										</div>
-									)}
-
-									{/* 🗑️ Delete button (top-right) for current image */}
-									<Button
-										variant="link"
-										onClick={() => handleDeleteImage(activeIndex)}
-										className="position-absolute top-0 end-0 m-2 text-danger"
-										style={{
-											fontSize: "1.2rem",
-											zIndex: 1050,
-											pointerEvents: "auto",
-										}}
-									>
-										<FontAwesomeIcon icon={faTrashCan} />
-									</Button>
-								</>
-							) : (
-								<div
-									className="d-flex flex-column align-items-center justify-content-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg"
-									style={{ height: "300px" }}
-								>
-									<svg
-										width="64"
-										height="64"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										strokeWidth="1.5"
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										className="text-gray-400 mb-3"
-									>
-										<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-										<circle cx="8.5" cy="8.5" r="1.5" />
-										<polyline points="21,15 16,10 5,21" />
-									</svg>
-									<p className="text-gray-500 mb-0 font-medium">
-										No images available
-									</p>
-									<small className="text-gray-400">
-										Upload images below to add them
-									</small>
-								</div>
-							)}
-						</Form.Group>
-
-						<Row className="mb-1 mb-lg-3">
-							<Col xs={12}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Title
-									</Form.Label>
-									<Form.Control
-										type="text"
-										placeholder="Enter ad title"
-										name="title"
-										id="button"
-										value={editedAd.title || ""}
-										onChange={handleInputChange}
-									/>
-								</Form.Group>
-							</Col>
-						</Row>
-
-						<Row className="mb-1 mb-lg-3">
-							<Col xs={6} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Category
-									</Form.Label>
-									<Form.Control
-										as="select"
-										name="category_id"
-										id="button"
-										value={selectedCategory}
-										onChange={handleCategoryChange}
-									>
-										<option value="">Select Category</option>
-										{categories.map((cat) => (
-											<option key={cat.id} value={cat.id}>
-												{cat.name}
-											</option>
-										))}
-									</Form.Control>
-								</Form.Group>
-							</Col>
-							<Col xs={6} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Subcategory
-									</Form.Label>
-									<Form.Control
-										as="select"
-										name="subcategory_id"
-										id="button"
-										value={selectedSubcategory}
-										onChange={handleSubcategoryChange}
-									>
-										<option value="">Select Subcategory</option>
-										{subcategories.map((subcat) => (
-											<option key={subcat.id} value={subcat.id}>
-												{subcat.name}
-											</option>
-										))}
-									</Form.Control>
-								</Form.Group>
-							</Col>
-						</Row>
-
-						<Row className="mb-1 mb-lg-3">
-							<Col xs={6} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Price
-									</Form.Label>
-									<Form.Control
-										type="number"
-										placeholder="Enter ad price"
-										name="price"
-										id="button"
-										value={editedAd.price || ""}
-										onChange={handleInputChange}
-									/>
-								</Form.Group>
-							</Col>
-							<Col xs={6} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Quantity in Stock
-									</Form.Label>
-									<Form.Control
-										type="number"
-										placeholder="Enter quantity in stock"
-										name="quantity"
-										id="button"
-										value={editedAd.quantity || ""}
-										onChange={handleInputChange}
-									/>
-								</Form.Group>
-							</Col>
-						</Row>
-
-						<Row className="mb-1 mb-lg-3">
-							<Col xs={12} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className=" text-center mb-0 fw-bold">
-										Brand
-									</Form.Label>
-									<Form.Control
-										type="text"
-										placeholder="Enter ad brand"
-										name="brand"
-										id="button"
-										value={editedAd.brand || ""}
-										onChange={handleInputChange}
-									/>
-								</Form.Group>
-							</Col>
-							<Col xs={12} md={6}>
-								<Form.Group className="d-flex flex-column align-items-center">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Manufacturer
-									</Form.Label>
-									<Form.Control
-										type="text"
-										placeholder="Enter ad manufacturer"
-										name="manufacturer"
-										id="button"
-										value={editedAd.manufacturer || ""}
-										onChange={handleInputChange}
-									/>
-								</Form.Group>
-							</Col>
-						</Row>
-
-						<Form.Group className="d-flex flex-column align-items-center mb-1 mb-lg-3">
-							<Form.Label className="text-center mb-0 fw-bold">
-								Add Images
-							</Form.Label>
-							<Form.Control
-								type="file"
-								id="button"
-								accept="image/*"
-								multiple
-								onChange={(e) => handleFileSelect(e.target.files, "edit")}
-							/>
-
-							{editedImages.length > 0 && (
-								<div className="image-preview d-flex flex-wrap justify-content-center mt-3">
-									{editedImages.map((file, index) => (
-										<div key={index} className="m-1 position-relative">
-											<button
-												type="button"
-												className="btn btn-danger btn-sm position-absolute"
-												style={{
-													top: 0,
-													right: 0,
-													borderRadius: "50%",
-													padding: "0 6px",
-													lineHeight: "1",
-													fontSize: "14px",
-												}}
-												onClick={() =>
-													setEditedImages((prev) =>
-														prev.filter((_, i) => i !== index)
-													)
-												}
-											>
-												&times;
-											</button>
-											<img
-												src={URL.createObjectURL(file)}
-												alt={`new-img-${index}`}
-												style={{
-													width: "80px",
-													height: "80px",
-													objectFit: "cover",
-													borderRadius: "5px",
-													border: "1px solid #ccc",
-												}}
-											/>
-										</div>
-									))}
-								</div>
-							)}
-						</Form.Group>
-
-						<Form.Group className="d-flex flex-column align-items-center">
-							<Form.Label className="text-center mb-0 fw-bold">
-								Description
-							</Form.Label>
-							<Form.Control
-								as="textarea"
-								rows={3}
-								placeholder="Enter ad description"
-								name="description"
-								value={editedAd.description || ""}
-								onChange={handleInputChange}
-							/>
-						</Form.Group>
-
-						<Form.Group className="mb-2 w-100">
-							<Form.Label className="text-center mb-0 fw-bold w-100">
-								Condition
-							</Form.Label>
-							<Form.Control
-								as="select"
-								id="edit-condition"
-								className="mb-1 rounded-pill"
-								style={{ maxWidth: "100%" }}
-								value={editedAd.condition || ""}
-								onChange={(e) =>
-									setEditedAd({ ...editedAd, condition: e.target.value })
-								}
-								required
-							>
-								<option value="">Select Condition</option>
-								<option value="brand_new">Brand New</option>
-								<option value="second_hand">Second Hand</option>
-							</Form.Control>
-						</Form.Group>
-
-						<Card className="custom-card-seller">
-							<Card.Header className="justify-content-center fw-bold">
-								Dimensions
-							</Card.Header>
-							<Card.Body>
-								<Row className="mb-1 -mb-lg-3">
-									<Col xs={6} md={6}>
-										<Form.Group className="d-flex flex-column align-items-center">
-											<Form.Label className="text-center mb-0 fw-bold">
-												Length
-											</Form.Label>
-											<Form.Control
-												type="number"
-												placeholder="Enter ad length"
-												name="item_length"
-												value={editedAd.item_length || ""}
-												onChange={handleInputChange}
-											/>
-										</Form.Group>
-									</Col>
-									<Col xs={6} md={6}>
-										<Form.Group className="d-flex flex-column align-items-center">
-											<Form.Label className="text-center mb-0 fw-bold">
-												Width
-											</Form.Label>
-											<Form.Control
-												type="number"
-												placeholder="Enter ad width"
-												name="item_width"
-												value={editedAd.item_width || ""}
-												onChange={handleInputChange}
-											/>
-										</Form.Group>
-									</Col>
-								</Row>
-
-								<Row className="mb-1 mb-lg-3">
-									<Col xs={6} md={6}>
-										<Form.Group className="d-flex flex-column align-items-center">
-											<Form.Label className="text-center mb-0 fw-bold">
-												Height
-											</Form.Label>
-											<Form.Control
-												type="number"
-												placeholder="Enter ad height"
-												name="item_height"
-												value={editedAd.item_height || ""}
-												onChange={handleInputChange}
-											/>
-										</Form.Group>
-									</Col>
-									<Col xs={6} md={6}>
-										<Form.Group className="d-flex flex-column align-items-center">
-											<Form.Label className="text-center mb-0 fw-bold">
-												Weight
-											</Form.Label>
-											<Form.Control
-												type="number"
-												placeholder="Enter ad weight"
-												name="item_weight"
-												value={editedAd.item_weight || ""}
-												onChange={handleInputChange}
-											/>
-										</Form.Group>
-									</Col>
-								</Row>
-
-								<Row className="mb-3">
-									<Form.Group>
-										<Form.Label>Weight Unit</Form.Label>
-										<Row className="mb-3">
-											<Col xs={6} md={6}>
-												<Form.Check
-													type="checkbox"
-													name="weight_unit"
-													label="Grams"
-													checked={editedAd.weight_unit === "Grams"}
-													onChange={() => handleWeightUnitChange("Grams")}
-												/>
-											</Col>
-											<Col xs={6} md={6}>
-												<Form.Check
-													type="checkbox"
-													name="weight_unit"
-													label="Kilograms"
-													checked={editedAd.weight_unit === "Kilograms"}
-													onChange={() => handleWeightUnitChange("Kilograms")}
-												/>
-											</Col>
-										</Row>
-									</Form.Group>
-								</Row>
-							</Card.Body>
-						</Card>
-					</Form>
-				</Modal.Body>
-				<Modal.Footer className="p-0 p-lg-1">
-					<Button
-						variant="warning"
-						onClick={handleSaveEdit}
-						disabled={isSaving}
-					>
-						{isSaving ? "Saving..." : "Save Changes"}
-					</Button>
-					<Button variant="danger" onClick={handleModalClose}>
-						Close
-					</Button>
-				</Modal.Footer>
-			</Modal>
-
-			{/* ============================================================  START ADD AD MODAL ==================================================================================*/}
-
-			<Modal
-				show={showAddModal}
-				onHide={() => setShowAddModal(false)}
-				size="xl"
-				centered
-				className="custom-modal"
-			>
-				<Modal.Header className="custom-modal-header justify-content-center p-1 p-lg-2">
-					<Modal.Title>Add Ad</Modal.Title>
-				</Modal.Header>
-				<Modal.Body className="custom-modal-body">
-					<Form>
-						<Row>
-							<Col md={8}>
-								<Form.Group className="mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Title
-									</Form.Label>
-									<Form.Control
-										id="title"
-										name="title"
-										type="text"
-										placeholder="Enter ad title"
-										value={formValues.title}
-										onChange={handleFormChange}
-										className="custom-input mb-1 rounded-pill"
-										isInvalid={!!formErrors.title}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.title}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group className="mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Description
-									</Form.Label>
-									<Form.Control
-										id="description"
-										name="description"
-										as="textarea"
-										rows={10}
-										placeholder="Enter ad description"
-										value={formValues.description}
-										onChange={handleFormChange}
-										className="custom-input mb-1"
-										isInvalid={!!formErrors.description}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.description}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								{/* Inside your modal */}
-								<Form.Group className="mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Media
-									</Form.Label>
-									<div className="upload-section position-relative">
-										<div className="upload-icon">&#8689;</div>
-										<div className="d-flex flex-column align-items-center">
-											<Button
-												variant="warning"
-												className="custom-upload-btn position-relative rounded-pill mb-1"
-												disabled={selectedImages.length >= 3}
-											>
-												{selectedImages.length < 3
-													? "Upload Images"
-													: "Maximum Reached (3)"}
-												<input
-													type="file"
-													accept="image/*"
-													multiple
-													onChange={(e) =>
-														handleFileSelect(e.target.files, "add")
-													}
-													style={{
-														position: "absolute",
-														top: 0,
-														left: 0,
-														width: "100%",
-														height: "100%",
-														opacity: 0,
-														cursor: "pointer",
-													}}
-												/>
-											</Button>
-
-											<small className="text-muted">
-												{selectedImages.length} of 3 images uploaded
-											</small>
-										</div>
-										<div className="upload-instructions">
-											Drag and Drop files Here
-										</div>
-										<div
-											className="image-preview mt-2"
-											style={{
-												display: "flex",
-												flexDirection: "row",
-												overflowX: "auto",
-												gap: "10px",
-												padding: "10px 0",
-											}}
-										>
-											{selectedImages.map((imageUrl, index) => (
-												<div
-													key={index}
-													className="image-container position-relative"
-													style={{ flexShrink: 0 }}
-												>
-													<button
-														type="button"
-														className="btn btn-danger btn-image position-absolute d-flex justify-content-center align-items-center"
-														onClick={() => removeImage(index)}
-														style={{
-															right: "-8px",
-															top: "-8px",
-															borderRadius: "50%",
-															padding: 0,
-															zIndex: 1,
-															height: "22px",
-															width: "22px",
-															display: "flex",
-															justifyContent: "center",
-															alignItems: "center",
-															fontSize: "14px",
-															lineHeight: 1,
-															border: "none",
-														}}
-													>
-														&times;
-													</button>
-													<img
-														src={
-															typeof imageUrl === "string"
-																? imageUrl
-																: URL.createObjectURL(imageUrl)
-														}
-														alt={`preview ${index + 1}`}
-														className="img-thumbnail"
-														style={{
-															width: "80px",
-															height: "80px",
-															objectFit: "cover",
-															margin: 0,
-														}}
-													/>
-												</div>
-											))}
-										</div>
-									</div>
-
-									{/* Preview Uploaded Images in a row at bottom */}
-								</Form.Group>
-								<Form.Group className="mb-2 w-100">
-									<Form.Label className="text-center mb-0 fw-bold w-100">
-										Condition
-									</Form.Label>
-									<Form.Control
-										as="select"
-										id="condition"
-										name="condition"
-										className="mb-1 rounded-pill"
-										style={{ maxWidth: "100%" }}
-										value={formValues.condition || ""}
-										onChange={(e) =>
-											setFormValues({
-												...formValues,
-												condition: e.target.value,
-											})
-										}
-										isInvalid={!!formErrors.condition}
-									>
-										<option value="">Select Condition</option>
-										<option value="brand_new">Brand New</option>
-										<option value="second_hand">Second Hand</option>
-										<option value="refurbished">Refurbished</option>
-									</Form.Control>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.condition}
-									</Form.Control.Feedback>
-								</Form.Group>
-							</Col>
-
-							<Col md={4}>
-								<Form.Group
-									xs={6}
-									className="d-flex flex-column align-items-center mb-2"
-								>
-									<Form.Label className="text-center mb-0 fw-bold">
-										Category
-									</Form.Label>
-									<Form.Control
-										id="category_id"
-										name="category"
-										as="select"
-										className="custom-input mb-1 rounded-pill"
-										value={selectedCategory}
-										onChange={(e) => setSelectedCategory(e.target.value)}
-										isInvalid={!!formErrors.category}
-									>
-										<option value="">Select Category</option>
-										{categories.map((category) => (
-											<option key={category.id} value={category.id}>
-												{category.name}
-											</option>
-										))}
-									</Form.Control>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.category}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group
-									xs={6}
-									className="d-flex flex-column align-items-center mb-2"
-								>
-									<Form.Label className="text-center mb-0 fw-bold">
-										Sub-Category
-									</Form.Label>
-									<Form.Control
-										id="subcategory_id"
-										name="subcategory"
-										as="select"
-										className="custom-input mb-1 rounded-pill"
-										value={selectedSubcategory}
-										onChange={(e) => setSelectedSubcategory(e.target.value)}
-										isInvalid={!!formErrors.subcategory}
-									>
-										<option value="">Select Sub-Category</option>
-										{subcategories.map((subcategory) => (
-											<option key={subcategory.id} value={subcategory.id}>
-												{subcategory.name}
-											</option>
-										))}
-									</Form.Control>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.subcategory}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group className="d-flex flex-column align-items-center mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Price
-									</Form.Label>
-									<Form.Control
-										id="price"
-										name="price"
-										type="text"
-										placeholder="Enter ad price"
-										value={formValues.price}
-										onChange={handleFormChange}
-										className="custom-input mb-1 rounded-pill"
-										isInvalid={!!formErrors.price}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.price}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group className="d-flex flex-column align-items-center mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Quantity
-									</Form.Label>
-									<Form.Control
-										id="quantity"
-										name="quantity"
-										type="text"
-										placeholder="Enter quantity"
-										value={formValues.quantity}
-										onChange={handleFormChange}
-										className="custom-input mb-1 rounded-pill"
-										isInvalid={!!formErrors.quantity}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.quantity}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group className="d-flex flex-column align-items-center mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Brand
-									</Form.Label>
-									<Form.Control
-										id="brand"
-										name="brand"
-										type="text"
-										placeholder="Enter brand"
-										value={formValues.brand}
-										onChange={handleFormChange}
-										className="custom-input mb-1 rounded-pill"
-										isInvalid={!!formErrors.brand}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.brand}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Form.Group className="d-flex flex-column align-items-center mb-2">
-									<Form.Label className="text-center mb-0 fw-bold">
-										Manufacturer
-									</Form.Label>
-									<Form.Control
-										id="manufacturer"
-										name="manufacturer"
-										type="text"
-										placeholder="Enter manufacturer"
-										value={formValues.manufacturer}
-										onChange={handleFormChange}
-										className="custom-input mb-1 rounded-pill"
-										isInvalid={!!formErrors.brand}
-									/>
-									<Form.Control.Feedback type="invalid">
-										{formErrors.manufacturer}
-									</Form.Control.Feedback>
-								</Form.Group>
-
-								<Container className="p-0">
-									<Form.Group className="d-flex flex-column align-items-center mb-2">
-										<Form.Label className="text-center mb-0 fw-bold">
-											Item Dimensions
-										</Form.Label>
-										<Row>
-											<Col xs={6} lg={12}>
-												<Form.Control
-													id="item_length"
-													name="item_length"
-													type="text"
-													placeholder="Length"
-													value={formValues.item_length}
-													onChange={handleFormChange}
-													className="custom-input mb-2 rounded-pill"
-												/>
-											</Col>
-											<Col xs={6} lg={12}>
-												<Form.Control
-													id="item_width"
-													name="item_width"
-													type="text"
-													placeholder="Width"
-													value={formValues.item_width}
-													onChange={handleFormChange}
-													className="custom-input mb-2 rounded-pill"
-												/>
-											</Col>
-										</Row>
-
-										<Row>
-											<Col xs={6} lg={12}>
-												<Form.Control
-													id="item_height"
-													name="item_height"
-													type="text"
-													placeholder="Height"
-													value={formValues.item_height}
-													onChange={handleFormChange}
-													className="custom-input rounded-pill"
-												/>
-											</Col>
-											<Col xs={6} lg={12}>
-												<Form.Control
-													id="item_weight"
-													name="item_weight"
-													type="text"
-													placeholder="Weight"
-													value={formValues.item_weight}
-													onChange={handleFormChange}
-													className="custom-input mb-1 rounded-pill"
-												/>
-											</Col>
-										</Row>
-									</Form.Group>
-									<Row>
-										<Form.Group className="d-flex flex-column align-items-center mb-2">
-											<Form.Label className="text-center fw-bold">
-												Weight Unit
-											</Form.Label>
-											<Row>
-												<Col
-													xs={6}
-													md={6}
-													className="d-flex justify-content-center"
-												>
-													<Form.Check
-														type="checkbox"
-														label="Grams"
-														checked={weightUnit === "Grams"}
-														onChange={() => handleAddWeightUnitChange("Grams")}
-													/>
-												</Col>
-												<Col
-													xs={6}
-													md={6}
-													className="d-flex justify-content-center"
-												>
-													<Form.Check
-														type="checkbox"
-														label="Kilograms"
-														checked={weightUnit === "Kilograms"}
-														onChange={() =>
-															handleAddWeightUnitChange("Kilograms")
-														}
-													/>
-												</Col>
-											</Row>
-										</Form.Group>
-									</Row>
-								</Container>
-							</Col>
-						</Row>
-					</Form>
-				</Modal.Body>
-				<Modal.Footer className="p-0 p-lg-1">
-					{/* Progress Bar */}
-					{uploading && (
-						<div className="progress mt-2 w-100">
-							<div
-								className="progress-bar progress-bar-striped progress-bar-animated bg-success"
-								role="progressbar"
-								style={{
-									width: `${uploadProgress}%`,
-									transition: "width 0.3s ease-in-out",
-								}}
-								aria-valuenow={uploadProgress}
-								aria-valuemin="0"
-								aria-valuemax="100"
-							>
-								{uploadProgress}%
-							</div>
-						</div>
-					)}
-
-					{/* Buttons */}
-					<Button
-						type="button"
-						variant="warning"
-						onClick={handleAddNewAd}
-						disabled={uploading}
-					>
-						{uploading ? "Uploading..." : "Add Ad"}
-					</Button>
-
-					<Button
-						variant="danger"
-						onClick={() => setShowAddModal(false)}
-						disabled={uploading}
-					>
-						Close
-					</Button>
-				</Modal.Footer>
-			</Modal>
-
-			<AlertModal
-				isVisible={showAlertModal}
-				message={alertModalMessage}
-				onClose={() => setShowAlertModal(false)}
-				icon={alertModalConfig.icon}
-				title={alertModalConfig.title}
-				confirmText={alertModalConfig.confirmText}
-				cancelText={alertModalConfig.cancelText}
-				showCancel={alertModalConfig.showCancel}
-				onConfirm={alertModalConfig.onConfirm}
-			/>
-
-			<AlertModal
-				isVisible={alertVisible}
-				title="Delete Confirmation"
-				message="Are you sure you want to delete this ad? This action is permanent."
-				confirmText="Yes, delete it"
-				cancelText="Cancel"
-				icon="warning"
-				onConfirm={async () => {
-					try {
-						const response = await fetch(
-							`${process.env.REACT_APP_BACKEND_URL}/seller/ads/${adToDelete}`,
-							{
-								method: "DELETE",
-								headers: {
-									Authorization: "Bearer " + sessionStorage.getItem("token"),
-								},
-							}
-						);
-
-						if (!response.ok) {
-							throw new Error("Failed to delete the ad.");
-						}
-
-						setAds((prevAds) => {
-							const deletedAd = prevAds.active.find(
-								(ad) => ad.id === adToDelete
-							);
-							return {
-								active: prevAds.active.filter((ad) => ad.id !== adToDelete),
-								deleted: [...prevAds.deleted, deletedAd],
-							};
-						});
-
-						Swal.fire({
-							title: "Deleted!",
-							text: "Your ad has been successfully deleted.",
-							icon: "success",
-							showConfirmButton: false,
-							timer: 2000,
-							customClass: {
-								popup: "futuristic-swal rounded-4 glass-bg",
-								title: "fw-semibold text-white",
-								htmlContainer: "text-light",
-							},
-							backdrop: "rgba(0, 0, 0, 0.6)",
-						});
-					} catch (error) {
-						console.error("Delete failed:", error);
-						Swal.fire({
-							title: "Error!",
-							text: "There was a problem deleting the ad.",
-							icon: "error",
-							confirmButtonText: "OK",
-							customClass: {
-								popup: "futuristic-swal rounded-4 glass-bg",
-								title: "fw-semibold text-white",
-								htmlContainer: "text-light",
-								confirmButton: "btn rounded-pill futuristic-confirm",
-							},
-							backdrop: "rgba(0, 0, 0, 0.6)",
-							buttonsStyling: false,
-						});
-					} finally {
-						setAlertVisible(false);
-						setAdToDelete(null);
-					}
-				}}
-				onClose={() => setAlertVisible(false)}
-			/>
 		</>
 	);
 };

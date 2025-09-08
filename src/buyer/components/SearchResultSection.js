@@ -1,7 +1,6 @@
 import React from "react";
 import { createSlug } from "../../utils/slugUtils";
 import { Button } from "react-bootstrap";
-import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
 import {
 	getBorderColor,
 	getTierName,
@@ -399,26 +398,26 @@ const SearchResultSection = ({
 							return (
 								<div
 									key={shop.id}
-									className="bg-white rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group h-full overflow-hidden"
+									className="bg-white rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 cursor-pointer group h-full overflow-hidden"
 									style={{ border: `3px solid ${borderColor}` }}
 									onClick={() => handleShopClickInternal(shop)}
 								>
-									<div className="p-6 h-full flex flex-col">
+									<div className="p-4 sm:p-5 md:p-6 h-full flex flex-col">
 										{/* Header Section */}
-										<div className="flex items-center mb-4">
+										<div className="flex items-start mb-3 sm:mb-4">
 											{shop.profile_picture ? (
 												<img
 													src={shop.profile_picture}
 													alt={shop.enterprise_name}
-													className="w-16 h-16 rounded-full object-cover mr-4 flex-shrink-0 shadow-md"
+													className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full object-cover mr-3 sm:mr-4 flex-shrink-0 shadow-md"
 													onError={(e) => {
 														e.target.style.display = "none";
 													}}
 												/>
 											) : (
-												<div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+												<div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 shadow-md">
 													<svg
-														className="w-8 h-8 text-gray-500"
+														className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-gray-500"
 														fill="none"
 														stroke="currentColor"
 														viewBox="0 0 24 24"
@@ -433,7 +432,7 @@ const SearchResultSection = ({
 												</div>
 											)}
 											<div className="flex-1 min-w-0">
-												<h3 className="text-lg font-bold text-gray-900 line-clamp-2 break-words mb-2">
+												<h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 line-clamp-2 break-words leading-tight">
 													{shop.enterprise_name}
 												</h3>
 											</div>
@@ -441,18 +440,18 @@ const SearchResultSection = ({
 
 										{/* Description */}
 										{shop.description && (
-											<p className="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow leading-relaxed">
+											<p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 flex-grow leading-relaxed">
 												{shop.description}
 											</p>
 										)}
 
 										{/* Bottom Section */}
-										<div className="mt-auto space-y-3">
+										<div className="mt-auto space-y-2 sm:space-y-3">
 											{/* Stats Row */}
-											<div className="flex items-center justify-between">
-												<div className="flex items-center text-sm text-gray-600">
+											<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+												<div className="flex items-center text-xs sm:text-sm text-gray-600">
 													<svg
-														className="w-4 h-4 mr-2 text-gray-400"
+														className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400 flex-shrink-0"
 														fill="none"
 														stroke="currentColor"
 														viewBox="0 0 24 24"
@@ -464,14 +463,14 @@ const SearchResultSection = ({
 															d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
 														/>
 													</svg>
-													<span className="font-medium">
+													<span className="font-medium truncate">
 														{shop.product_count} products
 													</span>
 												</div>
 												{shop.address && (
-													<div className="flex items-center text-sm text-gray-500">
+													<div className="flex items-center text-xs sm:text-sm text-gray-500">
 														<svg
-															className="w-4 h-4 mr-1 text-gray-400"
+															className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-gray-400 flex-shrink-0"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24"
@@ -489,7 +488,7 @@ const SearchResultSection = ({
 																d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
 															/>
 														</svg>
-														<span className="truncate max-w-[120px]">
+														<span className="truncate max-w-[100px] sm:max-w-[120px]">
 															{shop.address}
 														</span>
 													</div>
@@ -498,20 +497,21 @@ const SearchResultSection = ({
 
 											{/* Action Button and Tier Badge */}
 											<div className="pt-2 border-t border-gray-100">
-												<div className="flex items-center justify-between">
+												<div className="flex items-center justify-between gap-2">
 													{/* Tier Badge */}
 													<span
-														className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+														className="px-2 sm:px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg flex-shrink-0"
 														style={{ backgroundColor: borderColor }}
 													>
 														{shop.tier}
 													</span>
 
 													{/* View Shop Button */}
-													<div className="flex items-center text-sm font-semibold text-orange-700 group-hover:text-orange-800 transition-colors">
-														<span>View Shop</span>
+													<div className="flex items-center text-xs sm:text-sm font-semibold text-orange-700 group-hover:text-orange-800 transition-colors flex-shrink-0">
+														<span className="hidden sm:inline">View Shop</span>
+														<span className="sm:hidden">View</span>
 														<svg
-															className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+															className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 group-hover:translate-x-1 transition-transform"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24"
@@ -631,8 +631,8 @@ const SearchResultSection = ({
 										</span>
 									</h2>
 								</div>
-								<div className="p-3 sm:p-4 md:p-6">
-									<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+								<div className="p-2 sm:p-3">
+									<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
 										{limitedGroupedResults[subcategoryName].map((ad, index) => {
 											const borderColor = getBorderColor(getTierId(ad));
 											return (
@@ -640,36 +640,84 @@ const SearchResultSection = ({
 													key={`${ad.id}-${subcategoryName}-${
 														subcategoryDisplayCounts[subcategoryName] || 0
 													}`}
-													className="group cursor-pointer transition-transform hover:scale-105 h-full"
+													className="group cursor-pointer h-full"
 													onClick={() => handleAdClick(ad.id)}
 												>
-													<div className="bg-white rounded-lg shadow-sm border hover:shadow-lg transition-all duration-200 hover:border-yellow-300 h-full flex flex-col">
+													<div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
 														{/* Tier badge */}
-														<div className="relative flex-shrink-0">
-															<img
-																src={
-																	ad.first_media_url
-																		? ad.first_media_url
-																				.replace(/\n/g, "")
-																				.trim()
-																		: ad.media_urls &&
-																		  Array.isArray(ad.media_urls) &&
-																		  ad.media_urls.length > 0
-																		? ad.media_urls[0].replace(/\n/g, "").trim()
-																		: ad.media &&
-																		  Array.isArray(ad.media) &&
-																		  ad.media.length > 0
-																		? ad.media[0].replace(/\n/g, "").trim()
-																		: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+"
-																}
-																alt={ad.title}
-																className="w-full aspect-square object-contain rounded-t-lg"
-																loading="lazy"
-																onError={(e) => {
-																	e.target.src =
-																		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
-																}}
-															/>
+														<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
+															{ad.first_media_url ||
+															(ad.media_urls &&
+																Array.isArray(ad.media_urls) &&
+																ad.media_urls.length > 0) ||
+															(ad.media &&
+																Array.isArray(ad.media) &&
+																ad.media.length > 0) ? (
+																<img
+																	src={
+																		ad.first_media_url
+																			? ad.first_media_url
+																					.replace(/\n/g, "")
+																					.trim()
+																			: ad.media_urls &&
+																			  Array.isArray(ad.media_urls) &&
+																			  ad.media_urls.length > 0
+																			? ad.media_urls[0]
+																					.replace(/\n/g, "")
+																					.trim()
+																			: ad.media[0].replace(/\n/g, "").trim()
+																	}
+																	alt={ad.title}
+																	className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+																	loading="lazy"
+																	onError={(e) => {
+																		e.target.style.display = "none";
+																		e.target.nextElementSibling.style.display =
+																			"flex";
+																	}}
+																/>
+															) : null}
+															<div
+																className={`w-full h-full ${
+																	ad.first_media_url ||
+																	(ad.media_urls &&
+																		Array.isArray(ad.media_urls) &&
+																		ad.media_urls.length > 0) ||
+																	(ad.media &&
+																		Array.isArray(ad.media) &&
+																		ad.media.length > 0)
+																		? "hidden"
+																		: "flex"
+																} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200`}
+															>
+																<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
+																	<svg
+																		width="48"
+																		height="48"
+																		viewBox="0 0 24 24"
+																		fill="none"
+																		stroke="currentColor"
+																		strokeWidth="1.5"
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		className="mb-2"
+																	>
+																		<rect
+																			x="3"
+																			y="3"
+																			width="18"
+																			height="18"
+																			rx="2"
+																			ry="2"
+																		/>
+																		<circle cx="8.5" cy="8.5" r="1.5" />
+																		<polyline points="21,15 16,10 5,21" />
+																	</svg>
+																</div>
+																<div className="text-xs text-gray-500 font-medium text-center px-2">
+																	No Image
+																</div>
+															</div>
 															<div
 																className="absolute top-1 sm:top-2 left-1 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium text-white rounded"
 																style={{ backgroundColor: borderColor }}
@@ -678,21 +726,23 @@ const SearchResultSection = ({
 															</div>
 														</div>
 
-														<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col min-h-0">
-															<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow break-words">
+														<div className="p-2 sm:p-3 flex flex-col flex-grow">
+															<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
 																{ad.title}
 															</h3>
-															<div className="flex items-center justify-between mt-auto">
-																<p className="text-sm sm:text-base md:text-lg font-bold text-orange-700 truncate">
+															<div className="flex items-center justify-between">
+																<span className="text-sm sm:text-base font-bold text-green-600">
 																	KES{" "}
 																	{ad.price
 																		? parseFloat(ad.price).toLocaleString()
 																		: "N/A"}
-																</p>
+																</span>
+																{ad.quantity && (
+																	<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+																		Qty: {ad.quantity}
+																	</span>
+																)}
 															</div>
-															<p className="text-xs text-gray-500 mt-1 truncate">
-																{ad.seller?.enterprise_name || "Unknown Seller"}
-															</p>
 														</div>
 													</div>
 												</div>
@@ -748,27 +798,88 @@ const SearchResultSection = ({
 					) : (
 						// Single grid view for search results
 						<div className="bg-white rounded-lg shadow-sm border">
-							<div className="p-3 sm:p-4 md:p-6">
-								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+							<div className="p-2 sm:p-3">
+								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
 									{limitedResults.map((ad) => {
 										const borderColor = getBorderColor(getTierId(ad));
 										return (
 											<div
 												key={ad.id}
-												className="group cursor-pointer transition-transform hover:scale-105 h-full"
+												className="group cursor-pointer h-full"
 												onClick={() => handleAdClick(ad.id)}
 											>
-												<div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow h-full flex flex-col">
-													<div className="relative flex-shrink-0">
-														<img
-															src={getAdImageUrl(ad)}
-															alt={ad.title}
-															className="w-full aspect-square object-contain rounded-t-lg"
-															loading="lazy"
-															onError={(e) => {
-																e.target.src = getFallbackImage();
-															}}
-														/>
+												<div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full flex flex-col">
+													<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
+														{ad.first_media_url ||
+														(ad.media_urls &&
+															Array.isArray(ad.media_urls) &&
+															ad.media_urls.length > 0) ||
+														(ad.media &&
+															Array.isArray(ad.media) &&
+															ad.media.length > 0) ? (
+															<img
+																src={
+																	ad.first_media_url
+																		? ad.first_media_url
+																				.replace(/\n/g, "")
+																				.trim()
+																		: ad.media_urls &&
+																		  Array.isArray(ad.media_urls) &&
+																		  ad.media_urls.length > 0
+																		? ad.media_urls[0].replace(/\n/g, "").trim()
+																		: ad.media[0].replace(/\n/g, "").trim()
+																}
+																alt={ad.title}
+																className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+																loading="lazy"
+																onError={(e) => {
+																	e.target.style.display = "none";
+																	e.target.nextElementSibling.style.display =
+																		"flex";
+																}}
+															/>
+														) : null}
+														<div
+															className={`w-full h-full ${
+																ad.first_media_url ||
+																(ad.media_urls &&
+																	Array.isArray(ad.media_urls) &&
+																	ad.media_urls.length > 0) ||
+																(ad.media &&
+																	Array.isArray(ad.media) &&
+																	ad.media.length > 0)
+																	? "hidden"
+																	: "flex"
+															} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200`}
+														>
+															<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
+																<svg
+																	width="48"
+																	height="48"
+																	viewBox="0 0 24 24"
+																	fill="none"
+																	stroke="currentColor"
+																	strokeWidth="1.5"
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	className="mb-2"
+																>
+																	<rect
+																		x="3"
+																		y="3"
+																		width="18"
+																		height="18"
+																		rx="2"
+																		ry="2"
+																	/>
+																	<circle cx="8.5" cy="8.5" r="1.5" />
+																	<polyline points="21,15 16,10 5,21" />
+																</svg>
+															</div>
+															<div className="text-xs text-gray-500 font-medium text-center px-2">
+																No Image
+															</div>
+														</div>
 														<div
 															className="absolute top-1 sm:top-2 left-1 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium text-white rounded"
 															style={{ backgroundColor: borderColor }}
@@ -777,21 +888,23 @@ const SearchResultSection = ({
 														</div>
 													</div>
 
-													<div className="p-2 sm:p-2.5 md:p-3 flex-grow flex flex-col min-h-0">
-														<h3 className="font-medium text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 flex-grow break-words">
+													<div className="p-2 sm:p-3 flex flex-col flex-grow">
+														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
 															{ad.title}
 														</h3>
-														<div className="flex items-center justify-between mt-auto">
-															<p className="text-sm sm:text-base md:text-lg font-bold text-orange-700 truncate">
+														<div className="flex items-center justify-between">
+															<span className="text-sm sm:text-base font-bold text-green-600">
 																KES{" "}
 																{ad.price
 																	? parseFloat(ad.price).toLocaleString()
 																	: "N/A"}
-															</p>
+															</span>
+															{ad.quantity && (
+																<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+																	Qty: {ad.quantity}
+																</span>
+															)}
 														</div>
-														<p className="text-xs text-gray-500 mt-1 truncate">
-															{ad.seller?.enterprise_name || "Unknown Seller"}
-														</p>
 													</div>
 												</div>
 											</div>

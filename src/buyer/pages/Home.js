@@ -6,7 +6,6 @@ import React, {
 	useRef,
 	startTransition,
 } from "react";
-import Sidebar from "../components/Sidebar";
 // import TopNavbar from "../components/TopNavbar"; // Commented out old navbar
 import Navbar from "../../components/Navbar"; // New unified navbar
 import Banner from "../components/Banner";
@@ -25,7 +24,10 @@ import {
 	logSubcategoryClick,
 } from "../../utils/clickEventLogger";
 import useSEO from "../../hooks/useSEO";
-import { generateHomeSEO } from "../../utils/seoHelpers";
+import {
+	generateHomeSEO,
+	generateCategoryPageSEO,
+} from "../../utils/seoHelpers";
 import apiService from "../../services/apiService";
 
 /*
@@ -50,20 +52,18 @@ Framework defaults (authoritative)
 const Home = () => {
 	const [categories, setCategories] = useState([]);
 	const [ads, setAds] = useState({});
+	const [bestSellers, setBestSellers] = useState([]);
 	const [subcategoryCounts, setSubcategoryCounts] = useState({});
 	// const [allAds, setAllAds] = useState({});
 	// Loading and error states
 	const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 	const [isLoadingAds, setIsLoadingAds] = useState(true);
+	const [isLoadingBestSellers, setIsLoadingBestSellers] = useState(true);
 
-	// Force loading state for styling - remove this when done
-	// Comment out the lines below to stop the forced loading
-	useEffect(() => {
-		setIsLoadingCategories(false);
-		setIsLoadingAds(false);
-	}, []);
+	// Initial loading states - will be set to false when data loads
 	const [categoriesError, setCategoriesError] = useState(null);
 	const [adsError, setAdsError] = useState(null);
+	const [bestSellersError, setBestSellersError] = useState(null);
 	const [error, setError] = useState(null); // search error only
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -105,276 +105,339 @@ const Home = () => {
 	// Ref to track last search parameters to prevent duplicate searches
 	const lastSearchParamsRef = useRef(null);
 
-	// Enhanced SEO Implementation
-	const seoData = {
-		...generateHomeSEO(categories),
-		// Advanced SEO Features
-		alternateLanguages: [
-			{ lang: "en", url: `${window.location.origin}/` },
-			{ lang: "sw", url: `${window.location.origin}/sw/` },
-		],
-		customMetaTags: [
-			{
-				name: "homepage:featured_categories",
-				content: categories
-					.slice(0, 5)
-					.map((cat) => cat.name)
-					.join(", "),
-			},
-			{
-				name: "homepage:total_categories",
-				content: categories.length.toString(),
-			},
-			{ name: "homepage:marketplace_type", content: "E-commerce Marketplace" },
-			{ name: "homepage:target_country", content: "Kenya" },
-			{
-				name: "homepage:verification_status",
-				content: "Verified Sellers Only",
-			},
-			{
-				property: "og:homepage:featured_categories",
-				content: categories
-					.slice(0, 5)
-					.map((cat) => cat.name)
-					.join(", "),
-			},
-			{
-				property: "og:homepage:total_categories",
-				content: categories.length.toString(),
-			},
-			{
-				property: "og:homepage:marketplace_type",
-				content: "E-commerce Marketplace",
-			},
-			{ property: "og:homepage:target_country", content: "Kenya" },
-			{
-				property: "og:homepage:verification_status",
-				content: "Verified Sellers Only",
-			},
-			{ property: "article:section", content: "Homepage" },
-			{ property: "article:tag", content: "Marketplace, E-commerce, Kenya" },
-		],
-		imageWidth: 1200,
-		imageHeight: 630,
-		themeColor: "#FFD700",
-		viewport:
-			"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
-		// AI Search Optimization
-		aiSearchOptimized: true,
-		contentType: "marketplace",
-		expertiseLevel: "expert",
-		contentDepth: "comprehensive",
-		aiFriendlyFormat: true,
-		conversationalKeywords: [
-			"where to buy products online in Kenya",
-			"best online marketplace Kenya",
-			"trusted sellers Kenya",
-			"secure online shopping Kenya",
-			"verified marketplace Kenya",
-			"how to shop safely online Kenya",
-			"Carbon Cube Kenya marketplace",
-			"online shopping platform Kenya",
-		],
-		aiCitationOptimized: true,
-		additionalStructuredData: [
-			...generateHomeSEO(categories).additionalStructuredData,
-			// Enhanced FAQ Schema for Homepage
-			{
-				"@context": "https://schema.org",
-				"@type": "FAQPage",
-				mainEntity: [
-					{
-						"@type": "Question",
-						name: "What is Carbon Cube Kenya?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
-						},
-					},
-					{
-						"@type": "Question",
-						name: "How do I start shopping on Carbon Cube Kenya?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "Simply browse our categories, search for products, and purchase from verified sellers. All transactions are secure and protected.",
-						},
-					},
-					{
-						"@type": "Question",
-						name: "Are all sellers verified on Carbon Cube Kenya?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "Yes, all sellers on Carbon Cube Kenya go through a verification process to ensure quality and reliability.",
-						},
-					},
-					{
-						"@type": "Question",
-						name: "What payment methods are accepted?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "We accept cash, credit cards, mobile money, and bank transfers for secure transactions.",
-						},
-					},
-				],
-			},
-			// Enhanced ItemList Schema for Featured Categories
-			{
-				"@context": "https://schema.org",
-				"@type": "ItemList",
-				name: "Featured Categories on Carbon Cube Kenya",
-				description:
-					"Browse our featured product categories from verified sellers",
-				numberOfItems: categories.length,
-				itemListElement: categories.slice(0, 10).map((category, index) => ({
-					"@type": "ListItem",
-					position: index + 1,
-					item: {
-						"@type": "CollectionPage",
-						name: category.name,
-						description: `Browse ${category.name} products from verified sellers`,
-						url: `${window.location.origin}/categories/${category.id}`,
-						numberOfItems: category.subcategories?.length || 0,
-					},
-				})),
-			},
-		],
-	};
-	useSEO(seoData);
-
+	// Get location before using it in seoData
 	const location = useLocation();
+
+	// Enhanced SEO Implementation
+	const seoData = (() => {
+		// Check if we're on a category page
+		const searchParams = new URLSearchParams(location.search);
+		const categoryParam = searchParams.get("category");
+		const subcategoryParam = searchParams.get("subcategory");
+		const queryParam = searchParams.get("query");
+
+		// If we have category parameters, generate category-specific SEO
+		if (categoryParam && categoryParam !== "All") {
+			const category = categories.find(
+				(cat) => cat.slug === categoryParam || cat.name === categoryParam
+			);
+			const subcategory =
+				subcategoryParam && subcategoryParam !== "All"
+					? categories
+							.find((cat) =>
+								cat.subcategories?.find(
+									(sub) =>
+										sub.slug === subcategoryParam ||
+										sub.name === subcategoryParam
+								)
+							)
+							?.subcategories?.find(
+								(sub) =>
+									sub.slug === subcategoryParam || sub.name === subcategoryParam
+							)
+					: null;
+
+			if (category) {
+				return generateCategoryPageSEO(
+					category,
+					subcategory,
+					searchResults,
+					queryParam || ""
+				);
+			}
+		}
+
+		// Default to homepage SEO
+		return {
+			...generateHomeSEO(categories),
+			// Advanced SEO Features
+			alternateLanguages: [
+				{ lang: "en", url: `${window.location.origin}/` },
+				{ lang: "sw", url: `${window.location.origin}/sw/` },
+			],
+			customMetaTags: [
+				{
+					name: "homepage:featured_categories",
+					content: categories
+						.slice(0, 5)
+						.map((cat) => cat.name)
+						.join(", "),
+				},
+				{
+					name: "homepage:total_categories",
+					content: categories.length.toString(),
+				},
+				{
+					name: "homepage:marketplace_type",
+					content: "E-commerce Marketplace",
+				},
+				{ name: "homepage:target_country", content: "Kenya" },
+				{
+					name: "homepage:verification_status",
+					content: "Verified Sellers Only",
+				},
+				{
+					property: "og:homepage:featured_categories",
+					content: categories
+						.slice(0, 5)
+						.map((cat) => cat.name)
+						.join(", "),
+				},
+				{
+					property: "og:homepage:total_categories",
+					content: categories.length.toString(),
+				},
+				{
+					property: "og:homepage:marketplace_type",
+					content: "E-commerce Marketplace",
+				},
+				{ property: "og:homepage:target_country", content: "Kenya" },
+				{
+					property: "og:homepage:verification_status",
+					content: "Verified Sellers Only",
+				},
+				{ property: "article:section", content: "Homepage" },
+				{ property: "article:tag", content: "Marketplace, E-commerce, Kenya" },
+			],
+			imageWidth: 1200,
+			imageHeight: 630,
+			themeColor: "#FFD700",
+			viewport:
+				"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
+			// AI Search Optimization
+			aiSearchOptimized: true,
+			contentType: "marketplace",
+			expertiseLevel: "expert",
+			contentDepth: "comprehensive",
+			aiFriendlyFormat: true,
+			conversationalKeywords: [
+				"where to buy products online in Kenya",
+				"best online marketplace Kenya",
+				"trusted sellers Kenya",
+				"secure online shopping Kenya",
+				"verified marketplace Kenya",
+				"how to shop safely online Kenya",
+				"Carbon Cube Kenya marketplace",
+				"online shopping platform Kenya",
+			],
+			aiCitationOptimized: true,
+			additionalStructuredData: [
+				...(generateHomeSEO(categories).additionalStructuredData || []),
+				// Enhanced FAQ Schema for Homepage
+				{
+					"@context": "https://schema.org",
+					"@type": "FAQPage",
+					mainEntity: [
+						{
+							"@type": "Question",
+							name: "What is Carbon Cube Kenya?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+							},
+						},
+						{
+							"@type": "Question",
+							name: "How do I start shopping on Carbon Cube Kenya?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "Simply browse our categories, search for products, and purchase from verified sellers. All transactions are secure and protected.",
+							},
+						},
+						{
+							"@type": "Question",
+							name: "Are all sellers verified on Carbon Cube Kenya?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "Yes, all sellers on Carbon Cube Kenya go through a verification process to ensure quality and reliability.",
+							},
+						},
+						{
+							"@type": "Question",
+							name: "What payment methods are accepted?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "We accept cash, credit cards, mobile money, and bank transfers for secure transactions.",
+							},
+						},
+					],
+				},
+				// Enhanced ItemList Schema for Featured Categories
+				{
+					"@context": "https://schema.org",
+					"@type": "ItemList",
+					name: "Featured Categories on Carbon Cube Kenya",
+					description:
+						"Browse our featured product categories from verified sellers",
+					numberOfItems: categories.length,
+					itemListElement: categories.slice(0, 10).map((category, index) => ({
+						"@type": "ListItem",
+						position: index + 1,
+						item: {
+							"@type": "CollectionPage",
+							name: category.name,
+							description: `Browse ${category.name} products from verified sellers`,
+							url: `${window.location.origin}/categories/${category.id}`,
+							numberOfItems: category.subcategories?.length || 0,
+						},
+					})),
+				},
+			],
+		};
+	})();
+
+	const seoComponent = useSEO(seoData);
 
 	useEffect(() => {
 		let isMounted = true;
 
-		// Fetch categories and subcategories
-		const fetchCategories = async () => {
+		// Fetch all data in parallel for instant loading
+		const fetchAllData = async () => {
 			try {
-				const [categoryData, subcategoryData] = await apiService.batchFetch([
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
-				]);
-				const categoriesWithSubcategories = categoryData.map((category) => ({
-					...category,
-					subcategories: subcategoryData.filter(
-						(sub) => sub.category_id === category.id
-					),
-				}));
+				// Start all requests simultaneously
+				const [categoriesResult, adsResult, bestSellersResult] =
+					await Promise.allSettled([
+						// Categories fetch
+						apiService
+							.batchFetch([
+								`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
+								`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
+							])
+							.then(([categoryData, subcategoryData]) => {
+								const categoriesWithSubcategories = categoryData.map(
+									(category) => ({
+										...category,
+										subcategories: subcategoryData.filter(
+											(sub) => sub.category_id === category.id
+										),
+									})
+								);
+								return categoriesWithSubcategories;
+							}),
+
+						// Ads fetch with reduced timeout and fewer items
+						fetch(
+							`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=100&balanced=true`,
+							{
+								headers: {
+									Accept: "application/json",
+									"Content-Type": "application/json",
+								},
+							}
+						).then(async (response) => {
+							if (!response.ok) {
+								throw new Error(`Failed to fetch ads: ${response.status}`);
+							}
+							const adData = await response.json();
+
+							// Handle new API response format with subcategory counts
+							let ads, subcategoryCounts;
+							if (adData.ads && adData.subcategory_counts) {
+								// New format with subcategory counts
+								ads = adData.ads;
+								subcategoryCounts = adData.subcategory_counts;
+							} else {
+								// Old format - just array of ads
+								ads = adData;
+								subcategoryCounts = {};
+							}
+
+							// Organize ads by subcategory ID
+							const organizedAds = {};
+							if (Array.isArray(ads)) {
+								ads.forEach((ad) => {
+									if (ad.subcategory_id) {
+										if (!organizedAds[ad.subcategory_id]) {
+											organizedAds[ad.subcategory_id] = [];
+										}
+										organizedAds[ad.subcategory_id].push(ad);
+									}
+								});
+							}
+
+							return { organizedAds, subcategoryCounts };
+						}),
+
+						// Best sellers fetch with reduced timeout
+						fetch(
+							`${process.env.REACT_APP_BACKEND_URL}/best_sellers?limit=20`,
+							{
+								headers: {
+									Accept: "application/json",
+									"Content-Type": "application/json",
+								},
+							}
+						).then(async (response) => {
+							if (!response.ok) {
+								throw new Error(
+									`Failed to fetch best sellers: ${response.status}`
+								);
+							}
+							const bestSellersData = await response.json();
+							return bestSellersData.best_sellers || [];
+						}),
+					]);
+
+				// Process results
 				if (isMounted) {
-					setCategories(categoriesWithSubcategories);
+					// Handle categories
+					if (categoriesResult.status === "fulfilled") {
+						setCategories(categoriesResult.value);
+						setCategoriesError(null);
+					} else {
+						console.error("Categories Fetch Error:", categoriesResult.reason);
+						setCategoriesError("Failed to load categories");
+					}
+
+					// Handle ads
+					if (adsResult.status === "fulfilled") {
+						setAds(adsResult.value.organizedAds);
+						setSubcategoryCounts(adsResult.value.subcategoryCounts);
+						setAdsError(null);
+					} else {
+						console.error("Ads Fetch Error:", adsResult.reason);
+						setAdsError("Failed to load ads");
+						setAds({});
+					}
+
+					// Handle best sellers
+					if (bestSellersResult.status === "fulfilled") {
+						setBestSellers(bestSellersResult.value);
+						setBestSellersError(null);
+					} else {
+						console.error(
+							"Best Sellers Fetch Error:",
+							bestSellersResult.reason
+						);
+						setBestSellersError("Failed to load best sellers");
+						setBestSellers([]);
+					}
 				}
 			} catch (err) {
-				console.error("Categories Fetch Error:", err);
-
-				// Handle specific error types
-				if (err.name === "AbortError") {
-					setCategoriesError("Request timeout - please check your connection");
-				} else if (err.message.includes("Failed to fetch")) {
-					setCategoriesError(
-						"Network error - please check your internet connection"
-					);
-				} else {
-					setCategoriesError("Failed to load categories");
+				console.error("Data Fetch Error:", err);
+				if (isMounted) {
+					setCategoriesError("Failed to load data");
+					setAdsError("Failed to load data");
+					setBestSellersError("Failed to load data");
 				}
 			} finally {
 				if (isMounted) {
 					setIsLoadingCategories(false);
-				}
-			}
-		};
-
-		// Fetch ads
-		const fetchAds = async () => {
-			try {
-				setIsLoadingAds(true);
-				setAdsError(null);
-
-				// Add timeout for mobile devices
-				const controller = new AbortController();
-				const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout for ads
-
-				const adResponse = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=200&balanced=true`,
-					{
-						signal: controller.signal,
-						headers: {
-							Accept: "application/json",
-							"Content-Type": "application/json",
-						},
-					}
-				);
-
-				clearTimeout(timeoutId);
-
-				if (!adResponse.ok) {
-					const errorText = await adResponse.text();
-					console.error("Ads response error:", errorText);
-					throw new Error(
-						`Failed to fetch ads: ${adResponse.status} ${adResponse.statusText}`
-					);
-				}
-
-				const adData = await adResponse.json();
-
-				// Handle new API response format with subcategory counts
-				let ads, subcategoryCounts;
-				if (adData.ads && adData.subcategory_counts) {
-					// New format with subcategory counts
-					ads = adData.ads;
-					subcategoryCounts = adData.subcategory_counts;
-				} else {
-					// Old format - just array of ads
-					ads = adData;
-					subcategoryCounts = {};
-				}
-
-				// Organize ads by subcategory ID
-				const organizedAds = {};
-				if (Array.isArray(ads)) {
-					ads.forEach((ad) => {
-						if (ad.subcategory_id) {
-							if (!organizedAds[ad.subcategory_id]) {
-								organizedAds[ad.subcategory_id] = [];
-							}
-							organizedAds[ad.subcategory_id].push(ad);
-						}
-					});
-				}
-
-				if (isMounted) {
-					setAds(organizedAds);
-					// Store subcategory counts for use in SearchResultSection
-					setSubcategoryCounts(subcategoryCounts);
-				}
-			} catch (err) {
-				console.error("Ads Fetch Error:", err);
-
-				// Handle specific error types
-				if (err.name === "AbortError") {
-					setAdsError("Request timeout - please check your connection");
-				} else if (err.message.includes("Failed to fetch")) {
-					setAdsError("Network error - please check your internet connection");
-				} else {
-					setAdsError("Failed to load ads");
-				}
-				if (isMounted) {
-					setAds({});
-				}
-			} finally {
-				if (isMounted) {
 					setIsLoadingAds(false);
+					setIsLoadingBestSellers(false);
 				}
 			}
 		};
 
-		fetchCategories();
-		fetchAds();
+		fetchAllData();
 
 		return () => {
 			isMounted = false;
 		};
 	}, []);
 
-	// Memoize flattened ads to prevent unnecessary re-renders
+	// Memoize flattened ads to prevent unnecessary re-renders (kept for other components that might need it)
+	// eslint-disable-next-line no-unused-vars
 	const flattenedAds = useMemo(() => {
 		const flat = Object.values(ads).flat();
 		return flat;
@@ -618,13 +681,12 @@ const Home = () => {
 
 			if (searchQuery.trim()) {
 				setCurrentSearchType("search");
+				await logAdSearch(searchQuery, searchCategory, searchSubcategory);
 			} else if (searchSubcategory !== "All") {
 				setCurrentSearchType(`subcategory-${searchSubcategory}`);
 			} else {
 				setCurrentSearchType("category");
 			}
-
-			await logAdSearch(searchQuery, searchCategory, searchSubcategory);
 		} catch (error) {
 			console.error("Search error:", error);
 
@@ -885,6 +947,7 @@ const Home = () => {
 
 	return (
 		<>
+			{seoComponent}
 			<Navbar
 				mode="buyer"
 				searchQuery={searchQuery}
@@ -904,9 +967,6 @@ const Home = () => {
 				onSubcategoryChange={handleSubcategoryChange}
 			/>
 			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
-				<div className={`${sidebarOpen ? "block" : "hidden"} xl:block`}>
-					<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-				</div>
 				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-2 sm:pb-4 md:pb-6 lg:pb-8 relative z-0 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
@@ -935,10 +995,10 @@ const Home = () => {
 									(category && category !== "All") ||
 									(subcategory && subcategory !== "All");
 
-								// Use normal positioning for search results, overlap positioning for homepage
+								// Use normal positioning for search results, responsive overlap positioning for homepage
 								return hasSearchParams || searchQuery || isSearching
 									? "mt-4" // Normal spacing for search results
-									: "mt-0 md:-translate-y-[10vh] lg:-translate-y-[10vh] xl:-translate-y-[15vh] 2xl:-translate-y-[20vh]"; // Overlap for homepage
+									: "mt-0 sm:-translate-y-[5vh] md:-translate-y-[8vh] lg:-translate-y-[10vh] xl:-translate-y-[12vh] 2xl:-translate-y-[15vh]"; // Responsive overlap for homepage
 							})()} relative z-10 transition-transform duration-300`}
 						>
 							{isSearching ? (
@@ -1309,15 +1369,45 @@ const Home = () => {
 																))}
 															</div>
 														)}
+
+														{/* Skeleton loading for ads when categories are loaded but ads are still loading */}
+														{!isLoadingCategories && isLoadingAds && (
+															<div className="space-y-8">
+																{Array.from({ length: 3 }).map(
+																	(_, categoryIdx) => (
+																		<div key={categoryIdx} className="mb-8">
+																			<div className="h-8 bg-gray-200 animate-pulse rounded mb-4 w-48"></div>
+																			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+																				{Array.from({ length: 6 }).map(
+																					(_, adIdx) => (
+																						<div
+																							key={adIdx}
+																							className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+																						>
+																							<div className="h-32 sm:h-36 lg:h-40 bg-gray-200 animate-pulse"></div>
+																							<div className="p-2 sm:p-3">
+																								<div className="h-4 bg-gray-200 animate-pulse rounded mb-2"></div>
+																								<div className="h-3 bg-gray-200 animate-pulse rounded w-2/3"></div>
+																							</div>
+																						</div>
+																					)
+																				)}
+																			</div>
+																		</div>
+																	)
+																)}
+															</div>
+														)}
 													</>
 												)}
 
 											{/* Popular Ads Section - Always show when not searching */}
 											{!isSearching && (
 												<PopularAdsSection
-													ads={flattenedAds}
+													ads={bestSellers}
 													onAdClick={handleAdClick}
-													isLoading={isLoadingAds}
+													isLoading={isLoadingBestSellers}
+													errorMessage={bestSellersError}
 												/>
 											)}
 										</div>

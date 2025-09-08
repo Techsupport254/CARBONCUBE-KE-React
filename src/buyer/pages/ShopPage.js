@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "react-bootstrap";
 import { getFallbackImage } from "../../utils/imageUtils";
 import {
@@ -12,6 +12,7 @@ import Footer from "../../components/Footer";
 import ReviewsModal from "../../components/ReviewsModal";
 import LeaveReviewModal from "../../components/LeaveReviewModal";
 import useSEO from "../../hooks/useSEO";
+import { generateShopSEO } from "../../utils/seoHelpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faShare,
@@ -19,6 +20,8 @@ import {
 	faStarHalfAlt,
 	faTimes,
 	faCopy,
+	faSearch,
+	faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import {
 	faFacebook,
@@ -31,6 +34,7 @@ import Spinner from "react-spinkit";
 const ShopPage = () => {
 	const { slug } = useParams();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [shop, setShop] = useState(null);
 	const [ads, setAds] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +48,23 @@ const ShopPage = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [userRole, setUserRole] = useState(null);
 	const [currentUserId, setCurrentUserId] = useState(null);
+
+	// Search and filter states - initialize from URL params
+	const [searchTerm, setSearchTerm] = useState(() => {
+		const params = new URLSearchParams(location.search);
+		return params.get("search") || "";
+	});
+	const [selectedCategory, setSelectedCategory] = useState(() => {
+		const params = new URLSearchParams(location.search);
+		return params.get("category") || "All";
+	});
+	const [selectedSubcategory, setSelectedSubcategory] = useState(() => {
+		const params = new URLSearchParams(location.search);
+		return params.get("subcategory") || "All";
+	});
+	const [categories, setCategories] = useState([]);
+	const [filteredAds, setFilteredAds] = useState([]);
+	const [isFiltering, setIsFiltering] = useState(false);
 
 	// Initialize authentication state
 	useEffect(() => {
@@ -505,7 +526,28 @@ const ShopPage = () => {
 				type: "website",
 		  };
 
-	useSEO(seoData);
+	const seoComponent = useSEO(seoData);
+
+	// Fetch categories
+	const fetchCategories = async () => {
+		try {
+			const response = await fetch(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
+				{
+					headers: {
+						Authorization: "Bearer " + sessionStorage.getItem("token"),
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				setCategories(data);
+			}
+		} catch (error) {
+			console.error("Error fetching categories:", error);
+		}
+	};
 
 	useEffect(() => {
 		const fetchShopData = async () => {
@@ -527,6 +569,7 @@ const ShopPage = () => {
 				const data = await response.json();
 				setShop(data.shop);
 				setAds(data.ads);
+				setFilteredAds(data.ads);
 				setHasMore(data.pagination.current_page < data.pagination.total_pages);
 			} catch (err) {
 				setError(err.message);
@@ -536,6 +579,7 @@ const ShopPage = () => {
 		};
 
 		fetchShopData();
+		fetchCategories();
 	}, [slug, currentPage]);
 
 	useEffect(() => {
@@ -551,6 +595,110 @@ const ShopPage = () => {
 	const handleLoadMore = () => {
 		setCurrentPage((prev) => prev + 1);
 	};
+
+	// Function to update URL parameters
+	const updateURLParams = (search, category, subcategory) => {
+		const params = new URLSearchParams();
+		if (search && search.trim()) params.set("search", search.trim());
+		if (category && category !== "All") params.set("category", category);
+		if (subcategory && subcategory !== "All")
+			params.set("subcategory", subcategory);
+
+		const newSearch = params.toString();
+		const newURL = newSearch ? `?${newSearch}` : "";
+		navigate(`${location.pathname}${newURL}`, { replace: true });
+	};
+
+	// Search and filter handlers
+	const handleSearchChange = (e) => {
+		const value = e.target.value;
+		setSearchTerm(value);
+		updateURLParams(value, selectedCategory, selectedSubcategory);
+	};
+
+	const handleCategoryChange = (e) => {
+		const categoryId = e.target.value;
+		setSelectedCategory(categoryId);
+		setSelectedSubcategory("All"); // Reset subcategory when category changes
+		updateURLParams(searchTerm, categoryId, "All");
+	};
+
+	const handleSubcategoryChange = (e) => {
+		const subcategoryId = e.target.value;
+		setSelectedSubcategory(subcategoryId);
+		updateURLParams(searchTerm, selectedCategory, subcategoryId);
+	};
+
+	const clearFilters = () => {
+		setSearchTerm("");
+		setSelectedCategory("All");
+		setSelectedSubcategory("All");
+		updateURLParams("", "All", "All");
+	};
+
+	// Handle URL parameter changes
+	useEffect(() => {
+		const params = new URLSearchParams(location.search);
+		const urlSearch = params.get("search") || "";
+		const urlCategory = params.get("category") || "All";
+		const urlSubcategory = params.get("subcategory") || "All";
+
+		// Update state if URL params differ from current state
+		if (urlSearch !== searchTerm) setSearchTerm(urlSearch);
+		if (urlCategory !== selectedCategory) {
+			setSelectedCategory(urlCategory);
+			// Reset subcategory if category changed
+			if (urlCategory === "All") {
+				setSelectedSubcategory("All");
+			}
+		}
+		if (urlSubcategory !== selectedSubcategory)
+			setSelectedSubcategory(urlSubcategory);
+	}, [location.search]);
+
+	// Validate subcategory selection
+	useEffect(() => {
+		if (selectedCategory === "All" && selectedSubcategory !== "All") {
+			setSelectedSubcategory("All");
+		}
+	}, [selectedCategory, selectedSubcategory]);
+
+	// Filter ads based on search term and category/subcategory
+	useEffect(() => {
+		setIsFiltering(true);
+
+		let filtered = [...ads];
+
+		// Filter by search term
+		if (searchTerm.trim()) {
+			filtered = filtered.filter((ad) =>
+				ad.title.toLowerCase().includes(searchTerm.toLowerCase())
+			);
+		}
+
+		// Filter by category
+		if (selectedCategory !== "All") {
+			filtered = filtered.filter((ad) => {
+				return (
+					ad.category_id === parseInt(selectedCategory) ||
+					ad.category?.id === parseInt(selectedCategory)
+				);
+			});
+		}
+
+		// Filter by subcategory
+		if (selectedSubcategory !== "All") {
+			filtered = filtered.filter((ad) => {
+				return (
+					ad.subcategory_id === parseInt(selectedSubcategory) ||
+					ad.subcategory?.id === parseInt(selectedSubcategory)
+				);
+			});
+		}
+
+		setFilteredAds(filtered);
+		setIsFiltering(false);
+	}, [ads, searchTerm, selectedCategory, selectedSubcategory]);
 
 	const handleBackToSearch = () => {
 		navigate(-1);
@@ -633,6 +781,7 @@ const ShopPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
+			{seoComponent}
 			<Navbar
 				mode="buyer"
 				showSearch={false}
@@ -741,27 +890,51 @@ const ShopPage = () => {
 
 							{/* Shop Details Row */}
 							<div className="mt-4 lg:mt-6 pt-4 lg:pt-6 border-t border-gray-200">
-								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-									{/* Location */}
+								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+									{/* Location & Address */}
 									{(shop.city ||
 										shop.county ||
 										shop.sub_county ||
 										shop.address) && (
-										<div className="text-center sm:text-left">
+										<div className="text-left">
 											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
 												Location
 											</div>
 											<div className="text-sm text-gray-900">
-												{[shop.city, shop.sub_county, shop.county]
-													.filter(Boolean)
-													.join(", ")}
+												{(() => {
+													const locationParts = [
+														shop.city,
+														shop.sub_county,
+														shop.county,
+													].filter(Boolean);
+													const address = shop.address;
+
+													// If address contains location info, don't repeat it
+													if (address && locationParts.length > 0) {
+														const addressLower = address.toLowerCase();
+														const hasLocationInAddress = locationParts.some(
+															(part) =>
+																addressLower.includes(part.toLowerCase())
+														);
+
+														if (hasLocationInAddress) {
+															return address;
+														} else {
+															return `${locationParts.join(", ")}, ${address}`;
+														}
+													} else if (address) {
+														return address;
+													} else {
+														return locationParts.join(", ");
+													}
+												})()}
 											</div>
 										</div>
 									)}
 
 									{/* Registration Number */}
 									{shop.business_registration_number && (
-										<div className="text-center sm:text-left">
+										<div className="text-left">
 											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
 												Registration
 											</div>
@@ -773,7 +946,7 @@ const ShopPage = () => {
 
 									{/* Owner */}
 									{shop.fullname && (
-										<div className="text-center sm:text-left">
+										<div className="text-left">
 											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
 												Owner
 											</div>
@@ -785,7 +958,7 @@ const ShopPage = () => {
 
 									{/* Member Since */}
 									{shop.created_at && (
-										<div className="text-center sm:text-left">
+										<div className="text-left">
 											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
 												Member Since
 											</div>
@@ -795,18 +968,6 @@ const ShopPage = () => {
 													month: "short",
 													day: "numeric",
 												})}
-											</div>
-										</div>
-									)}
-
-									{/* Address */}
-									{shop.address && (
-										<div className="text-center sm:text-left">
-											<div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
-												Address
-											</div>
-											<div className="text-sm text-gray-900">
-												{shop.address}
 											</div>
 										</div>
 									)}
@@ -918,13 +1079,138 @@ const ShopPage = () => {
 							</div>
 						</div>
 
+						{/* Search and Filter Section */}
+						<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
+							<div className="flex flex-col lg:flex-row gap-3">
+								{/* Search Bar */}
+								<div className="flex-1">
+									<div className="relative">
+										<input
+											type="text"
+											placeholder="Search products in this shop..."
+											value={searchTerm}
+											onChange={handleSearchChange}
+											className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm"
+										/>
+										<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+											<FontAwesomeIcon
+												icon={faSearch}
+												className="h-4 w-4 text-gray-400"
+											/>
+										</div>
+									</div>
+								</div>
+
+								{/* Category Filter */}
+								<div className="flex gap-2">
+									<select
+										value={selectedCategory}
+										onChange={handleCategoryChange}
+										className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm bg-white"
+									>
+										<option value="All">All Categories</option>
+										{categories.map((category) => (
+											<option key={category.id} value={category.id}>
+												{category.name}
+											</option>
+										))}
+									</select>
+
+									{/* Subcategory Filter */}
+									<select
+										value={selectedSubcategory}
+										onChange={handleSubcategoryChange}
+										className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm ${
+											selectedCategory === "All"
+												? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+												: "border-gray-300 bg-white"
+										}`}
+										disabled={selectedCategory === "All"}
+									>
+										<option value="All">
+											{selectedCategory === "All"
+												? "Select Category First"
+												: "All Subcategories"}
+										</option>
+										{selectedCategory !== "All" &&
+											categories
+												.find((cat) => cat.id === parseInt(selectedCategory))
+												?.subcategories?.map((subcategory) => (
+													<option key={subcategory.id} value={subcategory.id}>
+														{subcategory.name}
+													</option>
+												))}
+									</select>
+
+									{/* Clear Filters Button */}
+									{(searchTerm ||
+										selectedCategory !== "All" ||
+										selectedSubcategory !== "All") && (
+										<button
+											onClick={clearFilters}
+											className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+										>
+											<FontAwesomeIcon icon={faFilter} className="h-3 w-3" />
+											Clear
+										</button>
+									)}
+								</div>
+							</div>
+
+							{/* Filter Results Summary */}
+							{(searchTerm ||
+								selectedCategory !== "All" ||
+								selectedSubcategory !== "All") && (
+								<div className="mt-3 pt-3 border-t border-gray-200">
+									<div className="flex items-center justify-between">
+										<div className="text-sm text-gray-600">
+											<span className="font-medium">
+												{filteredAds.length} of {ads.length} products
+											</span>
+											{searchTerm && (
+												<span className="ml-2">matching "{searchTerm}"</span>
+											)}
+											{selectedCategory !== "All" && (
+												<span className="ml-2">
+													in{" "}
+													{
+														categories.find(
+															(c) => c.id === parseInt(selectedCategory)
+														)?.name
+													}
+												</span>
+											)}
+											{selectedSubcategory !== "All" && (
+												<span className="ml-2">
+													›{" "}
+													{
+														categories
+															.find((c) => c.id === parseInt(selectedCategory))
+															?.subcategories?.find(
+																(s) => s.id === parseInt(selectedSubcategory)
+															)?.name
+													}
+												</span>
+											)}
+										</div>
+										{isFiltering && (
+											<div className="flex items-center text-sm text-gray-500">
+												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500 mr-2"></div>
+												Filtering...
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+						</div>
+
 						{/* Products */}
 						<div className="mb-4 sm:mb-6">
 							<h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">
-								Products ({shop.product_count})
+								Products ({filteredAds.length})
 							</h2>
 
-							{ads.length === 0 ? (
+							{filteredAds.length === 0 ? (
 								<div className="text-center py-8 sm:py-12">
 									<div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 										<svg
@@ -942,79 +1228,135 @@ const ShopPage = () => {
 										</svg>
 									</div>
 									<h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-										No Products Available
+										{ads.length === 0
+											? "No Products Available"
+											: "No Products Found"}
 									</h3>
 									<p className="text-sm sm:text-base text-gray-500">
-										This shop doesn't have any products listed yet.
+										{ads.length === 0
+											? "This shop doesn't have any products listed yet."
+											: "No products match your current search and filter criteria."}
 									</p>
+									{ads.length > 0 && (
+										<button
+											onClick={clearFilters}
+											className="mt-3 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+										>
+											Clear Filters
+										</button>
+									)}
 								</div>
 							) : (
-								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
-									{ads.map((ad, index) => {
+								<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
+									{filteredAds.map((ad, index) => {
 										const borderColor = getBorderColor(getTierId(ad));
 										return (
 											<div
 												key={ad.id}
-												className="group cursor-pointer transition-transform hover:scale-105 h-full"
+												className="group cursor-pointer h-full"
 												onClick={() => handleAdClick(ad.id)}
 											>
 												<div
-													className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 h-full flex flex-col"
+													className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col"
 													style={{ border: `2px solid ${borderColor}` }}
 												>
 													{/* Product Image */}
-													<div className="relative flex-shrink-0">
-														<img
-															src={
-																ad.first_media_url
-																	? ad.first_media_url.replace(/\n/g, "").trim()
-																	: ad.media_urls &&
-																	  Array.isArray(ad.media_urls) &&
-																	  ad.media_urls.length > 0
-																	? ad.media_urls[0].replace(/\n/g, "").trim()
-																	: ad.media &&
-																	  Array.isArray(ad.media) &&
-																	  ad.media.length > 0
-																	? ad.media[0].replace(/\n/g, "").trim()
-																	: getFallbackImage()
-															}
-															alt={ad.title}
-															className="w-full aspect-square object-contain rounded-t-lg"
-															loading={index < 4 ? "eager" : "lazy"}
-															fetchPriority={index < 2 ? "high" : "auto"}
-															width="400"
-															height="400"
-															onError={(e) => {
-																e.target.src = getFallbackImage();
-															}}
-														/>
-														{/* Tier Badge */}
-														<div className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10">
-															<span
-																className="text-xs px-1 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium text-white shadow-sm"
-																style={{
-																	backgroundColor: getBorderColor(
-																		getTierId(ad)
-																	),
+													<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
+														{ad.first_media_url ||
+														(ad.media_urls &&
+															Array.isArray(ad.media_urls) &&
+															ad.media_urls.length > 0) ||
+														(ad.media &&
+															Array.isArray(ad.media) &&
+															ad.media.length > 0) ? (
+															<img
+																src={
+																	ad.first_media_url
+																		? ad.first_media_url
+																				.replace(/\n/g, "")
+																				.trim()
+																		: ad.media_urls &&
+																		  Array.isArray(ad.media_urls) &&
+																		  ad.media_urls.length > 0
+																		? ad.media_urls[0].replace(/\n/g, "").trim()
+																		: ad.media[0].replace(/\n/g, "").trim()
+																}
+																alt={ad.title}
+																className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+																loading="lazy"
+																onError={(e) => {
+																	e.target.style.display = "none";
+																	e.target.nextElementSibling.style.display =
+																		"flex";
 																}}
-															>
-																{getTierName(ad)}
-															</span>
+															/>
+														) : null}
+														<div
+															className={`w-full h-full ${
+																ad.first_media_url ||
+																(ad.media_urls &&
+																	Array.isArray(ad.media_urls) &&
+																	ad.media_urls.length > 0) ||
+																(ad.media &&
+																	Array.isArray(ad.media) &&
+																	ad.media.length > 0)
+																	? "hidden"
+																	: "flex"
+															} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200`}
+														>
+															<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
+																<svg
+																	width="48"
+																	height="48"
+																	viewBox="0 0 24 24"
+																	fill="none"
+																	stroke="currentColor"
+																	strokeWidth="1.5"
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	className="mb-2"
+																>
+																	<rect
+																		x="3"
+																		y="3"
+																		width="18"
+																		height="18"
+																		rx="2"
+																		ry="2"
+																	/>
+																	<circle cx="8.5" cy="8.5" r="1.5" />
+																	<polyline points="21,15 16,10 5,21" />
+																</svg>
+															</div>
+															<div className="text-xs text-gray-500 font-medium text-center px-2">
+																No Image
+															</div>
+														</div>
+														{/* Tier Badge */}
+														<div
+															className="absolute top-1 sm:top-2 left-1 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium text-white rounded"
+															style={{ backgroundColor: borderColor }}
+														>
+															{getTierName(ad)}
 														</div>
 													</div>
 
-													{/* Product Info */}
-													<div className="p-1.5 sm:p-2 lg:p-3 flex-1 flex flex-col">
-														<h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+													<div className="p-2 sm:p-3 flex flex-col flex-grow">
+														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
 															{ad.title}
 														</h3>
-														<p className="text-sm sm:text-lg font-bold text-yellow-700 mb-2">
-															KSh {ad.price?.toLocaleString() || "N/A"}
-														</p>
-														<div className="mt-auto">
-															<p className="text-xs text-gray-500">
-																{ad.category_name} › {ad.subcategory_name}
-															</p>
+														<div className="flex items-center justify-between">
+															<span className="text-sm sm:text-base font-bold text-green-600">
+																KES{" "}
+																{ad.price
+																	? parseFloat(ad.price).toLocaleString()
+																	: "N/A"}
+															</span>
+															{ad.quantity && (
+																<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+																	Qty: {ad.quantity}
+																</span>
+															)}
 														</div>
 													</div>
 												</div>
@@ -1025,17 +1367,21 @@ const ShopPage = () => {
 							)}
 
 							{/* Load More Button */}
-							{hasMore && ads.length > 0 && (
-								<div className="text-center mt-8">
-									<Button
-										variant="outline-warning"
-										onClick={handleLoadMore}
-										className="px-6 py-2"
-									>
-										Load More Products
-									</Button>
-								</div>
-							)}
+							{hasMore &&
+								ads.length > 0 &&
+								!searchTerm &&
+								selectedCategory === "All" &&
+								selectedSubcategory === "All" && (
+									<div className="text-center mt-8">
+										<Button
+											variant="outline-warning"
+											onClick={handleLoadMore}
+											className="px-6 py-2"
+										>
+											Load More Products
+										</Button>
+									</div>
+								)}
 						</div>
 					</div>
 				</div>

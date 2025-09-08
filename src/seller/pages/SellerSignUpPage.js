@@ -622,7 +622,7 @@ function SellerSignUpPage({ onSignup }) {
 	const checkEmailExists = async (email) => {
 		try {
 			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/api/email/exists`,
+				`${process.env.REACT_APP_BACKEND_URL}/email/exists`,
 				{ email: email.toLowerCase().trim() },
 				{
 					headers: {
@@ -642,7 +642,7 @@ function SellerSignUpPage({ onSignup }) {
 	const checkUsernameExists = async (username) => {
 		try {
 			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/api/username/exists`,
+				`${process.env.REACT_APP_BACKEND_URL}/username/exists`,
 				{ username: username.trim() },
 				{
 					headers: {

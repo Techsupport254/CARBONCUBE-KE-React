@@ -1,692 +1,633 @@
-// Dynamic SEO Helper Functions for Carbon Cube Kenya
-// Focused on categories, subcategories, and marketplace optimization
+// Comprehensive SEO Helper Functions for Carbon Cube Kenya
 
-// Base configuration
-const SITE_CONFIG = {
-	name: "Carbon Cube Kenya",
-	url: "https://carboncube-ke.com",
-	description:
-		"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
-	logo: "https://carboncube-ke.com/logo.png",
-	keywords:
-		"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya",
-};
+// Generate comprehensive product SEO data
+export const generateProductSEO = (product) => {
+	if (!product) return null;
 
-// Generate dynamic category SEO
-export const generateCategorySEO = (category, subcategories = [], ads = []) => {
-	if (!category) return {};
+	const price = product.price ? Number(product.price).toFixed(2) : "0.00";
+	const availability = product.quantity > 0 ? "in stock" : "out of stock";
+	const condition = product.condition || "new";
+	const brand = product.brand || "Unknown";
+	const category = product.category_name || "General";
+	const sku = product.id?.toString() || "";
 
-	const categoryName = category.name;
-	const subcategoryNames = subcategories.map((sub) => sub.name).join(", ");
-	const adCount = ads.length;
+	// Generate comprehensive description
+	const description = (() => {
+		if (product.description) {
+			return `${product.description.substring(0, 160)}... Buy ${
+				product.title
+			} for KSh ${price} on Carbon Cube Kenya. ${condition} ${category} from verified seller ${
+				product.seller_enterprise_name || product.seller_name
+			}. Fast delivery across Kenya.`;
+		} else {
+			return `Buy ${
+				product.title
+			} for KSh ${price} on Carbon Cube Kenya. ${condition} ${category} from verified seller ${
+				product.seller_enterprise_name || product.seller_name
+			}. Fast delivery across Kenya.`;
+		}
+	})();
 
-	const title = `${categoryName} in Kenya - Buy Online | Carbon Cube Kenya`;
-	const description = `Browse ${adCount} ${categoryName.toLowerCase()} products from verified sellers in Kenya. Find ${subcategoryNames} and more on Carbon Cube Kenya's trusted marketplace.`;
-	const keywords = `${categoryName}, ${categoryName} Kenya, ${subcategoryNames}, online ${categoryName.toLowerCase()}, Carbon Cube Kenya, verified sellers, Kenya marketplace`;
-	const url = `${SITE_CONFIG.url}/categories/${category.id}`;
-
-	// Category structured data
-	const categoryStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "CollectionPage",
-		name: categoryName,
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "ItemList",
-			numberOfItems: adCount,
-			itemListElement: ads.slice(0, 10).map((ad, index) => ({
-				"@type": "ListItem",
-				position: index + 1,
-				item: {
-					"@type": "Product",
-					name: ad.title,
-					url: `${SITE_CONFIG.url}/ads/${ad.id}`,
-					image: ad.media?.[0],
-					offers: {
-						"@type": "Offer",
-						price: ad.price,
-						priceCurrency: "KES",
-					},
-				},
-			})),
-		},
-	};
-
-	// Breadcrumb structured data
-	const breadcrumbStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{
-				"@type": "ListItem",
-				position: 1,
-				name: "Home",
-				item: SITE_CONFIG.url,
-			},
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Categories",
-				item: `${SITE_CONFIG.url}/categories`,
-			},
-			{
-				"@type": "ListItem",
-				position: 3,
-				name: categoryName,
-				item: url,
-			},
-		],
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: categoryStructuredData,
-		additionalStructuredData: [breadcrumbStructuredData],
-	};
-};
-
-// Generate dynamic subcategory SEO
-export const generateSubcategorySEO = (subcategory, category, ads = []) => {
-	if (!subcategory || !category) return {};
-
-	const subcategoryName = subcategory.name;
-	const categoryName = category.name;
-	const adCount = ads.length;
-
-	const title = `${subcategoryName} in Kenya - ${categoryName} | Carbon Cube Kenya`;
-	const description = `Find ${adCount} ${subcategoryName.toLowerCase()} products in ${categoryName.toLowerCase()} from verified sellers in Kenya. Shop securely on Carbon Cube Kenya's trusted marketplace.`;
-	const keywords = `${subcategoryName}, ${subcategoryName} Kenya, ${categoryName}, ${subcategoryName} ${categoryName}, online shopping Kenya, Carbon Cube Kenya, verified sellers`;
-	const url = `${SITE_CONFIG.url}/subcategories/${subcategory.id}`;
-
-	// Subcategory structured data
-	const subcategoryStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "CollectionPage",
-		name: subcategoryName,
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "ItemList",
-			numberOfItems: adCount,
-			itemListElement: ads.slice(0, 10).map((ad, index) => ({
-				"@type": "ListItem",
-				position: index + 1,
-				item: {
-					"@type": "Product",
-					name: ad.title,
-					url: `${SITE_CONFIG.url}/ads/${ad.id}`,
-					image: ad.media?.[0],
-					offers: {
-						"@type": "Offer",
-						price: ad.price,
-						priceCurrency: "KES",
-					},
-				},
-			})),
-		},
-	};
-
-	// Breadcrumb structured data
-	const breadcrumbStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{
-				"@type": "ListItem",
-				position: 1,
-				name: "Home",
-				item: SITE_CONFIG.url,
-			},
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Categories",
-				item: `${SITE_CONFIG.url}/categories`,
-			},
-			{
-				"@type": "ListItem",
-				position: 3,
-				name: categoryName,
-				item: `${SITE_CONFIG.url}/categories/${category.id}`,
-			},
-			{
-				"@type": "ListItem",
-				position: 4,
-				name: subcategoryName,
-				item: url,
-			},
-		],
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: subcategoryStructuredData,
-		additionalStructuredData: [breadcrumbStructuredData],
-	};
-};
-
-// Generate home page SEO with dynamic categories
-export const generateHomeSEO = (categories = []) => {
-	const categoryNames = categories.map((cat) => cat.name).join(", ");
-	const totalSubcategories = categories.reduce(
-		(total, cat) => total + (cat.subcategories?.length || 0),
-		0
-	);
-
-	const title = "Kenya's Trusted Digital Marketplace | Carbon Cube Kenya";
-	const description = `Browse ${categories.length} categories and ${totalSubcategories} subcategories on Carbon Cube Kenya. Find ${categoryNames} and more from verified sellers in Kenya's most secure online marketplace.`;
-	const keywords = `${SITE_CONFIG.keywords}, ${categoryNames}, online shopping Kenya, marketplace categories, verified sellers Kenya`;
-
-	// Website structured data
-	const websiteStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "WebSite",
-		url: SITE_CONFIG.url,
-		name: SITE_CONFIG.name,
-		description: SITE_CONFIG.description,
-		potentialAction: {
-			"@type": "SearchAction",
-			target: `${SITE_CONFIG.url}/search?q={search_term_string}`,
-			"query-input": "required name=search_term_string",
-		},
-	};
-
-	// Organization structured data
-	const organizationStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "Organization",
-		name: SITE_CONFIG.name,
-		description: SITE_CONFIG.description,
-		url: SITE_CONFIG.url,
-		logo: SITE_CONFIG.logo,
-		sameAs: [
-			"https://www.linkedin.com/company/carbon-cube-kenya/?viewAsMember=true",
-			"https://www.facebook.com/profile.php?id=61574066312678",
-			"https://www.instagram.com/carboncube_kenya/",
-		],
-		contactPoint: {
-			"@type": "ContactPoint",
-			contactType: "customer service",
-			availableLanguage: "English",
-			areaServed: "KE",
-			telephone: "+254713270764",
-			email: "info@carboncube-ke.com",
-		},
-		address: {
-			"@type": "PostalAddress",
-			streetAddress: "9th Floor, CMS Africa, Kilimani",
-			addressLocality: "Nairobi",
-			addressRegion: "Nairobi",
-			addressCountry: "KE",
-			postalCode: "00100",
-		},
-		foundingDate: "2023",
-		numberOfEmployees: {
-			"@type": "QuantitativeValue",
-			minValue: 2,
-			maxValue: 10,
-		},
-		industry: "Internet Marketplace Platforms",
-	};
-
-	// Local business structured data
-	const localBusinessStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "LocalBusiness",
-		name: SITE_CONFIG.name,
-		description: SITE_CONFIG.description,
-		url: SITE_CONFIG.url,
-		telephone: "+254713270764",
-		email: "info@carboncube-ke.com",
-		image: SITE_CONFIG.logo,
-		address: {
-			"@type": "PostalAddress",
-			streetAddress: "9th Floor, CMS Africa, Kilimani",
-			addressLocality: "Nairobi",
-			addressRegion: "Nairobi",
-			addressCountry: "KE",
-			postalCode: "00100",
-		},
-		geo: {
-			"@type": "GeoCoordinates",
-			latitude: -1.2921,
-			longitude: 36.8219,
-		},
-		openingHours: "Mo-Su 00:00-23:59",
-		priceRange: "$$",
-		currenciesAccepted: "KES",
-		paymentAccepted: "Cash, Credit Card, Mobile Money",
-		areaServed: {
-			"@type": "Country",
-			name: "Kenya",
-		},
-		serviceType: "Online Marketplace",
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url: SITE_CONFIG.url,
-		type: "website",
-		structuredData: websiteStructuredData,
-		additionalStructuredData: [
-			organizationStructuredData,
-			localBusinessStructuredData,
-		],
-	};
-};
-
-// Generate product SEO
-export const generateProductSEO = (ad) => {
-	if (!ad) return {};
-
-	// Enhanced title with more context
-	const title = `${ad.title} - ${ad.brand || "Product"} | ${
-		ad.category_name || "Category"
-	} | Carbon Cube Kenya`;
-
-	// Enhanced description with more details
-	const description = ad.description
-		? `${ad.description.substring(0, 140)}...`
-		: `Buy ${ad.title} from verified seller ${
-				ad.seller_enterprise_name || ad.seller_name || "on Carbon Cube Kenya"
-		  }. ${
-				ad.condition === "brand_new" ? "Brand new" : "Quality"
-		  } product with secure shopping.`;
-
-	// Enhanced keywords with more relevant terms
+	// Generate comprehensive keywords
 	const keywords = [
-		ad.title,
-		ad.brand,
-		ad.manufacturer,
-		ad.category_name,
-		ad.subcategory_name,
-		ad.condition === "brand_new" ? "brand new" : "used",
-		"online shopping Kenya",
+		product.title,
+		`${product.title} Kenya`,
+		`${product.title} price`,
+		`${product.title} buy online`,
+		brand,
+		`${brand} ${product.title}`,
+		category,
+		product.subcategory_name,
+		product.seller_enterprise_name,
+		`${product.seller_enterprise_name} shop`,
 		"Carbon Cube Kenya",
-		"verified seller",
-		"secure marketplace",
-		"Kenya ecommerce",
+		"online shopping Kenya",
+		"Kenya marketplace",
+		"verified seller Kenya",
+		"fast delivery Kenya",
+		"secure payment Kenya",
+		"mobile money Kenya",
+		"M-Pesa Kenya",
+		"cash on delivery Kenya",
+		"free shipping Kenya",
+		"Kenya e-commerce",
+		"B2B marketplace Kenya",
+		"industrial supplies Kenya",
+		"auto parts Kenya",
+		"hardware suppliers Kenya",
+		"business supplies Kenya",
+		"procurement Kenya",
+		"digital marketplace Kenya",
+		"AI-powered marketplace",
+		"sustainable sourcing Kenya",
+		"trusted suppliers Kenya",
 	]
 		.filter(Boolean)
 		.join(", ");
 
-	const image = ad.media_urls?.[0] || ad.first_media_url || SITE_CONFIG.logo;
-	const url = `${SITE_CONFIG.url}/ads/${ad.id}`;
-
-	// Enhanced Product structured data
-	const productStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "Product",
-		name: ad.title,
-		description: ad.description,
-		image: ad.media_urls || [image],
-		brand: {
-			"@type": "Brand",
-			name: ad.brand || ad.manufacturer || SITE_CONFIG.name,
-		},
-		manufacturer: {
-			"@type": "Organization",
-			name: ad.manufacturer || ad.brand || SITE_CONFIG.name,
-		},
-		category: ad.category_name,
-		additionalProperty: [
-			{
-				"@type": "PropertyValue",
-				name: "Condition",
-				value: ad.condition === "brand_new" ? "New" : "Used",
-			},
-			{
-				"@type": "PropertyValue",
-				name: "Seller Tier",
-				value: ad.seller_tier_name || "Standard",
-			},
-		],
-		offers: {
-			"@type": "Offer",
-			price: ad.price,
-			priceCurrency: "KES",
-			priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.split("T")[0],
-			availability:
-				ad.quantity > 0
-					? "https://schema.org/InStock"
-					: "https://schema.org/OutOfStock",
-			seller: {
-				"@type": "Organization",
-				name: ad.seller_enterprise_name || ad.seller_name || SITE_CONFIG.name,
-				url: `${SITE_CONFIG.url}/seller/${ad.seller_id}`,
-			},
-			url: url,
-			itemCondition:
-				ad.condition === "brand_new"
-					? "https://schema.org/NewCondition"
-					: "https://schema.org/UsedCondition",
-		},
-		aggregateRating:
-			ad.rating || ad.mean_rating || ad.average_rating
-				? {
-						"@type": "AggregateRating",
-						ratingValue: ad.rating || ad.mean_rating || ad.average_rating,
-						reviewCount:
-							ad.review_count || ad.reviews_count || ad.total_reviews || 0,
-						bestRating: 5,
-						worstRating: 1,
-				  }
-				: undefined,
-		url: url,
-	};
-
-	// Enhanced Breadcrumb structured data with better URL handling
-	const breadcrumbStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{
-				"@type": "ListItem",
-				position: 1,
-				name: "Home",
-				item: SITE_CONFIG.url,
-			},
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: ad.category_name || "Categories",
-				item: ad.category_id
-					? `${SITE_CONFIG.url}/categories/${ad.category_id}`
-					: `${SITE_CONFIG.url}/categories`,
-			},
-			{
-				"@type": "ListItem",
-				position: 3,
-				name: ad.subcategory_name || ad.category_name || "Products",
-				item: ad.subcategory_id
-					? `${SITE_CONFIG.url}/subcategories/${ad.subcategory_id}`
-					: ad.category_id
-					? `${SITE_CONFIG.url}/categories/${ad.category_id}`
-					: url,
-			},
-			{
-				"@type": "ListItem",
-				position: 4,
-				name: ad.title,
-				item: url,
-			},
-		],
-	};
-
 	return {
-		title,
+		title: `${product.title} | ${brand} - KSh ${price} | Carbon Cube Kenya`,
 		description,
 		keywords,
-		image,
-		url,
+		url: `https://carboncube-ke.com/ads/${product.id}`,
 		type: "product",
-		structuredData: productStructuredData,
-		additionalStructuredData: [breadcrumbStructuredData],
-		// Additional SEO data for better categorization
-		category: ad.category_name,
-		subcategory: ad.subcategory_name,
-		brand: ad.brand,
-		manufacturer: ad.manufacturer,
-		condition: ad.condition,
-		price: ad.price,
+		image:
+			product.images && product.images.length > 0
+				? product.images[0]
+				: "https://carboncube-ke.com/logo.png",
+		imageWidth: 1200,
+		imageHeight: 630,
+		price: price,
 		currency: "KES",
-		availability: ad.quantity > 0 ? "in stock" : "out of stock",
+		availability,
+		condition,
+		brand,
+		category,
+		sku,
+		publishedTime: product.created_at,
+		modifiedTime: product.updated_at || product.created_at,
+		section: category,
+		tags: [brand, category, product.subcategory_name].filter(Boolean),
+		conversationalKeywords: [
+			`where to buy ${product.title} in Kenya`,
+			`${product.title} price in Kenya`,
+			`best ${product.title} Kenya`,
+			`${product.title} online Kenya`,
+			`${brand} ${product.title} Kenya`,
+			`${category} Kenya`,
+			`${product.title} delivery Kenya`,
+			`${product.title} seller Kenya`,
+			`${product.title} reviews Kenya`,
+			`${product.title} comparison Kenya`,
+		],
 	};
 };
 
-// Generate search results SEO
-export const generateSearchResultsSEO = (
-	searchQuery,
-	results = [],
-	category = null,
-	subcategory = null
-) => {
-	const categoryName = category?.name || "";
-	const subcategoryName = subcategory?.name || "";
-	const resultCount = results.length;
+// Generate comprehensive shop SEO data
+export const generateShopSEO = (shop) => {
+	if (!shop) return null;
 
-	let title, description, keywords;
+	const tier = shop.tier || "Free";
+	const rating = shop.average_rating
+		? ` Rated ${shop.average_rating}/5 stars`
+		: "";
+	const reviews =
+		shop.total_reviews > 0 ? ` with ${shop.total_reviews} reviews` : "";
+	const location = [shop.city, shop.sub_county, shop.county]
+		.filter(Boolean)
+		.join(", ");
 
-	if (category && subcategory) {
-		title = `${subcategoryName} in ${categoryName} - Search Results | Carbon Cube Kenya`;
-		description = `Find ${resultCount} ${subcategoryName.toLowerCase()} products in ${categoryName.toLowerCase()} for "${searchQuery}" on Carbon Cube Kenya. Browse from verified sellers in Kenya.`;
-		keywords = `${searchQuery}, ${subcategoryName}, ${categoryName}, ${subcategoryName} ${categoryName}, search results, Carbon Cube Kenya`;
-	} else if (category) {
-		title = `${categoryName} - Search Results for "${searchQuery}" | Carbon Cube Kenya`;
-		description = `Find ${resultCount} ${categoryName.toLowerCase()} products for "${searchQuery}" on Carbon Cube Kenya. Browse from verified sellers in Kenya.`;
-		keywords = `${searchQuery}, ${categoryName}, ${categoryName} Kenya, search results, Carbon Cube Kenya`;
-	} else {
-		title = `Search Results for "${searchQuery}" - Carbon Cube Kenya`;
-		description = `Find ${resultCount} results for "${searchQuery}" on Carbon Cube Kenya. Browse products from verified sellers in Kenya.`;
-		keywords = `${searchQuery}, search results, Carbon Cube Kenya, Kenya marketplace, online shopping`;
-	}
+	// Generate comprehensive description
+	const description = (() => {
+		if (shop.description) {
+			return `${shop.description.substring(0, 160)}... Shop ${
+				shop.enterprise_name
+			} on Carbon Cube Kenya. ${
+				shop.product_count
+			} products available from ${tier} tier verified seller${
+				location ? ` in ${location}` : ""
+			}.${rating}${reviews}. Fast delivery across Kenya.`;
+		} else {
+			return `Shop ${shop.enterprise_name} on Carbon Cube Kenya. ${
+				shop.product_count
+			} products available from ${tier} tier verified seller${
+				location ? ` in ${location}` : ""
+			}.${rating}${reviews}. Browse quality products with fast delivery across Kenya.`;
+		}
+	})();
 
-	const url = `${SITE_CONFIG.url}/search?q=${encodeURIComponent(searchQuery)}`;
-
-	// Search results structured data
-	const searchResultsStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "ItemList",
-		name: `Search Results for "${searchQuery}"`,
-		description: description,
-		numberOfItems: resultCount,
-		itemListElement: results.slice(0, 10).map((item, index) => ({
-			"@type": "ListItem",
-			position: index + 1,
-			item: {
-				"@type": "Product",
-				name: item.title,
-				url: `${SITE_CONFIG.url}/ads/${item.id}`,
-				image: item.media?.[0],
-				offers: {
-					"@type": "Offer",
-					price: item.price,
-					priceCurrency: "KES",
-				},
-			},
-		})),
-	};
+	// Generate comprehensive keywords
+	const keywords = [
+		shop.enterprise_name,
+		`${shop.enterprise_name} shop`,
+		`${shop.enterprise_name} store`,
+		shop.categories || "",
+		shop.city || "",
+		shop.county || "",
+		shop.sub_county || "",
+		`${tier} tier seller`,
+		"online shop Kenya",
+		"Carbon Cube Kenya",
+		"Kenya marketplace",
+		`${shop.product_count} products`,
+		shop.business_registration_number
+			? `registered business ${shop.business_registration_number}`
+			: "",
+		"Kenya e-commerce",
+		"online shopping Kenya",
+		"verified seller Kenya",
+		"B2B marketplace Kenya",
+		"industrial supplies Kenya",
+		"auto parts Kenya",
+		"hardware suppliers Kenya",
+		"business supplies Kenya",
+		"procurement Kenya",
+		"digital marketplace Kenya",
+		"AI-powered marketplace",
+		"sustainable sourcing Kenya",
+		"trusted suppliers Kenya",
+		"fast delivery Kenya",
+		"secure payment Kenya",
+		"mobile money Kenya",
+		"M-Pesa Kenya",
+		"cash on delivery Kenya",
+		"free shipping Kenya",
+	]
+		.filter(Boolean)
+		.join(", ");
 
 	return {
-		title,
+		title: `${shop.enterprise_name} - Shop | ${shop.product_count} Products | ${tier} Tier Seller`,
 		description,
 		keywords,
-		url,
+		url: `https://carboncube-ke.com/shop/${shop.slug}`,
 		type: "website",
-		structuredData: searchResultsStructuredData,
+		image: shop.logo_url || "https://carboncube-ke.com/logo.png",
+		imageWidth: 1200,
+		imageHeight: 630,
+		publishedTime: shop.created_at,
+		modifiedTime: shop.updated_at || shop.created_at,
+		section: "Shop",
+		tags: [shop.categories, shop.city, shop.county, tier].filter(Boolean),
+		customMetaTags: [
+			{ name: "shop:product_count", content: shop.product_count.toString() },
+			{ name: "shop:tier", content: tier },
+			{ name: "shop:location", content: location },
+			{ name: "shop:rating", content: shop.average_rating?.toString() || "0" },
+			{ name: "shop:reviews", content: shop.total_reviews?.toString() || "0" },
+			{
+				property: "og:shop:product_count",
+				content: shop.product_count.toString(),
+			},
+			{ property: "og:shop:tier", content: tier },
+			{ property: "og:shop:location", content: location },
+			{
+				property: "og:shop:rating",
+				content: shop.average_rating?.toString() || "0",
+			},
+			{
+				property: "og:shop:reviews",
+				content: shop.total_reviews?.toString() || "0",
+			},
+			{ property: "article:section", content: "Shop" },
+			{
+				property: "article:tag",
+				content: [shop.categories, shop.city, tier].filter(Boolean).join(", "),
+			},
+		],
+		conversationalKeywords: [
+			`${shop.enterprise_name} shop Kenya`,
+			`${shop.enterprise_name} products Kenya`,
+			`${shop.enterprise_name} reviews Kenya`,
+			`${shop.enterprise_name} location Kenya`,
+			`${shop.enterprise_name} contact Kenya`,
+			`${shop.enterprise_name} delivery Kenya`,
+			`${shop.enterprise_name} prices Kenya`,
+			`${shop.enterprise_name} quality Kenya`,
+			`${shop.enterprise_name} rating Kenya`,
+			`${shop.enterprise_name} tier Kenya`,
+		],
 	};
 };
 
-// Generate categories listing page SEO
-export const generateCategoriesListingSEO = (categories = []) => {
-	const categoryNames = categories.map((cat) => cat.name).join(", ");
-	const totalSubcategories = categories.reduce(
-		(total, cat) => total + (cat.subcategories?.length || 0),
-		0
-	);
+// Generate comprehensive homepage SEO data
+export const generateHomeSEO = (categories = []) => {
+	const categoryNames = categories
+		.slice(0, 10)
+		.map((cat) => cat.name)
+		.join(", ");
+	const totalCategories = categories.length;
 
-	const title = "Product Categories - Browse by Category | Carbon Cube Kenya";
-	const description = `Browse ${categories.length} categories and ${totalSubcategories} subcategories on Carbon Cube Kenya. Find ${categoryNames} and more from verified sellers in Kenya.`;
-	const keywords = `product categories, ${categoryNames}, browse by category, Kenya marketplace categories, online shopping categories, Carbon Cube Kenya`;
+	return {
+		title: "Carbon Cube Kenya | Kenya's Trusted Digital Marketplace",
+		description: `Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Browse ${totalCategories} categories with thousands of products from verified sellers across Kenya.`,
+		keywords: `Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya, B2B marketplace, auto parts Kenya, industrial supplies, hardware suppliers, verified suppliers, business growth Kenya, ${categoryNames}`,
+		url: "https://carboncube-ke.com/",
+		type: "website",
+		image: "https://carboncube-ke.com/logo.png",
+		imageWidth: 1200,
+		imageHeight: 630,
+		section: "Homepage",
+		tags: ["Marketplace", "E-commerce", "Kenya", "B2B", "Verified Sellers"],
+		customMetaTags: [
+			{ name: "homepage:featured_categories", content: categoryNames },
+			{
+				name: "homepage:total_categories",
+				content: totalCategories.toString(),
+			},
+			{ name: "homepage:marketplace_type", content: "E-commerce Marketplace" },
+			{ name: "homepage:target_country", content: "Kenya" },
+			{
+				name: "homepage:verification_status",
+				content: "Verified Sellers Only",
+			},
+			{ property: "og:homepage:featured_categories", content: categoryNames },
+			{
+				property: "og:homepage:total_categories",
+				content: totalCategories.toString(),
+			},
+			{
+				property: "og:homepage:marketplace_type",
+				content: "E-commerce Marketplace",
+			},
+			{ property: "og:homepage:target_country", content: "Kenya" },
+			{
+				property: "og:homepage:verification_status",
+				content: "Verified Sellers Only",
+			},
+			{ property: "article:section", content: "Homepage" },
+			{ property: "article:tag", content: "Marketplace, E-commerce, Kenya" },
+		],
+		conversationalKeywords: [
+			"where to buy products online in Kenya",
+			"best online marketplace Kenya",
+			"trusted sellers Kenya",
+			"verified suppliers Kenya",
+			"B2B marketplace Kenya",
+			"industrial supplies Kenya",
+			"auto parts Kenya",
+			"hardware suppliers Kenya",
+			"business supplies Kenya",
+			"procurement Kenya",
+			"digital marketplace Kenya",
+			"AI-powered marketplace Kenya",
+			"sustainable sourcing Kenya",
+			"fast delivery Kenya",
+			"secure payment Kenya",
+			"mobile money Kenya",
+			"M-Pesa Kenya",
+			"cash on delivery Kenya",
+			"free shipping Kenya",
+		],
+	};
+};
 
-	const url = `${SITE_CONFIG.url}/categories`;
+// Generate comprehensive category SEO data with rich snippets optimization
+export const generateCategorySEO = (category, subcategories = [], ads = []) => {
+	if (!category) return null;
 
-	// Categories listing structured data
-	const categoriesListingStructuredData = {
+	const subcategoryNames = subcategories.map((sub) => sub.name).join(", ");
+	const productCount = category.product_count || ads.length || 0;
+	const adCount = ads.length || 0;
+
+	// Generate rich snippet description similar to Jiji
+	const description = (() => {
+		const baseDescription = `Browse ${productCount} ${category.name} products on Carbon Cube Kenya. Quality ${category.name} from verified sellers with fast delivery across Kenya.`;
+
+		if (subcategoryNames) {
+			return `${baseDescription} Subcategories: ${subcategoryNames}.`;
+		}
+
+		return baseDescription;
+	})();
+
+	// Generate comprehensive keywords including location and pricing
+	const keywords = [
+		category.name,
+		`${category.name} Kenya`,
+		`${category.name} products`,
+		`${category.name} online`,
+		`${category.name} suppliers`,
+		`${category.name} sellers`,
+		`${category.name} Nairobi`,
+		`${category.name} Mombasa`,
+		`${category.name} Kisumu`,
+		`${category.name} prices`,
+		`${category.name} cheap`,
+		`${category.name} wholesale`,
+		`${category.name} retail`,
+		`buy ${category.name} Kenya`,
+		`${category.name} for sale`,
+		`${category.name} marketplace`,
+		`Carbon Cube Kenya`,
+		"online shopping Kenya",
+		"Kenya marketplace",
+		"verified sellers Kenya",
+		"fast delivery Kenya",
+		"secure payment Kenya",
+		"mobile money Kenya",
+		"M-Pesa Kenya",
+		"cash on delivery Kenya",
+		"free shipping Kenya",
+		subcategoryNames,
+	]
+		.filter(Boolean)
+		.join(", ");
+
+	// Generate structured data for categories
+	const structuredData = {
 		"@context": "https://schema.org",
 		"@type": "CollectionPage",
-		name: "Product Categories",
+		name: `${category.name} | Carbon Cube Kenya`,
 		description: description,
-		url: url,
+		url: `https://carboncube-ke.com/category/${category.slug}`,
+		image: category.image_url || "https://carboncube-ke.com/logo.png",
 		mainEntity: {
 			"@type": "ItemList",
-			numberOfItems: categories.length,
-			itemListElement: categories.map((category, index) => ({
+			name: `${category.name} Products`,
+			numberOfItems: productCount,
+			itemListElement: ads.slice(0, 10).map((ad, index) => ({
 				"@type": "ListItem",
 				position: index + 1,
 				item: {
-					"@type": "CollectionPage",
-					name: category.name,
-					url: `${SITE_CONFIG.url}/categories/${category.id}`,
-					description: `Browse ${category.name} products from verified sellers on Carbon Cube Kenya`,
+					"@type": "Product",
+					name: ad.title,
+					description: ad.description,
+					image:
+						ad.images && ad.images[0]
+							? ad.images[0]
+							: "https://carboncube-ke.com/logo.png",
+					offers: {
+						"@type": "Offer",
+						price: ad.price,
+						priceCurrency: "KES",
+						availability:
+							ad.quantity > 0
+								? "https://schema.org/InStock"
+								: "https://schema.org/OutOfStock",
+						seller: {
+							"@type": "Organization",
+							name: ad.seller_enterprise_name || ad.seller_name,
+						},
+					},
 				},
 			})),
 		},
+		breadcrumb: {
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{
+					"@type": "ListItem",
+					position: 1,
+					name: "Home",
+					item: "https://carboncube-ke.com",
+				},
+				{
+					"@type": "ListItem",
+					position: 2,
+					name: "Categories",
+					item: "https://carboncube-ke.com/categories",
+				},
+				{
+					"@type": "ListItem",
+					position: 3,
+					name: category.name,
+					item: `https://carboncube-ke.com/category/${category.slug}`,
+				},
+			],
+		},
+		potentialAction: {
+			"@type": "SearchAction",
+			target: `https://carboncube-ke.com/search?category=${category.slug}&q={search_term_string}`,
+			"query-input": "required name=search_term_string",
+		},
 	};
 
-	// Breadcrumb structured data
-	const breadcrumbStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
+	return {
+		title: `${category.name} • ${productCount} ads | Carbon Cube Kenya`,
+		description,
+		keywords,
+		url: `https://carboncube-ke.com/category/${category.slug}`,
+		type: "website",
+		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		imageWidth: 1200,
+		imageHeight: 630,
+		section: category.name,
+		tags: [category.name, ...subcategories.map((sub) => sub.name)],
+		structuredData,
+		customMetaTags: [
+			{ name: "category:product_count", content: productCount.toString() },
+			{ name: "category:ad_count", content: adCount.toString() },
+			{ name: "category:subcategories", content: subcategoryNames },
+			{ name: "category:slug", content: category.slug },
+			{ name: "category:parent", content: category.parent_category || "root" },
 			{
-				"@type": "ListItem",
-				position: 1,
-				name: "Home",
-				item: SITE_CONFIG.url,
+				property: "og:category:product_count",
+				content: productCount.toString(),
 			},
+			{ property: "og:category:ad_count", content: adCount.toString() },
+			{ property: "og:category:subcategories", content: subcategoryNames },
+			{ property: "og:category:slug", content: category.slug },
 			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Categories",
-				item: url,
+				property: "og:category:parent",
+				content: category.parent_category || "root",
 			},
+			{ property: "article:section", content: category.name },
+			{ property: "article:tag", content: subcategoryNames },
+			{ property: "product:category", content: category.name },
+			{ property: "product:category:count", content: productCount.toString() },
+		],
+		conversationalKeywords: [
+			`${category.name} Kenya`,
+			`${category.name} products Kenya`,
+			`${category.name} suppliers Kenya`,
+			`${category.name} sellers Kenya`,
+			`${category.name} online Kenya`,
+			`${category.name} delivery Kenya`,
+			`${category.name} prices Kenya`,
+			`${category.name} quality Kenya`,
+			`${category.name} reviews Kenya`,
+			`${category.name} comparison Kenya`,
+			`buy ${category.name} online Kenya`,
+			`${category.name} marketplace Kenya`,
+			`${category.name} wholesale Kenya`,
+			`${category.name} retail Kenya`,
+			`${category.name} cheap Kenya`,
+			`${category.name} best price Kenya`,
+			`${category.name} verified sellers Kenya`,
+			`${category.name} fast delivery Kenya`,
+			`${category.name} secure payment Kenya`,
+			`${category.name} mobile money Kenya`,
 		],
 	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: categoriesListingStructuredData,
-		additionalStructuredData: [breadcrumbStructuredData],
-	};
 };
 
-// Generate about page SEO
-export const generateAboutPageSEO = () => {
-	const title = "About Carbon Cube Kenya - Kenya's Trusted Digital Marketplace";
-	const description =
-		"Learn about Carbon Cube Kenya, Kenya's most trusted and secure online marketplace. Discover how we connect verified sellers with buyers using AI-powered tools and seamless digital procurement.";
-	const keywords =
-		"about Carbon Cube Kenya, Kenya marketplace, digital procurement, verified sellers, company information, Kenya ecommerce, online marketplace Kenya";
-	const url = `${SITE_CONFIG.url}/about-us`;
+// Generate SEO for category pages using URL parameters (/?query=&category=Automotive)
+export const generateCategoryPageSEO = (
+	category,
+	subcategory,
+	ads = [],
+	searchQuery = ""
+) => {
+	if (!category) return null;
 
-	// About page structured data
-	const aboutPageStructuredData = {
+	const productCount = ads.length || 0;
+	const adCount = ads.length || 0;
+
+	// Generate title based on search context
+	const title = (() => {
+		if (searchQuery) {
+			return `${searchQuery} in ${category.name} • ${productCount} results | Carbon Cube Kenya`;
+		} else if (subcategory) {
+			return `${subcategory.name} • ${productCount} ads | Carbon Cube Kenya`;
+		} else {
+			return `${category.name} • ${productCount} ads | Carbon Cube Kenya`;
+		}
+	})();
+
+	// Generate description similar to Jiji's approach
+	const description = (() => {
+		if (searchQuery) {
+			return `Search results for "${searchQuery}" in ${category.name} on Carbon Cube Kenya. ${productCount} products found from verified sellers with fast delivery across Kenya.`;
+		} else if (subcategory) {
+			return `Browse ${productCount} ${subcategory.name} products on Carbon Cube Kenya. Quality ${subcategory.name} from verified sellers in ${category.name} category with fast delivery across Kenya.`;
+		} else {
+			return `Browse ${productCount} ${category.name} products on Carbon Cube Kenya. Quality ${category.name} from verified sellers with fast delivery across Kenya.`;
+		}
+	})();
+
+	// Generate comprehensive keywords
+	const keywords = [
+		category.name,
+		`${category.name} Kenya`,
+		`${category.name} products`,
+		`${category.name} online`,
+		`${category.name} suppliers`,
+		`${category.name} sellers`,
+		`${category.name} Nairobi`,
+		`${category.name} Mombasa`,
+		`${category.name} Kisumu`,
+		`${category.name} prices`,
+		`${category.name} cheap`,
+		`${category.name} wholesale`,
+		`${category.name} retail`,
+		`buy ${category.name} Kenya`,
+		`${category.name} for sale`,
+		`${category.name} marketplace`,
+		`Carbon Cube Kenya`,
+		"online shopping Kenya",
+		"Kenya marketplace",
+		"verified sellers Kenya",
+		"fast delivery Kenya",
+		"secure payment Kenya",
+		"mobile money Kenya",
+		"M-Pesa Kenya",
+		"cash on delivery Kenya",
+		"free shipping Kenya",
+		...(subcategory ? [subcategory.name, `${subcategory.name} Kenya`] : []),
+		...(searchQuery ? [searchQuery, `${searchQuery} Kenya`] : []),
+	]
+		.filter(Boolean)
+		.join(", ");
+
+	// Generate structured data for category pages
+	const structuredData = {
 		"@context": "https://schema.org",
-		"@type": "AboutPage",
-		name: "About Carbon Cube Kenya",
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			description: SITE_CONFIG.description,
-			url: SITE_CONFIG.url,
-			logo: SITE_CONFIG.logo,
-			foundingDate: "2024",
-			address: {
-				"@type": "PostalAddress",
-				streetAddress: "9th Floor, CMS Africa, Kilimani",
-				addressLocality: "Nairobi",
-				addressRegion: "Nairobi",
-				addressCountry: "KE",
-				postalCode: "00100",
-			},
-		},
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: aboutPageStructuredData,
-	};
-};
-
-// Generate contact page SEO
-export const generateContactPageSEO = () => {
-	const title = "Contact Carbon Cube Kenya - Customer Support";
-	const description =
-		"Get in touch with Carbon Cube Kenya's customer support team. We're here to help with your online marketplace questions, seller verification, and digital procurement needs in Kenya.";
-	const keywords =
-		"contact Carbon Cube Kenya, customer support, Kenya marketplace support, help desk, contact information, Kenya ecommerce support";
-	const url = `${SITE_CONFIG.url}/contact-us`;
-
-	// Contact page structured data
-	const contactPageStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "ContactPage",
-		name: "Contact Carbon Cube Kenya",
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			contactPoint: {
-				"@type": "ContactPoint",
-				contactType: "customer service",
-				availableLanguage: "English",
-				areaServed: "KE",
-				telephone: "+254713270764",
-				email: "info@carboncube-ke.com",
-			},
-		},
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: contactPageStructuredData,
-	};
-};
-
-// Generate signup page SEO
-export const generateSignupPageSEO = (type = "buyer") => {
-	const isBuyer = type === "buyer";
-	const title = isBuyer
-		? "Join Carbon Cube Kenya - Buyer Registration"
-		: "Become a Seller - Carbon Cube Kenya Registration";
-	const description = isBuyer
-		? "Join Carbon Cube Kenya as a buyer and start shopping from verified sellers. Create your account today and enjoy secure online shopping in Kenya's most trusted marketplace."
-		: "Become a verified seller on Carbon Cube Kenya. Register your business and start selling to customers across Kenya with our secure marketplace platform.";
-	const keywords = isBuyer
-		? "buyer signup, join Carbon Cube Kenya, create account, Kenya online shopping, marketplace registration, buyer registration"
-		: "seller signup, become a seller, Carbon Cube Kenya seller registration, Kenya marketplace seller, online selling, seller registration";
-	const url = `${SITE_CONFIG.url}/${type}-signup`;
-
-	// Signup page structured data
-	const signupPageStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "WebPage",
+		"@type": "CollectionPage",
 		name: title,
 		description: description,
-		url: url,
+		url: `https://carboncube-ke.com/?category=${category.slug}${
+			subcategory ? `&subcategory=${subcategory.slug}` : ""
+		}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ""}`,
+		image: category.image_url || "https://carboncube-ke.com/logo.png",
 		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			url: SITE_CONFIG.url,
+			"@type": "ItemList",
+			name: `${category.name} Products`,
+			numberOfItems: productCount,
+			itemListElement: ads.slice(0, 10).map((ad, index) => ({
+				"@type": "ListItem",
+				position: index + 1,
+				item: {
+					"@type": "Product",
+					name: ad.title,
+					description: ad.description,
+					image:
+						ad.images && ad.images[0]
+							? ad.images[0]
+							: "https://carboncube-ke.com/logo.png",
+					offers: {
+						"@type": "Offer",
+						price: ad.price,
+						priceCurrency: "KES",
+						availability:
+							ad.quantity > 0
+								? "https://schema.org/InStock"
+								: "https://schema.org/OutOfStock",
+						seller: {
+							"@type": "Organization",
+							name: ad.seller_enterprise_name || ad.seller_name,
+						},
+					},
+				},
+			})),
+		},
+		breadcrumb: {
+			"@type": "BreadcrumbList",
+			itemListElement: [
+				{
+					"@type": "ListItem",
+					position: 1,
+					name: "Home",
+					item: "https://carboncube-ke.com",
+				},
+				{
+					"@type": "ListItem",
+					position: 2,
+					name: "Categories",
+					item: "https://carboncube-ke.com/categories",
+				},
+				{
+					"@type": "ListItem",
+					position: 3,
+					name: category.name,
+					item: `https://carboncube-ke.com/?category=${category.slug}`,
+				},
+				...(subcategory
+					? [
+							{
+								"@type": "ListItem",
+								position: 4,
+								name: subcategory.name,
+								item: `https://carboncube-ke.com/?category=${category.slug}&subcategory=${subcategory.slug}`,
+							},
+					  ]
+					: []),
+			],
+		},
+		potentialAction: {
+			"@type": "SearchAction",
+			target: `https://carboncube-ke.com/?category=${category.slug}&q={search_term_string}`,
+			"query-input": "required name=search_term_string",
 		},
 	};
 
@@ -694,107 +635,109 @@ export const generateSignupPageSEO = (type = "buyer") => {
 		title,
 		description,
 		keywords,
-		url,
+		url: `https://carboncube-ke.com/?category=${category.slug}${
+			subcategory ? `&subcategory=${subcategory.slug}` : ""
+		}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ""}`,
 		type: "website",
-		structuredData: signupPageStructuredData,
+		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		imageWidth: 1200,
+		imageHeight: 630,
+		section: subcategory ? subcategory.name : category.name,
+		tags: [
+			category.name,
+			...(subcategory ? [subcategory.name] : []),
+			...(searchQuery ? [searchQuery] : []),
+		],
+		structuredData,
+		customMetaTags: [
+			{ name: "category:product_count", content: productCount.toString() },
+			{ name: "category:ad_count", content: adCount.toString() },
+			{ name: "category:name", content: category.name },
+			{ name: "category:slug", content: category.slug },
+			...(subcategory
+				? [
+						{ name: "subcategory:name", content: subcategory.name },
+						{ name: "subcategory:slug", content: subcategory.slug },
+				  ]
+				: []),
+			...(searchQuery ? [{ name: "search:query", content: searchQuery }] : []),
+			{
+				property: "og:category:product_count",
+				content: productCount.toString(),
+			},
+			{ property: "og:category:ad_count", content: adCount.toString() },
+			{ property: "og:category:name", content: category.name },
+			{ property: "og:category:slug", content: category.slug },
+			...(subcategory
+				? [
+						{ property: "og:subcategory:name", content: subcategory.name },
+						{ property: "og:subcategory:slug", content: subcategory.slug },
+				  ]
+				: []),
+			...(searchQuery
+				? [{ property: "og:search:query", content: searchQuery }]
+				: []),
+			{
+				property: "article:section",
+				content: subcategory ? subcategory.name : category.name,
+			},
+			{
+				property: "article:tag",
+				content: [
+					category.name,
+					...(subcategory ? [subcategory.name] : []),
+				].join(", "),
+			},
+			{ property: "product:category", content: category.name },
+			{ property: "product:category:count", content: productCount.toString() },
+		],
+		conversationalKeywords: [
+			`${category.name} Kenya`,
+			`${category.name} products Kenya`,
+			`${category.name} suppliers Kenya`,
+			`${category.name} sellers Kenya`,
+			`${category.name} online Kenya`,
+			`${category.name} delivery Kenya`,
+			`${category.name} prices Kenya`,
+			`${category.name} quality Kenya`,
+			`${category.name} reviews Kenya`,
+			`${category.name} comparison Kenya`,
+			`buy ${category.name} online Kenya`,
+			`${category.name} marketplace Kenya`,
+			`${category.name} wholesale Kenya`,
+			`${category.name} retail Kenya`,
+			`${category.name} cheap Kenya`,
+			`${category.name} best price Kenya`,
+			`${category.name} verified sellers Kenya`,
+			`${category.name} fast delivery Kenya`,
+			`${category.name} secure payment Kenya`,
+			`${category.name} mobile money Kenya`,
+			...(subcategory
+				? [
+						`${subcategory.name} Kenya`,
+						`${subcategory.name} products Kenya`,
+						`${subcategory.name} suppliers Kenya`,
+						`${subcategory.name} sellers Kenya`,
+				  ]
+				: []),
+			...(searchQuery
+				? [
+						`${searchQuery} Kenya`,
+						`${searchQuery} ${category.name} Kenya`,
+						`buy ${searchQuery} Kenya`,
+						`${searchQuery} online Kenya`,
+				  ]
+				: []),
+		],
 	};
 };
 
-// Generate FAQ page SEO
-export const generateFAQPageSEO = () => {
-	const title = "FAQ - Frequently Asked Questions | Carbon Cube Kenya";
-	const description =
-		"Find answers to frequently asked questions about Carbon Cube Kenya. Learn about our marketplace, seller verification, buyer protection, and digital procurement services in Kenya.";
-	const keywords =
-		"FAQ, frequently asked questions, Carbon Cube Kenya help, Kenya marketplace FAQ, customer support, marketplace help";
-	const url = `${SITE_CONFIG.url}/faq`;
-
-	// FAQ page structured data
-	const faqPageStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "FAQPage",
-		name: "Carbon Cube Kenya FAQ",
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			url: SITE_CONFIG.url,
-		},
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: faqPageStructuredData,
-	};
+const seoHelpers = {
+	generateProductSEO,
+	generateShopSEO,
+	generateHomeSEO,
+	generateCategorySEO,
+	generateCategoryPageSEO,
 };
 
-// Generate terms page SEO
-export const generateTermsPageSEO = () => {
-	const title = "Terms and Conditions | Carbon Cube Kenya";
-	const description =
-		"Read Carbon Cube Kenya's terms and conditions. Understand our marketplace rules, user agreements, and platform policies for buyers and sellers in Kenya.";
-	const keywords =
-		"terms and conditions, Carbon Cube Kenya legal, Kenya marketplace terms, user agreement, platform terms, marketplace policies";
-	const url = `${SITE_CONFIG.url}/terms-and-conditions`;
-
-	// Terms page structured data
-	const termsPageStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "WebPage",
-		name: "Terms and Conditions",
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			url: SITE_CONFIG.url,
-		},
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: termsPageStructuredData,
-	};
-};
-
-// Generate privacy policy page SEO
-export const generatePrivacyPolicySEO = () => {
-	const title = "Privacy Policy | Carbon Cube Kenya";
-	const description =
-		"Learn about Carbon Cube Kenya's privacy policy and data protection practices. Understand how we protect your personal information and comply with data protection regulations in Kenya.";
-	const keywords =
-		"privacy policy, Carbon Cube Kenya data protection, Kenya marketplace privacy, user data protection, GDPR compliance, data privacy";
-	const url = `${SITE_CONFIG.url}/privacy-policy`;
-
-	// Privacy policy page structured data
-	const privacyPageStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "WebPage",
-		name: "Privacy Policy",
-		description: description,
-		url: url,
-		mainEntity: {
-			"@type": "Organization",
-			name: SITE_CONFIG.name,
-			url: SITE_CONFIG.url,
-		},
-	};
-
-	return {
-		title,
-		description,
-		keywords,
-		url,
-		type: "website",
-		structuredData: privacyPageStructuredData,
-	};
-};
+export default seoHelpers;

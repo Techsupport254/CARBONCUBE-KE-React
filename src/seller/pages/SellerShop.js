@@ -6,13 +6,12 @@ import {
 	faShare,
 	faStar,
 	faStarHalfAlt,
-	faShoppingBag,
 	faChartLine,
 	faUsers,
 	faBox,
 	faExternalLinkAlt,
+	faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import AlertModal from "../../components/AlertModal";
@@ -21,7 +20,7 @@ const SellerShop = () => {
 	const [shopData, setShopData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [activeTab, setActiveTab] = useState("overview");
+	const [isSharing, setIsSharing] = useState(false);
 
 	const [showAlertModal, setShowAlertModal] = useState(false);
 	const [alertModalMessage, setAlertModalMessage] = useState("");
@@ -145,13 +144,15 @@ const SellerShop = () => {
 	};
 
 	const handleShareShop = async () => {
-		if (!shopData?.enterprise_name) return;
+		if (!shopData?.enterprise_name || isSharing) return;
 
 		const shopSlug = shopData.enterprise_name
 			.toLowerCase()
 			.replace(/\s+/g, "-");
 		const shopUrl = `${window.location.origin}/shop/${shopSlug}`;
 		const shopTitle = `${shopData.enterprise_name} - Shop on CarbonCube Kenya`;
+
+		setIsSharing(true);
 
 		try {
 			if (navigator.share) {
@@ -161,6 +162,7 @@ const SellerShop = () => {
 					url: shopUrl,
 				});
 			} else {
+				// Show loading state for clipboard operation
 				await navigator.clipboard.writeText(shopUrl);
 				setAlertModalMessage("Shop URL copied to clipboard!");
 				setAlertModalConfig({
@@ -174,7 +176,59 @@ const SellerShop = () => {
 				setShowAlertModal(true);
 			}
 		} catch (error) {
-			console.error("Error sharing:", error);
+			// Handle specific Web Share API errors
+			if (error.name === "AbortError") {
+				// User canceled the share dialog - this is normal, don't show error
+				console.log("Share canceled by user");
+			} else if (error.name === "InvalidStateError") {
+				// Previous share operation hasn't completed yet
+				console.log("Previous share operation still in progress");
+				setAlertModalMessage(
+					"Please wait for the previous share operation to complete."
+				);
+				setAlertModalConfig({
+					icon: "warning",
+					title: "Share in Progress",
+					confirmText: "OK",
+					cancelText: "",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
+			} else {
+				// Other errors - fallback to clipboard
+				console.error("Error sharing:", error);
+				try {
+					// Keep loading state during clipboard fallback
+					await navigator.clipboard.writeText(shopUrl);
+					setAlertModalMessage("Shop URL copied to clipboard!");
+					setAlertModalConfig({
+						icon: "success",
+						title: "URL Copied",
+						confirmText: "OK",
+						cancelText: "",
+						showCancel: false,
+						onConfirm: () => setShowAlertModal(false),
+					});
+					setShowAlertModal(true);
+				} catch (clipboardError) {
+					console.error("Clipboard error:", clipboardError);
+					setAlertModalMessage(
+						"Unable to share or copy URL. Please try again."
+					);
+					setAlertModalConfig({
+						icon: "error",
+						title: "Share Failed",
+						confirmText: "OK",
+						cancelText: "",
+						showCancel: false,
+						onConfirm: () => setShowAlertModal(false),
+					});
+					setShowAlertModal(true);
+				}
+			}
+		} finally {
+			setIsSharing(false);
 		}
 	};
 
@@ -189,7 +243,6 @@ const SellerShop = () => {
 					showWishlist={false}
 				/>
 				<div className="flex flex-col lg:flex-row min-h-screen">
-					<Sidebar />
 					<div className="flex-1 min-w-0 lg:ml-0 flex items-center justify-center p-4">
 						<div className="text-center">
 							<Spinner
@@ -218,7 +271,6 @@ const SellerShop = () => {
 					showWishlist={false}
 				/>
 				<div className="flex flex-col lg:flex-row min-h-screen">
-					<Sidebar />
 					<div className="flex-1 min-w-0 lg:ml-0 flex items-center justify-center p-4">
 						<div className="text-center">
 							<h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -251,7 +303,6 @@ const SellerShop = () => {
 					showWishlist={false}
 				/>
 				<div className="flex flex-col lg:flex-row min-h-screen">
-					<Sidebar />
 					<div className="flex-1 min-w-0 lg:ml-0 flex items-center justify-center p-4">
 						<div className="text-center">
 							<h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -276,362 +327,336 @@ const SellerShop = () => {
 				showCart={false}
 				showWishlist={false}
 			/>
-			<div className="flex flex-col lg:flex-row min-h-screen">
-				<Sidebar />
-				<div className="flex-1 min-w-0 lg:ml-0">
-					<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 py-2 sm:py-3 md:py-4 lg:py-6 xl:py-8">
-						{/* Shop Overview Card */}
-						<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
-							{/* Mobile Layout - Stacked */}
-							<div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
-								{/* Logo and Name Row */}
-								<div className="flex items-start gap-3 sm:gap-4">
-									{/* Shop Logo */}
-									<div className="flex-shrink-0">
-										{shopData.profile_picture ? (
-											<img
-												src={shopData.profile_picture}
-												alt={shopData.enterprise_name}
-												className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 sm:border-4 border-gray-200"
-											/>
-										) : (
-											<div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-blue-600 flex items-center justify-center border-2 sm:border-4 border-gray-200">
-												<span className="text-white text-sm sm:text-lg font-bold">
-													{shopData.enterprise_name
-														? shopData.enterprise_name.charAt(0).toUpperCase()
-														: "S"}
-												</span>
-											</div>
-										)}
+			<div className="max-w-7xl mx-auto p-2 sm:p-4 lg:p-6 xl:p-8">
+				{/* Header Section */}
+				<div className="mb-8">
+					<div className="bg-white rounded-lg border border-gray-200 p-6">
+						<div className="flex flex-col md:flex-row md:items-center gap-4">
+							{/* Shop Logo */}
+							<div className="flex-shrink-0">
+								{shopData.profile_picture ? (
+									<img
+										src={shopData.profile_picture}
+										alt={shopData.enterprise_name}
+										className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+									/>
+								) : (
+									<div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center border border-gray-200">
+										<span className="text-white text-xl font-bold">
+											{shopData.enterprise_name
+												? shopData.enterprise_name.charAt(0).toUpperCase()
+												: "S"}
+										</span>
 									</div>
-
-									{/* Shop Name and Description */}
-									<div className="flex-1 min-w-0">
-										<h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2 truncate">
-											{shopData.enterprise_name}
-										</h2>
-										<p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
-											{shopData.description || "No description available"}
-										</p>
-									</div>
-								</div>
-
-								{/* Stats Row */}
-								<div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
-									<span className="flex items-center gap-1 sm:gap-2">
-										<FontAwesomeIcon
-											icon={faBox}
-											className="text-gray-400 text-xs sm:text-sm"
-										/>
-										{shopData.total_ads || 0} Products
-									</span>
-									<span className="flex items-center gap-1 sm:gap-2">
-										<FontAwesomeIcon
-											icon={faUsers}
-											className="text-gray-400 text-xs sm:text-sm"
-										/>
-										{shopData.total_reviews || 0} Reviews
-									</span>
-									<span className="flex items-center gap-1 sm:gap-2">
-										<FontAwesomeIcon
-											icon={faChartLine}
-											className="text-gray-400 text-xs sm:text-sm"
-										/>
-										{shopData.mean_rating
-											? `${shopData.mean_rating.toFixed(1)}/5`
-											: "No Rating"}
-									</span>
-								</div>
-
-								{/* Tier Badge */}
-								<div className="flex justify-center">
-									<span
-										className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-white"
-										style={{
-											backgroundColor:
-												shopData.seller_tier_name === "Premium"
-													? "#F59E0B"
-													: shopData.seller_tier_name === "Standard"
-													? "#10B981"
-													: shopData.seller_tier_name === "Basic"
-													? "#3B82F6"
-													: "#6B7280",
-										}}
-									>
-										{shopData.seller_tier_name || "Free"}
-									</span>
-								</div>
+								)}
 							</div>
 
-							{/* Desktop Layout - Horizontal */}
-							<div className="hidden lg:flex flex-col gap-4 xl:gap-6">
-								{/* Logo, Name and Description Row */}
-								<div className="flex items-start gap-4 xl:gap-6">
-									{/* Shop Logo */}
-									<div className="flex-shrink-0">
-										{shopData.profile_picture ? (
-											<img
-												src={shopData.profile_picture}
-												alt={shopData.enterprise_name}
-												className="w-16 h-16 xl:w-20 xl:h-20 rounded-full object-cover border-4 border-gray-200"
-											/>
-										) : (
-											<div className="w-16 h-16 xl:w-20 xl:h-20 rounded-full bg-blue-600 flex items-center justify-center border-4 border-gray-200">
-												<span className="text-white text-xl xl:text-2xl font-bold">
-													{shopData.enterprise_name
-														? shopData.enterprise_name.charAt(0).toUpperCase()
-														: "S"}
-												</span>
-											</div>
-										)}
-									</div>
+							{/* Shop Info */}
+							<div className="flex-1">
+								<h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+									{shopData.enterprise_name}
+								</h1>
+								<p className="text-gray-600 text-sm md:text-base leading-relaxed">
+									{shopData.description || "No description available"}
+								</p>
+							</div>
 
-									{/* Shop Name and Description */}
-									<div className="flex-1 min-w-0">
-										<h2 className="text-lg xl:text-xl 2xl:text-2xl font-bold text-gray-900 mb-2 truncate">
-											{shopData.enterprise_name}
-										</h2>
-										<p className="text-sm xl:text-base text-gray-600 line-clamp-3">
-											{shopData.description || "No description available"}
-										</p>
-									</div>
-								</div>
-
-								{/* Stats and Tier Badge Row - Always at Bottom */}
-								<div className="flex flex-wrap items-center justify-between gap-4 xl:gap-6">
-									{/* Statistics */}
-									<div className="flex flex-wrap items-center gap-4 xl:gap-6 text-sm xl:text-base text-gray-500">
-										<span className="flex items-center gap-2">
-											<FontAwesomeIcon icon={faBox} className="text-gray-400" />
-											{shopData.total_ads || 0} Products
-										</span>
-										<span className="flex items-center gap-2">
-											<FontAwesomeIcon
-												icon={faUsers}
-												className="text-gray-400"
-											/>
-											{shopData.total_reviews || 0} Reviews
-										</span>
-										<span className="flex items-center gap-2">
-											<FontAwesomeIcon
-												icon={faChartLine}
-												className="text-gray-400"
-											/>
-											{shopData.mean_rating
-												? `${shopData.mean_rating.toFixed(1)}/5`
-												: "No Rating"}
-										</span>
-									</div>
-
-									{/* Tier Badge */}
-									<div className="flex-shrink-0">
-										<span
-											className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
-											style={{
-												backgroundColor:
-													shopData.seller_tier_name === "Premium"
-														? "#F59E0B"
-														: shopData.seller_tier_name === "Standard"
-														? "#10B981"
-														: shopData.seller_tier_name === "Basic"
-														? "#3B82F6"
-														: "#6B7280",
-											}}
-										>
-											{shopData.seller_tier_name || "Free"}
-										</span>
-									</div>
-								</div>
+							{/* Tier Badge */}
+							<div className="flex-shrink-0">
+								<span className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium bg-yellow-500 text-white">
+									{shopData.seller_tier_name || "Free"} Plan
+								</span>
 							</div>
 						</div>
+					</div>
+				</div>
 
-						{/* Tabs */}
-						<div className="mb-3 sm:mb-4 md:mb-6 lg:mb-8">
-							<div className="border-b border-gray-200">
-								<nav className="-mb-px flex gap-1 sm:gap-2 md:gap-0 md:space-x-4 lg:space-x-6 xl:space-x-8 overflow-x-auto scrollbar-hide">
-									{[
-										{ id: "overview", label: "Overview", icon: faChartLine },
-										{ id: "products", label: "Products", icon: faBox },
-										{ id: "reviews", label: "Reviews", icon: faStar },
-										{ id: "analytics", label: "Analytics", icon: faChartLine },
-									].map((tab) => (
-										<button
-											key={tab.id}
-											onClick={() => setActiveTab(tab.id)}
-											className={`flex items-center justify-center gap-1 sm:gap-2 py-2 px-2 sm:px-3 md:px-1 border-b-2 font-medium text-xs sm:text-sm flex-1 sm:flex-none whitespace-nowrap min-w-0 transition-colors ${
-												activeTab === tab.id
-													? "border-yellow-500 text-yellow-600"
-													: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-											}`}
-										>
-											<FontAwesomeIcon
-												icon={tab.icon}
-												className="text-xs sm:text-sm flex-shrink-0"
-											/>
-											<span className="hidden xs:inline truncate">
-												{tab.label}
-											</span>
-											<span className="xs:hidden truncate">
-												{tab.label.charAt(0)}
-											</span>
-										</button>
-									))}
-								</nav>
+				{/* Stats Grid */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+					{/* Products Card */}
+					<div className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-gray-600">
+									Total Products
+								</p>
+								<p className="text-2xl font-bold text-gray-900">
+									{shopData.total_ads || 0}
+								</p>
+							</div>
+							<div className="p-3 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faBox}
+									className="text-gray-600 text-xl"
+								/>
 							</div>
 						</div>
+					</div>
 
-						{/* Tab Content */}
-						<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 md:p-5 lg:p-6">
-							{activeTab === "overview" && (
-								<div>
-									<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-										Shop Overview
-									</h3>
+					{/* Reviews Card */}
+					<div className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-gray-600">
+									Customer Reviews
+								</p>
+								<p className="text-2xl font-bold text-gray-900">
+									{shopData.total_reviews || 0}
+								</p>
+							</div>
+							<div className="p-3 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faUsers}
+									className="text-gray-600 text-xl"
+								/>
+							</div>
+						</div>
+					</div>
 
-									{/* Quick Actions */}
-									<div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">
-										<button
-											onClick={handleViewShop}
-											className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base"
-										>
-											<FontAwesomeIcon
-												icon={faExternalLinkAlt}
-												className="text-xs sm:text-sm"
-											/>
-											<span>View Shop</span>
-										</button>
-										<button
-											onClick={handleShareShop}
-											className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base"
-										>
-											<FontAwesomeIcon
-												icon={faShare}
-												className="text-xs sm:text-sm"
-											/>
-											<span>Share Shop</span>
-										</button>
-										<button
-											onClick={handleEditProfile}
-											className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base"
-										>
-											<FontAwesomeIcon
-												icon={faEdit}
-												className="text-xs sm:text-sm"
-											/>
-											<span>Edit Profile</span>
-										</button>
-									</div>
-									<div className="text-center py-3 sm:py-4 md:py-6 lg:py-8">
-										<FontAwesomeIcon
-											icon={faShoppingBag}
-											className="text-gray-400 text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-2 sm:mb-3 md:mb-4"
-										/>
-										<h4 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 mb-2">
-											Welcome to your shop dashboard!
-										</h4>
-										<p className="text-xs sm:text-sm md:text-base text-gray-600 mb-3 sm:mb-4 px-2 sm:px-4 text-left sm:text-center max-w-2xl mx-auto">
-											Here you can manage your products, view customer reviews,
-											and track your shop's performance.
-										</p>
-										<div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-3 md:gap-4">
-											<button
-												onClick={() => navigate("/seller/ads")}
-												className="px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base"
-											>
-												Manage Products
-											</button>
-											<button
-												onClick={() => navigate("/seller/analytics")}
-												className="px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base"
-											>
-												View Analytics
-											</button>
-										</div>
-									</div>
-								</div>
-							)}
+					{/* Rating Card */}
+					<div className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-gray-600">
+									Average Rating
+								</p>
+								<p className="text-2xl font-bold text-gray-900">
+									{shopData.mean_rating
+										? shopData.mean_rating.toFixed(1)
+										: "0.0"}
+								</p>
+							</div>
+							<div className="p-3 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faStar}
+									className="text-gray-600 text-xl"
+								/>
+							</div>
+						</div>
+						{shopData.mean_rating > 0 && (
+							<div className="flex items-center gap-1 mt-2">
+								{renderStars(shopData.mean_rating)}
+							</div>
+						)}
+					</div>
 
-							{activeTab === "products" && (
-								<div>
-									<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
-										<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-											Products
-										</h3>
-										<button
-											onClick={() => navigate("/seller/ads")}
-											className="px-3 sm:px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base w-full sm:w-auto"
-										>
-											Manage Products
-										</button>
-									</div>
-									<p className="text-xs sm:text-sm md:text-base text-gray-600">
-										You have {shopData.total_ads || 0} products in your shop.
-										Click "Manage Products" to add, edit, or remove products.
-									</p>
-								</div>
-							)}
+					{/* Wishlist Card */}
+					<div className="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm font-medium text-gray-600">
+									Wishlisted Items
+								</p>
+								<p className="text-2xl font-bold text-gray-900">
+									{shopData.total_wishlisted || 0}
+								</p>
+							</div>
+							<div className="p-3 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faStar}
+									className="text-gray-600 text-xl"
+								/>
+							</div>
+						</div>
+					</div>
+				</div>
 
-							{activeTab === "reviews" && (
-								<div>
-									<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
-										<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-											Customer Reviews
-										</h3>
-										<button
-											onClick={() => navigate("/seller/analytics")}
-											className="px-3 sm:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base w-full sm:w-auto"
-										>
-											View Analytics
-										</button>
-									</div>
-									<div className="py-3 sm:py-4 md:py-6 lg:py-8">
-										<div className="text-center mb-3 sm:mb-4">
-											<FontAwesomeIcon
-												icon={faStar}
-												className="text-gray-400 text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-2 sm:mb-3 md:mb-4"
-											/>
-											<h4 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 mb-2">
-												{shopData.total_reviews > 0
-													? `${shopData.total_reviews} Reviews`
-													: "No Reviews Yet"}
-											</h4>
-											{shopData.mean_rating > 0 && (
-												<div className="flex items-center justify-center gap-1 mb-2">
-													{renderStars(shopData.mean_rating)}
-													<span className="ml-2 text-xs sm:text-sm md:text-base text-gray-600">
-														({shopData.mean_rating.toFixed(1)})
-													</span>
-												</div>
-											)}
-										</div>
-										<p className="text-xs sm:text-sm md:text-base text-gray-600 px-2 sm:px-4 text-left sm:text-center max-w-2xl mx-auto">
-											{shopData.total_reviews > 0
-												? "Your customers appreciate your products!"
-												: "Encourage customers to leave reviews after their purchases."}
-										</p>
-									</div>
-								</div>
-							)}
+				{/* Quick Actions */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+					<h3 className="text-lg font-semibold text-gray-900 mb-4">
+						Quick Actions
+					</h3>
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+						<button
+							onClick={handleViewShop}
+							className="flex items-center gap-3 p-0 sm:p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors group"
+						>
+							<div className="p-2 sm:w-8 sm:h-8 bg-gray-600 rounded-lg group-hover:bg-gray-700 transition-colors flex items-center justify-center">
+								<FontAwesomeIcon
+									icon={faExternalLinkAlt}
+									className="text-white text-sm"
+								/>
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">View Shop</p>
+								<p className="text-sm text-gray-600">
+									Preview your public shop
+								</p>
+							</div>
+						</button>
 
-							{activeTab === "analytics" && (
-								<div>
-									<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
-										<h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
-											Shop Analytics
-										</h3>
-										<button
-											onClick={() => navigate("/seller/analytics")}
-											className="px-3 sm:px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-xs sm:text-sm md:text-base w-full sm:w-auto"
-										>
-											View Detailed Analytics
-										</button>
-									</div>
-									<p className="text-xs sm:text-sm md:text-base text-gray-600 text-left sm:text-center max-w-2xl mx-auto">
-										Get detailed insights into your shop performance, customer
-										behavior, and sales trends.
-									</p>
-								</div>
-							)}
+						<button
+							onClick={handleShareShop}
+							disabled={isSharing}
+							className={`flex items-center gap-3 p-0 sm:p-4 rounded-lg border transition-colors group ${
+								isSharing
+									? "bg-gray-50 border-gray-200 cursor-not-allowed"
+									: "bg-gray-50 hover:bg-gray-100 border-gray-200"
+							}`}
+						>
+							<div
+								className={`p-2 sm:w-8 sm:h-8 rounded-lg transition-colors flex items-center justify-center ${
+									isSharing
+										? "bg-gray-400"
+										: "bg-gray-500 group-hover:bg-gray-600"
+								}`}
+							>
+								<FontAwesomeIcon
+									icon={isSharing ? faSpinner : faShare}
+									className={`text-white text-sm ${
+										isSharing ? "animate-spin" : ""
+									}`}
+								/>
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">
+									{isSharing ? "Sharing..." : "Share Shop"}
+								</p>
+								<p className="text-sm text-gray-600">Share your shop link</p>
+							</div>
+						</button>
+
+						<button
+							onClick={handleEditProfile}
+							className="flex items-center gap-3 p-0 sm:p-4 bg-yellow-50 hover:bg-yellow-100 rounded-lg border border-yellow-200 transition-colors group"
+						>
+							<div className="p-2 sm:w-8 sm:h-8 bg-yellow-500 rounded-lg group-hover:bg-yellow-600 transition-colors flex items-center justify-center">
+								<FontAwesomeIcon icon={faEdit} className="text-white text-sm" />
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">Edit Profile</p>
+								<p className="text-sm text-gray-600">Update shop information</p>
+							</div>
+						</button>
+
+						<button
+							onClick={() => navigate("/seller/ads")}
+							className="flex items-center gap-3 p-0 sm:p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors group"
+						>
+							<div className="p-2 sm:w-8 sm:h-8 bg-gray-600 rounded-lg group-hover:bg-gray-700 transition-colors flex items-center justify-center">
+								<FontAwesomeIcon icon={faBox} className="text-white text-sm" />
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">Manage Products</p>
+								<p className="text-sm text-gray-600">
+									Add, edit, or remove products
+								</p>
+							</div>
+						</button>
+
+						<button
+							onClick={() => navigate("/seller/analytics")}
+							className="flex items-center gap-3 p-0 sm:p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors group"
+						>
+							<div className="p-2 sm:w-8 sm:h-8 bg-gray-600 rounded-lg group-hover:bg-gray-700 transition-colors flex items-center justify-center">
+								<FontAwesomeIcon
+									icon={faChartLine}
+									className="text-white text-sm"
+								/>
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">View Analytics</p>
+								<p className="text-sm text-gray-600">
+									Track performance metrics
+								</p>
+							</div>
+						</button>
+
+						<button
+							onClick={() => navigate("/seller/profile")}
+							className="flex items-center gap-3 p-0 sm:p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors group"
+						>
+							<div className="p-2 sm:w-8 sm:h-8 bg-gray-600 rounded-lg group-hover:bg-gray-700 transition-colors flex items-center justify-center">
+								<FontAwesomeIcon
+									icon={faUsers}
+									className="text-white text-sm"
+								/>
+							</div>
+							<div className="text-left">
+								<p className="font-medium text-gray-900">Account Settings</p>
+								<p className="text-sm text-gray-600">
+									Manage account preferences
+								</p>
+							</div>
+						</button>
+					</div>
+				</div>
+
+				{/* Recent Activity */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<h3 className="text-lg font-semibold text-gray-900 mb-4">
+						Recent Activity
+					</h3>
+					<div className="space-y-4">
+						<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+							<div className="p-2 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faBox}
+									className="text-gray-600 text-sm"
+								/>
+							</div>
+							<div className="flex-1">
+								<p className="text-sm font-medium text-gray-900">
+									Product Management
+								</p>
+								<p className="text-xs text-gray-600">
+									You have {shopData.total_ads || 0} products in your shop
+								</p>
+							</div>
+							<button
+								onClick={() => navigate("/seller/ads")}
+								className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-md transition-colors"
+							>
+								Manage
+							</button>
+						</div>
+
+						<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+							<div className="p-2 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faUsers}
+									className="text-gray-600 text-sm"
+								/>
+							</div>
+							<div className="flex-1">
+								<p className="text-sm font-medium text-gray-900">
+									Customer Reviews
+								</p>
+								<p className="text-xs text-gray-600">
+									{shopData.total_reviews > 0
+										? `You have ${shopData.total_reviews} customer reviews`
+										: "No reviews yet - encourage customers to leave feedback"}
+								</p>
+							</div>
+							<button
+								onClick={() => navigate("/seller/analytics")}
+								className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-md transition-colors"
+							>
+								View
+							</button>
+						</div>
+
+						<div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+							<div className="p-2 bg-gray-100 rounded-lg">
+								<FontAwesomeIcon
+									icon={faChartLine}
+									className="text-gray-600 text-sm"
+								/>
+							</div>
+							<div className="flex-1">
+								<p className="text-sm font-medium text-gray-900">
+									Performance Analytics
+								</p>
+								<p className="text-xs text-gray-600">
+									Track your shop's performance and growth
+								</p>
+							</div>
+							<button
+								onClick={() => navigate("/seller/analytics")}
+								className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-md transition-colors"
+							>
+								Analyze
+							</button>
 						</div>
 					</div>
 				</div>

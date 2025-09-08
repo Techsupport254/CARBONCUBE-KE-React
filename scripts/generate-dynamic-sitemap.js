@@ -125,41 +125,208 @@ const staticRoutes = [
 	},
 ];
 
+// Fallback data for development/testing
+function getFallbackCategories() {
+	return [
+		{
+			id: 1,
+			name: "Automotive Parts & Accessories",
+			slug: "automotive-parts-accessories",
+		},
+		{
+			id: 2,
+			name: "Computer, Parts & Accessories",
+			slug: "computer-parts-accessories",
+		},
+		{ id: 3, name: "Filtration", slug: "filtration" },
+		{ id: 4, name: "Hardware Tools", slug: "hardware-tools" },
+		{ id: 6, name: "Equipment Leasing", slug: "equipment-leasing" },
+	];
+}
+
+function getFallbackSubcategories() {
+	return [
+		{ id: 1, name: "Batteries", slug: "batteries", category_id: 1 },
+		{ id: 2, name: "Lubricants", slug: "lubricants", category_id: 1 },
+		{ id: 3, name: "Accessories", slug: "accessories", category_id: 1 },
+		{ id: 4, name: "Spare Parts", slug: "spare-parts", category_id: 1 },
+		{ id: 5, name: "Tyres", slug: "tyres", category_id: 1 },
+		{ id: 6, name: "Others", slug: "others", category_id: 1 },
+		{
+			id: 7,
+			name: "Cooling & Maintenance",
+			slug: "cooling-maintenance",
+			category_id: 2,
+		},
+		{
+			id: 8,
+			name: "Internal Components",
+			slug: "internal-components",
+			category_id: 2,
+		},
+		{
+			id: 9,
+			name: "Networking Equipment",
+			slug: "networking-equipment",
+			category_id: 2,
+		},
+		{ id: 10, name: "Peripherals", slug: "peripherals", category_id: 2 },
+		{ id: 11, name: "Storage", slug: "storage", category_id: 2 },
+		{ id: 12, name: "Accessories", slug: "accessories", category_id: 2 },
+		{ id: 13, name: "Others", slug: "others", category_id: 2 },
+		{ id: 14, name: "Air Filters", slug: "air-filters", category_id: 3 },
+		{ id: 15, name: "Fuel Filters", slug: "fuel-filters", category_id: 3 },
+		{
+			id: 16,
+			name: "Industrial Filters",
+			slug: "industrial-filters",
+			category_id: 3,
+		},
+		{
+			id: 17,
+			name: "Oil & Hydraulic Filters",
+			slug: "oil-hydraulic-filters",
+			category_id: 3,
+		},
+		{ id: 18, name: "Others", slug: "others", category_id: 3 },
+		{ id: 19, name: "Safety Wear", slug: "safety-wear", category_id: 4 },
+		{
+			id: 20,
+			name: "Hand & Power Tools",
+			slug: "hand-power-tools",
+			category_id: 4,
+		},
+		{
+			id: 21,
+			name: "Power & Electrical Equipment",
+			slug: "power-electrical-equipment",
+			category_id: 4,
+		},
+		{
+			id: 22,
+			name: "Plumbing Supplies",
+			slug: "plumbing-supplies",
+			category_id: 4,
+		},
+		{ id: 23, name: "Others", slug: "others", category_id: 4 },
+		{
+			id: 32,
+			name: "Earth Moving Equipment",
+			slug: "earth-moving-equipment",
+			category_id: 6,
+		},
+		{
+			id: 33,
+			name: "Lifting Equipment",
+			slug: "lifting-equipment",
+			category_id: 6,
+		},
+		{
+			id: 34,
+			name: "Concrete Equipment",
+			slug: "concrete-equipment",
+			category_id: 6,
+		},
+		{
+			id: 35,
+			name: "Drilling Equipment",
+			slug: "drilling-equipment",
+			category_id: 6,
+		},
+		{
+			id: 36,
+			name: "Compacting Equipment",
+			slug: "compacting-equipment",
+			category_id: 6,
+		},
+		{ id: 37, name: "Others", slug: "others", category_id: 6 },
+	];
+}
+
+function getFallbackAds() {
+	return [
+		{ id: 1, title: "iPhone 14 Pro Max", slug: "iphone-14-pro-max" },
+		{ id: 2, title: "Samsung Galaxy S23", slug: "samsung-galaxy-s23" },
+		{ id: 3, title: "MacBook Pro M2", slug: "macbook-pro-m2" },
+		{ id: 4, title: "Toyota Camry 2023", slug: "toyota-camry-2023" },
+		{ id: 5, title: "Honda CBR 600RR", slug: "honda-cbr-600rr" },
+		{ id: 6, title: "Sofa Set 3+2", slug: "sofa-set-3-2" },
+		{ id: 7, title: "Power Drill Set", slug: "power-drill-set" },
+		{ id: 8, title: "Nike Air Max", slug: "nike-air-max" },
+		{ id: 9, title: "Adidas Running Shoes", slug: "adidas-running-shoes" },
+		{ id: 10, title: "Treadmill Pro", slug: "treadmill-pro" },
+	];
+}
+
+function getFallbackSellers() {
+	return [
+		{ id: 1, enterprise_name: "TechStore Kenya", slug: "techstore-kenya" },
+		{ id: 2, enterprise_name: "AutoParts Nairobi", slug: "autoparts-nairobi" },
+		{ id: 3, enterprise_name: "Fashion Hub", slug: "fashion-hub" },
+		{ id: 4, enterprise_name: "Home Solutions", slug: "home-solutions" },
+		{ id: 5, enterprise_name: "Sports World", slug: "sports-world" },
+	];
+}
+
 // Fetch categories and subcategories from API
 async function fetchCategoriesAndSubcategories() {
 	try {
 		console.log("📡 Fetching categories and subcategories...");
-		console.log(`📡 Categories API: ${API_BASE_URL}/buyer/categories`);
-		console.log(`📡 Subcategories API: ${API_BASE_URL}/buyer/subcategories`);
+		console.log(`📡 Categories API: ${API_BASE_URL}/api/sitemap/categories`);
+		console.log(
+			`📡 Subcategories API: ${API_BASE_URL}/api/sitemap/subcategories`
+		);
 
-		const [categoriesResponse, subcategoriesResponse] = await Promise.all([
+		// Try dedicated sitemap endpoints first (no pagination limits)
+		// If they fail, fallback to regular API endpoints
+		let categoriesResponse, subcategoriesResponse;
+
+		[categoriesResponse, subcategoriesResponse] = await Promise.all([
 			axios
-				.get(`${API_BASE_URL}/buyer/categories`, {
-					timeout: 10000,
+				.get(`${API_BASE_URL}/api/sitemap/categories`, {
+					timeout: 15000,
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
+						"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+					},
+					validateStatus: function (status) {
+						return status < 500; // Resolve only if the status code is less than 500
 					},
 				})
 				.catch((error) => {
 					console.error(`Categories API Error: ${error.message}`);
 					console.error(`Status: ${error.response?.status}`);
-					console.error(`Data: ${JSON.stringify(error.response?.data)}`);
-					return { data: [] };
+					console.error(
+						`Data: ${JSON.stringify(error.response?.data)?.substring(
+							0,
+							200
+						)}...`
+					);
+					return { data: [], status: error.response?.status };
 				}),
 			axios
-				.get(`${API_BASE_URL}/buyer/subcategories`, {
-					timeout: 10000,
+				.get(`${API_BASE_URL}/api/sitemap/subcategories`, {
+					timeout: 15000,
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
+						"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+					},
+					validateStatus: function (status) {
+						return status < 500; // Resolve only if the status code is less than 500
 					},
 				})
 				.catch((error) => {
 					console.error(`Subcategories API Error: ${error.message}`);
 					console.error(`Status: ${error.response?.status}`);
-					console.error(`Data: ${JSON.stringify(error.response?.data)}`);
-					return { data: [] };
+					console.error(
+						`Data: ${JSON.stringify(error.response?.data)?.substring(
+							0,
+							200
+						)}...`
+					);
+					return { data: [], status: error.response?.status };
 				}),
 		]);
 
@@ -172,8 +339,69 @@ async function fetchCategoriesAndSubcategories() {
 			}`
 		);
 
-		const categoriesRaw = categoriesResponse.data;
-		const subcategoriesRaw = subcategoriesResponse.data;
+		let categoriesRaw = categoriesResponse.data;
+		let subcategoriesRaw = subcategoriesResponse.data;
+
+		// Check if we got HTML responses or 404 errors (endpoints not available yet)
+		const isHtmlResponse = (data) => {
+			return typeof data === "string" && data.includes("<!doctype html>");
+		};
+
+		const is404Error = (data, status) => {
+			return (
+				status === 404 || (typeof data === "object" && data.status === 404)
+			);
+		};
+
+		if (
+			isHtmlResponse(categoriesRaw) ||
+			isHtmlResponse(subcategoriesRaw) ||
+			is404Error(categoriesRaw, categoriesResponse.status) ||
+			is404Error(subcategoriesRaw, subcategoriesResponse.status)
+		) {
+			console.log(
+				"⚠️ Sitemap endpoints not available, falling back to regular API endpoints"
+			);
+
+			[categoriesResponse, subcategoriesResponse] = await Promise.all([
+				axios
+					.get(`${API_BASE_URL}/api/buyer/categories`, {
+						timeout: 15000,
+						headers: {
+							Accept: "application/json",
+							"Content-Type": "application/json",
+							"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+						},
+						validateStatus: function (status) {
+							return status < 500;
+						},
+					})
+					.catch((error) => {
+						console.error(`Fallback Categories API Error: ${error.message}`);
+						return { data: [], status: error.response?.status };
+					}),
+				axios
+					.get(`${API_BASE_URL}/api/buyer/subcategories`, {
+						timeout: 15000,
+						headers: {
+							Accept: "application/json",
+							"Content-Type": "application/json",
+							"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+						},
+						validateStatus: function (status) {
+							return status < 500;
+						},
+					})
+					.catch((error) => {
+						console.error(`Fallback Subcategories API Error: ${error.message}`);
+						return { data: [], status: error.response?.status };
+					}),
+			]);
+
+			// Update data after fallback
+			categoriesRaw = categoriesResponse.data;
+			subcategoriesRaw = subcategoriesResponse.data;
+		}
 
 		console.log(
 			`📡 Categories Raw Data: ${JSON.stringify(categoriesRaw).substring(
@@ -188,16 +416,34 @@ async function fetchCategoriesAndSubcategories() {
 			)}...`
 		);
 
-		const categories = Array.isArray(categoriesRaw)
-			? categoriesRaw
-			: Array.isArray(categoriesRaw?.categories)
-			? categoriesRaw.categories
-			: [];
-		const subcategories = Array.isArray(subcategoriesRaw)
-			? subcategoriesRaw
-			: Array.isArray(subcategoriesRaw?.subcategories)
-			? subcategoriesRaw.subcategories
-			: [];
+		let categories = [];
+		let subcategories = [];
+
+		if (isHtmlResponse(categoriesRaw)) {
+			console.log(
+				"⚠️ Categories API returned HTML (likely authentication issue), using fallback data"
+			);
+			categories = getFallbackCategories();
+		} else {
+			categories = Array.isArray(categoriesRaw)
+				? categoriesRaw
+				: Array.isArray(categoriesRaw?.categories)
+				? categoriesRaw.categories
+				: [];
+		}
+
+		if (isHtmlResponse(subcategoriesRaw)) {
+			console.log(
+				"⚠️ Subcategories API returned HTML (likely authentication issue), using fallback data"
+			);
+			subcategories = getFallbackSubcategories();
+		} else {
+			subcategories = Array.isArray(subcategoriesRaw)
+				? subcategoriesRaw
+				: Array.isArray(subcategoriesRaw?.subcategories)
+				? subcategoriesRaw.subcategories
+				: [];
+		}
 
 		console.log(
 			`Found ${categories.length} categories and ${subcategories.length} subcategories`
@@ -209,26 +455,42 @@ async function fetchCategoriesAndSubcategories() {
 				"⚠️ No categories found from API, using fallback sample data..."
 			);
 			const fallbackCategories = [
-				{ id: 1, name: "Electronics" },
-				{ id: 2, name: "Fashion" },
-				{ id: 3, name: "Home & Garden" },
-				{ id: 4, name: "Automotive" },
-				{ id: 5, name: "Sports & Outdoors" },
-				{ id: 6, name: "Books & Media" },
-				{ id: 7, name: "Health & Beauty" },
-				{ id: 8, name: "Toys & Games" },
+				{ id: 1, name: "Automotive Parts & Accessories" },
+				{ id: 2, name: "Computer, Parts & Accessories" },
+				{ id: 3, name: "Filtration" },
+				{ id: 4, name: "Hardware Tools" },
+				{ id: 6, name: "Equipment Leasing" },
 			];
 			const fallbackSubcategories = [
-				{ id: 1, category_id: 1, name: "Smartphones" },
-				{ id: 2, category_id: 1, name: "Laptops" },
-				{ id: 3, category_id: 2, name: "Men's Clothing" },
-				{ id: 4, category_id: 2, name: "Women's Clothing" },
-				{ id: 5, category_id: 3, name: "Furniture" },
-				{ id: 6, category_id: 3, name: "Kitchen Appliances" },
-				{ id: 7, category_id: 4, name: "Cars" },
-				{ id: 8, category_id: 4, name: "Motorcycles" },
-				{ id: 9, category_id: 5, name: "Fitness Equipment" },
-				{ id: 10, category_id: 5, name: "Outdoor Gear" },
+				{ id: 1, category_id: 1, name: "Batteries" },
+				{ id: 2, category_id: 1, name: "Lubricants" },
+				{ id: 3, category_id: 1, name: "Accessories" },
+				{ id: 4, category_id: 1, name: "Spare Parts" },
+				{ id: 5, category_id: 1, name: "Tyres" },
+				{ id: 6, category_id: 1, name: "Others" },
+				{ id: 7, category_id: 2, name: "Cooling & Maintenance" },
+				{ id: 8, category_id: 2, name: "Internal Components" },
+				{ id: 9, category_id: 2, name: "Networking Equipment" },
+				{ id: 10, category_id: 2, name: "Peripherals" },
+				{ id: 11, category_id: 2, name: "Storage" },
+				{ id: 12, category_id: 2, name: "Accessories" },
+				{ id: 13, category_id: 2, name: "Others" },
+				{ id: 14, category_id: 3, name: "Air Filters" },
+				{ id: 15, category_id: 3, name: "Fuel Filters" },
+				{ id: 16, category_id: 3, name: "Industrial Filters" },
+				{ id: 17, category_id: 3, name: "Oil & Hydraulic Filters" },
+				{ id: 18, category_id: 3, name: "Others" },
+				{ id: 19, category_id: 4, name: "Safety Wear" },
+				{ id: 20, category_id: 4, name: "Hand & Power Tools" },
+				{ id: 21, category_id: 4, name: "Power & Electrical Equipment" },
+				{ id: 22, category_id: 4, name: "Plumbing Supplies" },
+				{ id: 23, category_id: 4, name: "Others" },
+				{ id: 32, category_id: 6, name: "Earth Moving Equipment" },
+				{ id: 33, category_id: 6, name: "Lifting Equipment" },
+				{ id: 34, category_id: 6, name: "Concrete Equipment" },
+				{ id: 35, category_id: 6, name: "Drilling Equipment" },
+				{ id: 36, category_id: 6, name: "Compacting Equipment" },
+				{ id: 37, category_id: 6, name: "Others" },
 			];
 			return {
 				categories: fallbackCategories,
@@ -285,40 +547,59 @@ function generateSubcategoryUrls(subcategories, categories) {
 	return subcategoryUrls;
 }
 
-// Fetch individual ads for sitemap
+// Fetch individual ads for sitemap - dedicated endpoint returns all ads
 async function fetchAds() {
 	try {
 		console.log("📡 Fetching individual ads...");
-		console.log(`📡 Ads API: ${API_BASE_URL}/buyer/ads`);
+		console.log(`📡 Ads API: ${API_BASE_URL}/api/sitemap/ads`);
 
 		const adsResponse = await axios
-			.get(`${API_BASE_URL}/buyer/ads`, {
-				timeout: 15000,
+			.get(`${API_BASE_URL}/api/sitemap/ads`, {
+				timeout: 30000, // Longer timeout for large dataset
 				headers: {
 					Accept: "application/json",
 					"Content-Type": "application/json",
+					"User-Agent": "CarbonCube-SitemapGenerator/1.0",
 				},
-				params: {
-					per_page: 1000, // Get more ads for better SEO coverage
-					page: 1,
+				validateStatus: function (status) {
+					return status < 500; // Resolve only if the status code is less than 500
 				},
 			})
 			.catch((error) => {
 				console.error(`Ads API Error: ${error.message}`);
 				console.error(`Status: ${error.response?.status}`);
-				return { data: { ads: [] } };
+				console.error(
+					`Data: ${JSON.stringify(error.response?.data)?.substring(0, 200)}...`
+				);
+				return { data: [], status: error.response?.status };
 			});
 
 		console.log(`📡 Ads Response Status: ${adsResponse.status || "N/A"}`);
 
 		const adsData = adsResponse.data;
-		const ads = Array.isArray(adsData)
-			? adsData
-			: Array.isArray(adsData?.ads)
-			? adsData.ads
-			: [];
 
-		console.log(`Found ${ads.length} individual ads`);
+		// Check if response is HTML (indicates authentication issue) or 404 (endpoint not available)
+		const isHtmlResponse = (data) => {
+			return typeof data === "string" && data.includes("<!doctype html>");
+		};
+
+		const is404Error = (data, status) => {
+			return (
+				status === 404 || (typeof data === "object" && data.status === 404)
+			);
+		};
+
+		let ads = [];
+		if (isHtmlResponse(adsData) || is404Error(adsData, adsResponse.status)) {
+			console.log(
+				"⚠️ Ads API returned HTML or 404 (likely authentication issue or endpoint not available), using fallback data"
+			);
+			ads = getFallbackAds();
+		} else {
+			ads = Array.isArray(adsData) ? adsData : [];
+		}
+
+		console.log(`Found ${ads.length} total individual ads`);
 		return ads;
 	} catch (error) {
 		console.error("Error fetching ads:", error.message);
@@ -349,29 +630,62 @@ function generateAdUrls(ads) {
 async function fetchSellers() {
 	try {
 		console.log("📡 Fetching sellers for shop pages...");
-		console.log(`📡 Sellers API: ${API_BASE_URL}/sellers`);
+		console.log(`📡 Sellers API: ${API_BASE_URL}/api/sitemap/sellers`);
 
 		const sellersResponse = await axios
-			.get(`${API_BASE_URL}/sellers`, {
+			.get(`${API_BASE_URL}/api/sitemap/sellers`, {
 				timeout: 15000,
 				headers: {
 					Accept: "application/json",
 					"Content-Type": "application/json",
+					"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+				},
+				validateStatus: function (status) {
+					return status < 500; // Resolve only if the status code is less than 500
 				},
 			})
 			.catch((error) => {
 				console.error(`Sellers API Error: ${error.message}`);
 				console.error(`Status: ${error.response?.status}`);
-				return { data: [] };
+				console.error(
+					`Data: ${JSON.stringify(error.response?.data)?.substring(0, 200)}...`
+				);
+				return { data: [], status: error.response?.status };
 			});
 
 		console.log(
 			`📡 Sellers Response Status: ${sellersResponse.status || "N/A"}`
 		);
 
-		const sellers = Array.isArray(sellersResponse.data)
-			? sellersResponse.data
-			: [];
+		const sellersData = sellersResponse.data;
+
+		// Check if response is HTML (indicates authentication issue) or 404 (endpoint not available)
+		const isHtmlResponse = (data) => {
+			return typeof data === "string" && data.includes("<!doctype html>");
+		};
+
+		const is404Error = (data, status) => {
+			return (
+				status === 404 || (typeof data === "object" && data.status === 404)
+			);
+		};
+
+		let sellers = [];
+		if (
+			isHtmlResponse(sellersData) ||
+			is404Error(sellersData, sellersResponse.status)
+		) {
+			console.log(
+				"⚠️ Sellers API returned HTML or 404 (likely authentication issue or endpoint not available), using fallback data"
+			);
+			sellers = getFallbackSellers();
+		} else {
+			sellers = Array.isArray(sellersData)
+				? sellersData
+				: Array.isArray(sellersData?.sellers)
+				? sellersData.sellers
+				: [];
+		}
 
 		console.log(`Found ${sellers.length} sellers`);
 		return sellers;
@@ -386,15 +700,18 @@ function generateSellerShopUrls(sellers) {
 	const shopUrls = [];
 
 	(Array.isArray(sellers) ? sellers : []).forEach((seller) => {
-		if (seller.id && seller.slug) {
+		if (seller.id && (seller.slug || seller.enterprise_name)) {
+			const slug =
+				seller.slug ||
+				seller.enterprise_name?.toLowerCase().replace(/\s+/g, "-");
+			const name = seller.enterprise_name || seller.name || slug;
+
 			shopUrls.push({
-				path: `/shop/${seller.slug}`,
+				path: `/shop/${slug}`,
 				lastmod: CURRENT_DATE,
 				changefreq: "weekly",
 				priority: "0.7",
-				keywords: `${seller.name || seller.slug}, ${
-					seller.name || seller.slug
-				} Kenya, Carbon Cube Kenya seller, online shop Kenya, verified seller, marketplace shop`,
+				keywords: `${name}, ${name} Kenya, Carbon Cube Kenya seller, online shop Kenya, verified seller, marketplace shop`,
 			});
 		}
 	});

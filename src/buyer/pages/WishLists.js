@@ -169,7 +169,7 @@ const WishList = () => {
 									{wish_lists.map((wish_list) => (
 										<div
 											key={wish_list.ad.id}
-											className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+											className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-md transition-shadow duration-200"
 										>
 											<div
 												className="relative cursor-pointer"

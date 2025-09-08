@@ -5,7 +5,6 @@ import {
 	getTierName,
 	getTierId,
 } from "../utils/sellerTierUtils";
-import { getAdImageUrl, getFallbackImage } from "../../utils/imageUtils";
 
 // Helper function to get tier priority (higher number = higher priority)
 const getTierPriority = (ad) => {
@@ -105,22 +104,80 @@ const SubcategorySection = ({
 										</div>
 										<div className="flex flex-col h-full">
 											{/* Ad image */}
-											<Card.Img
-												variant="top"
-												loading="lazy"
-												src={getAdImageUrl(ad)}
-												alt={ad.title || "Product Image"}
-												className="object-contain w-full h-auto aspect-square rounded-lg cursor-pointer transition-opacity duration-300 ease-in-out"
-												onClick={() => onAdClick(ad.id)}
-												onLoad={(e) => {
-													e.target.style.opacity = "1";
-												}}
-												onError={(e) => {
-													// Use a data URI as fallback to prevent infinite loops
-													e.target.src = getFallbackImage();
-													e.target.style.opacity = "1";
-												}}
-											/>
+											<div className="relative h-auto aspect-square overflow-hidden flex-shrink-0">
+												{ad.first_media_url ||
+												(ad.media_urls &&
+													Array.isArray(ad.media_urls) &&
+													ad.media_urls.length > 0) ||
+												(ad.media &&
+													Array.isArray(ad.media) &&
+													ad.media.length > 0) ? (
+													<img
+														src={
+															ad.first_media_url
+																? ad.first_media_url.replace(/\n/g, "").trim()
+																: ad.media_urls &&
+																  Array.isArray(ad.media_urls) &&
+																  ad.media_urls.length > 0
+																? ad.media_urls[0].replace(/\n/g, "").trim()
+																: ad.media[0].replace(/\n/g, "").trim()
+														}
+														alt={ad.title || "Product Image"}
+														className="w-full h-full object-contain rounded-lg cursor-pointer transition-opacity duration-300 ease-in-out"
+														loading="lazy"
+														onClick={() => onAdClick(ad.id)}
+														onLoad={(e) => {
+															e.target.style.opacity = "1";
+														}}
+														onError={(e) => {
+															e.target.style.display = "none";
+															e.target.nextElementSibling.style.display =
+																"flex";
+														}}
+													/>
+												) : null}
+												<div
+													className={`w-full h-full ${
+														ad.first_media_url ||
+														(ad.media_urls &&
+															Array.isArray(ad.media_urls) &&
+															ad.media_urls.length > 0) ||
+														(ad.media &&
+															Array.isArray(ad.media) &&
+															ad.media.length > 0)
+															? "hidden"
+															: "flex"
+													} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center rounded-lg`}
+												>
+													<div className="text-gray-400">
+														<svg
+															width="32"
+															height="32"
+															viewBox="0 0 24 24"
+															fill="none"
+															stroke="currentColor"
+															strokeWidth="1.5"
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															className="mb-1"
+														>
+															<rect
+																x="3"
+																y="3"
+																width="18"
+																height="18"
+																rx="2"
+																ry="2"
+															/>
+															<circle cx="8.5" cy="8.5" r="1.5" />
+															<polyline points="21,15 16,10 5,21" />
+														</svg>
+													</div>
+													<div className="text-[8px] text-gray-500 font-medium text-center px-1">
+														No Image
+													</div>
+												</div>
+											</div>
 
 											{/* Ad title and price - now inside the card */}
 											<div className="px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white flex flex-col justify-between flex-grow">

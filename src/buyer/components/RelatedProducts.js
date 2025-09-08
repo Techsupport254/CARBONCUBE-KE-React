@@ -116,7 +116,7 @@ const RelatedProducts = ({
 						<div
 							key={relatedAd.id}
 							onClick={() => navigate(`/ad/${relatedAd.id}`)}
-							className="group cursor-pointer bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-yellow-300 hover:shadow-lg transition-all duration-300 overflow-hidden"
+							className="group cursor-pointer bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-yellow-300 hover:shadow-md transition-all duration-300 overflow-hidden"
 						>
 							<div className="relative">
 								{/* Tier badge - smaller tag-like design */}
@@ -133,15 +133,54 @@ const RelatedProducts = ({
 								)}
 
 								{/* Ad image */}
-								<div className="relative w-full h-32 sm:h-40 md:h-48 overflow-hidden">
-									<img
-										src={getValidImageUrl(relatedAd.images?.[0])}
-										alt={relatedAd.title}
-										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-										onError={(e) => {
-											e.target.src = getFallbackImage();
-										}}
-									/>
+								<div className="relative w-full h-32 sm:h-40 md:h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+									{relatedAd.images && relatedAd.images.length > 0 ? (
+										<img
+											src={getValidImageUrl(relatedAd.images[0])}
+											alt={relatedAd.title}
+											className="w-full h-full object-cover transition-transform duration-300"
+											onError={(e) => {
+												e.target.style.display = "none";
+												e.target.nextSibling.style.display = "flex";
+											}}
+										/>
+									) : null}
+									{/* Fallback for no image */}
+									<div
+										className={`w-full h-full flex flex-col items-center justify-center ${
+											relatedAd.images && relatedAd.images.length > 0
+												? "hidden"
+												: "flex"
+										}`}
+									>
+										<div className="text-gray-400">
+											<svg
+												width="32"
+												height="32"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.5"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												className="mb-1"
+											>
+												<rect
+													x="3"
+													y="3"
+													width="18"
+													height="18"
+													rx="2"
+													ry="2"
+												/>
+												<circle cx="8.5" cy="8.5" r="1.5" />
+												<polyline points="21,15 16,10 5,21" />
+											</svg>
+										</div>
+										<div className="text-xs text-gray-500 font-medium text-center px-2">
+											No Image
+										</div>
+									</div>
 								</div>
 
 								{/* Ad title - now inside the card */}

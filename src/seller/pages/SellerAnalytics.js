@@ -24,11 +24,60 @@ import {
 	faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import "../css/SellerAnalytics.css";
+import useSEO from "../../hooks/useSEO";
 
 const SellerAnalytics = () => {
 	const [analyticsData, setAnalyticsData] = useState(null);
 	const [tierId, setTierId] = useState(null);
 	const [loading, setLoading] = useState(true);
+
+	// SEO Implementation - Private seller analytics, should not be indexed
+	useSEO({
+		title: "Analytics Dashboard - Seller Tools | Carbon Cube Kenya",
+		description:
+			"Track your sales performance, customer insights, and business analytics on Carbon Cube Kenya. Monitor clicks, views, and buyer demographics to optimize your listings.",
+		keywords:
+			"seller analytics, sales dashboard, performance metrics, Carbon Cube Kenya, seller insights, business analytics",
+		url: `${window.location.origin}/seller/analytics`,
+		robots: "noindex, nofollow, noarchive, nosnippet",
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+			{ name: "seller:dashboard_type", content: "analytics" },
+			{ name: "seller:page_function", content: "performance_tracking" },
+			{ name: "seller:privacy_level", content: "private" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "Seller Analytics Dashboard - Carbon Cube Kenya",
+			description:
+				"Private analytics dashboard for tracking seller performance and business metrics",
+			url: `${window.location.origin}/seller/analytics`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+			audience: {
+				"@type": "Audience",
+				audienceType: "Sellers",
+			},
+			accessMode: "private",
+			accessModeSufficient: "seller_authentication",
+		},
+		section: "Seller Dashboard",
+		tags: ["Analytics", "Performance Tracking", "Dashboard", "Private"],
+		conversationalKeywords: [
+			"how to track sales performance Carbon Cube Kenya",
+			"seller analytics dashboard Kenya",
+			"business metrics Carbon Cube",
+			"seller performance tracking",
+			"analytics tools for sellers",
+		],
+	});
 	const [error, setError] = useState(null);
 	const [showReviewsModal, setShowReviewsModal] = useState(false);
 	const [reviews, setReviews] = useState([]);

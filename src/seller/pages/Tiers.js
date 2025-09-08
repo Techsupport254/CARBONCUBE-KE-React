@@ -6,6 +6,7 @@ import FeatureComparisonTable from "../components/FeatureComparisonTable";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { jwtDecode } from "jwt-decode";
+import useSEO from "../../hooks/useSEO";
 
 const TierPage = () => {
 	const [tiers, setTiers] = useState([]);
@@ -23,6 +24,42 @@ const TierPage = () => {
 	const [openFAQ, setOpenFAQ] = useState(null);
 	const navigate = useNavigate();
 	const [isSellerLoggedIn, setIsSellerLoggedIn] = useState(false);
+
+	// SEO Implementation - Seller tier information page
+	useSEO({
+		title: "Seller Tiers & Pricing - Upgrade Your Business | Carbon Cube Kenya",
+		description:
+			"Choose the perfect seller tier for your business on Carbon Cube Kenya. Compare features, pricing, and benefits of Free, Silver, Gold, and Platinum tiers to maximize your sales potential.",
+		keywords:
+			"seller tiers, pricing plans, Carbon Cube Kenya, seller upgrade, business growth, marketplace features, seller benefits",
+		url: `${window.location.origin}/seller/tiers`,
+		type: "website",
+		section: "Seller Information",
+		tags: ["Seller Tiers", "Pricing", "Business Growth", "Features"],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "Seller Tiers & Pricing - Carbon Cube Kenya",
+			description: "Information about seller tier options and pricing plans",
+			url: `${window.location.origin}/seller/tiers`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+			audience: {
+				"@type": "Audience",
+				audienceType: "Sellers",
+			},
+		},
+		conversationalKeywords: [
+			"how to upgrade seller tier Carbon Cube Kenya",
+			"seller pricing plans Kenya",
+			"best seller tier Carbon Cube",
+			"seller benefits comparison",
+			"marketplace tier features",
+		],
+	});
 
 	const fetchCurrentSellerTier = useCallback(async () => {
 		const token = sessionStorage.getItem("token");
@@ -363,7 +400,6 @@ const TierPage = () => {
 	const [verificationData, setVerificationData] = useState(null);
 
 	const pollPaymentStatus = async (paymentId) => {
-
 		const pollInterval = setInterval(async () => {
 			try {
 				const response = await axios.get(

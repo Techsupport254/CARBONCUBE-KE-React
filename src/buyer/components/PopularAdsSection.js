@@ -1,6 +1,7 @@
 import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { getAdImageUrl } from "../../utils/imageUtils";
-import ResponsiveImage from "../../components/ResponsiveImage";
 
 // Helper function to get tier priority (higher number = higher priority)
 const getTierPriority = (ad) => {
@@ -36,14 +37,37 @@ const PopularAdsSection = ({
 	errorMessage,
 	onRetry,
 }) => {
-	// Sort ads by quantity (descending) and get the first 8
-	const sortedAds = Array.isArray(ads)
-		? sortAdsByTier(ads) // First sort by tier priority
+	// Handle best sellers data format from backend
+	const processedAds = Array.isArray(ads)
+		? ads.map((ad) => ({
+				id: ad.ad_id,
+				title: ad.title,
+				media: ad.media,
+				price: ad.price,
+				quantity: ad.quantity,
+				created_at: ad.created_at,
+				seller_tier: ad.seller_tier_id,
+				comprehensive_score: ad.comprehensive_score,
+				metrics: ad.metrics,
+				// Add other fields that might be needed
+				seller_name: ad.seller_name,
+				category_name: ad.category_name,
+				subcategory_name: ad.subcategory_name,
+		  }))
 		: [];
+
+	// Sort ads by comprehensive score (already sorted by backend, but ensure order)
+	const sortedAds = processedAds.sort(
+		(a, b) => (b.comprehensive_score || 0) - (a.comprehensive_score || 0)
+	);
+
 	const popularProducts = sortedAds.slice(0, 8).map((ad, index) => ({
 		id: ad.id,
 		name: ad.title || `Product ${index + 1}`,
 		image: getAdImageUrl(ad),
+		price: ad.price,
+		comprehensive_score: ad.comprehensive_score,
+		metrics: ad.metrics,
 	}));
 
 	// Loading skeletons (fixed layout)
@@ -182,27 +206,100 @@ const PopularAdsSection = ({
 			</div>
 			{/* Body */}
 			<div className="p-3 sm:p-4">
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-					{popularProducts.map((product) => (
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+					{popularProducts.map((product, index) => (
 						<div
-							key={product.id}
-							className="flex flex-col items-center text-center hover:shadow-lg transition-all duration-200 cursor-pointer group"
-							onClick={() => onAdClick && onAdClick(product.id)}
+							key={product.id || index}
+							className="group h-full"
+							onClick={() => onAdClick && onAdClick(product)}
 						>
-							<div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-								<ResponsiveImage
-									src={product.image}
-									alt={product.name}
-									width={200}
-									height={200}
-									className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-									loading="lazy"
-									sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-									quality={75}
-								/>
-							</div>
-							<div className="mt-2 text-xs sm:text-sm line-clamp-2">
-								{product.name}
+							<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 h-full flex flex-col cursor-pointer">
+								{/* Image Section */}
+								<div className="relative h-32 sm:h-36 lg:h-40 overflow-hidden flex-shrink-0">
+									{product.image &&
+									product.image !==
+										"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+" ? (
+										<img
+											src={product.image}
+											alt={product.name}
+											className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+										/>
+									) : (
+										<div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200">
+											<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
+												<svg
+													width="32"
+													height="32"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="1.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													className="mb-1"
+												>
+													<rect
+														x="3"
+														y="3"
+														width="18"
+														height="18"
+														rx="2"
+														ry="2"
+													/>
+													<circle cx="8.5" cy="8.5" r="1.5" />
+													<polyline points="21,15 16,10 5,21" />
+												</svg>
+											</div>
+											<div className="text-xs text-gray-500 font-medium text-center px-2">
+												No Image
+											</div>
+										</div>
+									)}
+
+									{/* Best Seller Badge - Top Left */}
+									<div className="absolute top-1 left-1">
+										<span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+											Best Seller
+										</span>
+									</div>
+
+									{/* Rating Badge - Top Right */}
+									{product.metrics?.avg_rating &&
+										product.metrics.avg_rating > 0 && (
+											<div className="absolute top-1 right-1 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1">
+												<FontAwesomeIcon
+													icon={faStar}
+													className="text-xs text-yellow-400"
+												/>
+												<span className="text-xs text-gray-600 font-medium">
+													{product.metrics.avg_rating.toFixed(1)}
+												</span>
+											</div>
+										)}
+								</div>
+
+								{/* Content Section */}
+								<div className="p-2 sm:p-3 flex flex-col flex-grow">
+									{/* Title */}
+									<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
+										{product.name}
+									</h3>
+
+									{/* Price */}
+									<div className="flex items-center justify-between">
+										<span className="text-sm sm:text-base font-bold text-green-600">
+											Kshs{" "}
+											{product.price
+												? parseFloat(product.price).toLocaleString()
+												: "N/A"}
+										</span>
+										{product.metrics?.total_sold && (
+											<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+												Sold: {product.metrics.total_sold}
+											</span>
+										)}
+									</div>
+								</div>
 							</div>
 						</div>
 					))}

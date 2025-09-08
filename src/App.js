@@ -5,6 +5,7 @@ import {
 	Routes,
 	Navigate,
 } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import Spinner from "react-spinkit";
@@ -207,17 +208,18 @@ function App() {
 	}
 
 	return (
-		<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-			{/* Analytics Tracking Components */}
-			{!excludeTracking && (
-				<Suspense fallback={null}>
-					<MatomoTracker />
-					<GoogleAnalyticsTracker />
-				</Suspense>
-			)}
+		<HelmetProvider>
+			<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+				{/* Analytics Tracking Components */}
+				{!excludeTracking && (
+					<Suspense fallback={null}>
+						<MatomoTracker />
+						<GoogleAnalyticsTracker />
+					</Suspense>
+				)}
 
-			<Suspense fallback={<LoadingSpinner />}>
-				<Routes>
+				<Suspense fallback={<LoadingSpinner />}>
+					<Routes>
 					<Route path="/ads/:adId" element={<AdDetails />} />
 					<Route
 						path="/ad/:adId"
@@ -410,6 +412,7 @@ function App() {
 				</Routes>
 			</Suspense>
 		</Router>
+		</HelmetProvider>
 	);
 }
 
