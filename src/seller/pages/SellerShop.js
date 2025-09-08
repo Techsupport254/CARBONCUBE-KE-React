@@ -15,12 +15,24 @@ import {
 import Sidebar from "../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
+import AlertModal from "../../components/AlertModal";
 
 const SellerShop = () => {
 	const [shopData, setShopData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [activeTab, setActiveTab] = useState("overview");
+
+	const [showAlertModal, setShowAlertModal] = useState(false);
+	const [alertModalMessage, setAlertModalMessage] = useState("");
+	const [alertModalConfig, setAlertModalConfig] = useState({
+		icon: "",
+		title: "",
+		confirmText: "",
+		cancelText: "",
+		showCancel: false,
+		onConfirm: () => {},
+	});
 
 	const navigate = useNavigate();
 
@@ -150,7 +162,16 @@ const SellerShop = () => {
 				});
 			} else {
 				await navigator.clipboard.writeText(shopUrl);
-				alert("Shop URL copied to clipboard!");
+				setAlertModalMessage("Shop URL copied to clipboard!");
+				setAlertModalConfig({
+					icon: "success",
+					title: "URL Copied",
+					confirmText: "OK",
+					cancelText: "",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
 			}
 		} catch (error) {
 			console.error("Error sharing:", error);
@@ -615,6 +636,13 @@ const SellerShop = () => {
 					</div>
 				</div>
 			</div>
+
+			<AlertModal
+				show={showAlertModal}
+				onHide={() => setShowAlertModal(false)}
+				message={alertModalMessage}
+				config={alertModalConfig}
+			/>
 		</div>
 	);
 };

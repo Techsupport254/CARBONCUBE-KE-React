@@ -56,6 +56,7 @@ const AdminProfile = lazy(() => import("./admin/pages/Profile"));
 const SellerSignUpPage = lazy(() => import("./seller/pages/SellerSignUpPage"));
 const SellerAnalytics = lazy(() => import("./seller/pages/SellerAnalytics"));
 const SellerAds = lazy(() => import("./seller/pages/SellerAds"));
+const SellerAdDetails = lazy(() => import("./seller/pages/SellerAdDetails"));
 const SellerShop = lazy(() => import("./seller/pages/SellerShop"));
 const SellerMessages = lazy(() => import("./seller/pages/SellerMessages"));
 const SellerNotifications = lazy(() =>
@@ -63,6 +64,7 @@ const SellerNotifications = lazy(() =>
 );
 const SellerProfile = lazy(() => import("./seller/pages/Profile"));
 const TierPage = lazy(() => import("./seller/pages/Tiers"));
+const AddNewAd = lazy(() => import("./seller/pages/AddNewAd"));
 
 // Buyer Imports - Lazy loaded
 const Home = lazy(() => import("./buyer/pages/Home"));
@@ -332,6 +334,11 @@ function App() {
 							<Route
 								path="ads"
 								element={<SellerAds onLogout={handleLogout} />}
+							/>
+							<Route path="ads/:adId" element={<SellerAdDetails />} />
+							<Route
+								path="add-ad"
+								element={<AddNewAd onLogout={handleLogout} />}
 							/>
 							<Route
 								path="dashboard"

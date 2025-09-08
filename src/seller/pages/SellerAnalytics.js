@@ -10,6 +10,7 @@ import CountDownDisplay from "../components/CountDownDisplay";
 import BuyerDemographics from "../components/BuyerDemographics";
 import Spinner from "react-spinkit";
 import { format, isToday } from "date-fns";
+import AlertModal from "../../components/AlertModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faPencilAlt,
@@ -34,6 +35,17 @@ const SellerAnalytics = () => {
 	const [loadingReviews, setLoadingReviews] = useState(false);
 	const [editingReplyId, setEditingReplyId] = useState(null);
 	const [replyDraft, setReplyDraft] = useState("");
+
+	const [showAlertModal, setShowAlertModal] = useState(false);
+	const [alertModalMessage, setAlertModalMessage] = useState("");
+	const [alertModalConfig, setAlertModalConfig] = useState({
+		icon: "",
+		title: "",
+		confirmText: "",
+		cancelText: "",
+		showCancel: false,
+		onConfirm: () => {},
+	});
 
 	// Helper function to get tier icon and color
 	const getTierInfo = (tierId) => {
@@ -159,7 +171,16 @@ const SellerAnalytics = () => {
 			setReplyDraft("");
 		} catch (err) {
 			console.error(err);
-			alert("Failed to submit reply. Please try again.");
+			setAlertModalMessage("Failed to submit reply. Please try again.");
+			setAlertModalConfig({
+				icon: "error",
+				title: "Reply Failed",
+				confirmText: "OK",
+				cancelText: "",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
 		}
 	};
 
@@ -729,6 +750,13 @@ const SellerAnalytics = () => {
 						</Button>
 					</Modal.Footer>
 				</Modal>
+
+				<AlertModal
+					show={showAlertModal}
+					onHide={() => setShowAlertModal(false)}
+					message={alertModalMessage}
+					config={alertModalConfig}
+				/>
 			</div>
 		</>
 	);

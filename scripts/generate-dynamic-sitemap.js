@@ -290,7 +290,7 @@ async function fetchAds() {
 	try {
 		console.log("📡 Fetching individual ads...");
 		console.log(`📡 Ads API: ${API_BASE_URL}/buyer/ads`);
-		
+
 		const adsResponse = await axios
 			.get(`${API_BASE_URL}/buyer/ads`, {
 				timeout: 15000,
@@ -300,8 +300,8 @@ async function fetchAds() {
 				},
 				params: {
 					per_page: 1000, // Get more ads for better SEO coverage
-					page: 1
-				}
+					page: 1,
+				},
 			})
 			.catch((error) => {
 				console.error(`Ads API Error: ${error.message}`);
@@ -310,12 +310,12 @@ async function fetchAds() {
 			});
 
 		console.log(`📡 Ads Response Status: ${adsResponse.status || "N/A"}`);
-		
+
 		const adsData = adsResponse.data;
-		const ads = Array.isArray(adsData) 
-			? adsData 
-			: Array.isArray(adsData?.ads) 
-			? adsData.ads 
+		const ads = Array.isArray(adsData)
+			? adsData
+			: Array.isArray(adsData?.ads)
+			? adsData.ads
 			: [];
 
 		console.log(`Found ${ads.length} individual ads`);
@@ -350,14 +350,14 @@ async function fetchSellers() {
 	try {
 		console.log("📡 Fetching sellers for shop pages...");
 		console.log(`📡 Sellers API: ${API_BASE_URL}/sellers`);
-		
+
 		const sellersResponse = await axios
 			.get(`${API_BASE_URL}/sellers`, {
 				timeout: 15000,
 				headers: {
 					Accept: "application/json",
 					"Content-Type": "application/json",
-				}
+				},
 			})
 			.catch((error) => {
 				console.error(`Sellers API Error: ${error.message}`);
@@ -365,10 +365,12 @@ async function fetchSellers() {
 				return { data: [] };
 			});
 
-		console.log(`📡 Sellers Response Status: ${sellersResponse.status || "N/A"}`);
-		
-		const sellers = Array.isArray(sellersResponse.data) 
-			? sellersResponse.data 
+		console.log(
+			`📡 Sellers Response Status: ${sellersResponse.status || "N/A"}`
+		);
+
+		const sellers = Array.isArray(sellersResponse.data)
+			? sellersResponse.data
 			: [];
 
 		console.log(`Found ${sellers.length} sellers`);
@@ -390,7 +392,9 @@ function generateSellerShopUrls(sellers) {
 				lastmod: CURRENT_DATE,
 				changefreq: "weekly",
 				priority: "0.7",
-				keywords: `${seller.name || seller.slug}, ${seller.name || seller.slug} Kenya, Carbon Cube Kenya seller, online shop Kenya, verified seller, marketplace shop`,
+				keywords: `${seller.name || seller.slug}, ${
+					seller.name || seller.slug
+				} Kenya, Carbon Cube Kenya seller, online shop Kenya, verified seller, marketplace shop`,
 			});
 		}
 	});
@@ -577,7 +581,13 @@ async function generateDynamicSitemap() {
 		const shopUrls = generateSellerShopUrls(sellers);
 
 		// Combine all URLs
-		const allUrls = [...staticRoutes, ...categoryUrls, ...subcategoryUrls, ...adUrls, ...shopUrls];
+		const allUrls = [
+			...staticRoutes,
+			...categoryUrls,
+			...subcategoryUrls,
+			...adUrls,
+			...shopUrls,
+		];
 
 		console.log(`📊 Generated ${allUrls.length} URLs total:`);
 		console.log(`   - ${staticRoutes.length} static routes`);

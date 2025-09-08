@@ -115,9 +115,19 @@ const SellerAds = () => {
 				}
 
 				const data = await response.json();
+
+				// Sort ads by creation date (newest first)
+				const sortByNewest = (ads) => {
+					return ads.sort((a, b) => {
+						const dateA = new Date(a.created_at || a.createdAt || 0);
+						const dateB = new Date(b.created_at || b.createdAt || 0);
+						return dateB - dateA; // Newest first
+					});
+				};
+
 				setAds({
-					active: data.active_ads || [],
-					deleted: data.deleted_ads || [],
+					active: sortByNewest(data.active_ads || []),
+					deleted: sortByNewest(data.deleted_ads || []),
 				});
 			} catch (error) {
 				console.error("Error fetching ads:", error);
@@ -445,7 +455,7 @@ const SellerAds = () => {
 							const result = response;
 							setAds((prevAds) => ({
 								...prevAds,
-								active: [...prevAds.active, result],
+								active: [result, ...prevAds.active], // Add new ad at the beginning (newest first)
 							}));
 
 							resolve(result);
@@ -851,16 +861,96 @@ const SellerAds = () => {
 			<div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
 				{/* Image Section */}
 				<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
-					<img
-						src={
-							ad.media && ad.media.length > 0
-								? ad.media[0]
-								: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBMMTUwIDEwMEwxMDAgMTUwSDUwTDc1IDEwMEw1MCA1MEgxMDBaIiBmaWxsPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTgwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2Nzc0OEIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4="
-						}
-						alt={ad.title}
-						className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-200"
-						onClick={() => handleViewDetailsClick(ad)}
-					/>
+					{ad.media && ad.media.length > 0 ? (
+						<img
+							src={ad.media[0]}
+							alt={ad.title}
+							className="w-full h-full object-contain cursor-pointer group-hover:scale-105 transition-transform duration-200"
+							onClick={() => handleViewDetailsClick(ad)}
+						/>
+					) : (
+						<div
+							className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center cursor-pointer group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200"
+							onClick={() => handleViewDetailsClick(ad)}
+						>
+							<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
+								<svg
+									width="48"
+									height="48"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									className="mb-2"
+								>
+									<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+									<circle cx="8.5" cy="8.5" r="1.5" />
+									<polyline points="21,15 16,10 5,21" />
+								</svg>
+							</div>
+							<div className="text-xs text-gray-500 font-medium text-center px-2">
+								No Image
+							</div>
+						</div>
+					)}
+
+					{/* Condition Badge - Top Left */}
+					{ad.condition && (
+						<div className="absolute top-2 left-2">
+							<span
+								className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+									ad.condition === "brand_new"
+										? "bg-green-100 text-green-800"
+										: ad.condition === "second_hand"
+										? "bg-red-100 text-red-800"
+										: ad.condition === "refurbished"
+										? "bg-blue-100 text-blue-800"
+										: "bg-gray-100 text-gray-800"
+								}`}
+							>
+								{ad.condition === "brand_new"
+									? "Brand New"
+									: ad.condition === "second_hand"
+									? "Second Hand"
+									: ad.condition === "refurbished"
+									? "Refurbished"
+									: ad.condition}
+							</span>
+						</div>
+					)}
+
+					{/* Rating Badge - Top Right */}
+					{ad.average_rating && (
+						<div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1">
+							<div className="flex">
+								{[1, 2, 3, 4, 5].map((star) => (
+									<FontAwesomeIcon
+										key={star}
+										icon={
+											star <= Math.floor(ad.average_rating)
+												? faStar
+												: star === Math.ceil(ad.average_rating) &&
+												  ad.average_rating % 1 !== 0
+												? faStarHalfAlt
+												: faStarEmpty
+										}
+										className={`text-xs ${
+											star <= Math.floor(ad.average_rating) ||
+											(star === Math.ceil(ad.average_rating) &&
+												ad.average_rating % 1 !== 0)
+												? "text-yellow-400"
+												: "text-gray-300"
+										}`}
+									/>
+								))}
+							</div>
+							<span className="text-xs text-gray-600 font-medium">
+								{ad.average_rating.toFixed(1)}
+							</span>
+						</div>
+					)}
 
 					{/* Deleted Overlay */}
 					{ads.deleted.some((p) => p.id === ad.id) && (
@@ -873,7 +963,10 @@ const SellerAds = () => {
 					)}
 
 					{/* Action Buttons Overlay */}
-					<div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+					<div
+						className="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+						style={{ zIndex: 10 }}
+					>
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
@@ -921,7 +1014,10 @@ const SellerAds = () => {
 
 					{/* Media Count Badge */}
 					{ad.media && ad.media.length > 1 && (
-						<div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+						<div
+							className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full"
+							style={{ zIndex: 10 }}
+						>
 							{ad.media.length} photos
 						</div>
 					)}
@@ -946,49 +1042,11 @@ const SellerAds = () => {
 						)}
 					</div>
 
-					{/* Brand and Condition */}
-					<div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-						{ad.brand && (
-							<span className="truncate flex-1 mr-2">
-								<FontAwesomeIcon icon={faBox} className="mr-1" />
-								{ad.brand}
-							</span>
-						)}
-						{ad.condition && (
-							<span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full whitespace-nowrap">
-								{ad.condition}
-							</span>
-						)}
-					</div>
-
-					{/* Rating */}
-					{ad.average_rating && (
-						<div className="flex items-center gap-1 mb-1">
-							<div className="flex">
-								{[1, 2, 3, 4, 5].map((star) => (
-									<FontAwesomeIcon
-										key={star}
-										icon={
-											star <= Math.floor(ad.average_rating)
-												? faStar
-												: star === Math.ceil(ad.average_rating) &&
-												  ad.average_rating % 1 !== 0
-												? faStarHalfAlt
-												: faStarEmpty
-										}
-										className={`text-xs ${
-											star <= Math.floor(ad.average_rating) ||
-											(star === Math.ceil(ad.average_rating) &&
-												ad.average_rating % 1 !== 0)
-												? "text-yellow-400"
-												: "text-gray-300"
-										}`}
-									/>
-								))}
-							</div>
-							<span className="text-xs text-gray-500">
-								({ad.average_rating.toFixed(1)})
-							</span>
+					{/* Brand */}
+					{ad.brand && (
+						<div className="flex items-center text-xs text-gray-500 mb-1">
+							<FontAwesomeIcon icon={faBox} className="mr-1" />
+							<span className="truncate">{ad.brand}</span>
 						</div>
 					)}
 
@@ -1250,7 +1308,39 @@ const SellerAds = () => {
 										))
 									) : (
 										<Carousel.Item>
-											<p className="text-center">No images available</p>
+											<div
+												className="d-flex flex-column align-items-center justify-content-center bg-gradient-to-br from-gray-100 to-gray-200"
+												style={{ height: "300px" }}
+											>
+												<svg
+													width="64"
+													height="64"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="1.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													className="text-gray-400 mb-3"
+												>
+													<rect
+														x="3"
+														y="3"
+														width="18"
+														height="18"
+														rx="2"
+														ry="2"
+													/>
+													<circle cx="8.5" cy="8.5" r="1.5" />
+													<polyline points="21,15 16,10 5,21" />
+												</svg>
+												<p className="text-gray-500 mb-0 font-medium">
+													No images available
+												</p>
+												<small className="text-gray-400">
+													Add images to showcase your product
+												</small>
+											</div>
 										</Carousel.Item>
 									)}
 								</Carousel>
@@ -1646,7 +1736,32 @@ const SellerAds = () => {
 									</Button>
 								</>
 							) : (
-								<p>No images available</p>
+								<div
+									className="d-flex flex-column align-items-center justify-content-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg"
+									style={{ height: "300px" }}
+								>
+									<svg
+										width="64"
+										height="64"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										className="text-gray-400 mb-3"
+									>
+										<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+										<circle cx="8.5" cy="8.5" r="1.5" />
+										<polyline points="21,15 16,10 5,21" />
+									</svg>
+									<p className="text-gray-500 mb-0 font-medium">
+										No images available
+									</p>
+									<small className="text-gray-400">
+										Upload images below to add them
+									</small>
+								</div>
 							)}
 						</Form.Group>
 
