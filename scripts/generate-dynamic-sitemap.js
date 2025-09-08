@@ -701,7 +701,11 @@ function generateSellerShopUrls(sellers) {
 		if (seller.id && (seller.slug || seller.enterprise_name)) {
 			const slug =
 				seller.slug ||
-				seller.enterprise_name?.toLowerCase().replace(/\s+/g, "-");
+				seller.enterprise_name
+					?.toLowerCase()
+					.replace(/\s+/g, "-")
+					.replace(/[&<>"'`]/g, "") // Remove XML special characters
+					.replace(/[^\w\-]/g, ""); // Remove any remaining non-word characters except hyphens
 			const name = seller.enterprise_name || seller.name || slug;
 
 			shopUrls.push({
@@ -715,6 +719,17 @@ function generateSellerShopUrls(sellers) {
 	});
 
 	return shopUrls;
+}
+
+// Escape XML special characters
+function escapeXml(str) {
+	if (typeof str !== "string") return str;
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 // Generate XML sitemap
@@ -732,11 +747,13 @@ function generateSitemapXML(urls) {
 
 	const urlEntries = urls
 		.map((url) => {
+			const escapedPath = escapeXml(url.path);
+			const escapedUrl = `${SITE_BASE_URL}${escapedPath}`;
 			return `  <url>
-    <loc>${SITE_BASE_URL}${url.path}</loc>
-    <lastmod>${url.lastmod}</lastmod>
-    <changefreq>${url.changefreq}</changefreq>
-    <priority>${url.priority}</priority>
+    <loc>${escapedUrl}</loc>
+    <lastmod>${escapeXml(url.lastmod)}</lastmod>
+    <changefreq>${escapeXml(url.changefreq)}</changefreq>
+    <priority>${escapeXml(url.priority)}</priority>
   </url>`;
 		})
 		.join("\n");
