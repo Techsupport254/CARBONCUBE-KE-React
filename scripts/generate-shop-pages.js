@@ -6,33 +6,36 @@
  * No nginx changes needed - just serve these static files
  */
 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://carboncube-ke.com/api';
-const SITE_URL = process.env.REACT_APP_SITE_URL || 'https://carboncube-ke.com';
+const API_BASE_URL =
+	process.env.REACT_APP_API_URL || "https://carboncube-ke.com/api";
+const SITE_URL = process.env.REACT_APP_SITE_URL || "https://carboncube-ke.com";
 
 // Function to make API requests
 function makeRequest(url) {
-    return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                try {
-                    resolve(JSON.parse(data));
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }).on('error', reject);
-    });
+	return new Promise((resolve, reject) => {
+		https
+			.get(url, (res) => {
+				let data = "";
+				res.on("data", (chunk) => (data += chunk));
+				res.on("end", () => {
+					try {
+						resolve(JSON.parse(data));
+					} catch (e) {
+						reject(e);
+					}
+				});
+			})
+			.on("error", reject);
+	});
 }
 
 // Function to generate shop-specific HTML
 function generateShopHTML(shopData) {
-    return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -60,7 +63,9 @@ function generateShopHTML(shopData) {
     <meta name="twitter:site" content="${shopData.twitter_site}" />
     <meta name="twitter:creator" content="${shopData.twitter_creator}" />
     <meta name="twitter:title" content="${shopData.twitter_title}" />
-    <meta name="twitter:description" content="${shopData.twitter_description}" />
+    <meta name="twitter:description" content="${
+			shopData.twitter_description
+		}" />
     <meta name="twitter:image" content="${shopData.twitter_image}" />
     
     <!-- Business Meta Tags -->
@@ -68,8 +73,12 @@ function generateShopHTML(shopData) {
     <meta name="business:type" content="${shopData.business_type}" />
     <meta name="business:location" content="${shopData.business_location}" />
     <meta name="business:rating" content="${shopData.business_rating}" />
-    <meta name="business:review_count" content="${shopData.business_review_count}" />
-    <meta name="business:product_count" content="${shopData.business_product_count}" />
+    <meta name="business:review_count" content="${
+			shopData.business_review_count
+		}" />
+    <meta name="business:product_count" content="${
+			shopData.business_product_count
+		}" />
     <meta name="business:tier" content="${shopData.business_tier}" />
     
     <!-- Canonical URL -->
@@ -112,8 +121,12 @@ function generateShopHTML(shopData) {
         <h1>${shopData.business_name}</h1>
         <p>${shopData.description}</p>
         <p><strong>Location:</strong> ${shopData.business_location}</p>
-        <p><strong>Rating:</strong> ${shopData.business_rating}/5 stars (${shopData.business_review_count} reviews)</p>
-        <p><strong>Products:</strong> ${shopData.business_product_count} products available</p>
+        <p><strong>Rating:</strong> ${shopData.business_rating}/5 stars (${
+		shopData.business_review_count
+	} reviews)</p>
+        <p><strong>Products:</strong> ${
+					shopData.business_product_count
+				} products available</p>
         <p><strong>Tier:</strong> ${shopData.business_tier} seller</p>
         <p><a href="${shopData.url}">Visit Shop</a></p>
     </div>
@@ -123,57 +136,64 @@ function generateShopHTML(shopData) {
 
 // Main function
 async function generateShopPages() {
-    try {
-        console.log('🚀 Starting static shop page generation...');
-        
-        // Create shop-pages directory
-        const shopPagesDir = path.join(__dirname, '../public/shop-pages');
-        if (!fs.existsSync(shopPagesDir)) {
-            fs.mkdirSync(shopPagesDir, { recursive: true });
-        }
-        
-        // Fetch all sellers
-        console.log('📡 Fetching sellers...');
-        const sellers = await makeRequest(`${API_BASE_URL}/sitemap/sellers`);
-        
-        console.log(`📊 Found ${sellers.length} sellers`);
-        
-        // Generate HTML for each shop
-        for (const seller of sellers) {
-            try {
-                const slug = seller.enterprise_name
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]/g, '-')
-                    .replace(/-+/g, '-')
-                    .replace(/^-|-$/g, '');
-                
-                console.log(`📝 Generating page for: ${seller.enterprise_name} (${slug})`);
-                
-                // Fetch shop meta data
-                const metaData = await makeRequest(`${API_BASE_URL}/shop/${slug}/meta`);
-                
-                // Generate HTML
-                const html = generateShopHTML(metaData);
-                
-                // Save HTML file
-                const filePath = path.join(shopPagesDir, `${slug}.html`);
-                fs.writeFileSync(filePath, html);
-                
-                console.log(`✅ Generated: ${slug}.html`);
-                
-            } catch (error) {
-                console.error(`❌ Error generating page for ${seller.enterprise_name}:`, error.message);
-            }
-        }
-        
-        console.log('✅ Static shop page generation completed!');
-        console.log(`📁 Generated ${sellers.length} shop pages in: ${shopPagesDir}`);
-        console.log('📱 Social media crawlers can now read these static HTML files');
-        
-    } catch (error) {
-        console.error('❌ Error generating shop pages:', error);
-        process.exit(1);
-    }
+	try {
+		console.log("🚀 Starting static shop page generation...");
+
+		// Create shop-pages directory
+		const shopPagesDir = path.join(__dirname, "../public/shop-pages");
+		if (!fs.existsSync(shopPagesDir)) {
+			fs.mkdirSync(shopPagesDir, { recursive: true });
+		}
+
+		// Fetch all sellers
+		console.log("📡 Fetching sellers...");
+		const sellers = await makeRequest(`${API_BASE_URL}/sitemap/sellers`);
+
+		console.log(`📊 Found ${sellers.length} sellers`);
+
+		// Generate HTML for each shop
+		for (const seller of sellers) {
+			try {
+				const slug = seller.enterprise_name
+					.toLowerCase()
+					.replace(/[^a-z0-9]/g, "-")
+					.replace(/-+/g, "-")
+					.replace(/^-|-$/g, "");
+
+				console.log(
+					`📝 Generating page for: ${seller.enterprise_name} (${slug})`
+				);
+
+				// Fetch shop meta data
+				const metaData = await makeRequest(`${API_BASE_URL}/shop/${slug}/meta`);
+
+				// Generate HTML
+				const html = generateShopHTML(metaData);
+
+				// Save HTML file
+				const filePath = path.join(shopPagesDir, `${slug}.html`);
+				fs.writeFileSync(filePath, html);
+
+				console.log(`✅ Generated: ${slug}.html`);
+			} catch (error) {
+				console.error(
+					`❌ Error generating page for ${seller.enterprise_name}:`,
+					error.message
+				);
+			}
+		}
+
+		console.log("✅ Static shop page generation completed!");
+		console.log(
+			`📁 Generated ${sellers.length} shop pages in: ${shopPagesDir}`
+		);
+		console.log(
+			"📱 Social media crawlers can now read these static HTML files"
+		);
+	} catch (error) {
+		console.error("❌ Error generating shop pages:", error);
+		process.exit(1);
+	}
 }
 
 // Run the script
