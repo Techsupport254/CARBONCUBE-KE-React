@@ -5,7 +5,7 @@ export const generateProductSEO = (product) => {
 	if (!product) return null;
 
 	const price = product.price ? Number(product.price).toFixed(2) : "0.00";
-	const availability = product.quantity > 0 ? "in stock" : "out of stock";
+	const availability = "in stock";
 	const condition = product.condition || "new";
 	const brand = product.brand || "Unknown";
 	const category = product.category_name || "General";
@@ -381,10 +381,7 @@ export const generateCategorySEO = (category, subcategories = [], ads = []) => {
 						"@type": "Offer",
 						price: ad.price,
 						priceCurrency: "KES",
-						availability:
-							ad.quantity > 0
-								? "https://schema.org/InStock"
-								: "https://schema.org/OutOfStock",
+						availability: "https://schema.org/InStock",
 						seller: {
 							"@type": "Organization",
 							name: ad.seller_enterprise_name || ad.seller_name,
@@ -579,10 +576,7 @@ export const generateCategoryPageSEO = (
 						"@type": "Offer",
 						price: ad.price,
 						priceCurrency: "KES",
-						availability:
-							ad.quantity > 0
-								? "https://schema.org/InStock"
-								: "https://schema.org/OutOfStock",
+						availability: "https://schema.org/InStock",
 						seller: {
 							"@type": "Organization",
 							name: ad.seller_enterprise_name || ad.seller_name,

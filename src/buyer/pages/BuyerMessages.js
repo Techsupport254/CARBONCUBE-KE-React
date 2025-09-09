@@ -38,7 +38,6 @@ const BuyerMessages = () => {
 			navbarComponent={
 				<Navbar mode="buyer" showSearch={true} showCategories={true} />
 			}
-			sidebarComponent={<Sidebar />}
 			title="Messages"
 			showProductContext={true}
 			showOnlineStatus={true}

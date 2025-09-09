@@ -272,10 +272,7 @@ const AdDetails = () => {
 						priceValidUntil: new Date(
 							Date.now() + 30 * 24 * 60 * 60 * 1000
 						).toISOString(),
-						availability:
-							ad.quantity > 0
-								? "https://schema.org/InStock"
-								: "https://schema.org/OutOfStock",
+						availability: "https://schema.org/InStock",
 						itemCondition:
 							ad.condition === "brand_new"
 								? "https://schema.org/NewCondition"
@@ -346,11 +343,6 @@ const AdDetails = () => {
 							"@type": "PropertyValue",
 							name: "Seller Tier",
 							value: ad.seller_tier_name || "Free",
-						},
-						{
-							"@type": "PropertyValue",
-							name: "Quantity Available",
-							value: ad.quantity?.toString() || "0",
 						},
 					],
 					aggregateRating:
@@ -548,7 +540,7 @@ const AdDetails = () => {
 					{ name: "product:price:currency", content: "KES" },
 					{
 						name: "product:availability",
-						content: ad.quantity > 0 ? "in stock" : "out of stock",
+						content: "in stock",
 					},
 					{ name: "product:condition", content: ad.condition || "new" },
 					{ name: "product:brand", content: ad.brand || "Unknown" },
@@ -565,7 +557,7 @@ const AdDetails = () => {
 					{ property: "og:price:currency", content: "KES" },
 					{
 						property: "og:availability",
-						content: ad.quantity > 0 ? "in stock" : "out of stock",
+						content: "in stock",
 					},
 					{ property: "og:condition", content: ad.condition || "new" },
 					{ property: "og:brand", content: ad.brand || "Unknown" },
@@ -1842,7 +1834,7 @@ const AdDetails = () => {
 											}}
 										>
 											{/* Tier Badge */}
-											<div className="absolute top-3 right-3 z-30">
+											<div className="absolute top-3 left-3 z-30">
 												<div
 													className="px-2 py-1 text-white rounded text-xs font-medium"
 													style={{ backgroundColor: borderColor }}
@@ -1854,17 +1846,6 @@ const AdDetails = () => {
 											<div className="grid grid-cols-1 xl:grid-cols-2 gap-0 w-full">
 												{/* Image Gallery */}
 												<div className="relative p-2 sm:p-3 md:p-4 lg:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] overflow-hidden">
-													{/* Product Status Badge */}
-													<div className="absolute top-3 left-3 z-20">
-														<div
-															className={`px-2 py-1 text-white rounded text-xs font-medium shadow-lg ${
-																ad.quantity > 0 ? "bg-green-600" : "bg-red-600"
-															}`}
-														>
-															{ad.quantity > 0 ? "In Stock" : "Out of Stock"}
-														</div>
-													</div>
-
 													{/* Image Container with Enhanced Styling */}
 													<div className="relative w-full h-full max-w-2xl z-10">
 														{renderCarousel()}
@@ -1886,11 +1867,6 @@ const AdDetails = () => {
 																			: "Unverified product"}
 																	</span>
 																</div>
-																<span className="font-medium">
-																	{ad.quantity > 0
-																		? `${ad.quantity} units`
-																		: "Out of stock"}
-																</span>
 															</div>
 														</div>
 													</div>
@@ -2492,42 +2468,53 @@ const AdDetails = () => {
 
 				{/* Modals */}
 				<Modal centered show={showModal} onHide={handleCloseModal} size="lg">
-					<Modal.Header className="border-0 pb-0">
-						<Modal.Title className="text-xl font-bold text-gray-900">
-							<FontAwesomeIcon icon={faStar} className="mr-2 text-yellow-500" />
-							Product Reviews
-						</Modal.Title>
-					</Modal.Header>
-					<Modal.Body className="pt-0">
-						{loadingReviews ? (
-							<div className="text-center py-8">
-								<FontAwesomeIcon
-									icon={faSpinner}
-									className="animate-spin text-2xl text-yellow-500 mb-4"
-								/>
-								<p className="text-gray-600">Loading reviews...</p>
-							</div>
-						) : reviewsError ? (
-							<div className="text-center py-8">
-								<FontAwesomeIcon
-									icon={faExclamationTriangle}
-									className="text-red-500 text-2xl mb-4"
-								/>
-								<p className="text-red-600">{reviewsError}</p>
-							</div>
-						) : reviews.length === 0 ? (
-							<div className="text-center py-8">
+					<Modal.Header className="border-b border-gray-100 pb-3">
+						<div className="flex items-center justify-between w-full">
+							<Modal.Title className="text-lg font-semibold text-gray-900">
 								<FontAwesomeIcon
 									icon={faStar}
-									className="text-gray-400 text-2xl mb-4"
+									className="mr-2 text-yellow-500"
 								/>
-								<p className="text-gray-500 text-lg">
-									No reviews available for this product.
+								Reviews ({reviews.length})
+							</Modal.Title>
+							<button
+								onClick={handleCloseModal}
+								className="text-gray-400 hover:text-gray-600 transition-colors"
+							>
+								<FontAwesomeIcon icon={faChevronRight} className="text-lg" />
+							</button>
+						</div>
+					</Modal.Header>
+					<Modal.Body className="p-0">
+						{loadingReviews ? (
+							<div className="text-center py-12">
+								<FontAwesomeIcon
+									icon={faSpinner}
+									className="animate-spin text-xl text-gray-400 mb-3"
+								/>
+								<p className="text-gray-500 text-sm">Loading reviews...</p>
+							</div>
+						) : reviewsError ? (
+							<div className="text-center py-12">
+								<FontAwesomeIcon
+									icon={faExclamationTriangle}
+									className="text-red-400 text-xl mb-3"
+								/>
+								<p className="text-red-500 text-sm">{reviewsError}</p>
+							</div>
+						) : reviews.length === 0 ? (
+							<div className="text-center py-12">
+								<FontAwesomeIcon
+									icon={faStar}
+									className="text-gray-300 text-xl mb-3"
+								/>
+								<p className="text-gray-500 text-sm">No reviews yet</p>
+								<p className="text-gray-400 text-xs mt-1">
+									Be the first to review!
 								</p>
-								<p className="text-gray-400">Be the first to leave a review!</p>
 							</div>
 						) : (
-							<div className="space-y-4 max-h-96 overflow-y-auto">
+							<div className="max-h-96 overflow-y-auto">
 								{reviews.map((review, index) => {
 									const fullStars = Math.floor(review.rating);
 									const halfStar = review.rating % 1 !== 0;
@@ -2536,52 +2523,77 @@ const AdDetails = () => {
 									return (
 										<div
 											key={index}
-											className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+											className={`p-4 ${
+												index !== reviews.length - 1
+													? "border-b border-gray-100"
+													: ""
+											}`}
 										>
-											<div className="flex items-center justify-between mb-3">
-												<h4 className="font-semibold text-gray-900">
-													{review.buyer.name}
-												</h4>
-												<div className="flex items-center space-x-1">
-													{[...Array(fullStars)].map((_, i) => (
-														<FontAwesomeIcon
-															key={i}
-															icon={faStar}
-															className="text-yellow-400 text-sm"
+											<div className="flex items-start space-x-3">
+												{/* Avatar */}
+												<div className="flex-shrink-0">
+													{review.buyer.profile_picture ? (
+														<img
+															src={review.buyer.profile_picture}
+															alt={review.buyer.name}
+															className="w-8 h-8 rounded-full object-cover border border-gray-200"
 														/>
-													))}
-													{halfStar && (
-														<FontAwesomeIcon
-															icon={faStarHalfAlt}
-															className="text-yellow-400 text-sm"
-														/>
+													) : (
+														<div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+															<FontAwesomeIcon
+																icon={faUser}
+																className="text-gray-500 text-xs"
+															/>
+														</div>
 													)}
-													{[...Array(emptyStars)].map((_, i) => (
-														<FontAwesomeIcon
-															key={i}
-															icon={faStarEmpty}
-															className="text-gray-300 text-sm"
-														/>
-													))}
+												</div>
+
+												{/* Review Content Column */}
+												<div className="flex-1 min-w-0 space-y-0">
+													{/* Name and Rating Row */}
+													<div className="flex items-baseline space-x-2">
+														<h4 className="font-medium text-gray-900 text-sm truncate">
+															{review.buyer.name}
+														</h4>
+														<div className="flex items-center space-x-1">
+															{[...Array(fullStars)].map((_, i) => (
+																<FontAwesomeIcon
+																	key={i}
+																	icon={faStar}
+																	className="text-yellow-400 text-xs"
+																/>
+															))}
+															{halfStar && (
+																<FontAwesomeIcon
+																	icon={faStarHalfAlt}
+																	className="text-yellow-400 text-xs"
+																/>
+															)}
+															{[...Array(emptyStars)].map((_, i) => (
+																<FontAwesomeIcon
+																	key={i}
+																	icon={faStarEmpty}
+																	className="text-gray-300 text-xs"
+																/>
+															))}
+															<span className="text-xs text-gray-500 ml-1">
+																{review.rating.toFixed(1)}
+															</span>
+														</div>
+													</div>
+
+													{/* Review Text */}
+													<p className="text-gray-700 text-sm leading-relaxed">
+														{review.review}
+													</p>
 												</div>
 											</div>
-											<p className="text-gray-700 leading-relaxed">
-												{review.review}
-											</p>
 										</div>
 									);
 								})}
 							</div>
 						)}
 					</Modal.Body>
-					<Modal.Footer className="border-0 pt-0">
-						<button
-							className="px-6 py-2 bg-yellow-500 text-gray-900 rounded-xl font-semibold hover:bg-yellow-600 transition-colors"
-							onClick={handleCloseModal}
-						>
-							Close
-						</button>
-					</Modal.Footer>
 				</Modal>
 
 				{/* Review Modal */}

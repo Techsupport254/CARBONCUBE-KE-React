@@ -244,9 +244,6 @@ const TiersManagement = () => {
 			<div className="tiers-management-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0 d-flex flex-column">
-							<Sidebar />
-						</Col>
 						<Col xs={12} md={10} lg={9} className="p-2 d-flex flex-column">
 							<Card className="section">
 								<Card.Header className="justify-content-center">

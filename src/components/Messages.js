@@ -831,17 +831,6 @@ const Messages = ({
 															);
 														})()}
 													</div>
-
-													<button
-														onClick={handleBackToConversations}
-														className="p-1 hover:bg-gray-100 rounded transition-colors"
-														title="Back to conversations"
-													>
-														<FontAwesomeIcon
-															icon={faArrowLeft}
-															className="text-gray-600"
-														/>
-													</button>
 												</div>
 
 												{/* Messages */}

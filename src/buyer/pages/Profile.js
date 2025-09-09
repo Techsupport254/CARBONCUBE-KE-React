@@ -246,9 +246,6 @@ const ProfilePage = () => {
 			<div className="profile-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 						<Col xs={12} md={9} className="p-2">
 							<div className="profile-container">
 								<Container>

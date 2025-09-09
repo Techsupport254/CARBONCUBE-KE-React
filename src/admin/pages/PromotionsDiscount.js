@@ -130,9 +130,6 @@ const PromotionsDiscount = () => {
             <div className="promotions-discount-page">
                 <Container fluid className="p-0">
                     <Row>
-                        <Col xs={12} md={2} className="p-0">
-                            <Sidebar />
-                        </Col>
                         <Col xs={12} md={10} lg={9} className="p-1 p-lg-2">
                             <Card className='section mt-2'>
                                 <Card.Header className="card-header justify-content-center p-0 p-lg-1">

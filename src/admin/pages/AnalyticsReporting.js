@@ -66,9 +66,6 @@ const AnalyticsReporting = () => {
 			<Navbar mode="admin" showSearch={false} showCategories={false} />
 			<Container fluid className="analytics-reporting-page">
 				<Row>
-					<Col xs={12} md={2} className="p-0">
-						<Sidebar />
-					</Col>
 					<Col xs={12} md={10} lg={9} className="content-area">
 						<Row>
 							{[

@@ -27,7 +27,6 @@ const AddNewAd = () => {
 		title: "",
 		description: "",
 		price: "",
-		quantity: "",
 		brand: "",
 		manufacturer: "",
 		condition: "",
@@ -213,7 +212,6 @@ const AddNewAd = () => {
 			title,
 			description,
 			price,
-			quantity,
 			brand,
 			manufacturer,
 			item_length,
@@ -228,7 +226,6 @@ const AddNewAd = () => {
 		if (!title.trim()) newErrors.title = "Title is required";
 		if (!description.trim()) newErrors.description = "Description is required";
 		if (!price) newErrors.price = "Price is required";
-		if (!quantity) newErrors.quantity = "Quantity is required";
 		if (!brand.trim()) newErrors.brand = "Brand is required";
 		if (!manufacturer.trim())
 			newErrors.manufacturer = "Manufacturer is required";
@@ -289,7 +286,6 @@ const AddNewAd = () => {
 			formData.append("ad[category_id]", selectedCategory);
 			formData.append("ad[subcategory_id]", selectedSubcategory);
 			formData.append("ad[price]", parseInt(price));
-			formData.append("ad[quantity]", parseInt(quantity));
 			formData.append("ad[brand]", brand);
 			formData.append("ad[manufacturer]", manufacturer);
 			formData.append("ad[condition]", condition);
@@ -423,7 +419,6 @@ const AddNewAd = () => {
 				title: "",
 				description: "",
 				price: "",
-				quantity: "",
 				brand: "",
 				manufacturer: "",
 				condition: "",
@@ -888,29 +883,6 @@ const AddNewAd = () => {
 											{formErrors.price && (
 												<p className="text-red-600 text-sm mt-1">
 													{formErrors.price}
-												</p>
-											)}
-										</div>
-
-										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-1">
-												Quantity in Stock *
-											</label>
-											<input
-												type="number"
-												name="quantity"
-												value={formValues.quantity}
-												onChange={handleFormChange}
-												className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors ${
-													formErrors.quantity
-														? "border-red-300"
-														: "border-gray-300"
-												}`}
-												placeholder="Enter quantity"
-											/>
-											{formErrors.quantity && (
-												<p className="text-red-600 text-sm mt-1">
-													{formErrors.quantity}
 												</p>
 											)}
 										</div>

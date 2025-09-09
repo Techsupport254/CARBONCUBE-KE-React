@@ -342,11 +342,6 @@ const SellerAds = () => {
 						<span className="text-sm sm:text-base font-bold text-green-600">
 							Kshs {parseFloat(ad.price).toLocaleString()}
 						</span>
-						{ad.quantity && (
-							<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-								Qty: {ad.quantity}
-							</span>
-						)}
 					</div>
 				</div>
 			</div>

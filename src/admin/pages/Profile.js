@@ -209,7 +209,6 @@ const AdminProfilePage = () => {
 	return (
 		<>
 			<div className="flex">
-				<Sidebar />
 				<div className="flex-grow">
 					<Navbar />
 					<div className="mt-4 max-w-7xl mx-auto px-4">

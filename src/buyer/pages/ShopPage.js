@@ -38,6 +38,7 @@ const ShopPage = () => {
 	const [shop, setShop] = useState(null);
 	const [ads, setAds] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [error, setError] = useState(null);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [hasMore, setHasMore] = useState(true);
@@ -259,8 +260,9 @@ const ShopPage = () => {
 						}
 						return shop.profile_picture;
 					}
+					// Create a more attractive placeholder image with shop branding
 					return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
-						shop?.enterprise_name || "Shop"
+						`${shop?.enterprise_name || "Shop"} - Carbon Cube Kenya`
 					)}`;
 				})(),
 				author: `${shop.enterprise_name} Team`,
@@ -451,6 +453,7 @@ const ShopPage = () => {
 					},
 				],
 				customMetaTags: [
+					// Business Information
 					{ name: "business:name", content: shop.enterprise_name },
 					{ name: "business:type", content: "Local Business" },
 					{
@@ -470,6 +473,8 @@ const ShopPage = () => {
 						content: shop.product_count?.toString() || "0",
 					},
 					{ name: "business:tier", content: shop.tier || "Free" },
+
+					// Enhanced Open Graph Tags for Social Media
 					{ property: "og:business:name", content: shop.enterprise_name },
 					{ property: "og:business:type", content: "Local Business" },
 					{
@@ -489,10 +494,83 @@ const ShopPage = () => {
 						content: shop.product_count?.toString() || "0",
 					},
 					{ property: "og:business:tier", content: shop.tier || "Free" },
+
+					// Additional Open Graph Properties for Better Social Sharing
+					{ property: "og:image:type", content: "image/png" },
+					{
+						property: "og:image:secure_url",
+						content: (() => {
+							if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
+								if (shop.profile_picture.startsWith("http")) {
+									return shop.profile_picture;
+								}
+								if (shop.profile_picture.startsWith("/")) {
+									return `https://carboncube-ke.com${shop.profile_picture}`;
+								}
+								return shop.profile_picture;
+							}
+							return `https://via.placeholder.com/1200x630/FFD700/000000?text=${encodeURIComponent(
+								`${shop?.enterprise_name || "Shop"} - Carbon Cube Kenya`
+							)}`;
+						})(),
+					},
+					{
+						property: "og:image:alt",
+						content: `${shop.enterprise_name} - Shop on Carbon Cube Kenya`,
+					},
+					{
+						property: "og:updated_time",
+						content: shop.updated_at || shop.created_at,
+					},
+					{ property: "og:see_also", content: "https://carboncube-ke.com" },
+
+					// Twitter Card Enhancements
+					{
+						name: "twitter:image:alt",
+						content: `${shop.enterprise_name} - Shop on Carbon Cube Kenya`,
+					},
+					{ name: "twitter:label1", content: "Products" },
+					{
+						name: "twitter:data1",
+						content: shop.product_count?.toString() || "0",
+					},
+					{ name: "twitter:label2", content: "Rating" },
+					{
+						name: "twitter:data2",
+						content: shop.average_rating
+							? `${shop.average_rating}/5`
+							: "No rating",
+					},
+
+					// Location and Place Information
 					{ property: "place:location:latitude", content: "-1.2921" },
 					{ property: "place:location:longitude", content: "36.8219" },
 					{ property: "place:name", content: shop.enterprise_name },
 					{ property: "place:region", content: shop.county || "Kenya" },
+
+					// Additional Meta Tags for Better SEO
+					{ name: "application-name", content: "Carbon Cube Kenya" },
+					{
+						name: "apple-mobile-web-app-title",
+						content: `${shop.enterprise_name} - Carbon Cube`,
+					},
+					{
+						name: "msapplication-TileTitle",
+						content: `${shop.enterprise_name} Shop`,
+					},
+					{ name: "msapplication-TileColor", content: "#FFD700" },
+
+					// WhatsApp and Social Media Specific
+					{ property: "og:locale:alternate", content: "sw_KE" },
+					{
+						name: "whatsapp:description",
+						content: `Shop ${shop.enterprise_name} on Carbon Cube Kenya - ${shop.product_count} products available`,
+					},
+
+					// Additional Business Schema
+					{ name: "business:contact:phone", content: shop.phone_number || "" },
+					{ name: "business:contact:email", content: shop.email || "" },
+					{ name: "business:address", content: shop.address || "" },
 				],
 				imageWidth: 1200,
 				imageHeight: 630,
@@ -552,7 +630,13 @@ const ShopPage = () => {
 	useEffect(() => {
 		const fetchShopData = async () => {
 			try {
-				setIsLoading(true);
+				// Set loading state based on whether this is the first page or a subsequent page
+				if (currentPage === 1) {
+					setIsLoading(true);
+				} else {
+					setIsLoadingMore(true);
+				}
+
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/shop/${slug}?page=${currentPage}&per_page=20`,
 					{
@@ -567,19 +651,36 @@ const ShopPage = () => {
 				}
 
 				const data = await response.json();
-				setShop(data.shop);
-				setAds(data.ads);
-				setFilteredAds(data.ads);
+
+				// Set shop data only on first page
+				if (currentPage === 1) {
+					setShop(data.shop);
+					setAds(data.ads);
+					setFilteredAds(data.ads);
+				} else {
+					// Append new ads to existing ones
+					setAds((prevAds) => [...prevAds, ...data.ads]);
+					setFilteredAds((prevFilteredAds) => [
+						...prevFilteredAds,
+						...data.ads,
+					]);
+				}
+
 				setHasMore(data.pagination.current_page < data.pagination.total_pages);
 			} catch (err) {
 				setError(err.message);
 			} finally {
 				setIsLoading(false);
+				setIsLoadingMore(false);
 			}
 		};
 
 		fetchShopData();
-		fetchCategories();
+
+		// Only fetch categories on first page load
+		if (currentPage === 1) {
+			fetchCategories();
+		}
 	}, [slug, currentPage]);
 
 	useEffect(() => {
@@ -1207,7 +1308,7 @@ const ShopPage = () => {
 						{/* Products */}
 						<div className="mb-4 sm:mb-6">
 							<h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">
-								Products ({filteredAds.length})
+								Products ({shop?.product_count || filteredAds.length})
 							</h2>
 
 							{filteredAds.length === 0 ? (
@@ -1342,20 +1443,51 @@ const ShopPage = () => {
 													</div>
 
 													<div className="p-2 sm:p-3 flex flex-col flex-grow">
-														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
+														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow text-left">
 															{ad.title}
 														</h3>
-														<div className="flex items-center justify-between">
+														{/* Price and Rating with justify-between */}
+														<div className="flex justify-between items-center">
+															{/* Price */}
 															<span className="text-sm sm:text-base font-bold text-green-600">
 																KES{" "}
 																{ad.price
 																	? parseFloat(ad.price).toLocaleString()
 																	: "N/A"}
 															</span>
-															{ad.quantity && (
-																<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-																	Qty: {ad.quantity}
-																</span>
+															{/* Rating with single star */}
+															{(ad.average_rating && ad.average_rating > 0) ||
+															(ad.review_stats &&
+																ad.review_stats.average > 0) ? (
+																<div className="flex items-center gap-1">
+																	<svg
+																		className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"
+																		fill="currentColor"
+																		viewBox="0 0 20 20"
+																	>
+																		<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+																	</svg>
+																	<span className="text-xs sm:text-sm text-gray-600 font-medium">
+																		{(
+																			ad.average_rating ||
+																			ad.review_stats?.average ||
+																			0
+																		).toFixed(1)}
+																	</span>
+																</div>
+															) : (
+																<div className="flex items-center gap-1">
+																	<svg
+																		className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300"
+																		fill="currentColor"
+																		viewBox="0 0 20 20"
+																	>
+																		<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+																	</svg>
+																	<span className="text-xs sm:text-sm text-gray-400 font-medium">
+																		0.0
+																	</span>
+																</div>
 															)}
 														</div>
 													</div>
@@ -1376,9 +1508,21 @@ const ShopPage = () => {
 										<Button
 											variant="outline-warning"
 											onClick={handleLoadMore}
+											disabled={isLoadingMore}
 											className="px-6 py-2"
 										>
-											Load More Products
+											{isLoadingMore ? (
+												<>
+													<Spinner
+														name="three-bounce"
+														color="#f59e0b"
+														style={{ width: 20, height: 20 }}
+													/>
+													<span className="ml-2">Loading...</span>
+												</>
+											) : (
+												"Load More Products"
+											)}
 										</Button>
 									</div>
 								)}

@@ -343,9 +343,6 @@ const AdsManagement = () => {
 			<div className="ads-management-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 						<Col xs={12} md={10} lg={9} className="p-2">
 							<Row className="justify-content-center d-flex">
 								<Col xs={12} md={8} lg={6} className="mb-3 pt-2">

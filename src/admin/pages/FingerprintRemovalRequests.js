@@ -180,7 +180,6 @@ const FingerprintRemovalRequests = () => {
 	if (loading) {
 		return (
 			<div className="d-flex">
-				<Sidebar />
 				<div className="flex-grow-1">
 					<Navbar mode="admin" showSearch={false} showCategories={false} />
 					<div className="flex justify-center items-center h-screen">
@@ -193,7 +192,6 @@ const FingerprintRemovalRequests = () => {
 
 	return (
 		<div className="d-flex">
-			<Sidebar />
 			<div className="flex-grow-1">
 				<Navbar mode="admin" showSearch={false} showCategories={false} />
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

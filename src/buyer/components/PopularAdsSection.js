@@ -1,6 +1,4 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
 import { getAdImageUrl } from "../../utils/imageUtils";
 
 // Helper function to get tier priority (higher number = higher priority)
@@ -21,11 +19,7 @@ const sortAdsByTier = (ads) => {
 			return tierB - tierA;
 		}
 
-		// If same tier, sort by quantity (descending)
-		const quantityDiff = (b.quantity || 0) - (a.quantity || 0);
-		if (quantityDiff !== 0) return quantityDiff;
-
-		// If same quantity, sort by creation date (newest first)
+		// If same tier, sort by creation date (newest first)
 		return new Date(b.created_at || 0) - new Date(a.created_at || 0);
 	});
 };
@@ -44,7 +38,6 @@ const PopularAdsSection = ({
 				title: ad.title,
 				media: ad.media,
 				price: ad.price,
-				quantity: ad.quantity,
 				created_at: ad.created_at,
 				seller_tier: ad.seller_tier_id,
 				comprehensive_score: ad.comprehensive_score,
@@ -262,20 +255,6 @@ const PopularAdsSection = ({
 											Best Seller
 										</span>
 									</div>
-
-									{/* Rating Badge - Top Right */}
-									{product.metrics?.avg_rating &&
-										product.metrics.avg_rating > 0 && (
-											<div className="absolute top-1 right-1 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1">
-												<FontAwesomeIcon
-													icon={faStar}
-													className="text-xs text-yellow-400"
-												/>
-												<span className="text-xs text-gray-600 font-medium">
-													{product.metrics.avg_rating.toFixed(1)}
-												</span>
-											</div>
-										)}
 								</div>
 
 								{/* Content Section */}
@@ -285,18 +264,49 @@ const PopularAdsSection = ({
 										{product.name}
 									</h3>
 
-									{/* Price */}
-									<div className="flex items-center justify-between">
+									{/* Price and Rating with justify-between */}
+									<div className="flex justify-between items-center">
+										{/* Price */}
 										<span className="text-sm sm:text-base font-bold text-green-600">
 											Kshs{" "}
 											{product.price
 												? parseFloat(product.price).toLocaleString()
 												: "N/A"}
 										</span>
-										{product.metrics?.total_sold && (
-											<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-												Sold: {product.metrics.total_sold}
-											</span>
+										{/* Rating with single star */}
+										{(product.metrics?.avg_rating &&
+											product.metrics.avg_rating > 0) ||
+										(product.metrics?.average_rating &&
+											product.metrics.average_rating > 0) ? (
+											<div className="flex items-center gap-1">
+												<svg
+													className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+												</svg>
+												<span className="text-xs sm:text-sm text-gray-600 font-medium">
+													{(
+														product.metrics?.avg_rating ||
+														product.metrics?.average_rating ||
+														0
+													).toFixed(1)}
+												</span>
+											</div>
+										) : (
+											<div className="flex items-center gap-1">
+												<svg
+													className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+												</svg>
+												<span className="text-xs sm:text-sm text-gray-400 font-medium">
+													0.0
+												</span>
+											</div>
 										)}
 									</div>
 								</div>

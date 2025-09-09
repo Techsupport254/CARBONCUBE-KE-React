@@ -1284,17 +1284,6 @@ const SellerAdDetails = () => {
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-gray-600 text-xs sm:text-sm">
-											Quantity:
-										</span>
-										<InlineEditField
-											field="quantity"
-											value={ad.quantity}
-											label="Quantity"
-											type="number"
-										/>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-gray-600 text-xs sm:text-sm">
 											Sold:
 										</span>
 										<span className="font-semibold text-sm sm:text-base">

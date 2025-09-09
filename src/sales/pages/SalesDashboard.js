@@ -1614,8 +1614,6 @@ function SalesDashboard() {
 
 			<div className="min-h-screen bg-gray-50 ">
 				<div className="flex flex-col xl:flex-row">
-					{/* Sidebar - Full width on mobile, fixed width on larger screens */}
-					<Sidebar />
 
 					{/* Main Content Area - Responsive padding and width with max-width constraint */}
 					<div className="flex-1 min-w-0">

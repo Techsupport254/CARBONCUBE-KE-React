@@ -187,9 +187,6 @@ const Messages = () => {
 			<div className="messages-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 
 						{/* Main Messages Container: flex row, full height */}
 						<Col xs={12} md={10} lg={9} className="p-0 p-lg-2 mt-1 mt-lg-2">

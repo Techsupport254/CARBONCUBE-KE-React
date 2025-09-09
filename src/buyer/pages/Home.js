@@ -967,7 +967,7 @@ const Home = () => {
 				onSubcategoryChange={handleSubcategoryChange}
 			/>
 			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
-				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-2 sm:pb-4 md:pb-6 lg:pb-8 relative z-0 transition-all duration-300 ease-in-out">
+				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto relative z-0 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
 						{(() => {
@@ -997,9 +997,9 @@ const Home = () => {
 
 								// Use normal positioning for search results, responsive overlap positioning for homepage
 								return hasSearchParams || searchQuery || isSearching
-									? "mt-4" // Normal spacing for search results
-									: "mt-0 sm:-translate-y-[5vh] md:-translate-y-[8vh] lg:-translate-y-[10vh] xl:-translate-y-[12vh] 2xl:-translate-y-[15vh]"; // Responsive overlap for homepage
-							})()} relative z-10 transition-transform duration-300`}
+									? "mt-0 sm:mt-4" // Zero margin for small screens, normal spacing for larger screens
+									: "mt-0 sm:-translate-y-[5vh] md:-translate-y-[8vh] lg:-translate-y-[10vh] xl:-translate-y-[12vh] 2xl:-translate-y-[15vh]"; // Zero margin for small screens, responsive overlap for larger screens
+							})()} relative z-10 transition-transform duration-300  px-0 sm:px-4 md:px-6 lg:px-8 pb-0 sm:pb-4 md:pb-6 lg:pb-8`}
 						>
 							{isSearching ? (
 								<div className="flex justify-center items-center h-screen w-full">

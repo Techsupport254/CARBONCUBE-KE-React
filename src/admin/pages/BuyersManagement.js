@@ -141,9 +141,6 @@ const BuyersManagement = () => {
 			<div className="buyers-management-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 						<Col xs={12} md={10} lg={9} className="p-0 p-lg-2">
 							<Card className="section">
 								<Card.Header className="text-center orders-header p-1 p-lg-2">

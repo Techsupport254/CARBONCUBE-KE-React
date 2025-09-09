@@ -185,9 +185,6 @@ const Notifications = () => {
 			>
 				<Container fluid className="p-0" style={{ flex: 1 }}>
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 						<Col
 							xs={12}
 							md={10}

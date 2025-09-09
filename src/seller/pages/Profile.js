@@ -766,7 +766,7 @@ const SellerProfile = () => {
 		setShowAlertModal(true);
 	};
 
-	const handleImageChange = (e) => {
+	const handleImageChange = async (e) => {
 		const file = e.target.files[0];
 
 		if (file) {
@@ -833,7 +833,7 @@ const SellerProfile = () => {
 		input.click();
 	};
 
-	const handleDocumentChange = (e, documentTypeId) => {
+	const handleDocumentChange = async (e, documentTypeId) => {
 		const file = e.target.files[0];
 
 		if (file) {
@@ -905,8 +905,7 @@ const SellerProfile = () => {
 		return (
 			<div className="min-h-screen bg-white">
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
-				<div className="flex">
-					<Sidebar />
+				<div className="flex h-[calc(100vh-64px)]">
 					<div className="flex-1 flex items-center justify-center">
 						<div className="text-center">
 							<Spinner
@@ -927,7 +926,6 @@ const SellerProfile = () => {
 			<div className="min-h-screen bg-white">
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex">
-					<Sidebar />
 					<div className="flex-1 flex items-center justify-center">
 						<div className="text-center">
 							<h2 className="text-xl font-medium text-gray-900 mb-2">Error</h2>
@@ -950,7 +948,6 @@ const SellerProfile = () => {
 			<Navbar mode="seller" showSearch={false} showCategories={false} />
 
 			<div className="flex">
-				<Sidebar />
 				<div className="flex-1">
 					<div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
 						{/* Header */}

@@ -333,7 +333,6 @@ const SellerAnalytics = () => {
 			<div className="min-h-screen bg-gray-50">
 				<div className="flex">
 					{/* Sidebar */}
-					<Sidebar />
 
 					{/* Main Content */}
 					<div className="flex-1 p-2 sm:p-4 lg:p-6">

@@ -67,60 +67,44 @@ const SellersManagement = () => {
 
 	const handleRowClick = async (sellerId) => {
 		try {
-			const [sellerResponse, ordersResponse, adsResponse, reviewsResponse] =
-				await Promise.all([
-					fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}`,
-						{
-							headers: {
-								Authorization: "Bearer " + sessionStorage.getItem("token"),
-							},
-						}
-					),
-					fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/orders`,
-						{
-							headers: {
-								Authorization: "Bearer " + sessionStorage.getItem("token"),
-							},
-						}
-					),
-					fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/ads`,
-						{
-							headers: {
-								Authorization: "Bearer " + sessionStorage.getItem("token"),
-							},
-						}
-					),
-					fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/reviews`,
-						{
-							headers: {
-								Authorization: "Bearer " + sessionStorage.getItem("token"),
-							},
-						}
-					),
-				]);
+			const [sellerResponse, adsResponse, reviewsResponse] = await Promise.all([
+				fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}`,
+					{
+						headers: {
+							Authorization: "Bearer " + sessionStorage.getItem("token"),
+						},
+					}
+				),
+				fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/ads`,
+					{
+						headers: {
+							Authorization: "Bearer " + sessionStorage.getItem("token"),
+						},
+					}
+				),
+				fetch(
+					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/reviews`,
+					{
+						headers: {
+							Authorization: "Bearer " + sessionStorage.getItem("token"),
+						},
+					}
+				),
+			]);
 
-			if (
-				!sellerResponse.ok ||
-				!ordersResponse.ok ||
-				!adsResponse.ok ||
-				!reviewsResponse.ok
-			) {
+			if (!sellerResponse.ok || !adsResponse.ok || !reviewsResponse.ok) {
 				throw new Error("Network response was not ok");
 			}
 
 			const sellerData = await sellerResponse.json();
-			const ordersData = await ordersResponse.json();
 			const adsData = await adsResponse.json();
 			const reviewsData = await reviewsResponse.json();
 			const analytics = await fetchSellerAnalytics(sellerId);
 
 			setSelectedSeller({
 				...sellerData,
-				orders: ordersData,
 				ads: adsData,
 				reviews: reviewsData,
 				analytics,
@@ -243,9 +227,6 @@ const SellersManagement = () => {
 			<div className="sellers-management-page">
 				<Container fluid className="p-0">
 					<Row>
-						<Col xs={12} md={2} className="p-0">
-							<Sidebar />
-						</Col>
 						<Col xs={12} md={10} lg={9} className="p-0">
 							{/* <h2 className="mb-4 text-center">Sellers Management</h2> */}
 							<Card className="section">
