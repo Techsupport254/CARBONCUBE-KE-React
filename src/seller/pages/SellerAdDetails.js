@@ -153,12 +153,29 @@ const SellerAdDetails = () => {
 	// Load the NSFW model (lazy) when needed
 	const loadNSFWModel = useCallback(async () => {
 		if (!nsfwModelRef.current) {
-			const [{ load }, { enableProdMode }] = await Promise.all([
-				import("nsfwjs"),
-				import("@tensorflow/tfjs"),
-			]);
-			enableProdMode();
-			nsfwModelRef.current = await load();
+			try {
+				// Add timeout for model loading
+				const modelPromise = Promise.all([
+					import("nsfwjs"),
+					import("@tensorflow/tfjs"),
+				]);
+
+				const timeoutPromise = new Promise((_, reject) =>
+					setTimeout(() => reject(new Error("Model loading timeout")), 30000)
+				);
+
+				const [{ load }, { enableProdMode }] = await Promise.race([
+					modelPromise,
+					timeoutPromise,
+				]);
+
+				enableProdMode();
+				nsfwModelRef.current = await load();
+			} catch (error) {
+				console.error("Failed to load NSFW model:", error);
+				// Set a dummy model to prevent repeated loading attempts
+				nsfwModelRef.current = { classify: () => Promise.resolve([]) };
+			}
 		}
 		return nsfwModelRef.current;
 	}, []);
@@ -173,17 +190,31 @@ const SellerAdDetails = () => {
 		async (file) => {
 			try {
 				const model = await loadNSFWModel();
-				const imageElement = await new Promise((resolve, reject) => {
-					const img = new Image();
-					img.crossOrigin = "anonymous";
-					img.onload = () => resolve(img);
-					img.onerror = reject;
-					img.src = URL.createObjectURL(file);
+
+				// Add timeout to prevent hanging
+				const timeoutPromise = new Promise((_, reject) =>
+					setTimeout(() => reject(new Error("NSFW check timeout")), 15000)
+				);
+
+				const classificationPromise = new Promise((resolve, reject) => {
+					const imageElement = new Image();
+					imageElement.crossOrigin = "anonymous";
+					imageElement.onload = async () => {
+						try {
+							const predictions = await model.classify(imageElement);
+							const nsfwPrediction = predictions.find(
+								(p) => p.className === "Porn"
+							);
+							resolve(nsfwPrediction && nsfwPrediction.probability > 0.5);
+						} catch (error) {
+							reject(error);
+						}
+					};
+					imageElement.onerror = () => reject(new Error("Image load error"));
+					imageElement.src = URL.createObjectURL(file);
 				});
 
-				const predictions = await model.classify(imageElement);
-				const nsfwPrediction = predictions.find((p) => p.className === "Porn");
-				return nsfwPrediction && nsfwPrediction.probability > 0.5;
+				return await Promise.race([classificationPromise, timeoutPromise]);
 			} catch (error) {
 				console.error("Error checking image for NSFW content:", error);
 				return false; // Default to safe if check fails
@@ -445,26 +476,33 @@ const SellerAdDetails = () => {
 		const fileIds = validFiles.map((file, index) => `${file.name}-${index}`);
 		setScanningImages((prev) => [...prev, ...fileIds]);
 
-		// Check each file for NSFW content asynchronously
+		// Check each file for NSFW content asynchronously with error handling
 		validFiles.forEach(async (file, index) => {
 			const fileId = `${file.name}-${index}`;
-			const isNSFW = await checkImage(file);
+			try {
+				const isNSFW = await checkImage(file);
 
-			// Remove from scanning
-			setScanningImages((prev) => prev.filter((id) => id !== fileId));
+				// Remove from scanning
+				setScanningImages((prev) => prev.filter((id) => id !== fileId));
 
-			if (isNSFW) {
-				// Remove unsafe image from state
-				setNewImages((prev) => prev.filter((img) => img !== file));
+				if (isNSFW) {
+					// Remove unsafe image from state
+					setNewImages((prev) => prev.filter((img) => img !== file));
 
-				// Show error message
-				Swal.fire({
-					icon: "error",
-					title: "Inappropriate Content Detected",
-					text: `"${file.name}" contains inappropriate content and has been removed.`,
-					confirmButtonText: "OK",
-					confirmButtonColor: "#eab308",
-				});
+					// Show error message
+					Swal.fire({
+						icon: "error",
+						title: "Inappropriate Content Detected",
+						text: `"${file.name}" contains inappropriate content and has been removed.`,
+						confirmButtonText: "OK",
+						confirmButtonColor: "#eab308",
+					});
+				}
+			} catch (error) {
+				console.error("Error checking image for NSFW:", file.name, error);
+				// Remove from scanning even on error
+				setScanningImages((prev) => prev.filter((id) => id !== fileId));
+				// Don't remove the image on error - assume it's safe
 			}
 		});
 	};

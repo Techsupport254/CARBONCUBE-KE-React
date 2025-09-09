@@ -102,11 +102,15 @@ const useActionCable = (
 				}
 
 				// Convert HTTP URL to WebSocket URL
-				const wsUrl =
-					process.env.REACT_APP_BACKEND_URL?.replace(
-						"https://",
-						"wss://"
-					)?.replace("http://", "ws://") || "ws://localhost:3001";
+				// Remove /api prefix if present since ActionCable is mounted at /cable
+				let baseUrl =
+					process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
+				if (baseUrl.includes("/api")) {
+					baseUrl = baseUrl.replace("/api", "");
+				}
+				const wsUrl = baseUrl
+					.replace("https://", "wss://")
+					.replace("http://", "ws://");
 
 				// Get or create connection using the manager
 				const consumer = connectionManager.createConnection(

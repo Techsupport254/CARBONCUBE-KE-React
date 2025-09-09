@@ -89,14 +89,32 @@ const AddNewAd = () => {
 	// Load the NSFW model (lazy) when needed
 	const loadNSFWModel = useCallback(async () => {
 		if (!nsfwModelRef.current) {
-			const [{ load }, { enableProdMode }] = await Promise.all([
-				import("nsfwjs"),
-				import("@tensorflow/tfjs"),
-			]);
-			enableProdMode?.();
-			// Load default model from CDN
-			nsfwModelRef.current = await load();
+			try {
+				// Add timeout for model loading
+				const modelPromise = Promise.all([
+					import("nsfwjs"),
+					import("@tensorflow/tfjs"),
+				]);
+
+				const timeoutPromise = new Promise((_, reject) =>
+					setTimeout(() => reject(new Error("Model loading timeout")), 30000)
+				);
+
+				const [{ load }, { enableProdMode }] = await Promise.race([
+					modelPromise,
+					timeoutPromise,
+				]);
+
+				enableProdMode?.();
+				// Load default model from CDN
+				nsfwModelRef.current = await load();
+			} catch (error) {
+				console.error("Failed to load NSFW model:", error);
+				// Set a dummy model to prevent repeated loading attempts
+				nsfwModelRef.current = { classify: () => Promise.resolve([]) };
+			}
 		}
+		return nsfwModelRef.current;
 	}, []);
 
 	useEffect(() => {
@@ -151,56 +169,82 @@ const AddNewAd = () => {
 		}
 
 		return new Promise((resolve) => {
+			// Add timeout to prevent hanging
+			const timeoutId = setTimeout(() => {
+				console.warn("NSFW check timeout for image:", file.name);
+				resolve(false); // Assume safe on timeout
+			}, 15000); // 15 second timeout
+
 			const reader = new FileReader();
 			reader.onload = async (event) => {
-				const img = new Image();
-				img.src = event.target.result;
-				img.onload = async () => {
-					if (!nsfwModelRef.current) {
-						console.error("NSFW model failed to load.");
-						resolve(false); // Assume safe if model fails
-						return;
-					}
+				try {
+					const img = new Image();
+					img.src = event.target.result;
+					img.onload = async () => {
+						try {
+							if (!nsfwModelRef.current) {
+								console.error("NSFW model failed to load.");
+								clearTimeout(timeoutId);
+								resolve(false); // Assume safe if model fails
+								return;
+							}
 
-					try {
-						const predictions = await nsfwModelRef.current.classify(img);
-						// Build a map for easier thresholding
-						const predictionMap = {};
-						predictions.forEach(({ className, probability }) => {
-							predictionMap[className] = probability;
-						});
+							const predictions = await nsfwModelRef.current.classify(img);
+							// Build a map for easier thresholding
+							const predictionMap = {};
+							predictions.forEach(({ className, probability }) => {
+								predictionMap[className] = probability;
+							});
 
-						// Calibrated thresholds to reduce false positives
-						const pornProb = predictionMap["Porn"] || 0;
-						const hentaiProb = predictionMap["Hentai"] || 0;
-						const sexyProb = predictionMap["Sexy"] || 0;
-						const neutralProb = predictionMap["Neutral"] || 0;
-						const drawingProb = predictionMap["Drawing"] || 0;
+							// Calibrated thresholds to reduce false positives
+							const pornProb = predictionMap["Porn"] || 0;
+							const hentaiProb = predictionMap["Hentai"] || 0;
+							const sexyProb = predictionMap["Sexy"] || 0;
+							const neutralProb = predictionMap["Neutral"] || 0;
+							const drawingProb = predictionMap["Drawing"] || 0;
 
-						// Unsafe if explicit categories are very confident
-						const isExplicit =
-							pornProb >= 0.7 || hentaiProb >= 0.7 || sexyProb >= 0.8;
-						// Strongly safe if neutral/drawing dominate
-						const isClearlySafe =
-							neutralProb + drawingProb >= 0.6 &&
-							sexyProb < 0.6 &&
-							pornProb < 0.6 &&
-							hentaiProb < 0.6;
+							// Unsafe if explicit categories are very confident
+							const isExplicit =
+								pornProb >= 0.7 || hentaiProb >= 0.7 || sexyProb >= 0.8;
+							// Strongly safe if neutral/drawing dominate
+							const isClearlySafe =
+								neutralProb + drawingProb >= 0.6 &&
+								sexyProb < 0.6 &&
+								pornProb < 0.6 &&
+								hentaiProb < 0.6;
 
-						if (isExplicit) {
-							resolve(true);
-						} else if (isClearlySafe) {
-							resolve(false);
-						} else {
-							// For ambiguous cases, default to safe to avoid over-blocking
-							resolve(false);
+							clearTimeout(timeoutId);
+							if (isExplicit) {
+								resolve(true);
+							} else if (isClearlySafe) {
+								resolve(false);
+							} else {
+								// For ambiguous cases, default to safe to avoid over-blocking
+								resolve(false);
+							}
+						} catch (error) {
+							console.error("Error classifying image:", error);
+							clearTimeout(timeoutId);
+							resolve(false); // Assume safe if classification fails
 						}
-					} catch (error) {
-						console.error("Error classifying image:", error);
-						resolve(false); // Assume safe if classification fails
-					}
-				};
+					};
+					img.onerror = () => {
+						console.error("Error loading image for NSFW check");
+						clearTimeout(timeoutId);
+						resolve(false); // Assume safe on image load error
+					};
+				} catch (error) {
+					console.error("Error in NSFW check:", error);
+					clearTimeout(timeoutId);
+					resolve(false); // Assume safe on error
+				}
 			};
+			reader.onerror = () => {
+				console.error("Error reading file for NSFW check");
+				clearTimeout(timeoutId);
+				resolve(false); // Assume safe on file read error
+			};
+
 			reader.readAsDataURL(file);
 		});
 	};
@@ -254,17 +298,41 @@ const AddNewAd = () => {
 			let skippedImages = 0;
 
 			if (selectedImages.length > 0) {
-				await loadNSFWModel();
+				try {
+					await loadNSFWModel();
 
-				for (let i = 0; i < selectedImages.length; i++) {
-					const file = selectedImages[i];
-					const isUnsafe = await checkImage(file);
-					if (isUnsafe) {
-						console.warn("Blocked unsafe image:", file.name);
-						skippedImages++;
-						continue;
-					}
-					safeImages.push(file);
+					// Process images with timeout
+					const imageProcessingPromises = selectedImages.map(
+						async (file, i) => {
+							try {
+								const isUnsafe = await checkImage(file);
+								if (isUnsafe) {
+									console.warn("Blocked unsafe image:", file.name);
+									return { file, isUnsafe: true };
+								}
+								return { file, isUnsafe: false };
+							} catch (error) {
+								console.error("Error processing image:", file.name, error);
+								// On error, assume safe to avoid blocking legitimate images
+								return { file, isUnsafe: false };
+							}
+						}
+					);
+
+					const results = await Promise.all(imageProcessingPromises);
+
+					results.forEach(({ file, isUnsafe }) => {
+						if (isUnsafe) {
+							skippedImages++;
+						} else {
+							safeImages.push(file);
+						}
+					});
+				} catch (error) {
+					console.error("Error during NSFW scanning:", error);
+					// If NSFW scanning fails completely, use all images
+					safeImages = [...selectedImages];
+					skippedImages = 0;
 				}
 			}
 
@@ -516,32 +584,45 @@ const AddNewAd = () => {
 						);
 						setScanningImages((prev) => [...prev, ...fileIds]);
 
-						// Check each file for NSFW content asynchronously
+						// Check each file for NSFW content asynchronously with error handling
 						validFiles.forEach(async (file, index) => {
 							const fileId = `${file.name}-${index}`;
-							const isNSFW = await checkImage(file);
+							try {
+								const isNSFW = await checkImage(file);
 
-							// Remove from scanning
-							setScanningImages((prev) => prev.filter((id) => id !== fileId));
+								// Remove from scanning
+								setScanningImages((prev) => prev.filter((id) => id !== fileId));
 
-							if (isNSFW) {
-								// Remove unsafe image from state
-								if (mode === "edit") {
-									setEditedImages((prev) => prev.filter((img) => img !== file));
-								} else {
-									setSelectedImages((prev) =>
-										prev.filter((img) => img !== file)
-									);
+								if (isNSFW) {
+									// Remove unsafe image from state
+									if (mode === "edit") {
+										setEditedImages((prev) =>
+											prev.filter((img) => img !== file)
+										);
+									} else {
+										setSelectedImages((prev) =>
+											prev.filter((img) => img !== file)
+										);
+									}
+
+									// Show error message
+									Swal.fire({
+										icon: "error",
+										title: "Inappropriate Content Detected",
+										text: `"${file.name}" contains inappropriate content and has been removed.`,
+										confirmButtonText: "OK",
+										confirmButtonColor: "#eab308",
+									});
 								}
-
-								// Show error message
-								Swal.fire({
-									icon: "error",
-									title: "Inappropriate Content Detected",
-									text: `"${file.name}" contains inappropriate content and has been removed.`,
-									confirmButtonText: "OK",
-									confirmButtonColor: "#eab308",
-								});
+							} catch (error) {
+								console.error(
+									"Error checking image for NSFW:",
+									file.name,
+									error
+								);
+								// Remove from scanning even on error
+								setScanningImages((prev) => prev.filter((id) => id !== fileId));
+								// Don't remove the image on error - assume it's safe
 							}
 						});
 					}
@@ -560,30 +641,37 @@ const AddNewAd = () => {
 				);
 				setScanningImages((prev) => [...prev, ...fileIds]);
 
-				// Check each file for NSFW content asynchronously
+				// Check each file for NSFW content asynchronously with error handling
 				validFiles.forEach(async (file, index) => {
 					const fileId = `${file.name}-${index}`;
-					const isNSFW = await checkImage(file);
+					try {
+						const isNSFW = await checkImage(file);
 
-					// Remove from scanning
-					setScanningImages((prev) => prev.filter((id) => id !== fileId));
+						// Remove from scanning
+						setScanningImages((prev) => prev.filter((id) => id !== fileId));
 
-					if (isNSFW) {
-						// Remove unsafe image from state
-						if (mode === "edit") {
-							setEditedImages((prev) => prev.filter((img) => img !== file));
-						} else {
-							setSelectedImages((prev) => prev.filter((img) => img !== file));
+						if (isNSFW) {
+							// Remove unsafe image from state
+							if (mode === "edit") {
+								setEditedImages((prev) => prev.filter((img) => img !== file));
+							} else {
+								setSelectedImages((prev) => prev.filter((img) => img !== file));
+							}
+
+							// Show error message
+							Swal.fire({
+								icon: "error",
+								title: "Inappropriate Content Detected",
+								text: `"${file.name}" contains inappropriate content and has been removed.`,
+								confirmButtonText: "OK",
+								confirmButtonColor: "#eab308",
+							});
 						}
-
-						// Show error message
-						Swal.fire({
-							icon: "error",
-							title: "Inappropriate Content Detected",
-							text: `"${file.name}" contains inappropriate content and has been removed.`,
-							confirmButtonText: "OK",
-							confirmButtonColor: "#eab308",
-						});
+					} catch (error) {
+						console.error("Error checking image for NSFW:", file.name, error);
+						// Remove from scanning even on error
+						setScanningImages((prev) => prev.filter((id) => id !== fileId));
+						// Don't remove the image on error - assume it's safe
 					}
 				});
 			}
