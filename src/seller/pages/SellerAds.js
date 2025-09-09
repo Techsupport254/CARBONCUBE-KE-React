@@ -20,8 +20,6 @@ const SellerAds = () => {
 	const [filter, setFilter] = useState("active"); // "active", "all", "deleted"
 	const navigate = useNavigate();
 
-	const sellerId = sessionStorage.getItem("sellerId");
-
 	// SEO Implementation - Private seller dashboard, should not be indexed
 	useSEO({
 		title: "Manage Your Ads - Seller Dashboard | Carbon Cube Kenya",
@@ -75,7 +73,7 @@ const SellerAds = () => {
 		const fetchAds = async () => {
 			try {
 				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/seller/ads?seller_id=${sellerId}`,
+					`${process.env.REACT_APP_BACKEND_URL}/seller/ads`,
 					{
 						headers: {
 							Authorization: "Bearer " + sessionStorage.getItem("token"),
@@ -111,7 +109,7 @@ const SellerAds = () => {
 		};
 
 		fetchAds();
-	}, [sellerId]);
+	}, []);
 
 	const handleViewDetailsClick = (ad) => {
 		navigate(`/seller/ads/${ad.id}`);
@@ -246,19 +244,6 @@ const SellerAds = () => {
 						</div>
 					)}
 
-					{/* Average Rating Badge - Top Right */}
-					{ad.mean_rating && ad.mean_rating > 0 && (
-						<div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full px-2 py-1 flex items-center gap-1">
-							<FontAwesomeIcon
-								icon={faStar}
-								className="text-xs text-yellow-400"
-							/>
-							<span className="text-xs text-gray-600 font-medium">
-								{ad.mean_rating.toFixed(1)}
-							</span>
-						</div>
-					)}
-
 					{/* Deleted Overlay */}
 					{ads.deleted.some((p) => p.id === ad.id) && (
 						<div className="absolute inset-0 bg-red-500 bg-opacity-80 flex items-center justify-center">
@@ -337,11 +322,22 @@ const SellerAds = () => {
 						{ad.title}
 					</h3>
 
-					{/* Price */}
+					{/* Price and Rating Row */}
 					<div className="flex items-center justify-between">
 						<span className="text-sm sm:text-base font-bold text-green-600">
 							Kshs {parseFloat(ad.price).toLocaleString()}
 						</span>
+						{ad.mean_rating && ad.mean_rating > 0 && (
+							<div className="flex items-center gap-1">
+								<FontAwesomeIcon
+									icon={faStar}
+									className="text-xs text-yellow-400"
+								/>
+								<span className="text-xs text-gray-600 font-medium">
+									{ad.mean_rating.toFixed(1)}
+								</span>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
