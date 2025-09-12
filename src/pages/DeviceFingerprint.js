@@ -5,10 +5,126 @@ import {
 } from "../utils/clickEventLogger";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import useSEO from "../hooks/useSEO";
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "/api";
 
 const DeviceFingerprint = () => {
+	// SEO Implementation
+	useSEO({
+		title: "Device Fingerprint & Analytics Tracking | Carbon Cube Kenya",
+		description:
+			"View your device fingerprint information and manage analytics tracking preferences on Carbon Cube Kenya. Request device exclusion for internal users.",
+		keywords:
+			"device fingerprint Carbon Cube Kenya, analytics tracking, device exclusion, internal user tracking, Carbon Cube device management",
+		url: `${window.location.origin}/device-fingerprint`,
+		type: "website",
+		section: "Technical Information",
+		tags: [
+			"Device Fingerprint",
+			"Analytics",
+			"Tracking",
+			"Privacy",
+			"Technical",
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "Device Fingerprint & Analytics Tracking - Carbon Cube Kenya",
+			description:
+				"Device fingerprint information and analytics tracking management for Carbon Cube Kenya users",
+			url: `${window.location.origin}/device-fingerprint`,
+			mainEntity: {
+				"@type": "SoftwareApplication",
+				name: "Carbon Cube Kenya Device Fingerprinting",
+				description: "Device fingerprinting and analytics tracking system",
+				applicationCategory: "WebApplication",
+				operatingSystem: "Web Browser",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "KES",
+				},
+			},
+		},
+		conversationalKeywords: [
+			"Carbon Cube Kenya device fingerprint",
+			"analytics tracking management",
+			"device exclusion request",
+			"internal user tracking",
+			"Carbon Cube privacy settings",
+		],
+		robots: "noindex, nofollow", // This is a technical/internal page
+		canonical: `${window.location.origin}/device-fingerprint`,
+		alternate: {
+			en: `${window.location.origin}/device-fingerprint`,
+		},
+		openGraph: {
+			title: "Device Fingerprint & Analytics Tracking | Carbon Cube Kenya",
+			description:
+				"View your device fingerprint information and manage analytics tracking preferences on Carbon Cube Kenya.",
+			type: "website",
+			url: `${window.location.origin}/device-fingerprint`,
+			siteName: "Carbon Cube Kenya",
+			locale: "en_KE",
+			images: [
+				{
+					url: `${window.location.origin}/assets/banners/carbon-cube-logo.png`,
+					width: 1200,
+					height: 630,
+					alt: "Carbon Cube Kenya Device Fingerprint",
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			site: "@CarbonCubeKE",
+			creator: "@CarbonCubeKE",
+			title: "Device Fingerprint & Analytics Tracking | Carbon Cube Kenya",
+			description:
+				"View your device fingerprint information and manage analytics tracking preferences on Carbon Cube Kenya.",
+			image: `${window.location.origin}/assets/banners/carbon-cube-logo.png`,
+		},
+		additionalMetaTags: [
+			{
+				name: "author",
+				content: "Carbon Cube Kenya",
+			},
+			{
+				name: "publisher",
+				content: "Carbon Cube Kenya",
+			},
+			{
+				name: "copyright",
+				content: "© 2024 Carbon Cube Kenya. All rights reserved.",
+			},
+			{
+				name: "language",
+				content: "en-KE",
+			},
+			{
+				name: "geo.region",
+				content: "KE",
+			},
+			{
+				name: "geo.country",
+				content: "Kenya",
+			},
+			{
+				name: "distribution",
+				content: "global",
+			},
+			{
+				name: "rating",
+				content: "general",
+			},
+			{
+				name: "revisit-after",
+				content: "7 days",
+			},
+		],
+	});
+
 	const [deviceInfo, setDeviceInfo] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [copied, setCopied] = useState("");

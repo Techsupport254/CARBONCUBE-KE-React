@@ -27,7 +27,6 @@ A fully configurable messaging component that can be used by buyers, sellers, an
 ```jsx
 import Messages from "../../components/Messages";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
 
 const BuyerMessages = () => {
 	return (
@@ -52,7 +51,6 @@ const BuyerMessages = () => {
 ```jsx
 import Messages from "../../components/Messages";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
 
 const SellerMessages = () => {
 	return (
@@ -77,7 +75,6 @@ const SellerMessages = () => {
 ```jsx
 import Messages from "../../components/Messages";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
 
 const AdminMessages = () => {
 	return (

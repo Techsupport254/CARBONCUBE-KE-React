@@ -8,7 +8,7 @@ import {
 	Card,
 	Form,
 } from "react-bootstrap";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/CategoriesManagement.css"; // Custom CSS

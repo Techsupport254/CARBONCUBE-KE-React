@@ -14,7 +14,7 @@ import PopularAdsSection from "../components/PopularAdsSection";
 import SearchResultSection from "../components/SearchResultSection";
 import Spinner from "react-spinkit";
 // import AdDetailsModal from '../components/AdDetailsModal';
-import { useNavigate, useLocation } from "react-router-dom"; // Import useNavigate
+import { useNavigate, useSearchParams } from "react-router-dom"; // Import useSearchParams
 import { createSlug } from "../../utils/slugUtils";
 // import "../css/Home.css"; // Removed CSS import
 import Footer from "../../components/Footer";
@@ -23,12 +23,16 @@ import {
 	logAdSearch,
 	logSubcategoryClick,
 } from "../../utils/clickEventLogger";
-import useSEO from "../../hooks/useSEO";
+import ComprehensiveSEO from "../../components/ComprehensiveSEO";
 import {
 	generateHomeSEO,
 	generateCategoryPageSEO,
 } from "../../utils/seoHelpers";
 import apiService from "../../services/apiService";
+import {
+	smartReshuffle,
+	createDebouncedReshuffle,
+} from "../utils/adReshuffleUtils";
 
 /*
 Responsive breakpoints reference
@@ -65,36 +69,50 @@ const Home = () => {
 	const [adsError, setAdsError] = useState(null);
 	const [bestSellersError, setBestSellersError] = useState(null);
 	const [error, setError] = useState(null); // search error only
-	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState([]);
 	const [searchShops, setSearchShops] = useState([]); // Add shops state
 	const [isSearching, setIsSearching] = useState(false);
+	const [totalResultsCount, setTotalResultsCount] = useState(0); // Add total results count state
 
 	const [currentSearchType, setCurrentSearchType] = useState(""); // Track if it's a subcategory search
 	const [displayedResults, setDisplayedResults] = useState([]);
 	// eslint-disable-next-line no-unused-vars
 	const [currentPage, setCurrentPage] = useState(1);
-	const [hasMore, setHasMore] = useState(true);
 	// eslint-disable-next-line no-unused-vars
 	const [hasSearched, setHasSearched] = useState(false); // Track if a search has been performed
-	const RESULTS_PER_PAGE = 18; // Show 18 items per page (3 rows of 6 items)
+	const RESULTS_PER_PAGE = 24; // Show 24 items per page (6 items per row × 4 rows)
 	const navigate = useNavigate(); // Initialize useNavigate
+	const [searchParams] = useSearchParams(); // Initialize useSearchParams
 	const [isComponentMounted, setIsComponentMounted] = useState(false);
 
-	// Debounced search functionality
-	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-	const SEARCH_DELAY = 3000; // 3000ms (3 seconds) delay for debounced search
+	// Removed SEARCH_DELAY constant - search now only triggers on form submission
 
 	// Category and subcategory state for navbar
 	const [selectedCategory, setSelectedCategory] = useState("All");
 	const [selectedSubcategory, setSelectedSubcategory] = useState("All");
 
-	// Flag to prevent circular updates
-	const [isUpdatingUrl, setIsUpdatingUrl] = useState(false);
+	// Flag to track if component has been initialized from URL parameters
+	const [isInitialized, setIsInitialized] = useState(false);
 
 	// Ref to track abort controller for search requests
 	const abortControllerRef = useRef(null);
+
+	// Reshuffle functionality state
+	const [lastReshuffleTime, setLastReshuffleTime] = useState(null);
+	const [isReshuffling, setIsReshuffling] = useState(false);
+	const [userBehavior, setUserBehavior] = useState(
+		{
+			preferredCategories: [],
+			clickedAds: [],
+			avoidedAds: [],
+			timeOnPage: 0,
+			lastActivity: Date.now(),
+		},
+		[navigate]
+	);
+	const reshuffleIntervalRef = useRef(null);
+	const pageLoadTimeRef = useRef(Date.now());
 
 	// Ref to prevent duplicate requests
 	const isProcessingRef = useRef(false);
@@ -105,13 +123,11 @@ const Home = () => {
 	// Ref to track last search parameters to prevent duplicate searches
 	const lastSearchParamsRef = useRef(null);
 
-	// Get location before using it in seoData
-	const location = useLocation();
+	// Get search parameters for SEO and other uses
 
-	// Enhanced SEO Implementation
+	// Enhanced SEO Implementation with React Helmet
 	const seoData = (() => {
 		// Check if we're on a category page
-		const searchParams = new URLSearchParams(location.search);
 		const categoryParam = searchParams.get("category");
 		const subcategoryParam = searchParams.get("subcategory");
 		const queryParam = searchParams.get("query");
@@ -147,9 +163,12 @@ const Home = () => {
 			}
 		}
 
-		// Default to homepage SEO
+		// Default to homepage SEO with enhanced React Helmet integration
 		return {
 			...generateHomeSEO(categories),
+			// Enhanced URL and canonical
+			url: window.location.href,
+			canonical: window.location.href,
 			// Advanced SEO Features
 			alternateLanguages: [
 				{ lang: "en", url: `${window.location.origin}/` },
@@ -221,6 +240,7 @@ const Home = () => {
 				"online shopping platform Kenya",
 			],
 			aiCitationOptimized: true,
+			// Enhanced structured data for React Helmet
 			additionalStructuredData: [
 				...(generateHomeSEO(categories).additionalStructuredData || []),
 				// Enhanced FAQ Schema for Homepage
@@ -282,11 +302,95 @@ const Home = () => {
 						},
 					})),
 				},
+				// Enhanced WebSite Schema with search functionality
+				{
+					"@context": "https://schema.org",
+					"@type": "WebSite",
+					url: "https://carboncube-ke.com/",
+					name: "Carbon Cube Kenya",
+					description: "Kenya's most trusted and secure online marketplace",
+					potentialAction: {
+						"@type": "SearchAction",
+						target:
+							"https://carboncube-ke.com/buyer/ads/search?q={search_term_string}",
+						"query-input": "required name=search_term_string",
+					},
+					mainEntity: {
+						"@type": "ItemList",
+						name: "Product Categories",
+						description: "Browse products by category on Carbon Cube Kenya",
+						url: "https://carboncube-ke.com/buyer/categories",
+						numberOfItems: categories.length,
+					},
+				},
 			],
 		};
 	})();
 
-	const seoComponent = useSEO(seoData);
+	// Prepare SEO data for ComprehensiveSEO component
+	const seoConfig = (() => {
+		const categoryParam = searchParams.get("category");
+		const subcategoryParam = searchParams.get("subcategory");
+		const queryParam = searchParams.get("query");
+
+		return {
+			pageType: categoryParam && categoryParam !== "All" ? "category" : "home",
+			data: {
+				categories,
+				searchResults,
+				category:
+					categoryParam && categoryParam !== "All"
+						? categories.find(
+								(cat) =>
+									cat.slug === categoryParam || cat.name === categoryParam
+						  )
+						: null,
+				subcategory:
+					subcategoryParam && subcategoryParam !== "All"
+						? categories
+								.find((cat) =>
+									cat.subcategories?.find(
+										(sub) =>
+											sub.slug === subcategoryParam ||
+											sub.name === subcategoryParam
+									)
+								)
+								?.subcategories?.find(
+									(sub) =>
+										sub.slug === subcategoryParam ||
+										sub.name === subcategoryParam
+								)
+						: null,
+				query: queryParam || "",
+				// Additional data for enhanced SEO
+				count: searchResults.length,
+				name:
+					categoryParam && categoryParam !== "All"
+						? categories.find(
+								(cat) =>
+									cat.slug === categoryParam || cat.name === categoryParam
+						  )?.name
+						: "Carbon Cube Kenya",
+				subcategories:
+					categoryParam && categoryParam !== "All"
+						? categories
+								.find(
+									(cat) =>
+										cat.slug === categoryParam || cat.name === categoryParam
+								)
+								?.subcategories?.map((sub) => sub.name)
+								.join(", ")
+						: "",
+			},
+			customConfig: {
+				// Override default config with our enhanced SEO data
+				...seoData,
+				// Ensure proper URL handling
+				url: window.location.href,
+				canonical: window.location.href,
+			},
+		};
+	})();
 
 	useEffect(() => {
 		let isMounted = true;
@@ -443,103 +547,51 @@ const Home = () => {
 		return flat;
 	}, [ads]);
 
-	// Update the useEffect that handles location search to better manage state
+	// Initialize component state from URL parameters on mount
 	useEffect(() => {
 		setIsComponentMounted(true);
+
+		// Initialize state directly from URL parameters
+		const query = searchParams.get("query") || "";
+		const category = searchParams.get("category") || "All";
+		const subcategory = searchParams.get("subcategory") || "All";
+		const page = searchParams.get("page") || "1";
+
+		// Initialize all state from URL parameters immediately
+		setSearchQuery(query);
+		// Convert category and subcategory to numbers if they're not "All"
+		setSelectedCategory(category === "All" ? "All" : parseInt(category, 10));
+		setSelectedSubcategory(
+			subcategory === "All" ? "All" : parseInt(subcategory, 10)
+		);
+		setCurrentPage(parseInt(page, 10));
+
+		// Removed debounced query initialization - search now only triggers on form submission
+
+		// Don't set lastSearchParamsRef here - let the URL change effect handle it
+		// This ensures the URL change effect can detect initial load with search params
+
+		// Mark as initialized to prevent debounced search from running
+		setIsInitialized(true);
+
 		return () => setIsComponentMounted(false);
-	}, []);
+	}, [searchParams]);
 
-	// Debounced search effect - triggers search after user stops typing
-	useEffect(() => {
-		// Don't debounce empty queries - clear immediately
-		if (!searchQuery || searchQuery.trim() === "") {
-			setDebouncedSearchQuery("");
-			return;
-		}
+	// Removed debounced search effect - search now only triggers on form submission
 
-		const timer = setTimeout(() => {
-			setDebouncedSearchQuery(searchQuery);
-		}, SEARCH_DELAY);
-
-		return () => clearTimeout(timer);
-	}, [searchQuery, SEARCH_DELAY]);
-
-	// Effect to update URL when debounced search query changes
-	useEffect(() => {
-		if (!isComponentMounted || isUpdatingUrl) {
-			return;
-		}
-
-		// Update URL with debounced search query
-		const params = new URLSearchParams(location.search);
-		const currentQuery = params.get("query");
-		const category = params.get("category");
-		const subcategory = params.get("subcategory");
-
-		// Only update URL if the debounced query is different from current URL query
-		if (debouncedSearchQuery !== currentQuery) {
-			setIsUpdatingUrl(true);
-
-			const newParams = new URLSearchParams();
-
-			// Add search query if it exists and is not empty
-			if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
-				newParams.set("query", debouncedSearchQuery.trim());
-			}
-
-			// Add category if it exists
-			if (category && category !== "All") {
-				newParams.set("category", category);
-			}
-
-			// Add subcategory if it exists
-			if (subcategory && subcategory !== "All") {
-				newParams.set("subcategory", subcategory);
-			}
-
-			// If we have no search query and no category/subcategory filters, go to home page
-			if (!debouncedSearchQuery || debouncedSearchQuery.trim() === "") {
-				if (!category || category === "All") {
-					if (!subcategory || subcategory === "All") {
-						navigate("/", { replace: true });
-						setIsUpdatingUrl(false);
-						return;
-					}
-				}
-			}
-
-			// Update URL without adding to browser history (replace current entry)
-			const newUrl = newParams.toString() ? `/?${newParams.toString()}` : "/";
-			navigate(newUrl, { replace: true });
-
-			// Reset the flag after a short delay to allow the navigation to complete
-			setTimeout(() => setIsUpdatingUrl(false), 100);
-		}
-	}, [
-		debouncedSearchQuery,
-		isComponentMounted,
-		navigate,
-		isUpdatingUrl,
-		location.search,
-	]);
+	// Removed URL update effect - URL updating now happens in handleSearch function
 
 	// Effect to handle category/subcategory changes immediately (no debouncing)
 	useEffect(() => {
 		// This effect handles category/subcategory changes from the navbar
 		// It will be triggered when the URL changes due to category/subcategory selection
-	}, [location.search]);
+	}, [searchParams]);
 
 	// Simplified effect - just handle empty search state
 	useEffect(() => {
-		// Prevent running if we're updating URL
-		if (isUpdatingUrl) {
-			return;
-		}
-
-		const params = new URLSearchParams(location.search);
-		const query = params.get("query");
-		const category = params.get("category");
-		const subcategory = params.get("subcategory");
+		const query = searchParams.get("query");
+		const category = searchParams.get("category");
+		const subcategory = searchParams.get("subcategory");
 
 		// Handle empty search query immediately (but allow category/subcategory filtering)
 		if (
@@ -556,190 +608,262 @@ const Home = () => {
 				setHasSearched(false);
 				setDisplayedResults([]);
 				setCurrentPage(1);
-				setHasMore(true);
 			});
 			return;
 		}
-	}, [location.search, isUpdatingUrl]);
+	}, [searchParams]);
 
 	// Define fetchSearchResults function using useCallback
-	const fetchSearchResults = useCallback(async () => {
-		// Prevent multiple simultaneous requests
-		if (isSearching || isProcessingRef.current) {
-			return;
-		}
-
-		isProcessingRef.current = true;
-		setIsSearching(true);
-		setError(null);
-
-		// Cancel any existing request
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort();
-		}
-
-		// Create new AbortController for request cancellation
-		const abortController = new AbortController();
-		abortControllerRef.current = abortController;
-		const timeoutId = setTimeout(() => abortController.abort(), 10000);
-
-		try {
-			// Check if component is still mounted
-			if (!isComponentMounted) {
+	const fetchSearchResults = useCallback(
+		async (
+			pageOverride = null,
+			queryOverride = null,
+			categoryOverride = null,
+			subcategoryOverride = null
+		) => {
+			// Prevent multiple simultaneous requests
+			if (isSearching || isProcessingRef.current) {
 				return;
 			}
 
-			// Extract search parameters from URL
-			const searchParams = new URLSearchParams(location.search);
-			const searchQuery = searchParams.get("query") || "";
-			const searchCategory = searchParams.get("category") || "All";
-			const searchSubcategory = searchParams.get("subcategory") || "All";
+			isProcessingRef.current = true;
+			setIsSearching(true);
+			setError(null);
 
-			// Use API service for optimized data fetching
-			let results;
-			if (searchQuery.trim()) {
-				// For text search, use the search endpoint
-				results = await apiService.searchAds(searchQuery, {
-					category: searchCategory,
-					subcategory: searchSubcategory,
-					page: 1,
-					per_page: 20,
-				});
-			} else {
-				// For category/subcategory filtering, use the main ads endpoint
-				const params = {
-					per_page: 200,
-					balanced: true,
-				};
+			// Cancel any existing request
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+			}
 
-				// Add category filter if specified
-				if (searchCategory && searchCategory !== "All") {
-					params.category_id = searchCategory;
+			// Create new AbortController for request cancellation
+			const abortController = new AbortController();
+			abortControllerRef.current = abortController;
+			const timeoutId = setTimeout(() => abortController.abort(), 10000);
+
+			try {
+				// Check if component is still mounted
+				if (!isComponentMounted) {
+					return;
 				}
 
-				// Add subcategory filter if specified
-				if (searchSubcategory && searchSubcategory !== "All") {
-					params.subcategory_id = searchSubcategory;
-				}
+				// Extract search parameters from URL or use overrides
+				const searchQuery =
+					queryOverride !== null
+						? queryOverride
+						: searchParams.get("query") || "";
+				const searchCategory =
+					categoryOverride !== null
+						? categoryOverride
+						: searchParams.get("category") || "All";
+				const searchSubcategory =
+					subcategoryOverride !== null
+						? subcategoryOverride
+						: searchParams.get("subcategory") || "All";
+				// Use pageOverride if provided, otherwise get from URL
+				const currentPage =
+					pageOverride !== null
+						? pageOverride
+						: parseInt(searchParams.get("page") || "1", 10);
 
-				results = await apiService.getAds(params);
-			}
+				// Determine if we're in search mode (any search parameters present)
+				const hasSearchParams =
+					searchQuery.trim() ||
+					(searchCategory && searchCategory !== "All") ||
+					(searchSubcategory && searchSubcategory !== "All");
 
-			clearTimeout(timeoutId);
-
-			// Check if component is still mounted before processing results
-			if (!isComponentMounted) {
-				return;
-			}
-
-			// Add a small delay to prevent rapid flickering
-			await new Promise((resolve) => setTimeout(resolve, 100));
-
-			// Check if component is still mounted after delay
-			if (!isComponentMounted) {
-				return;
-			}
-
-			// Process results based on search type
-			let ads = [];
-			let shops = [];
-
-			if (results.ads) {
-				ads = results.ads;
-			} else if (Array.isArray(results)) {
-				ads = results;
-			}
-
-			// Extract shops from results if they exist
-			if (results.shops) {
-				shops = results.shops;
-			}
-
-			// Batch state updates to prevent flickering
-			startTransition(() => {
-				setSearchResults(ads);
-				setSearchShops(shops);
-
-				// Initialize displayed results inline to avoid dependency issues
-				const params = new URLSearchParams(location.search);
-				const query = params.get("query");
-
-				if (!query || query.trim() === "") {
-					setDisplayedResults(ads);
-					setCurrentPage(1);
-					setHasMore(false); // No pagination for category filtering
+				// Use API service for optimized data fetching
+				let results;
+				if (searchQuery.trim()) {
+					// Special handling for "best sellers" query
+					if (
+						searchQuery.toLowerCase().includes("best sellers") ||
+						searchQuery.toLowerCase().includes("best+sellers")
+					) {
+						// For best sellers, use the best sellers endpoint
+						results = await apiService.getBestSellers({
+							page: currentPage,
+							per_page: RESULTS_PER_PAGE,
+						});
+					} else {
+						// For regular text search, use the search endpoint with category filtering
+						results = await apiService.searchAds(searchQuery, {
+							category: searchCategory,
+							subcategory: searchSubcategory,
+							page: currentPage,
+							per_page: RESULTS_PER_PAGE, // Always 24 for search results
+						});
+					}
 				} else {
-					const initialResults = ads.slice(0, RESULTS_PER_PAGE);
-					setDisplayedResults(initialResults);
-					setCurrentPage(1);
-					setHasMore(ads.length > RESULTS_PER_PAGE);
+					// For category/subcategory filtering without search query, use the main ads endpoint
+					const params = {
+						page: currentPage,
+					};
+
+					// Use different per_page based on search mode
+					if (hasSearchParams) {
+						// Search mode: fetch exactly 24 items per page
+						params.per_page = RESULTS_PER_PAGE;
+					} else {
+						// Home page mode: fetch more items to display normally
+						params.per_page = 200;
+					}
+
+					// Only use balanced distribution if no category/subcategory filtering
+					if (searchCategory === "All" && searchSubcategory === "All") {
+						params.balanced = true;
+					}
+
+					// Add category filter if specified
+					if (searchCategory && searchCategory !== "All") {
+						params.category_id = searchCategory;
+					}
+
+					// Add subcategory filter if specified
+					if (searchSubcategory && searchSubcategory !== "All") {
+						params.subcategory_id = searchSubcategory;
+					}
+
+					results = await apiService.getAds(params);
 				}
 
-				setError(null); // Clear any previous errors
-				setHasSearched(true); // Mark that a search was performed
-			});
+				clearTimeout(timeoutId);
 
-			if (searchQuery.trim()) {
-				setCurrentSearchType("search");
-				await logAdSearch(searchQuery, searchCategory, searchSubcategory);
-			} else if (searchSubcategory !== "All") {
-				setCurrentSearchType(`subcategory-${searchSubcategory}`);
-			} else {
-				setCurrentSearchType("category");
+				// Check if component is still mounted before processing results
+				if (!isComponentMounted) {
+					return;
+				}
+
+				// Add a small delay to prevent rapid flickering
+				await new Promise((resolve) => setTimeout(resolve, 100));
+
+				// Check if component is still mounted after delay
+				if (!isComponentMounted) {
+					return;
+				}
+
+				// Process results based on search type
+				let ads = [];
+				let shops = [];
+
+				if (results.best_sellers) {
+					// Best sellers response format
+					ads = results.best_sellers;
+				} else if (results.ads) {
+					ads = results.ads;
+				} else if (Array.isArray(results)) {
+					ads = results;
+				}
+
+				// Extract shops from results if they exist
+				if (results.shops) {
+					shops = results.shops;
+				}
+
+				// Batch state updates to prevent flickering
+				startTransition(() => {
+					setSearchResults(ads);
+					setSearchShops(shops);
+
+					// Calculate and store total results count
+					const totalCount =
+						results.pagination?.total_count ||
+						results.pagination?.ads?.total_count ||
+						results.total_count ||
+						results.total ||
+						ads.length;
+
+					setTotalResultsCount(totalCount);
+
+					// Initialize displayed results inline to avoid dependency issues
+					const query = searchParams.get("query");
+
+					if (!query || query.trim() === "") {
+						setDisplayedResults(ads);
+						setCurrentPage(currentPage); // Use the page we're fetching
+					} else {
+						// For search queries, show all results from first page
+						setDisplayedResults(ads);
+						setCurrentPage(currentPage); // Use the page we're fetching
+					}
+
+					setError(null); // Clear any previous errors
+					setHasSearched(true); // Mark that a search was performed
+				});
+
+				if (searchQuery.trim()) {
+					// Check if it's a best sellers search
+					if (
+						searchQuery.toLowerCase().includes("best sellers") ||
+						searchQuery.toLowerCase().includes("best+sellers")
+					) {
+						setCurrentSearchType("best-sellers");
+					} else {
+						setCurrentSearchType("search");
+						await logAdSearch(searchQuery, searchCategory, searchSubcategory);
+					}
+				} else if (searchSubcategory !== "All") {
+					setCurrentSearchType(`subcategory-${searchSubcategory}`);
+				} else {
+					setCurrentSearchType("category");
+				}
+			} catch (error) {
+				console.error("Search error:", error);
+
+				// Clear timeout on error
+				clearTimeout(timeoutId);
+
+				// Handle different types of errors
+				if (error.name === "AbortError") {
+					// Request was cancelled or timed out
+					setError("Request timed out. Please try again.");
+				} else if (
+					error.message.includes("Failed to fetch") ||
+					error.message.includes("ERR_NETWORK_CHANGED")
+				) {
+					setError(
+						"Network error. Please check your connection and try again."
+					);
+				} else if (error.message.includes("ERR_CONNECTION_REFUSED")) {
+					setError("Unable to connect to server. Please try again later.");
+				} else {
+					setError(error.message);
+				}
+
+				setSearchResults([]);
+				setSearchShops([]);
+				setIsSearching(false);
+				setHasSearched(false);
+			} finally {
+				setIsSearching(false);
+				isProcessingRef.current = false;
+				// Clear the abort controller ref if this is the current request
+				if (abortControllerRef.current === abortController) {
+					abortControllerRef.current = null;
+				}
 			}
-		} catch (error) {
-			console.error("Search error:", error);
-
-			// Clear timeout on error
-			clearTimeout(timeoutId);
-
-			// Handle different types of errors
-			if (error.name === "AbortError") {
-				// Request was cancelled or timed out
-				setError("Request timed out. Please try again.");
-			} else if (
-				error.message.includes("Failed to fetch") ||
-				error.message.includes("ERR_NETWORK_CHANGED")
-			) {
-				setError("Network error. Please check your connection and try again.");
-			} else if (error.message.includes("ERR_CONNECTION_REFUSED")) {
-				setError("Unable to connect to server. Please try again later.");
-			} else {
-				setError(error.message);
-			}
-
-			setSearchResults([]);
-			setSearchShops([]);
-			setIsSearching(false);
-			setHasSearched(false);
-		} finally {
-			setIsSearching(false);
-			isProcessingRef.current = false;
-			// Clear the abort controller ref if this is the current request
-			if (abortControllerRef.current === abortController) {
-				abortControllerRef.current = null;
-			}
-		}
-	}, [location.search, isComponentMounted, isSearching]);
+		},
+		[searchParams, isComponentMounted, isSearching]
+	);
 
 	// Separate effect to handle URL changes and trigger search
 	useEffect(() => {
-		// Only run if component is mounted and not updating URL
-		if (!isComponentMounted || isUpdatingUrl) {
+		// Only run if component is mounted and initialized
+		if (!isComponentMounted || !isInitialized) {
 			return;
 		}
 
 		// Extract search parameters from URL
-		const searchParams = new URLSearchParams(location.search);
 		const query = searchParams.get("query") || "";
 		const category = searchParams.get("category") || "All";
 		const subcategory = searchParams.get("subcategory") || "All";
+		const page = searchParams.get("page") || "1";
 
 		// Create search parameters object for comparison
 		const currentSearchParams = {
 			query: query,
 			category: category,
 			subcategory: subcategory,
+			page: page,
 		};
 
 		// Check if search parameters have actually changed
@@ -747,12 +871,24 @@ const Home = () => {
 			JSON.stringify(currentSearchParams) !==
 			JSON.stringify(lastSearchParamsRef.current);
 
-		if (paramsChanged) {
-			lastSearchParamsRef.current = currentSearchParams;
-			// Execute search only if parameters have changed
+		// Also trigger search if we have search parameters and this is the first time we're seeing them
+		const hasSearchParams =
+			query.trim() || category !== "All" || subcategory !== "All";
+
+		// Check if this is the first time we're processing these search parameters
+		const isFirstTimeWithParams =
+			hasSearchParams && !lastSearchParamsRef.current;
+
+		// ENABLED: Trigger searches based on URL parameters for category/subcategory filtering
+		// This allows filtering when navigating with category/subcategory parameters
+		lastSearchParamsRef.current = currentSearchParams;
+
+		// Only trigger search if parameters have actually changed or this is the first time
+		if (paramsChanged || isFirstTimeWithParams) {
 			fetchSearchResults();
+		} else {
 		}
-	}, [location.search, isComponentMounted, isUpdatingUrl, fetchSearchResults]);
+	}, [searchParams, isComponentMounted, isInitialized, fetchSearchResults]);
 
 	// Cleanup effect to abort pending requests on unmount
 	useEffect(() => {
@@ -772,34 +908,46 @@ const Home = () => {
 		};
 	}, []);
 
-	const handleSidebarToggle = () => {
-		setSidebarOpen(!sidebarOpen);
-	};
+	const handleAdClick = useCallback(
+		async (adId) => {
+			if (!adId) {
+				console.error("Invalid adId");
+				return;
+			}
 
-	const handleAdClick = async (adId) => {
-		if (!adId) {
-			console.error("Invalid adId");
-			return;
-		}
+			try {
+				// Log the 'Ad-Click' event before navigating
+				await logClickEvent(adId, "Ad-Click");
 
-		try {
-			// Log the 'Ad-Click' event before navigating
-			await logClickEvent(adId, "Ad-Click");
+				// Preserve current query parameters when navigating to ad details
+				const currentParams = new URLSearchParams(window.location.search);
+				const currentQuery = currentParams.toString();
+				const separator = currentQuery ? "?" : "";
 
-			// Navigate to the ad details page without replacing current history entry
-			// This preserves the back button functionality
-			navigate(`/ads/${adId}`);
-		} catch (error) {
-			console.error("Error logging ad click:", error);
+				// Navigate to the ad details page with preserved query parameters
+				navigate(`/ads/${adId}${separator}${currentQuery}`);
+			} catch (error) {
+				console.error("Error logging ad click:", error);
 
-			// Proceed with navigation even if logging fails
-			navigate(`/ads/${adId}`);
-		}
-	};
+				// Proceed with navigation even if logging fails
+				const currentParams = new URLSearchParams(window.location.search);
+				const currentQuery = currentParams.toString();
+				const separator = currentQuery ? "?" : "";
+				navigate(`/ads/${adId}${separator}${currentQuery}`);
+			}
+		},
+		[navigate]
+	);
 
 	const handleShopClick = (shop) => {
 		const slug = createSlug(shop.enterprise_name);
-		navigate(`/shop/${slug}`);
+
+		// Preserve current query parameters when navigating to shop
+		const currentParams = new URLSearchParams(window.location.search);
+		const currentQuery = currentParams.toString();
+		const separator = currentQuery ? "?" : "";
+
+		navigate(`/shop/${slug}${separator}${currentQuery}`);
 	};
 
 	// Function to log a click event
@@ -825,22 +973,192 @@ const Home = () => {
 			params.set("subcategory", subcategory);
 		}
 
+		// Reset page to 1 when search parameters change
+		params.set("page", "1");
+
 		// Navigate to search results
 		navigate(`/?${params.toString()}`);
 	};
 
 	// Update handleSubcategoryClick to use URL navigation and handle the search properly
-	const handleSubcategoryClick = async (subcategoryName, categoryName) => {
-		// Navigate to URL with subcategory parameters
+	const handleSubcategoryClick = async (subcategoryName, categoryId) => {
+		// Navigate to URL with subcategory parameters using category ID
 		navigate(
-			`/?query=&category=${encodeURIComponent(
-				categoryName
-			)}&subcategory=${encodeURIComponent(subcategoryName)}`
+			`/?query=&category=${categoryId}&subcategory=${encodeURIComponent(
+				subcategoryName
+			)}`
 		);
 
 		// Log the subcategory click
-		await logSubcategoryClick(subcategoryName, categoryName);
+		await logSubcategoryClick(subcategoryName, categoryId);
 	};
+
+	// Reshuffle functionality
+	const performReshuffle = useCallback(
+		(options = {}) => {
+			if (isReshuffling || Object.keys(ads).length === 0) return;
+
+			setIsReshuffling(true);
+
+			try {
+				const reshuffleOptions = {
+					maintainTierOrder: true,
+					shuffleWithinTier: true,
+					considerRecency: true,
+					considerPopularity: true,
+					...options,
+				};
+
+				// Update user behavior with current time on page
+				const currentTimeOnPage = Date.now() - pageLoadTimeRef.current;
+				const updatedUserBehavior = {
+					...userBehavior,
+					timeOnPage: currentTimeOnPage,
+					lastActivity: Date.now(),
+				};
+
+				// Perform smart reshuffle
+				const reshuffledAds = smartReshuffle(
+					ads,
+					updatedUserBehavior,
+					reshuffleOptions
+				);
+
+				// Update ads state
+				setAds(reshuffledAds);
+				setLastReshuffleTime(Date.now());
+
+				// Log reshuffle stats for debugging
+				if (process.env.NODE_ENV === "development") {
+				}
+			} catch (error) {
+				console.error("Reshuffle error:", error);
+			} finally {
+				setIsReshuffling(false);
+			}
+		},
+		[ads, userBehavior, isReshuffling]
+	);
+
+	// Debounced reshuffle function
+	const debouncedReshuffle = useMemo(
+		() => createDebouncedReshuffle(performReshuffle, 2000),
+		[performReshuffle]
+	);
+
+	// Automatic reshuffle effect
+	useEffect(() => {
+		if (Object.keys(ads).length === 0) return;
+
+		// Set up automatic reshuffle interval (every 2 minutes)
+		const reshuffleInterval = setInterval(() => {
+			debouncedReshuffle({
+				randomSeed: Date.now(),
+				considerRecency: true,
+				considerPopularity: true,
+			});
+		}, 2 * 60 * 1000); // 2 minutes
+
+		reshuffleIntervalRef.current = reshuffleInterval;
+
+		// Cleanup interval on unmount
+		return () => {
+			if (reshuffleIntervalRef.current) {
+				clearInterval(reshuffleIntervalRef.current);
+			}
+		};
+	}, [ads, debouncedReshuffle]);
+
+	// Manual reshuffle function for user-triggered reshuffles
+	const handleManualReshuffle = useCallback(() => {
+		performReshuffle({
+			randomSeed: Date.now(),
+			considerRecency: true,
+			considerPopularity: true,
+		});
+	}, [performReshuffle]);
+
+	// Track user behavior for intelligent reshuffling
+	const trackUserBehavior = useCallback((action, data) => {
+		setUserBehavior((prev) => {
+			const updated = { ...prev };
+
+			switch (action) {
+				case "adClick":
+					if (data.adId && !updated.clickedAds.includes(data.adId)) {
+						updated.clickedAds = [...updated.clickedAds, data.adId];
+					}
+					if (
+						data.categoryName &&
+						!updated.preferredCategories.includes(data.categoryName)
+					) {
+						updated.preferredCategories = [
+							...updated.preferredCategories,
+							data.categoryName,
+						];
+					}
+					break;
+				case "adAvoid":
+					if (data.adId && !updated.avoidedAds.includes(data.adId)) {
+						updated.avoidedAds = [...updated.avoidedAds, data.adId];
+					}
+					break;
+				case "activity":
+					updated.lastActivity = Date.now();
+					break;
+				default:
+					break;
+			}
+
+			return updated;
+		});
+	}, []);
+
+	// Track user activity for intelligent reshuffling
+	useEffect(() => {
+		const handleActivity = () => {
+			trackUserBehavior("activity");
+		};
+
+		// Track various user activities
+		const events = [
+			"mousedown",
+			"mousemove",
+			"keypress",
+			"scroll",
+			"touchstart",
+		];
+		events.forEach((event) => {
+			document.addEventListener(event, handleActivity, true);
+		});
+
+		return () => {
+			events.forEach((event) => {
+				document.removeEventListener(event, handleActivity, true);
+			});
+		};
+	}, [trackUserBehavior]);
+
+	// Enhanced handleAdClick with behavior tracking
+	const handleAdClickWithTracking = useCallback(
+		async (adId) => {
+			// Track user behavior
+			const ad = Object.values(ads)
+				.flat()
+				.find((a) => a.id === adId);
+			if (ad) {
+				trackUserBehavior("adClick", {
+					adId,
+					categoryName: ad.category_name,
+					subcategoryName: ad.subcategory_name,
+				});
+			}
+
+			// Call original handleAdClick
+			await handleAdClick(adId);
+		},
+		[handleAdClick, ads, trackUserBehavior]
+	);
 
 	// Function to clear search results and return to home view
 	const handleClearSearch = () => {
@@ -853,29 +1171,86 @@ const Home = () => {
 		setIsSearching(false);
 		setDisplayedResults([]);
 		setCurrentPage(1);
-		setHasMore(true);
 		setHasSearched(false); // Reset search state
 	};
 
+	// Handle subcategory pagination - now handles both subcategory and main pagination
 	const handleSubcategoryLoadMore = (
 		newProducts,
 		subcategoryName,
 		subcategoryId
 	) => {
+		// Ensure newProducts is an array before processing
+		if (!Array.isArray(newProducts)) {
+			console.warn(
+				`handleSubcategoryLoadMore received non-array newProducts:`,
+				newProducts
+			);
+			return;
+		}
+
 		// Batch state updates to prevent flickering
 		startTransition(() => {
-			// Add the new products to the existing search results
-			const updatedResults = [...searchResults, ...newProducts];
+			// If this is pagination (subcategoryName is "pagination"), replace results
+			if (subcategoryName === "pagination") {
+				setSearchResults(newProducts);
+				setDisplayedResults(newProducts);
+			} else {
+				// For subcategory load more, append to existing results
+				const currentResults = Array.isArray(searchResults)
+					? searchResults
+					: [];
 
-			// Update the search results with the new products
-			setSearchResults(updatedResults);
-			setDisplayedResults(updatedResults);
+				// Create a Set of existing ad IDs for efficient duplicate checking
+				const existingIds = new Set(currentResults.map((ad) => ad.id));
+
+				// Filter out any new products that already exist in searchResults
+				const uniqueNewProducts = newProducts.filter(
+					(ad) => !existingIds.has(ad.id)
+				);
+
+				// Add only the unique new products to the existing search results
+				const updatedResults = [...currentResults, ...uniqueNewProducts];
+
+				// Update the search results with the new products
+				setSearchResults(updatedResults);
+				setDisplayedResults(updatedResults);
+			}
 		});
 	};
 
-	// Wrapper function for navbar search (maintains old signature)
+	// Wrapper function for navbar search - triggers search immediately on form submission
 	const handleNavbarSearch = (query, category = "All", subcategory = "All") => {
-		handleSearch(query, category, subcategory);
+		// Don't search if query is empty and no category/subcategory filters
+		if (!query.trim() && category === "All" && subcategory === "All") {
+			return;
+		}
+
+		// Update the search query state
+		setSearchQuery(query);
+
+		// Build search URL with proper parameters
+		const params = new URLSearchParams();
+		if (query.trim()) {
+			params.set("query", query.trim());
+		}
+		if (category !== "All") {
+			params.set("category", category);
+		}
+		if (subcategory !== "All") {
+			params.set("subcategory", subcategory);
+		}
+		params.set("page", "1"); // Reset to page 1 for new search
+
+		// Update URL
+		const newUrl = params.toString() ? `/?${params.toString()}` : "/";
+		navigate(newUrl, { replace: true });
+
+		// Scroll to top for better UX
+		window.scrollTo({ top: 0, behavior: "smooth" });
+
+		// Trigger the search immediately with the new parameters
+		fetchSearchResults(null, query, category, subcategory);
 	};
 
 	// Handlers for category and subcategory changes
@@ -894,7 +1269,9 @@ const Home = () => {
 		dropdownDebounceRef.current = setTimeout(() => {
 			// Batch all state updates and navigation to prevent flickering
 			startTransition(() => {
-				setSelectedCategory(categoryId);
+				setSelectedCategory(
+					categoryId === "All" ? "All" : parseInt(categoryId, 10)
+				);
 				setSelectedSubcategory("All");
 
 				// Trigger search immediately for category changes
@@ -905,7 +1282,12 @@ const Home = () => {
 				if (categoryId !== "All") {
 					params.set("category", categoryId);
 				}
+				// Reset page to 1 when search parameters change
+				params.set("page", "1");
 				navigate(`/?${params.toString()}`);
+
+				// Scroll to top for better UX
+				window.scrollTo({ top: 0, behavior: "smooth" });
 			});
 		}, 100); // Small delay to prevent rapid-fire updates
 	};
@@ -925,7 +1307,9 @@ const Home = () => {
 		dropdownDebounceRef.current = setTimeout(() => {
 			// Batch all state updates and navigation to prevent flickering
 			startTransition(() => {
-				setSelectedSubcategory(subcategoryId);
+				setSelectedSubcategory(
+					subcategoryId === "All" ? "All" : parseInt(subcategoryId, 10)
+				);
 
 				// Trigger search immediately for subcategory changes
 				const params = new URLSearchParams();
@@ -938,22 +1322,44 @@ const Home = () => {
 				if (subcategoryId !== "All") {
 					params.set("subcategory", subcategoryId);
 				}
+				// Reset page to 1 when search parameters change
+				params.set("page", "1");
 				navigate(`/?${params.toString()}`);
+
+				// Scroll to top for better UX
+				window.scrollTo({ top: 0, behavior: "smooth" });
 			});
 		}, 100); // Small delay to prevent rapid-fire updates
+	};
+
+	// Handle page changes for pagination
+	const handlePageChange = (page) => {
+		const newSearchParams = new URLSearchParams(searchParams);
+		newSearchParams.set("page", page.toString());
+
+		// Update URL with new page parameter
+		navigate(`/?${newSearchParams.toString()}`, { replace: true });
+
+		// Update current page state
+		setCurrentPage(page);
+
+		// Scroll to top for better UX
+		window.scrollTo({ top: 0, behavior: "smooth" });
+
+		// Trigger search with the new page
+		fetchSearchResults(page);
 	};
 
 	// Do not early-return on error; show alerts inline instead
 
 	return (
 		<>
-			{seoComponent}
+			<ComprehensiveSEO {...seoConfig} />
 			<Navbar
 				mode="buyer"
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 				handleSearch={handleNavbarSearch}
-				onSidebarToggle={handleSidebarToggle}
 				showSearch={true}
 				showCategories={true}
 				showUserMenu={true}
@@ -971,11 +1377,9 @@ const Home = () => {
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
 						{(() => {
-							const params = new URLSearchParams(location.search);
-							const query = params.get("query");
-							const category = params.get("category");
-
-							const subcategory = params.get("subcategory");
+							const query = searchParams.get("query");
+							const category = searchParams.get("category");
+							const subcategory = searchParams.get("subcategory");
 							const hasSearchParams =
 								query !== null ||
 								(category && category !== "All") ||
@@ -983,13 +1387,93 @@ const Home = () => {
 
 							// Hide banner if searching, has search query, or has URL search parameters
 							return !isSearching && !searchQuery && !hasSearchParams;
-						})() && <Banner />}
+						})() && (
+							<>
+								<Banner />
+								{/* Manual Reshuffle Button */}
+								<div className="flex justify-center mt-4 mb-6">
+									<div className="flex items-center gap-4">
+										<button
+											onClick={handleManualReshuffle}
+											disabled={isReshuffling}
+											className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-yellow-600 text-white rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+											title="Refresh ads with new arrangement"
+										>
+											{isReshuffling ? (
+												<>
+													<svg
+														className="animate-spin h-4 w-4"
+														viewBox="0 0 24 24"
+													>
+														<circle
+															className="opacity-25"
+															cx="12"
+															cy="12"
+															r="10"
+															stroke="currentColor"
+															strokeWidth="4"
+															fill="none"
+														/>
+														<path
+															className="opacity-75"
+															fill="currentColor"
+															d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+														/>
+													</svg>
+													Shuffling...
+												</>
+											) : (
+												<>
+													<svg
+														className="h-4 w-4"
+														fill="none"
+														stroke="currentColor"
+														viewBox="0 0 24 24"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+														/>
+													</svg>
+													Refresh Ads
+												</>
+											)}
+										</button>
+
+										{/* Reshuffle Status Indicator */}
+										{lastReshuffleTime && (
+											<div className="flex items-center gap-2 text-sm text-gray-600">
+												<svg
+													className="h-4 w-4 text-green-500"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24"
+												>
+													<path
+														strokeLinecap="round"
+														strokeLinejoin="round"
+														strokeWidth={2}
+														d="M5 13l4 4L19 7"
+													/>
+												</svg>
+												<span>
+													Auto-refresh:{" "}
+													{Math.floor((Date.now() - lastReshuffleTime) / 60000)}
+													m ago
+												</span>
+											</div>
+										)}
+									</div>
+								</div>
+							</>
+						)}
 						<div
 							className={`px-0 ${(() => {
-								const params = new URLSearchParams(location.search);
-								const query = params.get("query");
-								const category = params.get("category");
-								const subcategory = params.get("subcategory");
+								const query = searchParams.get("query");
+								const category = searchParams.get("category");
+								const subcategory = searchParams.get("subcategory");
 								const hasSearchParams =
 									query !== null ||
 									(category && category !== "All") ||
@@ -1011,10 +1495,9 @@ const Home = () => {
 								</div>
 							) : (() => {
 									// Check if we're in a search context
-									const params = new URLSearchParams(location.search);
-									const query = params.get("query");
-									const category = params.get("category");
-									const subcategory = params.get("subcategory");
+									const query = searchParams.get("query");
+									const category = searchParams.get("category");
+									const subcategory = searchParams.get("subcategory");
 
 									// Only show search results if we have a query parameter OR category/subcategory filtering
 									return (
@@ -1023,102 +1506,209 @@ const Home = () => {
 										(subcategory && subcategory !== "All")
 									);
 							  })() ? (
-								<SearchResultSection
-									results={displayedResults}
-									searchQuery={searchQuery}
-									searchShops={searchShops}
-									handleShopClick={handleShopClick}
-									isLoading={isSearching}
-									errorMessage={error}
-									isSearchContext={(() => {
-										const params = new URLSearchParams(location.search);
-										const query = params.get("query");
-										const category = params.get("category");
-										const subcategory = params.get("subcategory");
-										// True for search queries OR category/subcategory filtering
-										return (
-											query !== null ||
-											(category && category !== "All") ||
-											(subcategory && subcategory !== "All")
-										);
-									})()}
-									onRetry={() => {
-										// Retry the search
-										const params = new URLSearchParams(location.search);
-										const query = params.get("query");
-										if (query) {
-											handleSearch(query);
-										}
-									}}
-									getHeaderTitle={() => {
-										// Get URL parameters for category and subcategory
-										const params = new URLSearchParams(location.search);
-										const categoryParam = params.get("category");
-										const subcategoryParam = params.get("subcategory");
+								(() => {
+									return (
+										<>
+											<SearchResultSection
+												results={displayedResults}
+												searchQuery={searchQuery}
+												searchShops={searchShops}
+												handleShopClick={handleShopClick}
+												isLoading={isSearching}
+												errorMessage={error}
+												onPageChange={handlePageChange}
+												isSearchContext={(() => {
+													const query = searchParams.get("query");
+													const category = searchParams.get("category");
+													const subcategory = searchParams.get("subcategory");
+													// True for search queries OR category/subcategory filtering
+													return (
+														query !== null ||
+														(category && category !== "All") ||
+														(subcategory && subcategory !== "All")
+													);
+												})()}
+												onRetry={() => {
+													// Retry the search
+													const query = searchParams.get("query");
+													if (query) {
+														handleSearch(query);
+													}
+												}}
+												getHeaderTitle={() => {
+													// Get URL parameters for category and subcategory
+													const categoryParam = searchParams.get("category");
+													const subcategoryParam =
+														searchParams.get("subcategory");
 
-										// If we have subcategory filter, show subcategory name
-										if (subcategoryParam && subcategoryParam !== "All") {
-											const category = categories.find(
-												(c) =>
-													c.id === parseInt(categoryParam) ||
-													c.id === categoryParam
-											);
-											if (category) {
-												const subcategory = category.subcategories?.find(
-													(sc) =>
-														sc.id === parseInt(subcategoryParam) ||
-														sc.id === subcategoryParam
+													// If we have subcategory filter, show subcategory name
+													if (subcategoryParam && subcategoryParam !== "All") {
+														const category = categories.find(
+															(c) =>
+																c.id === parseInt(categoryParam) ||
+																c.id === categoryParam
+														);
+														if (category) {
+															const subcategory = category.subcategories?.find(
+																(sc) =>
+																	sc.id === parseInt(subcategoryParam) ||
+																	sc.id === subcategoryParam
+															);
+															if (subcategory) {
+																return `${subcategory.name} Products`;
+															}
+														}
+													}
+
+													// If we have category filter, show category name
+													if (categoryParam && categoryParam !== "All") {
+														const category = categories.find(
+															(c) =>
+																c.id === parseInt(categoryParam) ||
+																c.id === categoryParam
+														);
+														if (category) {
+															return `${category.name} Products`;
+														}
+													}
+
+													// Fallback for search queries
+													if (
+														typeof currentSearchType === "string" &&
+														currentSearchType.startsWith("subcategory-")
+													) {
+														const rawName = currentSearchType.replace(
+															"subcategory-",
+															""
+														);
+														const formatted = rawName
+															.replace(/-/g, " ")
+															.replace(/\b\w/g, (c) => c.toUpperCase());
+														return `${formatted} Products`;
+													}
+
+													return "Search Results";
+												}}
+												handleAdClick={handleAdClick}
+												handleClearSearch={handleClearSearch}
+												onLoadMore={handleSubcategoryLoadMore}
+												selectedCategory={(() => {
+													return searchParams.get("category") || "All";
+												})()}
+												selectedSubcategory={(() => {
+													return searchParams.get("subcategory") || "All";
+												})()}
+												categories={categories}
+												subcategoryCounts={subcategoryCounts}
+												totalResultsProp={(() => {
+													// Get total count from the last API response
+													const query = searchParams.get("query");
+													if (query && query.trim()) {
+														// For search queries, use the total count from the API response
+														return totalResultsCount;
+													}
+													return displayedResults.length;
+												})()}
+											/>
+
+											{/* Pagination controls for search context */}
+											{(() => {
+												const query = searchParams.get("query");
+												const category = searchParams.get("category");
+												const subcategory = searchParams.get("subcategory");
+												const hasSearchParams =
+													query !== null ||
+													(category && category !== "All") ||
+													(subcategory && subcategory !== "All");
+
+												if (!hasSearchParams) return null;
+
+												const totalPages = Math.ceil(
+													totalResultsCount / RESULTS_PER_PAGE
 												);
-												if (subcategory) {
-													return `${subcategory.name} Products`;
-												}
-											}
-										}
 
-										// If we have category filter, show category name
-										if (categoryParam && categoryParam !== "All") {
-											const category = categories.find(
-												(c) =>
-													c.id === parseInt(categoryParam) ||
-													c.id === categoryParam
-											);
-											if (category) {
-												return `${category.name} Products`;
-											}
-										}
+												if (totalPages <= 1) return null;
 
-										// Fallback for search queries
-										if (
-											typeof currentSearchType === "string" &&
-											currentSearchType.startsWith("subcategory-")
-										) {
-											const rawName = currentSearchType.replace(
-												"subcategory-",
-												""
-											);
-											const formatted = rawName
-												.replace(/-/g, " ")
-												.replace(/\b\w/g, (c) => c.toUpperCase());
-											return `${formatted} Products`;
-										}
+												return (
+													<div className="flex justify-center mt-6 sm:mt-7 md:mt-8">
+														<div className="flex items-center gap-2">
+															<button
+																onClick={() =>
+																	handlePageChange(currentPage - 1)
+																}
+																disabled={currentPage <= 1 || isSearching}
+																className="px-3 py-1.5 text-sm border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded"
+															>
+																Previous
+															</button>
 
-										return "Search Results";
-									}}
-									handleAdClick={handleAdClick}
-									handleClearSearch={handleClearSearch}
-									hasMore={hasMore}
-									onLoadMore={handleSubcategoryLoadMore}
-									selectedCategory={(() => {
-										const params = new URLSearchParams(location.search);
-										return params.get("category") || "All";
-									})()}
-									selectedSubcategory={(() => {
-										const params = new URLSearchParams(location.search);
-										return params.get("subcategory") || "All";
-									})()}
-									categories={categories}
-									subcategoryCounts={subcategoryCounts}
-								/>
+															{/* Page numbers */}
+															<div className="flex items-center gap-1">
+																{Array.from(
+																	{ length: Math.min(5, totalPages) },
+																	(_, i) => {
+																		let pageNum;
+																		if (totalPages <= 5) {
+																			pageNum = i + 1;
+																		} else if (currentPage <= 3) {
+																			pageNum = i + 1;
+																		} else if (currentPage >= totalPages - 2) {
+																			pageNum = totalPages - 4 + i;
+																		} else {
+																			pageNum = currentPage - 2 + i;
+																		}
+
+																		return (
+																			<button
+																				key={pageNum}
+																				onClick={() =>
+																					handlePageChange(pageNum)
+																				}
+																				disabled={isSearching}
+																				className={`px-2 py-1 text-sm rounded ${
+																					pageNum === currentPage
+																						? "bg-yellow-500 text-white"
+																						: "border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white"
+																				} disabled:opacity-50 disabled:cursor-not-allowed`}
+																			>
+																				{pageNum}
+																			</button>
+																		);
+																	}
+																)}
+															</div>
+
+															<button
+																onClick={() =>
+																	handlePageChange(currentPage + 1)
+																}
+																disabled={
+																	currentPage >= totalPages || isSearching
+																}
+																className="px-3 py-1.5 text-sm border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed rounded"
+															>
+																Next
+															</button>
+														</div>
+
+														{/* Debug info */}
+														<div className="ml-4 text-sm text-gray-500">
+															{isSearching ? (
+																<span
+																	className="spinner-border spinner-border-sm me-2"
+																	role="status"
+																	aria-hidden="true"
+																></span>
+															) : (
+																`Page ${currentPage} of ${totalPages} (${totalResultsCount} total items)`
+															)}
+														</div>
+													</div>
+												);
+											})()}
+										</>
+									);
+								})()
 							) : (
 								<div className="relative z-10">
 									<div className="max-w-7xl mx-auto px-0">
@@ -1345,11 +1935,14 @@ const Home = () => {
 																		<div key={category.id} className="mb-8">
 																			<CategorySection
 																				title={category.name}
+																				categoryId={category.id}
 																				randomizedSubcategories={
 																					randomizedSubcategories
 																				}
 																				ads={ads}
-																				handleAdClick={handleAdClick}
+																				handleAdClick={
+																					handleAdClickWithTracking
+																				}
 																				handleSubcategoryClick={
 																					handleSubcategoryClick
 																				}
@@ -1408,6 +2001,12 @@ const Home = () => {
 													onAdClick={handleAdClick}
 													isLoading={isLoadingBestSellers}
 													errorMessage={bestSellersError}
+													onViewMore={() => {
+														// Navigate to search results showing all best sellers
+														navigate(
+															`/?query=best+sellers&category=All&subcategory=All`
+														);
+													}}
 												/>
 											)}
 										</div>

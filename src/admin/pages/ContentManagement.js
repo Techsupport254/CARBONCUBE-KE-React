@@ -10,7 +10,7 @@ import {
 	Card,
 } from "react-bootstrap";
 import { Trash, Pencil, PlusCircle } from "react-bootstrap-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/ContentManagement.css"; // Custom CSS

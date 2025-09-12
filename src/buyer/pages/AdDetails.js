@@ -32,7 +32,7 @@ import {
 	faLinkedin,
 } from "@fortawesome/free-brands-svg-icons";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
+
 import { motion } from "framer-motion";
 import Spinner from "react-spinkit";
 import AlertModal from "../../components/AlertModal";
@@ -40,10 +40,9 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import useSEO from "../../hooks/useSEO";
-import { generateProductSEO } from "../../utils/seoHelpers";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
-import { getValidImageUrl, getFallbackImage } from "../../utils/imageUtils";
+import { getValidImageUrl } from "../../utils/imageUtils";
 
 const AdDetails = () => {
 	const { adId } = useParams();
@@ -51,7 +50,6 @@ const AdDetails = () => {
 	const [loading, setLoading] = useState(true);
 	const [relatedAds, setRelatedAds] = useState([]);
 	const [error, setError] = useState(null);
-	const [sidebarOpen, setSidebarOpen] = useState(false); // Manage sidebar state
 	const [wish_listLoading, setBookmarkLoading] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [reviews, setReviews] = useState([]);
@@ -96,7 +94,13 @@ const AdDetails = () => {
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, "-")
 			.replace(/(^-|-$)/g, "");
-		navigate(`/shop/${slug}`);
+
+		// Preserve current query parameters when navigating to shop
+		const currentParams = new URLSearchParams(window.location.search);
+		const currentQuery = currentParams.toString();
+		const separator = currentQuery ? "?" : "";
+
+		navigate(`/shop/${slug}${separator}${currentQuery}`);
 	};
 
 	const handleViewAllRelatedProducts = () => {
@@ -1255,10 +1259,6 @@ const AdDetails = () => {
 		}
 	};
 
-	const handleSidebarToggle = () => {
-		setSidebarOpen(!sidebarOpen); // Toggle the sidebar open state
-	};
-
 	const handleAddToWishlist = async () => {
 		if (!ad) return;
 
@@ -1443,7 +1443,12 @@ const AdDetails = () => {
 			console.warn("Logging failed, proceeding...");
 		}
 
-		navigate(`/ads/${adId}`);
+		// Preserve current query parameters when navigating to ad details
+		const currentParams = new URLSearchParams(window.location.search);
+		const currentQuery = currentParams.toString();
+		const separator = currentQuery ? "?" : "";
+
+		navigate(`/ads/${adId}${separator}${currentQuery}`);
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
@@ -1626,7 +1631,6 @@ const AdDetails = () => {
 					searchQuery={""}
 					setSearchQuery={() => {}}
 					handleSearch={() => {}}
-					onSidebarToggle={() => {}}
 					showSearch={true}
 					showCategories={true}
 					showUserMenu={true}
@@ -1657,7 +1661,6 @@ const AdDetails = () => {
 					searchQuery={""}
 					setSearchQuery={() => {}}
 					handleSearch={() => {}}
-					onSidebarToggle={() => {}}
 					showSearch={true}
 					showCategories={true}
 					showUserMenu={true}
@@ -1688,7 +1691,6 @@ const AdDetails = () => {
 					searchQuery={""}
 					setSearchQuery={() => {}}
 					handleSearch={() => {}}
-					onSidebarToggle={() => {}}
 					showSearch={true}
 					showCategories={true}
 					showUserMenu={true}
@@ -1728,7 +1730,6 @@ const AdDetails = () => {
 					searchQuery={""}
 					setSearchQuery={() => {}}
 					handleSearch={() => {}}
-					onSidebarToggle={() => {}}
 					showSearch={true}
 					showCategories={true}
 					showUserMenu={true}
@@ -1765,7 +1766,6 @@ const AdDetails = () => {
 			{seoComponent}
 			<Navbar
 				mode="buyer"
-				onSidebarToggle={handleSidebarToggle}
 				showSearch={false}
 				showCategories={true}
 				showUserMenu={true}
@@ -1774,10 +1774,6 @@ const AdDetails = () => {
 			/>
 			<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 				<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
-					<div className={`${sidebarOpen ? "block" : "hidden"} lg:block`}>
-						<Sidebar isOpen={sidebarOpen} onToggle={handleSidebarToggle} />
-					</div>
-
 					{/* Main Content Area */}
 					<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-4 md:py-6 lg:py-8 relative z-0">
 						{ad && (
@@ -1790,14 +1786,14 @@ const AdDetails = () => {
 								{/* Breadcrumb */}
 								<nav className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 md:mb-6 overflow-x-auto pb-2">
 									<button
-										onClick={() => navigate("/")}
+										onClick={() => navigate(-1)}
 										className="hover:text-yellow-600 transition-colors whitespace-nowrap flex items-center"
 									>
 										<FontAwesomeIcon
 											icon={faArrowLeft}
 											className="mr-1 sm:mr-2 text-sm"
 										/>
-										<span className="hidden xs:inline">Home</span>
+										<span className="hidden xs:inline">Back</span>
 									</button>
 									<FontAwesomeIcon
 										icon={faChevronRight}
@@ -2304,17 +2300,13 @@ const AdDetails = () => {
 											className={`grid gap-2 sm:gap-3 md:gap-4 h-full ${
 												showAllRelatedProducts
 													? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-													: "grid-cols-2 grid-rows-2 sm:grid-cols-3 sm:grid-rows-1 md:grid-cols-4 md:grid-rows-1 lg:grid-cols-5 lg:grid-rows-1"
+													: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
 											}`}
 										>
 											{relatedAds
 												.slice(
 													0,
-													showAllRelatedProducts
-														? relatedAds.length
-														: isLargeScreen
-														? 5
-														: 4
+													showAllRelatedProducts ? relatedAds.length : 12
 												)
 												.map((relatedAd) => {
 													const borderColor = getBorderColor(

@@ -7,7 +7,7 @@ import {
 	faEnvelopeOpenText,
 	faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/Messages.css"; // Custom CSS
@@ -187,7 +187,6 @@ const Messages = () => {
 			<div className="messages-page">
 				<Container fluid className="p-0">
 					<Row>
-
 						{/* Main Messages Container: flex row, full height */}
 						<Col xs={12} md={10} lg={9} className="p-0 p-lg-2 mt-1 mt-lg-2">
 							<div

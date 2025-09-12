@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import useSEO from "../../hooks/useSEO";
 
@@ -103,10 +103,21 @@ const WishList = () => {
 
 		try {
 			await logClickEvent(adId, "Ad-Click");
-			navigate(`/ads/${adId}`);
+
+			// Preserve current query parameters when navigating to ad details
+			const currentParams = new URLSearchParams(window.location.search);
+			const currentQuery = currentParams.toString();
+			const separator = currentQuery ? "?" : "";
+
+			navigate(`/ads/${adId}${separator}${currentQuery}`);
 		} catch (error) {
 			console.error("Error logging ad click:", error);
-			navigate(`/ads/${adId}`); // Fallback navigation
+
+			// Fallback navigation with preserved query parameters
+			const currentParams = new URLSearchParams(window.location.search);
+			const currentQuery = currentParams.toString();
+			const separator = currentQuery ? "?" : "";
+			navigate(`/ads/${adId}${separator}${currentQuery}`);
 		}
 	};
 
@@ -148,7 +159,6 @@ const WishList = () => {
 			/>
 			<div className="min-h-screen bg-gray-50">
 				<div className="flex">
-
 					{/* Main Content */}
 					<div className="flex-1 p-6">
 						<div className="max-w-7xl mx-auto">

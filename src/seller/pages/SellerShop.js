@@ -179,10 +179,8 @@ const SellerShop = () => {
 			// Handle specific Web Share API errors
 			if (error.name === "AbortError") {
 				// User canceled the share dialog - this is normal, don't show error
-				console.log("Share canceled by user");
 			} else if (error.name === "InvalidStateError") {
 				// Previous share operation hasn't completed yet
-				console.log("Previous share operation still in progress");
 				setAlertModalMessage(
 					"Please wait for the previous share operation to complete."
 				);

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCrown, faShieldAlt } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import MpesaPaymentGuide from "../components/MpesaPaymentGuide";
@@ -18,9 +20,9 @@ const TierPage = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [, setIsProcessingPayment] = useState(false);
-	const [currentSellerTier, setCurrentSellerTier] = useState(null);
+	const [, setCurrentSellerTier] = useState(null);
 
-	const [timeRemaining, setTimeRemaining] = useState(null);
+	const [, setTimeRemaining] = useState(null);
 	const [openFAQ, setOpenFAQ] = useState(null);
 	const navigate = useNavigate();
 	const [isSellerLoggedIn, setIsSellerLoggedIn] = useState(false);
@@ -293,13 +295,6 @@ const TierPage = () => {
 
 	const handleSelectTier = (tierId) => {
 		setSelectedTier(tierId);
-	};
-
-	const handleSelectPricing = (tier, pricing) => {
-		setSelectedTier(tier.id);
-		setSelectedPricing(pricing);
-		setShowPaymentModal(true);
-		setPaymentStep("instructions");
 	};
 
 	const handlePayment = () => {
@@ -576,33 +571,6 @@ const TierPage = () => {
 		setError(null);
 	};
 
-	const formatTimeRemaining = (timeRemaining) => {
-		if (!timeRemaining || timeRemaining.total <= 0) {
-			return "Expired";
-		}
-
-		if (timeRemaining.days > 0) {
-			return `${timeRemaining.days}d ${timeRemaining.hours}h ${timeRemaining.minutes}m`;
-		} else if (timeRemaining.hours > 0) {
-			return `${timeRemaining.hours}h ${timeRemaining.minutes}m ${timeRemaining.seconds}s`;
-		} else if (timeRemaining.minutes > 0) {
-			return `${timeRemaining.minutes}m ${timeRemaining.seconds}s`;
-		} else {
-			return `${timeRemaining.seconds}s`;
-		}
-	};
-
-	const isCurrentTier = useCallback(
-		(tierId) => {
-			const isCurrent =
-				currentSellerTier &&
-				currentSellerTier.tier &&
-				currentSellerTier.tier.id === tierId;
-			return isCurrent;
-		},
-		[currentSellerTier]
-	);
-
 	const toggleFAQ = (faqId) => {
 		setOpenFAQ(openFAQ === faqId ? null : faqId);
 	};
@@ -649,382 +617,108 @@ const TierPage = () => {
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
 			{/* Hero Section */}
-			<section className="relative overflow-hidden py-8 sm:py-12 bg-gradient-to-br from-yellow-400 to-yellow-500">
+			<section
+				className="py-8 sm:py-12 lg:py-16 text-dark position-relative overflow-hidden"
+				style={{ backgroundColor: "#ffc107" }}
+			>
 				{/* Subtle background pattern */}
-				<div className="absolute inset-0 opacity-20">
+				<div className="position-absolute top-0 start-0 w-100 h-100 opacity-30">
 					<div
-						className="w-full h-full"
 						style={{
 							background:
-								"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.1) 35px, rgba(0,0,0,.1) 70px)",
+								"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px)",
+							width: "100%",
+							height: "100%",
 						}}
 					></div>
 				</div>
-				<div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-					<div className="flex justify-center mb-3 sm:mb-4">
-						<div className="bg-gray-900 rounded-full p-3">
-							<svg
-								width="32"
-								height="32"
-								viewBox="0 0 24 24"
-								fill="currentColor"
-								className="text-yellow-400"
-							>
-								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-							</svg>
-						</div>
+				<div className="container mx-auto px-2 sm:px-4 text-center position-relative max-w-6xl">
+					<div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-black rounded-full mx-auto mb-4 sm:mb-6 lg:mb-8 flex items-center justify-center border-2 sm:border-4 border-white">
+						<FontAwesomeIcon
+							icon={faCrown}
+							className="text-2xl sm:text-3xl lg:text-4xl text-white"
+						/>
 					</div>
-					<h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-3 text-gray-900">
+					<h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black mb-3 sm:mb-4 lg:mb-6 leading-tight">
 						Tiers & Pricing
 					</h1>
-					<p className="text-lg sm:text-xl mb-3 sm:mb-4 text-gray-800">
+					<p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black opacity-90 mb-4 sm:mb-6 lg:mb-8 max-w-3xl mx-auto leading-relaxed">
 						Choose the Perfect Plan for Your Business
 					</p>
-					<p className="mb-3 sm:mb-4 sm:mb-6 text-sm sm:text-base text-gray-700 opacity-90">
+					<p className="text-xs sm:text-sm md:text-base lg:text-lg text-black opacity-80 mb-4 sm:mb-6 lg:mb-8 max-w-4xl mx-auto leading-relaxed">
 						Whether you're just starting out or ready to scale, we have a plan
 						that fits your needs
 					</p>
 					{/* Show only if seller is logged in */}
 					{isSellerLoggedIn && (
-						<div className="flex gap-3 justify-center">
-							<button
-								onClick={() => navigate("/seller/ads")}
-								className="inline-flex items-center gap-2 rounded-full bg-gray-900 text-white px-4 sm:px-5 py-2 sm:py-3 shadow-lg hover:bg-gray-800 transition-colors duration-200"
-							>
-								<svg
-									width="16"
-									height="16"
-									viewBox="0 0 24 24"
-									fill="currentColor"
-								>
-									<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
-								</svg>
-								<span>Back to Home</span>
-							</button>
+						<div
+							className="bg-black text-yellow-400 rounded-full px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 inline-flex items-center gap-2 sm:gap-3 hover:bg-gray-900 transition-colors duration-300"
+							onClick={() => navigate("/seller/ads")}
+							style={{ cursor: "pointer" }}
+						>
+							<FontAwesomeIcon
+								icon={faShieldAlt}
+								className="text-yellow-400 text-sm sm:text-base lg:text-lg"
+							/>
+							<span className="text-yellow-400 font-semibold text-sm sm:text-base lg:text-lg">
+								Back to Home
+							</span>
 						</div>
 					)}
 				</div>
 			</section>
-
-			{/* Pricing Section */}
-			<section className="py-4 sm:py-12 bg-gradient-to-br from-gray-50 to-gray-100">
-				<div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-					<div className="text-center mb-3 sm:mb-4 sm:mb-12">
-						<h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 sm:mb-4">
-							Choose Your Plan
-						</h2>
-						<p className="text-sm sm:text-lg text-sm sm:text-gray-600 max-w-2xl mx-auto">
-							Select the perfect plan for your business needs. All plans include
-							our core features with different limits.
-						</p>
-					</div>
-
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-8">
-						{tiers
-							.slice()
-							.sort((a, b) => a.id - b.id)
-							.map((tier, index) => {
-								return (
-									<div
-										key={tier.id}
-										className="h-full"
-										style={{ animationDelay: `${index * 100}ms` }}
-									>
-										<div
-											role="button"
-											tabIndex={0}
-											onClick={() => setSelectedTier(tier.id)}
-											onKeyDown={(e) => {
-												if (e.key === "Enter" || e.key === " ")
-													setSelectedTier(tier.id);
-											}}
-											className={`flex h-full flex-col justify-between rounded-lg sm:rounded-xl sm:rounded-2xl border-2 bg-white shadow-lg p-3 sm:p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl ${
-												isCurrentTier(tier.id)
-													? "ring-4 ring-green-400 bg-gradient-to-br from-green-50 to-green-100 border-green-400 shadow-green-200"
-													: selectedTier === tier.id
-													? "ring-4 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-400 shadow-yellow-200"
-													: "border-gray-200 hover:border-gray-300"
-											} ${
-												tier.id === 3 ? "lg:scale-110 lg:z-10 relative" : ""
-											}`}
-										>
-											<div>
-												{/* Popular Badge */}
-												{tier.id === 3 && (
-													<div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-														<span className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-															Most Popular
-														</span>
-													</div>
-												)}
-
-												{/* Current Plan Badge */}
-												{isCurrentTier(tier.id) && (
-													<div className="absolute -top-3 right-0">
-														<span className="bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center">
-															<svg
-																width="12"
-																height="12"
-																viewBox="0 0 24 24"
-																fill="currentColor"
-																className="mr-1"
-															>
-																<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-															</svg>
-															Current Plan
-														</span>
-													</div>
-												)}
-
-												<div className="mb-3 sm:mb-4 flex items-center justify-between">
-													<h3 className="text-xl sm:text-2xl font-bold text-gray-900">
-														{tier.name}
-													</h3>
-													<div className="flex flex-col items-end">
-														<span className="inline-flex items-center rounded-full bg-gradient-to-r from-gray-100 to-gray-200 px-3 py-1 text-sm font-semibold text-gray-700">
-															<svg
-																width="16"
-																height="16"
-																viewBox="0 0 24 24"
-																fill="currentColor"
-																className="mr-1"
-															>
-																<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-															</svg>
-															{tier.name === "Premium" ? "∞" : tier.ads_limit}{" "}
-															Ads
-														</span>
-													</div>
-												</div>
-
-												<p className="text-sm text-sm sm:text-gray-600 mb-3 sm:mb-4 leading-relaxed">
-													{isCurrentTier(tier.id)
-														? "Your current active plan - Enjoy all benefits!"
-														: tier.id === 1
-														? "Perfect for new sellers getting started"
-														: tier.id === 2
-														? "Great for growing businesses"
-														: tier.id === 3
-														? "Ideal for established sellers - Most Popular Choice"
-														: "Enterprise solution for large businesses"}
-												</p>
-
-												<ul className="list-none mb-3 sm:mb-4 sm:mb-6 space-y-2">
-													{(tier.tier_features || [])
-														.slice(0, 4)
-														.map((feature) => (
-															<li key={feature.id} className="flex items-start">
-																<svg
-																	width="16"
-																	height="16"
-																	viewBox="0 0 24 24"
-																	fill="currentColor"
-																	className="text-green-500 mr-3 flex-shrink-0 mt-0.5"
-																>
-																	<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-																</svg>
-																<span className="text-sm text-gray-700">
-																	{feature.feature_name}
-																</span>
-															</li>
-														))}
-													{(tier.tier_features || []).length > 4 && (
-														<li className="text-sm text-gray-500 ml-7">
-															+ {(tier.tier_features || []).length - 4} more
-															features
-														</li>
-													)}
-												</ul>
-												<div className="mt-auto">
-													{isCurrentTier(tier.id) ? (
-														<div className="text-center p-3 sm:p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg sm:rounded-xl border-2 border-green-200">
-															<div className="flex items-center justify-center mb-2">
-																<svg
-																	width="16"
-																	height="16"
-																	viewBox="0 0 24 24"
-																	fill="currentColor"
-																	className="text-green-600 mr-2"
-																>
-																	<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-																</svg>
-																<span className="text-green-700 font-semibold text-sm sm:text-base">
-																	Your Active Plan
-																</span>
-															</div>
-															{tier.id === 1 ? (
-																<div className="text-center">
-																	<div className="text-lg sm:text-xl font-bold text-green-600 mb-1">
-																		Free Forever
-																	</div>
-																	<div className="text-xs text-sm sm:text-gray-600">
-																		No expiration - Enjoy unlimited access
-																	</div>
-																</div>
-															) : (
-																<>
-																	<div className="text-xs sm:text-sm text-sm sm:text-gray-600 mb-2">
-																		Subscription expires in:
-																	</div>
-																	<div className="text-lg sm:text-xl font-bold text-green-600 mb-2">
-																		{formatTimeRemaining(timeRemaining)}
-																	</div>
-																	{timeRemaining && timeRemaining.total > 0 ? (
-																		<div className="text-xs text-gray-500">
-																			Renew to continue premium benefits
-																		</div>
-																	) : (
-																		<div className="text-xs text-red-600 font-semibold">
-																			Expired - Renew to continue
-																		</div>
-																	)}
-																</>
-															)}
-															<div className="mt-3 pt-3 border-t border-green-200">
-																<div className="text-xs text-sm sm:text-gray-600 mb-1">
-																	Plan Benefits:
-																</div>
-																<div className="text-xs text-gray-700">
-																	{tier.ads_limit === 999999
-																		? "∞"
-																		: tier.ads_limit}{" "}
-																	ads • {tier.tier_features?.length || 0}{" "}
-																	features
-																</div>
-															</div>
-														</div>
-													) : tier.id !== 1 ? (
-														<div className="space-y-2 sm:space-y-3">
-															{(tier.tier_pricings || []).map((pricing) => (
-																<div
-																	key={pricing.id}
-																	className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-																		selectedTier === tier.id &&
-																		selectedPricing?.id === pricing.id
-																			? "border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100 shadow-lg"
-																			: "border-gray-200 hover:border-gray-300 bg-white"
-																	}`}
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		handleSelectPricing(tier, pricing);
-																	}}
-																>
-																	<div className="text-center">
-																		<div className="text-xs sm:text-sm font-semibold text-sm sm:text-gray-600 mb-1">
-																			{pricing.duration_months} Month
-																			{pricing.duration_months > 1 ? "s" : ""}
-																		</div>
-																		<div className="text-lg sm:text-2xl font-bold text-gray-900">
-																			KES{" "}
-																			{pricing.price
-																				? parseFloat(
-																						pricing.price
-																				  ).toLocaleString()
-																				: "N/A"}
-																		</div>
-																		{pricing.duration_months > 1 && (
-																			<div className="text-xs text-gray-500 mt-1">
-																				KES{" "}
-																				{Math.round(
-																					parseFloat(pricing.price) /
-																						pricing.duration_months
-																				).toLocaleString()}
-																				/month
-																			</div>
-																		)}
-																	</div>
-																</div>
-															))}
-														</div>
-													) : (
-														<div className="text-center p-3 sm:p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg sm:rounded-xl">
-															<div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-																Free
-															</div>
-															<p className="text-xs sm:text-sm text-sm sm:text-gray-600 mb-3 sm:mb-3 sm:mb-4">
-																Perfect for new sellers getting started
-															</p>
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleSelectTier(tier.id);
-																}}
-																className={`w-full inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold transition-all duration-200 ${
-																	selectedTier === tier.id
-																		? "bg-yellow-400 text-gray-900 hover:bg-yellow-500 shadow-lg"
-																		: "bg-gray-900 text-white hover:bg-gray-800 shadow-md hover:shadow-lg"
-																}`}
-															>
-																<svg
-																	width="14"
-																	height="14"
-																	viewBox="0 0 24 24"
-																	fill="currentColor"
-																>
-																	<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-																</svg>
-																Select {tier.name}
-															</button>
-														</div>
-													)}
-												</div>
-											</div>
-										</div>
-									</div>
-								);
-							})}
-					</div>
-				</div>
-			</section>
+			{/* Feature Breakdown */}
+			<FeatureComparisonTable />
 
 			{/* Mpesa Payment Guide */}
 			<MpesaPaymentGuide />
 
-			{/* Feature Breakdown */}
-			<FeatureComparisonTable />
-
 			{/* FAQs Section */}
-			<section className="py-8 sm:py-12 bg-gray-100">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
-						<div className="flex justify-center mb-3">
-							<div className="bg-yellow-400 rounded-full p-3">
-								<svg
-									width="32"
-									height="32"
-									viewBox="0 0 24 24"
-									fill="currentColor"
-									className="text-gray-900"
-								>
-									<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
-								</svg>
-							</div>
+			<section className="py-6 sm:py-8 md:py-10 lg:py-12 xl:py-16 bg-gradient-to-br from-gray-50 to-white">
+				<div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
+					{/* Header */}
+					<div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-12">
+						<div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-yellow-500 rounded-full mx-auto mb-3 sm:mb-4 md:mb-5 lg:mb-6 flex items-center justify-center">
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								className="text-white sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8"
+							>
+								<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM12 6c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+							</svg>
 						</div>
-						<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+						<h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4">
 							Frequently Asked Questions
 						</h2>
-						<p className="text-sm sm:text-gray-600 text-sm sm:text-base">
-							Everything you need to know about our pricing tiers
+						<p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2">
+							Everything you need to know about our pricing tiers and
+							subscription plans
 						</p>
 					</div>
-					<div className="space-y-2 sm:space-y-3">
+
+					{/* FAQ Items */}
+					<div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
 						{/* FAQ Item 1 */}
-						<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+						<div className="bg-white rounded-xl lg:rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
 							<button
-								className="w-full bg-gray-800 text-white px-3 sm:px-6 py-2 sm:py-4 text-left flex items-center justify-between hover:bg-gray-700 transition-colors duration-200"
+								className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 text-left flex items-center justify-between hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
 								onClick={() => toggleFAQ(1)}
 							>
 								<div className="flex items-center">
-									<svg
-										width="16"
-										height="16"
-										viewBox="0 0 24 24"
-										fill="currentColor"
-										className="mr-2 sm:mr-3 flex-shrink-0"
-									>
-										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-									</svg>
-									<span className="font-semibold text-xs sm:text-base">
+									<div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											className="text-white"
+										>
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+										</svg>
+									</div>
+									<span className="font-semibold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
 										What happens if I upgrade or downgrade my tier?
 									</span>
 								</div>
@@ -1033,7 +727,7 @@ const TierPage = () => {
 									height="16"
 									viewBox="0 0 24 24"
 									fill="currentColor"
-									className={`transform transition-transform duration-200 flex-shrink-0 ${
+									className={`transform transition-transform duration-200 flex-shrink-0 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ${
 										openFAQ === 1 ? "rotate-180" : ""
 									}`}
 								>
@@ -1041,35 +735,39 @@ const TierPage = () => {
 								</svg>
 							</button>
 							{openFAQ === 1 && (
-								<div className="bg-gray-50 px-3 sm:px-6 py-2 sm:py-4 border-t border-gray-200">
-									<p className="text-gray-700 leading-relaxed text-xs sm:text-base">
-										When you upgrade or downgrade, your billing will be adjusted
-										accordingly. Your features will change to match the selected
-										tier. Any unused portion of your current billing cycle will
-										be credited to your account, and new charges will be
-										prorated based on the remaining days in your billing cycle.
+								<div className="bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 border-t border-gray-200">
+									<p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+										When you upgrade, your billing will be adjusted accordingly
+										and new charges will be prorated based on the remaining days
+										in your billing cycle. When you downgrade, we do not provide
+										refunds - instead, any unused portion of your current
+										billing cycle will be carried forward as credit to your
+										account. Your features will change to match the selected
+										tier immediately.
 									</p>
 								</div>
 							)}
 						</div>
 
 						{/* FAQ Item 2 */}
-						<div className="bg-white rounded-lg shadow-sm overflow-hidden">
+						<div className="bg-white rounded-xl lg:rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
 							<button
-								className="w-full bg-gray-800 text-white px-3 sm:px-6 py-2 sm:py-4 text-left flex items-center justify-between hover:bg-gray-700 transition-colors duration-200"
+								className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 text-left flex items-center justify-between hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
 								onClick={() => toggleFAQ(2)}
 							>
 								<div className="flex items-center">
-									<svg
-										width="16"
-										height="16"
-										viewBox="0 0 24 24"
-										fill="currentColor"
-										className="mr-2 sm:mr-3 flex-shrink-0"
-									>
-										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-									</svg>
-									<span className="font-semibold text-xs sm:text-base">
+									<div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											className="text-white"
+										>
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+										</svg>
+									</div>
+									<span className="font-semibold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
 										Can I change my tier anytime?
 									</span>
 								</div>
@@ -1078,7 +776,7 @@ const TierPage = () => {
 									height="16"
 									viewBox="0 0 24 24"
 									fill="currentColor"
-									className={`transform transition-transform duration-200 flex-shrink-0 ${
+									className={`transform transition-transform duration-200 flex-shrink-0 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ${
 										openFAQ === 2 ? "rotate-180" : ""
 									}`}
 								>
@@ -1086,12 +784,106 @@ const TierPage = () => {
 								</svg>
 							</button>
 							{openFAQ === 2 && (
-								<div className="bg-gray-50 px-3 sm:px-6 py-2 sm:py-4 border-t border-gray-200">
-									<p className="text-gray-700 leading-relaxed text-xs sm:text-base">
+								<div className="bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 border-t border-gray-200">
+									<p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
 										Yes, you can change your tier anytime. We provide
 										flexibility so you can choose what fits your evolving needs.
 										Changes take effect immediately, and you'll have access to
 										all features included in your new tier right away.
+									</p>
+								</div>
+							)}
+						</div>
+
+						{/* FAQ Item 3 */}
+						<div className="bg-white rounded-xl lg:rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+							<button
+								className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 text-left flex items-center justify-between hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
+								onClick={() => toggleFAQ(3)}
+							>
+								<div className="flex items-center">
+									<div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											className="text-white"
+										>
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+										</svg>
+									</div>
+									<span className="font-semibold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+										How does payment work for tier subscriptions?
+									</span>
+								</div>
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									className={`transform transition-transform duration-200 flex-shrink-0 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ${
+										openFAQ === 3 ? "rotate-180" : ""
+									}`}
+								>
+									<path d="M7 10l5 5 5-5z" />
+								</svg>
+							</button>
+							{openFAQ === 3 && (
+								<div className="bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 border-t border-gray-200">
+									<p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+										We accept payments through M-Pesa Paybill (4160265) and STK
+										Push. You can choose from monthly, quarterly, or annual
+										billing cycles. All payments are processed securely, and
+										your tier is activated immediately upon successful payment
+										confirmation.
+									</p>
+								</div>
+							)}
+						</div>
+
+						{/* FAQ Item 4 */}
+						<div className="bg-white rounded-xl lg:rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+							<button
+								className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 text-left flex items-center justify-between hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
+								onClick={() => toggleFAQ(4)}
+							>
+								<div className="flex items-center">
+									<div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 xl:w-12 xl:h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4 flex-shrink-0">
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											className="text-white"
+										>
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+										</svg>
+									</div>
+									<span className="font-semibold text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+										What happens when my subscription expires?
+									</span>
+								</div>
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="currentColor"
+									className={`transform transition-transform duration-200 flex-shrink-0 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ${
+										openFAQ === 4 ? "rotate-180" : ""
+									}`}
+								>
+									<path d="M7 10l5 5 5-5z" />
+								</svg>
+							</button>
+							{openFAQ === 4 && (
+								<div className="bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10 py-3 sm:py-4 md:py-5 lg:py-6 xl:py-7 border-t border-gray-200">
+									<p className="text-gray-700 leading-relaxed text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl">
+										When your subscription expires, your account will
+										automatically downgrade to the Free tier. You'll retain
+										access to basic features but with limited ad posting
+										capabilities. You can renew your subscription anytime to
+										restore full access to your previous tier's features.
 									</p>
 								</div>
 							)}

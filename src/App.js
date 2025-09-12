@@ -9,11 +9,14 @@ import { HelmetProvider } from "react-helmet-async";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import Spinner from "react-spinkit";
+import BecomeASeller from "./pages/BecomeASeller";
 
 // Lazy load components for better performance
 const LoginForm = lazy(() => import("./components/LoginForm"));
 const AboutUs = lazy(() => import("./components/AboutUs"));
 const ContactUs = lazy(() => import("./components/ContactUs"));
+const VendorHelp = lazy(() => import("./components/VendorHelp"));
+const FAQs = lazy(() => import("./components/Faqs"));
 const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
 const Terms = lazy(() => import("./components/Terms"));
 const PrivacyPolicy = lazy(() => import("./components/Privacy"));
@@ -29,6 +32,8 @@ const AnalyticsTest = lazy(() => import("./components/AnalyticsTest"));
 
 // Device Fingerprint Page
 const DeviceFingerprint = lazy(() => import("./pages/DeviceFingerprint"));
+const HowToPay = lazy(() => import("./pages/HowToPay"));
+const HowToShop = lazy(() => import("./pages/HowToShop"));
 
 // Admin Imports - Lazy loaded
 const AnalyticsReporting = lazy(() =>
@@ -74,7 +79,7 @@ const WishList = lazy(() => import("./buyer/pages/WishLists"));
 const BuyerMessages = lazy(() => import("./buyer/pages/BuyerMessages"));
 const BuyerSignUpPage = lazy(() => import("./buyer/pages/BuyerSignUpPage"));
 const ProfilePage = lazy(() => import("./buyer/pages/Profile"));
-const RiderSignUpPage = lazy(() => import("./rider/pages/RiderSignUpPage"));
+const CategoriesPage = lazy(() => import("./buyer/pages/CategoriesPage"));
 const PrivateRoute = lazy(() => import("./components/PrivateRoute"));
 
 //sales imports - Lazy loaded
@@ -195,12 +200,6 @@ function App() {
 		sessionStorage.setItem("userRole", "seller"); // Use 'userRole' here
 	};
 
-	const handleRiderSignup = () => {
-		setIsAuthenticated(true);
-		setUserRole("rider");
-		sessionStorage.setItem("userRole", "rider"); // Use 'userRole' here
-	};
-
 	// Don't render until authentication is initialized
 	if (!isInitialized) {
 		return <LoadingSpinner />;
@@ -225,6 +224,7 @@ function App() {
 							element={<Navigate to="/ads/:adId" replace />}
 						/>
 						<Route path="/shop/:slug" element={<ShopPage />} />
+						<Route path="/categories" element={<CategoriesPage />} />
 						<Route path="/home" element={<Home onLogout={handleLogout} />} />
 						<Route path="/" element={<Home onLogout={handleLogout} />} />
 						<Route path="/admin" element={<Navigate to="/login" />} />
@@ -242,17 +242,22 @@ function App() {
 							path="/seller-signup"
 							element={<SellerSignUpPage onSignup={handleSellerSignup} />}
 						/>
-						<Route
-							path="/rider-signup"
-							element={<RiderSignUpPage onSignup={handleRiderSignup} />}
-						/>
 						<Route path="/seller/tiers" element={<TierPage />} />
 						<Route path="/about-us" element={<AboutUs />} />
 						<Route path="/contact-us" element={<ContactUs />} />
+						<Route path="/vendor-help" element={<VendorHelp />} />
+						<Route
+							path="/seller-help"
+							element={<Navigate to="/vendor-help" replace />}
+						/>
+						<Route path="/faqs" element={<FAQs />} />
 						<Route path="/terms-and-conditions" element={<Terms />} />
 						<Route path="/privacy" element={<PrivacyPolicy />} />
 						<Route path="/analytics-test" element={<AnalyticsTest />} />
 						<Route path="/fingerprint" element={<DeviceFingerprint />} />
+						<Route path="/how-to-pay" element={<HowToPay />} />
+						<Route path="/how-to-shop" element={<HowToShop />} />
+						<Route path="/become-a-seller" element={<BecomeASeller />} />
 
 						{isAuthenticated && userRole === "admin" && (
 							<Route

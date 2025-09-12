@@ -1,11 +1,9 @@
 import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { createSlug } from "../../utils/slugUtils";
 import { Button } from "react-bootstrap";
-import {
-	getBorderColor,
-	getTierName,
-	getTierId,
-} from "../utils/sellerTierUtils";
+import AdCard from "../../components/AdCard";
+import { getBorderColor } from "../utils/sellerTierUtils";
 
 // Helper function to get tier priority (higher number = higher priority)
 const getTierPriority = (ad) => {
@@ -38,7 +36,6 @@ const SearchResultSection = ({
 	handleAdClick,
 	handleShopClick, // Add handleShopClick prop
 	handleClearSearch,
-	hasMore,
 	onLoadMore,
 	isLoading = false,
 	errorMessage,
@@ -48,238 +45,286 @@ const SearchResultSection = ({
 	categories = [],
 	subcategoryCounts = {},
 	isSearchContext = false,
+	totalResultsProp = null, // Add totalResults prop
+	onPageChange, // Add callback for page changes
 }) => {
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+
+	// Debug: Log props received
 	// Handle shop click - use prop if provided, otherwise use default behavior
 	const handleShopClickInternal = (shop) => {
 		if (handleShopClick) {
 			// Use the prop function if provided
 			handleShopClick(shop);
 		} else {
-			// Default behavior - use React Router navigation
+			// Default behavior - preserve query parameters when navigating to shop
 			const slug = createSlug(shop.enterprise_name);
-			// Use window.location.href as fallback for now
-			window.location.href = `/shop/${slug}`;
+			const currentParams = new URLSearchParams(window.location.search);
+			const currentQuery = currentParams.toString();
+			const separator = currentQuery ? "?" : "";
+
+			// Use React Router navigation with preserved query parameters
+			navigate(`/shop/${slug}${separator}${currentQuery}`);
 		}
 	};
-	const groupedResults = React.useMemo(() => {
-		if (!results || results.length === 0) return {};
+	// Remove grouping logic - show all results in a single grid
 
-		// First, sort all results by tier priority
-		const sortedResults = sortAdsByTier(results);
+	// Pagination state
+	const [currentPage, setCurrentPage] = React.useState(1);
+	const [totalPages, setTotalPages] = React.useState(1);
+	const [totalResults, setTotalResults] = React.useState(0);
+	const [isLoadingPage, setIsLoadingPage] = React.useState(false);
+	const ITEMS_PER_PAGE = 24; // Show 24 items per page (6 items per row × 4 rows)
 
-		const grouped = sortedResults.reduce((groups, ad) => {
-			// Normalize subcategory name to handle different formats
-			let subcategoryName =
-				ad.subcategory?.name || ad.subcategory_name || "Other";
+	// Remove subcategory pagination - not needed without filtering
 
-			// Trim whitespace and normalize
-			subcategoryName = subcategoryName.trim();
+	// Carousel state for shops
+	const [currentShopIndex, setCurrentShopIndex] = React.useState(0);
+	const [shopsPerView, setShopsPerView] = React.useState(4); // Default for desktop
+	const shopsContainerRef = React.useRef(null);
 
-			// Handle case where subcategory might be null/undefined
-			if (!subcategoryName || subcategoryName === "") {
-				subcategoryName = "Other";
-			}
+	// Track previous totalResultsProp to detect new searches
+	const prevTotalResultsProp = React.useRef(totalResultsProp);
 
-			if (!groups[subcategoryName]) {
-				groups[subcategoryName] = [];
-			}
-			groups[subcategoryName].push(ad);
-			return groups;
-		}, {});
-
-		return grouped;
-	}, [results]);
-
-	const subcategoryNames = Object.keys(groupedResults);
-	const isGroupedView = subcategoryNames.length > 1;
-
-	// Limit initial display to 20 items for search queries, but show all for category filtering
-	const [displayCount, setDisplayCount] = React.useState(20);
-
-	// Track display counts for each subcategory when filtering by category
-	const [subcategoryDisplayCounts, setSubcategoryDisplayCounts] =
-		React.useState({});
-
-	// Track loading states for each subcategory
-	const [subcategoryLoadingStates, setSubcategoryLoadingStates] =
-		React.useState({});
-
-	// Update display count when results change for category filtering
+	// Update pagination when results change
 	React.useEffect(() => {
+		// Calculate new values
+		let newTotalCount = 0;
+		let newTotalPagesCount = 1;
+		let shouldResetPage = false;
+
 		if (results && results.length > 0) {
-			// If filtering by category/subcategory, show all results
-			if (selectedCategory !== "All" || selectedSubcategory !== "All") {
-				setDisplayCount(results.length);
+			// Use totalResults prop if available and greater than 0, otherwise calculate from results length
+			newTotalCount =
+				totalResultsProp && totalResultsProp > 0
+					? totalResultsProp
+					: results.length;
+			newTotalPagesCount = Math.ceil(newTotalCount / ITEMS_PER_PAGE);
+
+			// Only reset to page 1 when totalResultsProp changes (new search), not when pagination changes
+			if (
+				totalResultsProp &&
+				totalResultsProp !== prevTotalResultsProp.current
+			) {
+				shouldResetPage = true;
+				prevTotalResultsProp.current = totalResultsProp;
 			} else {
-				// For search queries, start with 20
-				setDisplayCount(20);
 			}
+		} else if (totalResultsProp && totalResultsProp > 0) {
+			// Even if no results on current page, we might have totalResults from API
+			newTotalCount = totalResultsProp;
+			newTotalPagesCount = Math.ceil(totalResultsProp / ITEMS_PER_PAGE);
+		} else {
+			newTotalCount = 0;
+			newTotalPagesCount = 1;
+			shouldResetPage = true;
 		}
-	}, [results, selectedCategory, selectedSubcategory]);
 
-	// Initialize subcategory display counts
+		// Only update state if values have actually changed to prevent infinite loops
+		setTotalPages((prev) =>
+			prev !== newTotalPagesCount ? newTotalPagesCount : prev
+		);
+		setTotalResults((prev) => (prev !== newTotalCount ? newTotalCount : prev));
+
+		if (shouldResetPage) {
+			setCurrentPage(1);
+		}
+	}, [results, totalResultsProp, currentPage]); // Include all dependencies
+
+	// Track previous URL page to avoid unnecessary updates
+	const prevUrlPageRef = React.useRef(1);
+
+	// Sync currentPage with URL when component receives new results
 	React.useEffect(() => {
-		if (isGroupedView) {
-			const initialCounts = {};
-			Object.keys(groupedResults).forEach((subcategoryName) => {
-				// If this subcategory doesn't have a display count yet, initialize it
-				if (!subcategoryDisplayCounts[subcategoryName]) {
-					initialCounts[subcategoryName] = Math.min(
-						20,
-						groupedResults[subcategoryName].length
-					);
-				} else {
-					// Keep existing count
-					initialCounts[subcategoryName] =
-						subcategoryDisplayCounts[subcategoryName];
-				}
-			});
+		if (searchQuery && searchQuery.trim() !== "") {
+			const urlPage = parseInt(searchParams.get("page") || "1", 10);
 
-			// Only update if there are new subcategories to initialize
-			const hasNewSubcategories = Object.keys(groupedResults).some(
-				(subcategoryName) => !subcategoryDisplayCounts[subcategoryName]
-			);
-
-			if (hasNewSubcategories) {
-				setSubcategoryDisplayCounts(initialCounts);
+			// Only update if the URL page has actually changed
+			if (urlPage !== prevUrlPageRef.current) {
+				setCurrentPage(urlPage);
+				prevUrlPageRef.current = urlPage;
 			}
 		}
-	}, [
-		groupedResults,
-		isGroupedView,
-		selectedCategory,
-		selectedSubcategory,
-		subcategoryDisplayCounts,
-	]);
+	}, [searchQuery, searchParams, currentPage]); // Include all dependencies
 
-	const handleLoadMore = () => {
-		setDisplayCount((prev) => prev + 20);
+	// Handle responsive carousel sizing
+	React.useEffect(() => {
+		const updateShopsPerView = () => {
+			const width = window.innerWidth;
+			if (width < 640) {
+				setShopsPerView(1); // Mobile: 1 shop per view
+			} else if (width < 768) {
+				setShopsPerView(2); // Small tablet: 2 shops per view
+			} else if (width < 1024) {
+				setShopsPerView(3); // Tablet: 3 shops per view
+			} else {
+				setShopsPerView(4); // Desktop: 4 shops per view
+			}
+		};
+
+		updateShopsPerView();
+		window.addEventListener("resize", updateShopsPerView);
+		return () => window.removeEventListener("resize", updateShopsPerView);
+	}, []);
+
+	// Carousel navigation functions
+	const scrollToShop = (index) => {
+		if (shopsContainerRef.current) {
+			const container = shopsContainerRef.current;
+			const shopWidth = container.scrollWidth / searchShops.length;
+			const scrollPosition = index * shopWidth;
+			container.scrollTo({
+				left: scrollPosition,
+				behavior: "smooth",
+			});
+		}
+		setCurrentShopIndex(index);
 	};
 
-	const handleSubcategoryLoadMore = (subcategoryName) => {
-		// Set loading state for this subcategory
-		setSubcategoryLoadingStates((prev) => ({
-			...prev,
-			[subcategoryName]: true,
-		}));
+	const nextShops = () => {
+		const maxIndex = Math.max(0, searchShops.length - shopsPerView);
+		const nextIndex = Math.min(currentShopIndex + shopsPerView, maxIndex);
+		scrollToShop(nextIndex);
+	};
 
-		// Find the subcategory ID for this subcategory name
-		const subcategory = Object.values(groupedResults[subcategoryName] || [])[0];
-		if (!subcategory) {
+	const prevShops = () => {
+		const prevIndex = Math.max(0, currentShopIndex - shopsPerView);
+		scrollToShop(prevIndex);
+	};
+
+	// Remove subcategory data fetching - not needed without filtering
+
+	// Remove subcategory initialization - not needed without filtering
+
+	// Pagination handlers
+	const handlePageChange = async (page) => {
+		if (page === currentPage || isLoadingPage) return;
+
+		setIsLoadingPage(true);
+		setCurrentPage(page);
+
+		// Call the callback to update URL if provided
+		if (onPageChange) {
+			onPageChange(page);
+		}
+
+		// If we're in a search context (parent handles API calls), just update the page
+		// The parent component will handle the API call
+		if (isSearchContext) {
+			setIsLoadingPage(false);
 			return;
 		}
 
-		const subcategoryId = subcategory.subcategory_id;
-		const currentCount = subcategoryDisplayCounts[subcategoryName] || 20;
-		const nextPage = Math.floor(currentCount / 20) + 1;
+		try {
+			// Extract search parameters from URL
+			const searchQuery = searchParams.get("query") || "";
+			const searchCategory = searchParams.get("category") || "All";
+			const searchSubcategory = searchParams.get("subcategory") || "All";
 
-		// Fetch more products for this subcategory
-		fetch(
-			`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/load_more_subcategory?subcategory_id=${subcategoryId}&page=${nextPage}&per_page=20`,
-			{
-				headers: {
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
-				},
+			let apiUrl;
+			if (searchQuery.trim()) {
+				// For text search, use the search endpoint
+				apiUrl = `${
+					process.env.REACT_APP_BACKEND_URL
+				}/buyer/ads/search?query=${encodeURIComponent(
+					searchQuery
+				)}&page=${page}&ads_per_page=${ITEMS_PER_PAGE}`;
+
+				// Add category filters if specified
+				if (searchCategory !== "All") {
+					apiUrl += `&category=${encodeURIComponent(searchCategory)}`;
+				}
+				if (searchSubcategory !== "All") {
+					apiUrl += `&subcategory=${encodeURIComponent(searchSubcategory)}`;
+				}
+			} else {
+				// For category/subcategory filtering, use the main ads endpoint
+				apiUrl = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads?page=${page}&per_page=${ITEMS_PER_PAGE}&balanced=true`;
+
+				// Add category filter if specified
+				if (searchCategory !== "All") {
+					apiUrl += `&category_id=${searchCategory}`;
+				}
+
+				// Add subcategory filter if specified
+				if (searchSubcategory !== "All") {
+					apiUrl += `&subcategory_id=${searchSubcategory}`;
+				}
 			}
-		)
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				return response.json();
-			})
-			.then((responseData) => {
-				// Handle new response format with metadata
-				const newProducts = responseData.ads || responseData;
 
-				if (newProducts && newProducts.length > 0) {
-					// Ensure new products have the correct subcategory information
-					const processedNewProducts = newProducts.map((product) => ({
-						...product,
-						subcategory_name: subcategoryName, // Set the correct subcategory name
-						subcategory: {
-							...product.subcategory,
-							name: subcategoryName, // Ensure the subcategory object has the correct name
-						},
-					}));
-
-					// Update the display count for this subcategory
-					setSubcategoryDisplayCounts((prev) => {
-						const newCount =
-							prev[subcategoryName] + processedNewProducts.length;
-						return {
-							...prev,
-							[subcategoryName]: newCount,
-						};
-					});
-
-					// Update the main results by calling a callback with the new products
-					if (onLoadMore) {
-						// Pass the new products and subcategory info to the parent
-						onLoadMore(processedNewProducts, subcategoryName, subcategoryId);
-					}
-				} else {
-					// No new products received
-				}
-
-				// Clear loading state
-				setSubcategoryLoadingStates((prev) => ({
-					...prev,
-					[subcategoryName]: false,
-				}));
-			})
-			.catch((error) => {
-				// Clear loading state on error
-				setSubcategoryLoadingStates((prev) => ({
-					...prev,
-					[subcategoryName]: false,
-				}));
+			const response = await fetch(apiUrl, {
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json",
+				},
 			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const responseData = await response.json();
+
+			// Process results
+			let newAds = [];
+			if (responseData.ads) {
+				newAds = responseData.ads;
+			} else if (Array.isArray(responseData)) {
+				newAds = responseData;
+			}
+
+			// Update the results via the onLoadMore callback
+			if (onLoadMore) {
+				onLoadMore(newAds, "pagination", page);
+			}
+
+			// Handle new pagination metadata format
+			if (responseData.pagination && responseData.pagination.ads) {
+				const adsPagination = responseData.pagination.ads;
+				setTotalPages(adsPagination.total_pages);
+				setTotalResults(adsPagination.total_count);
+			} else if (responseData.total) {
+				setTotalPages(Math.ceil(responseData.total / ITEMS_PER_PAGE));
+				setTotalResults(responseData.total);
+			} else if (responseData.total_count) {
+				setTotalPages(Math.ceil(responseData.total_count / ITEMS_PER_PAGE));
+				setTotalResults(responseData.total_count);
+			}
+		} catch (error) {
+			console.error("Error loading page:", error);
+		} finally {
+			setIsLoadingPage(false);
+		}
+
+		// Scroll to top when page changes
+		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
-	// Check if there are more products available for each subcategory
-	const hasMoreForSubcategory = (subcategoryName) => {
-		const currentCount = subcategoryDisplayCounts[subcategoryName] || 20;
-		const isLoading = subcategoryLoadingStates[subcategoryName] || false;
+	// Remove subcategory page change handler - not needed without filtering
 
-		// Don't show button while loading
-		if (isLoading) return false;
+	// Remove subcategory total pages function - not needed without filtering
 
-		// Find the subcategory ID for this subcategory name
-		const subcategory = Object.values(groupedResults[subcategoryName] || [])[0];
-		if (!subcategory) return false;
-
-		const subcategoryId = subcategory.subcategory_id;
-		const totalAvailable = subcategoryCounts[subcategoryId] || 0;
-
-		// Show button if we have loaded less than the total available
-		return currentCount < totalAvailable;
-	};
-
-	const canLoadMore = results.length > displayCount;
-
-	// Create limited results based on search vs category filtering
-	const limitedResults = React.useMemo(() => {
+	// Create paginated results based on current page
+	const paginatedResults = React.useMemo(() => {
 		// Sort results by tier priority first
 		const sortedResults = sortAdsByTier(results);
-		return sortedResults.slice(0, displayCount);
-	}, [results, displayCount]);
 
-	// Create limited grouped results with individual subcategory limits
-	const limitedGroupedResults = React.useMemo(() => {
-		if (!groupedResults || Object.keys(groupedResults).length === 0) return {};
+		// If we're in a search context (parent handles pagination), return all results
+		if (isSearchContext) {
+			return sortedResults;
+		}
 
-		const limited = {};
-		Object.keys(groupedResults).forEach((subcategoryName) => {
-			const allProducts = groupedResults[subcategoryName];
-			const displayCount =
-				subcategoryDisplayCounts[subcategoryName] || allProducts.length;
-			// Use the display count to show the correct number of products
-			limited[subcategoryName] = allProducts.slice(0, displayCount);
-		});
+		// Calculate start and end indices for current page
+		const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+		const endIndex = startIndex + ITEMS_PER_PAGE;
 
-		return limited;
-	}, [groupedResults, subcategoryDisplayCounts]);
+		return sortedResults.slice(startIndex, endIndex);
+	}, [results, currentPage, isSearchContext]);
+
+	// Remove paginated grouped results - not needed without filtering
+
+	// Debug: Log current state before render
 
 	return (
 		<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 min-h-screen overflow-hidden">
@@ -297,63 +342,15 @@ const SearchResultSection = ({
 								results &&
 								results.length > 0 && (
 									<span className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-normal text-gray-600 ml-2 sm:ml-3">
-										({results.length}{" "}
-										{results.length === 1 ? "product" : "products"})
+										({totalResults || results.length}{" "}
+										{(totalResults || results.length) === 1
+											? "product"
+											: "products"}
+										)
 									</span>
 								)}
 						</h1>
-						{/* Filter Display */}
-						{(selectedCategory !== "All" || selectedSubcategory !== "All") && (
-							<div className="flex items-center gap-2 mb-2">
-								<span className="text-xs sm:text-sm text-gray-600">
-									Filter:
-								</span>
-								<div className="flex items-center gap-1">
-									{selectedCategory !== "All" && (
-										<span className="inline-flex items-center px-2 sm:px-3 py-1 text-xs sm:text-sm bg-yellow-100 text-yellow-800 rounded-full font-medium">
-											{(() => {
-												const category = categories.find(
-													(c) =>
-														c.id === parseInt(selectedCategory) ||
-														c.id === selectedCategory
-												);
-												return category ? category.name : selectedCategory;
-											})()}
-										</span>
-									)}
-									{selectedSubcategory !== "All" && (
-										<>
-											<span className="text-gray-400">•</span>
-											<span className="inline-flex items-center px-2 sm:px-3 py-1 text-xs sm:text-sm bg-blue-100 text-blue-800 rounded-full font-medium">
-												{(() => {
-													const category = categories.find(
-														(c) =>
-															c.id === parseInt(selectedCategory) ||
-															c.id === selectedCategory
-													);
-													if (category) {
-														const subcategory = category.subcategories?.find(
-															(sc) =>
-																sc.id === parseInt(selectedSubcategory) ||
-																sc.id === selectedSubcategory
-														);
-														return subcategory
-															? subcategory.name
-															: selectedSubcategory;
-													}
-													return selectedSubcategory;
-												})()}
-											</span>
-										</>
-									)}
-								</div>
-							</div>
-						)}
-						{isGroupedView && limitedResults.length > 0 && (
-							<p className="text-gray-600 text-xs sm:text-sm md:text-base">
-								Browse by subcategory
-							</p>
-						)}
+						{/* Remove filter display - not needed without filtering */}
 					</div>
 					<Button
 						variant="outline-warning"
@@ -385,88 +382,100 @@ const SearchResultSection = ({
 			{/* Shops Section - Show when there are matching shops */}
 			{searchShops && searchShops.length > 0 && (
 				<div className="mb-6 sm:mb-8">
-					<h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-4 sm:mb-5">
-						Matching Shops
-					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-						{searchShops.map((shop) => {
-							const borderColor = getBorderColor(shop.tier_id);
-							return (
-								<div
-									key={shop.id}
-									className="bg-white rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 cursor-pointer group h-full overflow-hidden"
-									style={{ border: `3px solid ${borderColor}` }}
-									onClick={() => handleShopClickInternal(shop)}
+					<div className="flex items-center justify-between mb-4 sm:mb-5">
+						<h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">
+							Matching Shops
+						</h2>
+						{searchShops.length > shopsPerView && (
+							<div className="flex items-center gap-2">
+								<button
+									onClick={prevShops}
+									disabled={currentShopIndex === 0}
+									className="p-2 rounded-full bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+									aria-label="Previous shops"
 								>
-									<div className="p-4 sm:p-5 md:p-6 h-full flex flex-col">
-										{/* Header Section */}
-										<div className="flex items-start mb-3 sm:mb-4">
-											{shop.profile_picture ? (
-												<img
-													src={shop.profile_picture}
-													alt={shop.enterprise_name}
-													className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full object-cover mr-3 sm:mr-4 flex-shrink-0 shadow-md"
-													onError={(e) => {
-														e.target.style.display = "none";
-													}}
-												/>
-											) : (
-												<div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 shadow-md">
-													<svg
-														className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-gray-500"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-														/>
-													</svg>
-												</div>
-											)}
-											<div className="flex-1 min-w-0">
-												<h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 line-clamp-2 break-words leading-tight">
-													{shop.enterprise_name}
-												</h3>
-											</div>
-										</div>
+									<svg
+										className="w-4 h-4 text-gray-600"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M15 19l-7-7 7-7"
+										/>
+									</svg>
+								</button>
+								<button
+									onClick={nextShops}
+									disabled={
+										currentShopIndex >= searchShops.length - shopsPerView
+									}
+									className="p-2 rounded-full bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+									aria-label="Next shops"
+								>
+									<svg
+										className="w-4 h-4 text-gray-600"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M9 5l7 7-7 7"
+										/>
+									</svg>
+								</button>
+							</div>
+						)}
+					</div>
 
-										{/* Description */}
-										{shop.description && (
-											<p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 flex-grow leading-relaxed">
-												{shop.description}
-											</p>
-										)}
-
-										{/* Bottom Section */}
-										<div className="mt-auto space-y-2 sm:space-y-3">
-											{/* Stats Row */}
-											<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-												<div className="flex items-center text-xs sm:text-sm text-gray-600">
-													<svg
-														className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400 flex-shrink-0"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-														/>
-													</svg>
-													<span className="font-medium truncate">
-														{shop.product_count} products
-													</span>
-												</div>
-												{shop.address && (
-													<div className="flex items-center text-xs sm:text-sm text-gray-500">
+					<div className="relative">
+						<div
+							ref={shopsContainerRef}
+							className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth"
+							style={{
+								scrollbarWidth: "none",
+								msOverflowStyle: "none",
+								WebkitOverflowScrolling: "touch",
+							}}
+						>
+							{searchShops.map((shop) => {
+								const borderColor = getBorderColor(shop.tier_id);
+								return (
+									<div
+										key={shop.id}
+										className="bg-white rounded-xl shadow-lg border hover:shadow-xl transition-all duration-300 cursor-pointer group h-full overflow-hidden flex-shrink-0"
+										style={{
+											border: `3px solid ${borderColor}`,
+											width: `calc((100% - ${
+												(shopsPerView - 1) * 1.25
+											}rem) / ${shopsPerView})`,
+											minWidth: "280px", // Ensure minimum width for readability
+											maxWidth: "320px", // Prevent cards from becoming too wide
+										}}
+										onClick={() => handleShopClickInternal(shop)}
+									>
+										<div className="p-4 sm:p-5 md:p-6 h-full flex flex-col">
+											{/* Header Section */}
+											<div className="flex items-start mb-3 sm:mb-4">
+												{shop.profile_picture ? (
+													<img
+														src={shop.profile_picture}
+														alt={shop.enterprise_name}
+														className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full object-cover mr-3 sm:mr-4 flex-shrink-0 shadow-md"
+														onError={(e) => {
+															e.target.style.display = "none";
+														}}
+													/>
+												) : (
+													<div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 shadow-md">
 														<svg
-															className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-gray-400 flex-shrink-0"
+															className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-gray-500"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24"
@@ -475,39 +484,32 @@ const SearchResultSection = ({
 																strokeLinecap="round"
 																strokeLinejoin="round"
 																strokeWidth={2}
-																d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-															/>
-															<path
-																strokeLinecap="round"
-																strokeLinejoin="round"
-																strokeWidth={2}
-																d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+																d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
 															/>
 														</svg>
-														<span className="truncate max-w-[100px] sm:max-w-[120px]">
-															{shop.address}
-														</span>
 													</div>
 												)}
+												<div className="flex-1 min-w-0">
+													<h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 line-clamp-2 break-words leading-tight">
+														{shop.enterprise_name}
+													</h3>
+												</div>
 											</div>
 
-											{/* Action Button and Tier Badge */}
-											<div className="pt-2 border-t border-gray-100">
-												<div className="flex items-center justify-between gap-2">
-													{/* Tier Badge */}
-													<span
-														className="px-2 sm:px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg flex-shrink-0"
-														style={{ backgroundColor: borderColor }}
-													>
-														{shop.tier}
-													</span>
+											{/* Description */}
+											{shop.description && (
+												<p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 flex-grow leading-relaxed">
+													{shop.description}
+												</p>
+											)}
 
-													{/* View Shop Button */}
-													<div className="flex items-center text-xs sm:text-sm font-semibold text-orange-700 group-hover:text-orange-800 transition-colors flex-shrink-0">
-														<span className="hidden sm:inline">View Shop</span>
-														<span className="sm:hidden">View</span>
+											{/* Bottom Section */}
+											<div className="mt-auto space-y-2 sm:space-y-3">
+												{/* Stats Row */}
+												<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+													<div className="flex items-center text-xs sm:text-sm text-gray-600">
 														<svg
-															className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 group-hover:translate-x-1 transition-transform"
+															className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-gray-400 flex-shrink-0"
 															fill="none"
 															stroke="currentColor"
 															viewBox="0 0 24 24"
@@ -516,17 +518,116 @@ const SearchResultSection = ({
 																strokeLinecap="round"
 																strokeLinejoin="round"
 																strokeWidth={2}
-																d="M9 5l7 7-7 7"
+																d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
 															/>
 														</svg>
+														<span className="font-medium truncate">
+															{shop.product_count} products
+														</span>
+													</div>
+													{shop.address && (
+														<div className="flex items-center text-xs sm:text-sm text-gray-500">
+															<svg
+																className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-gray-400 flex-shrink-0"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+															>
+																<path
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	strokeWidth={2}
+																	d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+																/>
+																<path
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	strokeWidth={2}
+																	d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+																/>
+															</svg>
+															<span className="truncate max-w-[100px] sm:max-w-[120px] md:max-w-[140px]">
+																{shop.address}
+															</span>
+														</div>
+													)}
+												</div>
+
+												{/* Action Button, Rating, and Tier Badge */}
+												<div className="pt-2 border-t border-gray-100">
+													<div className="flex items-center justify-between gap-2">
+														{/* Left side: Tier Badge and Rating */}
+														<div className="flex items-center gap-2 flex-1 min-w-0">
+															{/* Tier Badge */}
+															<span
+																className="px-2 sm:px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg flex-shrink-0"
+																style={{ backgroundColor: borderColor }}
+															>
+																{shop.tier}
+															</span>
+
+															{/* Rating */}
+															{shop.avg_rating !== null &&
+																shop.avg_rating !== undefined && (
+																	<div
+																		className={`flex items-center text-xs ${
+																			shop.avg_rating === 0
+																				? "text-gray-400"
+																				: "text-gray-600"
+																		}`}
+																	>
+																		<svg
+																			className={`w-3 h-3 mr-1 ${
+																				shop.avg_rating === 0
+																					? "text-gray-300"
+																					: "text-yellow-400"
+																			}`}
+																			fill="currentColor"
+																			viewBox="0 0 20 20"
+																		>
+																			<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+																		</svg>
+																		<span
+																			className={`font-medium ${
+																				shop.avg_rating === 0
+																					? "text-gray-400"
+																					: ""
+																			}`}
+																		>
+																			{(shop.avg_rating || 0).toFixed(1)}
+																		</span>
+																	</div>
+																)}
+														</div>
+
+														{/* Right side: View Shop Button */}
+														<div className="flex items-center text-xs sm:text-sm font-semibold text-orange-700 group-hover:text-orange-800 transition-colors flex-shrink-0">
+															<span className="hidden sm:inline">
+																View Shop
+															</span>
+															<span className="sm:hidden">View</span>
+															<svg
+																className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2 group-hover:translate-x-1 transition-transform"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+															>
+																<path
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	strokeWidth={2}
+																	d="M9 5l7 7-7 7"
+																/>
+															</svg>
+														</div>
 													</div>
 												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-							);
-						})}
+								);
+							})}
+						</div>
 					</div>
 				</div>
 			)}
@@ -552,9 +653,9 @@ const SearchResultSection = ({
 					{Array.from({ length: 3 }).map((_, sectionIndex) => (
 						<div key={sectionIndex}>
 							<div className="h-4 sm:h-5 md:h-6 bg-gray-200 rounded w-32 sm:w-40 md:w-48 mb-3 sm:mb-4 animate-pulse"></div>
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
 								{Array.from({ length: 6 }).map((_, i) => (
-									<div key={i} className="bg-white rounded-lg shadow-sm border">
+									<div key={i} className="bg-transparent rounded-lg">
 										<div className="w-full aspect-square bg-gray-200 animate-pulse rounded-t-lg" />
 										<div className="p-2 sm:p-2.5 md:p-3">
 											<div className="h-3 sm:h-3.5 md:h-4 bg-gray-200 rounded w-full mb-1 sm:mb-2 animate-pulse" />
@@ -566,7 +667,7 @@ const SearchResultSection = ({
 						</div>
 					))}
 				</div>
-			) : limitedResults.length === 0 && isSearchContext ? (
+			) : paginatedResults.length === 0 && isSearchContext ? (
 				<div className="text-center py-8 sm:py-10 md:py-12">
 					<div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 mx-auto mb-3 sm:mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 						<svg
@@ -592,410 +693,114 @@ const SearchResultSection = ({
 						tires
 					</p>
 				</div>
-			) : limitedResults.length === 0 ? null : ( // Return null when not in search context and no results
+			) : paginatedResults.length === 0 ? null : ( // Return null when not in search context and no results
 				<div className="space-y-6 sm:space-y-7 md:space-y-8">
-					{isGroupedView ? (
-						// Grouped by subcategory view
-						Object.keys(limitedGroupedResults).map((subcategoryName) => (
-							<div
-								key={`${subcategoryName}-${
-									subcategoryDisplayCounts[subcategoryName] || 0
-								}`}
-								className="bg-white rounded-lg shadow-sm border"
-							>
-								<div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gray-50">
-									<h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 flex items-center justify-between">
-										<span>{subcategoryName}</span>
-										<span className="text-xs sm:text-sm font-normal text-yellow-800 bg-yellow-100 px-2 sm:px-3 py-1 rounded-full">
-											{limitedGroupedResults[subcategoryName].length} of{" "}
-											{(() => {
-												// Find the subcategory ID for this subcategory name
-												const subcategory = Object.values(
-													groupedResults[subcategoryName] || []
-												)[0];
-												if (!subcategory)
-													return groupedResults[subcategoryName].length;
+					{/* Single grid view for all results */}
+					<div className="bg-transparent rounded-lg">
+						<div className="p-2 sm:p-3">
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+								{paginatedResults.map((ad) => {
+									// Normalize tier data for consistent display
+									const normalizedAd = {
+										...ad,
+										seller_tier: ad.seller_tier || ad.seller_tier_id || 1,
+										seller_tier_name: ad.seller_tier_name || "Free",
+									};
 
-												const subcategoryId = subcategory.subcategory_id;
-												const totalAvailable =
-													subcategoryCounts[subcategoryId] ||
-													groupedResults[subcategoryName].length;
+									return (
+										<AdCard
+											key={ad.id || ad.ad_id || `ad-${Math.random()}`}
+											ad={normalizedAd}
+											onClick={() => handleAdClick(ad.id)}
+											size="default"
+											variant="default"
+											showTierBadge={true}
+											showTierBorder={true}
+											showRating={true}
+											showPrice={true}
+											showTitle={true}
+											className="h-full"
+										/>
+									);
+								})}
+							</div>
 
-												return totalAvailable;
-											})()}{" "}
-											items
-										</span>
-									</h2>
-								</div>
-								<div className="p-2 sm:p-3">
-									<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
-										{limitedGroupedResults[subcategoryName].map((ad, index) => {
-											const borderColor = getBorderColor(getTierId(ad));
-											return (
-												<div
-													key={`${ad.id}-${subcategoryName}-${
-														subcategoryDisplayCounts[subcategoryName] || 0
-													}`}
-													className="group cursor-pointer h-full"
-													onClick={() => handleAdClick(ad.id)}
-												>
-													<div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col">
-														{/* Tier badge */}
-														<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
-															{ad.first_media_url ||
-															(ad.media_urls &&
-																Array.isArray(ad.media_urls) &&
-																ad.media_urls.length > 0) ||
-															(ad.media &&
-																Array.isArray(ad.media) &&
-																ad.media.length > 0) ? (
-																<img
-																	src={
-																		ad.first_media_url
-																			? ad.first_media_url
-																					.replace(/\n/g, "")
-																					.trim()
-																			: ad.media_urls &&
-																			  Array.isArray(ad.media_urls) &&
-																			  ad.media_urls.length > 0
-																			? ad.media_urls[0]
-																					.replace(/\n/g, "")
-																					.trim()
-																			: ad.media[0].replace(/\n/g, "").trim()
-																	}
-																	alt={ad.title}
-																	className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-																	loading="lazy"
-																	onError={(e) => {
-																		e.target.style.display = "none";
-																		e.target.nextElementSibling.style.display =
-																			"flex";
-																	}}
-																/>
-															) : null}
-															<div
-																className={`w-full h-full ${
-																	ad.first_media_url ||
-																	(ad.media_urls &&
-																		Array.isArray(ad.media_urls) &&
-																		ad.media_urls.length > 0) ||
-																	(ad.media &&
-																		Array.isArray(ad.media) &&
-																		ad.media.length > 0)
-																		? "hidden"
-																		: "flex"
-																} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200`}
-															>
-																<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
-																	<svg
-																		width="48"
-																		height="48"
-																		viewBox="0 0 24 24"
-																		fill="none"
-																		stroke="currentColor"
-																		strokeWidth="1.5"
-																		strokeLinecap="round"
-																		strokeLinejoin="round"
-																		className="mb-2"
-																	>
-																		<rect
-																			x="3"
-																			y="3"
-																			width="18"
-																			height="18"
-																			rx="2"
-																			ry="2"
-																		/>
-																		<circle cx="8.5" cy="8.5" r="1.5" />
-																		<polyline points="21,15 16,10 5,21" />
-																	</svg>
-																</div>
-																<div className="text-xs text-gray-500 font-medium text-center px-2">
-																	No Image
-																</div>
-															</div>
-															<div
-																className="absolute top-1 sm:top-2 left-1 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium text-white rounded"
-																style={{ backgroundColor: borderColor }}
-															>
-																{getTierName(ad)}
-															</div>
-														</div>
+							{/* Pagination controls for main results - inside the white container */}
+							{!isSearchContext && totalPages > 1 && (
+								<div className="flex justify-center mt-6 sm:mt-7 md:mt-8">
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline-warning"
+											size="sm"
+											onClick={() => handlePageChange(currentPage - 1)}
+											disabled={currentPage <= 1 || isLoadingPage}
+											className="px-3 py-1.5 text-sm"
+										>
+											Previous
+										</Button>
 
-														<div className="p-2 sm:p-3 flex flex-col flex-grow">
-															<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow text-left">
-																{ad.title}
-															</h3>
-															{/* Price and Rating with justify-between */}
-															<div className="flex justify-between items-center">
-																{/* Price */}
-																<span className="text-sm sm:text-base font-bold text-green-600">
-																	KES{" "}
-																	{ad.price
-																		? parseFloat(ad.price).toLocaleString()
-																		: "N/A"}
-																</span>
-																{/* Rating with single star */}
-																{(ad.average_rating && ad.average_rating > 0) ||
-																(ad.review_stats &&
-																	ad.review_stats.average > 0) ? (
-																	<div className="flex items-center gap-1">
-																		<svg
-																			className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"
-																			fill="currentColor"
-																			viewBox="0 0 20 20"
-																		>
-																			<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-																		</svg>
-																		<span className="text-xs sm:text-sm text-gray-600 font-medium">
-																			{(
-																				ad.average_rating ||
-																				ad.review_stats?.average ||
-																				0
-																			).toFixed(1)}
-																		</span>
-																	</div>
-																) : (
-																	<div className="flex items-center gap-1">
-																		<svg
-																			className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300"
-																			fill="currentColor"
-																			viewBox="0 0 20 20"
-																		>
-																			<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-																		</svg>
-																		<span className="text-xs sm:text-sm text-gray-400 font-medium">
-																			0.0
-																		</span>
-																	</div>
-																)}
-															</div>
-														</div>
-													</div>
-												</div>
-											);
-										})}
-									</div>
-									{/* Load More button for this subcategory */}
-									{hasMoreForSubcategory(subcategoryName) && (
-										<div className="text-center mt-4 sm:mt-5 md:mt-6">
-											<Button
-												variant="warning"
-												onClick={() =>
-													handleSubcategoryLoadMore(subcategoryName)
+										{/* Page numbers */}
+										<div className="flex items-center gap-1">
+											{Array.from(
+												{ length: Math.min(5, totalPages) },
+												(_, i) => {
+													let pageNum;
+													if (totalPages <= 5) {
+														pageNum = i + 1;
+													} else if (currentPage <= 3) {
+														pageNum = i + 1;
+													} else if (currentPage >= totalPages - 2) {
+														pageNum = totalPages - 4 + i;
+													} else {
+														pageNum = currentPage - 2 + i;
+													}
+
+													return (
+														<Button
+															key={pageNum}
+															variant={
+																currentPage === pageNum
+																	? "warning"
+																	: "outline-warning"
+															}
+															size="sm"
+															onClick={() => handlePageChange(pageNum)}
+															disabled={isLoadingPage}
+															className="px-3 py-1.5 text-sm"
+														>
+															{pageNum}
+														</Button>
+													);
 												}
-												disabled={
-													subcategoryLoadingStates[subcategoryName] || false
-												}
-												className="px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 rounded-pill font-medium shadow-sm text-sm"
-											>
-												{subcategoryLoadingStates[subcategoryName] ? (
-													<>
-														<span
-															className="spinner-border spinner-border-sm me-2"
-															role="status"
-															aria-hidden="true"
-														></span>
-														Loading...
-													</>
-												) : (
-													(() => {
-														const subcategory = Object.values(
-															groupedResults[subcategoryName] || []
-														)[0];
-														if (!subcategory)
-															return `Load More ${subcategoryName}`;
-
-														const subcategoryId = subcategory.subcategory_id;
-														const totalAvailable =
-															subcategoryCounts[subcategoryId] || 0;
-														const currentCount =
-															subcategoryDisplayCounts[subcategoryName] || 20;
-														const remaining = totalAvailable - currentCount;
-
-														return `Load More ${subcategoryName} (${remaining} remaining)`;
-													})()
-												)}
-											</Button>
+											)}
 										</div>
-									)}
+
+										<Button
+											variant="outline-warning"
+											size="sm"
+											onClick={() => handlePageChange(currentPage + 1)}
+											disabled={currentPage >= totalPages || isLoadingPage}
+											className="px-3 py-1.5 text-sm"
+										>
+											Next
+										</Button>
+									</div>
+									{/* Debug info */}
+									<div className="ml-4 text-sm text-gray-500">
+										{isLoadingPage ? (
+											<span
+												className="spinner-border spinner-border-sm me-2"
+												role="status"
+												aria-hidden="true"
+											></span>
+										) : (
+											`Page ${currentPage} of ${totalPages} (${totalResults} total items)`
+										)}
+									</div>
 								</div>
-							</div>
-						))
-					) : (
-						// Single grid view for search results
-						<div className="bg-white rounded-lg shadow-sm border">
-							<div className="p-2 sm:p-3">
-								<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
-									{limitedResults.map((ad) => {
-										const borderColor = getBorderColor(getTierId(ad));
-										return (
-											<div
-												key={ad.id}
-												className="group cursor-pointer h-full"
-												onClick={() => handleAdClick(ad.id)}
-											>
-												<div className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full flex flex-col">
-													<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
-														{ad.first_media_url ||
-														(ad.media_urls &&
-															Array.isArray(ad.media_urls) &&
-															ad.media_urls.length > 0) ||
-														(ad.media &&
-															Array.isArray(ad.media) &&
-															ad.media.length > 0) ? (
-															<img
-																src={
-																	ad.first_media_url
-																		? ad.first_media_url
-																				.replace(/\n/g, "")
-																				.trim()
-																		: ad.media_urls &&
-																		  Array.isArray(ad.media_urls) &&
-																		  ad.media_urls.length > 0
-																		? ad.media_urls[0].replace(/\n/g, "").trim()
-																		: ad.media[0].replace(/\n/g, "").trim()
-																}
-																alt={ad.title}
-																className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-																loading="lazy"
-																onError={(e) => {
-																	e.target.style.display = "none";
-																	e.target.nextElementSibling.style.display =
-																		"flex";
-																}}
-															/>
-														) : null}
-														<div
-															className={`w-full h-full ${
-																ad.first_media_url ||
-																(ad.media_urls &&
-																	Array.isArray(ad.media_urls) &&
-																	ad.media_urls.length > 0) ||
-																(ad.media &&
-																	Array.isArray(ad.media) &&
-																	ad.media.length > 0)
-																	? "hidden"
-																	: "flex"
-															} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200`}
-														>
-															<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
-																<svg
-																	width="48"
-																	height="48"
-																	viewBox="0 0 24 24"
-																	fill="none"
-																	stroke="currentColor"
-																	strokeWidth="1.5"
-																	strokeLinecap="round"
-																	strokeLinejoin="round"
-																	className="mb-2"
-																>
-																	<rect
-																		x="3"
-																		y="3"
-																		width="18"
-																		height="18"
-																		rx="2"
-																		ry="2"
-																	/>
-																	<circle cx="8.5" cy="8.5" r="1.5" />
-																	<polyline points="21,15 16,10 5,21" />
-																</svg>
-															</div>
-															<div className="text-xs text-gray-500 font-medium text-center px-2">
-																No Image
-															</div>
-														</div>
-														<div
-															className="absolute top-1 sm:top-2 left-1 sm:left-2 px-1.5 sm:px-2 py-0.5 sm:py-1 text-xs font-medium text-white rounded"
-															style={{ backgroundColor: borderColor }}
-														>
-															{getTierName(ad)}
-														</div>
-													</div>
-
-													<div className="p-2 sm:p-3 flex flex-col flex-grow">
-														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow text-left">
-															{ad.title}
-														</h3>
-														{/* Price and Rating with justify-between */}
-														<div className="flex justify-between items-center">
-															{/* Price */}
-															<span className="text-sm sm:text-base font-bold text-green-600">
-																KES{" "}
-																{ad.price
-																	? parseFloat(ad.price).toLocaleString()
-																	: "N/A"}
-															</span>
-															{/* Rating with single star */}
-															{(ad.average_rating && ad.average_rating > 0) ||
-															(ad.review_stats &&
-																ad.review_stats.average > 0) ? (
-																<div className="flex items-center gap-1">
-																	<svg
-																		className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400"
-																		fill="currentColor"
-																		viewBox="0 0 20 20"
-																	>
-																		<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-																	</svg>
-																	<span className="text-xs sm:text-sm text-gray-600 font-medium">
-																		{(
-																			ad.average_rating ||
-																			ad.review_stats?.average ||
-																			0
-																		).toFixed(1)}
-																	</span>
-																</div>
-															) : (
-																<div className="flex items-center gap-1">
-																	<svg
-																		className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300"
-																		fill="currentColor"
-																		viewBox="0 0 20 20"
-																	>
-																		<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-																	</svg>
-																	<span className="text-xs sm:text-sm text-gray-400 font-medium">
-																		0.0
-																	</span>
-																</div>
-															)}
-														</div>
-													</div>
-												</div>
-											</div>
-										);
-									})}
-								</div>
-							</div>
+							)}
 						</div>
-					)}
-
-					{canLoadMore && !isGroupedView && (
-						<div className="text-center mt-6 sm:mt-7 md:mt-8">
-							<Button
-								variant="warning"
-								onClick={handleLoadMore}
-								className="px-6 sm:px-7 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-pill font-medium shadow-sm text-sm sm:text-base"
-							>
-								Load More Products ({results.length - displayCount} remaining)
-							</Button>
-						</div>
-					)}
-
-					{hasMore && (
-						<div className="text-center mt-6 sm:mt-7 md:mt-8">
-							<Button
-								variant="warning"
-								onClick={onLoadMore}
-								className="px-6 sm:px-7 md:px-8 py-2 sm:py-2.5 md:py-3 rounded-pill font-medium shadow-sm text-sm sm:text-base"
-							>
-								Load More Products
-							</Button>
-						</div>
-					)}
+					</div>
 				</div>
 			)}
 		</div>

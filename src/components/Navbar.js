@@ -65,7 +65,6 @@ const Navbar = ({
 	setSearchQuery,
 	handleSearch,
 	mode = "default", // "default", "minimal", "buyer", "seller", "admin", "rider", "sales"
-	onSidebarToggle,
 	showSearch = true,
 	showCategories = true,
 	showUserMenu = true,
@@ -94,6 +93,9 @@ const Navbar = ({
 	// Ref to debounce dropdown selections
 	const dropdownDebounceRef = useRef(null);
 	const isDropdownProcessingRef = useRef(false);
+
+	// Ref to debounce search input
+	const searchDebounceRef = useRef(null);
 
 	// Listen for new messages in real-time
 	const handleNewMessage = useCallback((data) => {
@@ -264,12 +266,16 @@ const Navbar = ({
 		}
 	}, [isLoggedIn, userRole, fetchUnreadMessageCount]);
 
-	// Cleanup effect to clear debounce timeout on unmount
+	// Cleanup effect to clear debounce timeouts on unmount
 	useEffect(() => {
 		return () => {
 			if (dropdownDebounceRef.current) {
 				clearTimeout(dropdownDebounceRef.current);
 				dropdownDebounceRef.current = null;
+			}
+			if (searchDebounceRef.current) {
+				clearTimeout(searchDebounceRef.current);
+				searchDebounceRef.current = null;
 			}
 			isDropdownProcessingRef.current = false;
 		};
@@ -336,6 +342,10 @@ const Navbar = ({
 			if (onCategoryChange) {
 				onCategoryChange(categoryId);
 			}
+			// Trigger debounced search with current query and new category
+			if (searchQuery?.trim()) {
+				debouncedSearch(searchQuery, categoryId, selectedSubcategory);
+			}
 			isDropdownProcessingRef.current = false;
 		}, 150); // Increased delay to prevent rapid-fire updates
 	};
@@ -359,14 +369,56 @@ const Navbar = ({
 			if (onSubcategoryChange) {
 				onSubcategoryChange(subcategoryId);
 			}
+			// Trigger debounced search with current query and new subcategory
+			if (searchQuery?.trim()) {
+				debouncedSearch(searchQuery, selectedCategory, subcategoryId);
+			}
 			isDropdownProcessingRef.current = false;
 		}, 150); // Increased delay to prevent rapid-fire updates
 	};
 
+	// Debounced search function
+	const debouncedSearch = useCallback(
+		(query, category, subcategory) => {
+			// Clear existing timeout
+			if (searchDebounceRef.current) {
+				clearTimeout(searchDebounceRef.current);
+			}
+
+			// Set new timeout for search
+			searchDebounceRef.current = setTimeout(() => {
+				if (handleSearch) {
+					handleSearch(query, category, subcategory);
+				}
+			}, 500); // 500ms delay after user stops typing
+		},
+		[handleSearch]
+	);
+
+	// Handle search input change with debouncing
+	const handleSearchInputChange = useCallback(
+		(value) => {
+			// Update the search query immediately for UI responsiveness
+			if (setSearchQuery) {
+				setSearchQuery(value);
+			}
+
+			// Trigger debounced search
+			debouncedSearch(value, selectedCategory, selectedSubcategory);
+		},
+		[setSearchQuery, debouncedSearch, selectedCategory, selectedSubcategory]
+	);
+
 	const onSubmit = async (e) => {
 		e.preventDefault();
-		// No need to call handleSearch here since it's now handled by debounced search
-		// The search will trigger automatically when searchQuery changes
+		// Clear any pending debounced search
+		if (searchDebounceRef.current) {
+			clearTimeout(searchDebounceRef.current);
+		}
+		// Only trigger search when form is submitted (Enter key or search button click)
+		if (handleSearch && searchQuery?.trim()) {
+			handleSearch(searchQuery, selectedCategory, selectedSubcategory);
+		}
 	};
 
 	const handleLogout = () => {
@@ -393,7 +445,20 @@ const Navbar = ({
 	};
 
 	const handleNavigation = (href) => {
-		navigate(href);
+		// Preserve current query parameters when navigating
+		const currentParams = new URLSearchParams(window.location.search);
+		const currentQuery = currentParams.toString();
+
+		// If the href already has query parameters, don't override them
+		// Otherwise, preserve the current query parameters
+		if (href.includes("?") || href === "/" || href === "/login") {
+			navigate(href);
+		} else {
+			// For other pages, preserve query parameters
+			const separator = href.includes("?") ? "&" : "?";
+			navigate(`${href}${currentQuery ? `${separator}${currentQuery}` : ""}`);
+		}
+
 		setIsUserMenuOpen(false);
 		setIsMobileMenuOpen(false);
 		setIsDropdownOpen(false);
@@ -624,7 +689,7 @@ const Navbar = ({
 							type="text"
 							placeholder="Search ads..."
 							value={searchQuery ?? ""}
-							onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
+							onChange={(e) => handleSearchInputChange(e.target.value)}
 							onFocus={() => setIsSearchFocused(true)}
 							onBlur={() => setIsSearchFocused(false)}
 							className={`flex-1 min-w-0 px-3 sm:px-4 pr-10 sm:pr-12 border-t border-b border-yellow-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] sm:h-[42px] text-sm ${
@@ -958,9 +1023,7 @@ const Navbar = ({
 											type="text"
 											placeholder="Search ads..."
 											value={searchQuery ?? ""}
-											onChange={(e) =>
-												setSearchQuery && setSearchQuery(e.target.value)
-											}
+											onChange={(e) => handleSearchInputChange(e.target.value)}
 											className="flex-1 min-w-0 px-3 pr-10 border-t border-b border-yellow-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all duration-200 h-[36px] text-sm"
 										/>
 

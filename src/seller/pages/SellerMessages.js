@@ -1,7 +1,7 @@
 import React from "react";
 import Messages from "../../components/Messages";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
+
 import useSEO from "../../hooks/useSEO";
 
 const SellerMessages = () => {

@@ -7,7 +7,7 @@ import {
 	faRefresh,
 	faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 
 const FingerprintRemovalRequests = () => {

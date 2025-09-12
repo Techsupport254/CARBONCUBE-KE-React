@@ -1,7 +1,8 @@
 import React from "react";
-import { Container, Row, Col, Card, Badge, Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFileContract, faShieldAlt } from "@fortawesome/free-solid-svg-icons";
+import { Container, Row, Col, Card, Badge } from "react-bootstrap";
 import {
-	Shield,
 	FileText,
 	Person,
 	ExclamationTriangle,
@@ -49,39 +50,52 @@ const Terms = () => {
 			<div className="terms-container">
 				{/* Hero Section */}
 				<section
-					className="py-5 text-dark position-relative overflow-hidden"
+					className="py-8 sm:py-12 lg:py-16 text-dark position-relative overflow-hidden"
 					style={{ backgroundColor: "#ffc107" }}
 				>
 					{/* Subtle background pattern */}
-					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-50">
+					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-30">
 						<div
 							style={{
 								background:
-									"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.1) 35px, rgba(0,0,0,.1) 70px)",
+									"repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px)",
 								width: "100%",
 								height: "100%",
 							}}
 						></div>
 					</div>
-					<Container className="text-center position-relative">
-						<div className="d-flex justify-content-center mb-3">
-							<div className="bg-dark rounded-circle p-3">
-								<FileText size={32} className="text-warning" />
-							</div>
+					<div className="container mx-auto px-2 sm:px-4 text-center position-relative max-w-6xl">
+						<div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-black rounded-full mx-auto mb-4 sm:mb-6 lg:mb-8 flex items-center justify-center border-2 sm:border-4 border-white">
+							<FontAwesomeIcon
+								icon={faFileContract}
+								className="text-2xl sm:text-3xl lg:text-4xl text-white"
+							/>
 						</div>
-						<h1 className="display-4 fw-bold mb-3">Terms & Conditions</h1>
-						<p className="lead mb-4 fs-5">CarbonCube Kenya - Legal Agreement</p>
-						<p className="mb-4 fs-6 opacity-75">Last Updated: 25 July 2025</p>
-						<Button
-							variant="dark"
-							size="lg"
-							href="https://t9014769862.p.clickup-attachments.com/t9014769862/dff490a5-61d4-4306-ad6e-3088913b328b/CarbonCube%20Terms%20and%20Conditions.docx?view=open"
-							className="rounded-pill px-4 py-2 shadow d-inline-flex align-items-center gap-2"
+						<h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black mb-3 sm:mb-4 lg:mb-6 leading-tight">
+							Terms & Conditions
+						</h1>
+						<p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black opacity-90 mb-4 sm:mb-6 lg:mb-8 max-w-3xl mx-auto leading-relaxed">
+							CarbonCube Kenya - Legal Agreement
+						</p>
+						<div
+							className="bg-black text-yellow-400 rounded-full px-4 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 inline-flex items-center gap-2 sm:gap-3 hover:bg-gray-900 transition-colors duration-300"
+							onClick={() =>
+								window.open(
+									"https://t9014769862.p.clickup-attachments.com/t9014769862/dff490a5-61d4-4306-ad6e-3088913b328b/CarbonCube%20Terms%20and%20Conditions.docx?view=open",
+									"_blank"
+								)
+							}
+							style={{ cursor: "pointer" }}
 						>
-							<Shield size={16} />
-							<span>Legal Document</span>
-						</Button>
-					</Container>
+							<FontAwesomeIcon
+								icon={faShieldAlt}
+								className="text-yellow-400 text-sm sm:text-base lg:text-lg"
+							/>
+							<span className="text-yellow-400 font-semibold text-sm sm:text-base lg:text-lg">
+								Legal Document
+							</span>
+						</div>
+					</div>
 				</section>
 
 				{/* Main Content */}

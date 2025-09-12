@@ -20,7 +20,7 @@ import {
 	faStar as faStarEmpty,
 } from "@fortawesome/free-solid-svg-icons";
 import { Bar, Doughnut } from "react-chartjs-2";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/SellersManagement.css"; // Custom CSS

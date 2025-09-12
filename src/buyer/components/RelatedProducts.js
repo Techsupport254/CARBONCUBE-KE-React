@@ -115,7 +115,16 @@ const RelatedProducts = ({
 					{displayedAds.map((relatedAd) => (
 						<div
 							key={relatedAd.id}
-							onClick={() => navigate(`/ad/${relatedAd.id}`)}
+							onClick={() => {
+								// Preserve current query parameters when navigating to ad details
+								const currentParams = new URLSearchParams(
+									window.location.search
+								);
+								const currentQuery = currentParams.toString();
+								const separator = currentQuery ? "?" : "";
+
+								navigate(`/ads/${relatedAd.id}${separator}${currentQuery}`);
+							}}
 							className="group cursor-pointer bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-yellow-300 hover:shadow-md transition-all duration-300 overflow-hidden"
 						>
 							<div className="relative">

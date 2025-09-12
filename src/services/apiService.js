@@ -114,7 +114,8 @@ class ApiService {
 			queryParams.set("subcategory_id", params.subcategory_id);
 
 		const url = `${API_BASE_URL}/buyer/ads?${queryParams.toString()}`;
-		return this.fetch(url);
+		const result = await this.fetch(url);
+		return result;
 	}
 
 	/**
@@ -128,7 +129,7 @@ class ApiService {
 		if (filters.subcategory)
 			queryParams.set("subcategory", filters.subcategory);
 		if (filters.page) queryParams.set("page", filters.page);
-		if (filters.per_page) queryParams.set("per_page", filters.per_page);
+		if (filters.per_page) queryParams.set("ads_per_page", filters.per_page);
 
 		const url = `${API_BASE_URL}/buyer/ads/search?${queryParams.toString()}`;
 		return this.fetch(url);
@@ -395,6 +396,25 @@ class ApiService {
 			);
 		}
 		return response.json();
+	}
+
+	/**
+	 * Get best sellers with pagination support
+	 * @param {Object} params - Query parameters
+	 * @param {number} params.page - Page number
+	 * @param {number} params.per_page - Items per page
+	 * @param {number} params.limit - Total limit (optional)
+	 * @returns {Promise<Object>} Best sellers data
+	 */
+	async getBestSellers(params = {}) {
+		const queryParams = new URLSearchParams();
+
+		if (params.page) queryParams.set("page", params.page);
+		if (params.per_page) queryParams.set("per_page", params.per_page);
+		if (params.limit) queryParams.set("limit", params.limit);
+
+		const url = `${API_BASE_URL}/best_sellers?${queryParams.toString()}`;
+		return this.fetch(url);
 	}
 }
 

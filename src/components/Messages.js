@@ -132,8 +132,6 @@ const getParticipantInfoWithOnlineStatus = (
 const Messages = ({
 	userType = "buyer", // 'buyer', 'seller', 'admin'
 	apiBaseUrl = "/buyer/conversations",
-	showSidebar = true,
-	sidebarComponent = null,
 	navbarComponent = null,
 	title = "Messages",
 	containerClassName = "",
@@ -579,8 +577,6 @@ const Messages = ({
 			{navbarComponent}
 			<div className="h-[95vh] bg-gray-50 flex flex-col">
 				<div className="flex flex-1 overflow-hidden">
-					{showSidebar && sidebarComponent}
-
 					<div className={`flex-1 ${containerClassName}`}>
 						<div className={`${maxWidth} mx-auto h-full`}>
 							<div className="bg-white rounded-lg shadow-sm overflow-hidden h-full">

@@ -20,7 +20,7 @@ import {
 	faStar as faStarEmpty,
 	faFilter,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/AdsManagement.css";

@@ -36,7 +36,6 @@ import { MdSearch, MdLink } from "react-icons/md";
 // Import new components
 import Navbar from "../../components/Navbar";
 import {
-	Sidebar,
 	CategoryPerformanceTable,
 	AnalyticsModal,
 	SourceTrackingModal,

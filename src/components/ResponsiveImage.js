@@ -1,117 +1,150 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
+// Responsive image component with Cloudinary optimization
 const ResponsiveImage = ({
 	src,
 	alt,
-	width,
-	height,
 	className = "",
+	fallbackSrc = null,
+	sizes = "(max-width: 640px) 192px, (max-width: 768px) 256px, (max-width: 1024px) 320px, 384px",
 	loading = "lazy",
-	fetchPriority = "auto",
-	sizes = "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
-	quality = 75,
+	onError = null,
 	...props
 }) => {
-	const [imageError, setImageError] = useState(false);
-	const [imageLoaded, setImageLoaded] = useState(false);
+	const [imageSrc, setImageSrc] = useState(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [hasError, setHasError] = useState(false);
+	const imgRef = useRef(null);
 
-	// Generate responsive srcSet for Cloudinary images
-	const generateSrcSet = (imageSrc) => {
-		if (
-			!imageSrc ||
-			imageSrc.includes("banner-") ||
-			imageSrc.startsWith("/") ||
-			imageSrc.startsWith("data:")
-		) {
-			return undefined; // Don't generate srcSet for local images, banners, or data URIs
+	// Generate responsive image URLs with Cloudinary transformations
+	const generateResponsiveSrc = (originalSrc, width) => {
+		if (!originalSrc) return null;
+
+		// Check if it's a Cloudinary URL
+		if (originalSrc.includes("res.cloudinary.com")) {
+			try {
+				// Extract the public ID and version
+				const urlParts = originalSrc.split("/");
+				const versionIndex = urlParts.findIndex((part) => part.startsWith("v"));
+				const publicIdIndex = versionIndex + 1;
+
+				if (versionIndex !== -1 && publicIdIndex < urlParts.length) {
+					const version = urlParts[versionIndex];
+					// Keep the full public ID including the original file extension
+					const publicId = urlParts.slice(publicIdIndex).join("/");
+
+					// Generate optimized URL preserving original aspect ratio
+					return `https://res.cloudinary.com/${urlParts[3]}/image/upload/w_${width},q_auto,f_auto/${version}/${publicId}`;
+				}
+			} catch (error) {
+				console.warn("Error generating Cloudinary URL:", error);
+				// Return original URL if transformation fails
+				return originalSrc;
+			}
 		}
 
-		// For Cloudinary images, generate responsive sizes
-		const baseUrl = imageSrc.split("/upload/")[0];
-		const path = imageSrc.split("/upload/")[1];
-
-		const sizes = [
-			{ width: 200, quality: quality },
-			{ width: 400, quality: quality },
-			{ width: 600, quality: quality },
-			{ width: 800, quality: quality },
-			{ width: 1000, quality: quality },
-			{ width: 1200, quality: quality },
-		];
-
-		return sizes
-			.map(
-				({ width, quality }) =>
-					`${baseUrl}/upload/w_${width},q_${quality},f_auto/${path} ${width}w`
-			)
-			.join(", ");
+		return originalSrc;
 	};
 
-	const handleError = () => {
-		setImageError(true);
+	useEffect(() => {
+		if (!src) {
+			setIsLoading(false);
+			return;
+		}
+
+		// Generate responsive image URL
+		const responsiveSrc = generateResponsiveSrc(src, 192); // Default mobile size
+		setImageSrc(responsiveSrc);
+		setIsLoading(false);
+	}, [src]);
+
+	const handleError = (e) => {
+		setHasError(true);
+		setIsLoading(false);
+
+		if (fallbackSrc) {
+			setImageSrc(fallbackSrc);
+		} else if (onError) {
+			onError(e);
+		} else {
+			// Default fallback behavior - hide the image
+			if (e.target) {
+				e.target.style.display = "none";
+			}
+		}
 	};
 
 	const handleLoad = () => {
-		setImageLoaded(true);
+		setIsLoading(false);
 	};
 
-	const srcSet = generateSrcSet(src);
+	// Generate srcSet for different screen sizes
+	const generateSrcSet = (originalSrc) => {
+		if (!originalSrc || !originalSrc.includes("res.cloudinary.com")) {
+			return undefined;
+		}
+
+		const sizes = [192, 256, 320, 384, 512];
+		return sizes
+			.map((size) => {
+				try {
+					const responsiveSrc = generateResponsiveSrc(originalSrc, size);
+					return responsiveSrc ? `${responsiveSrc} ${size}w` : null;
+				} catch (error) {
+					console.warn(`Error generating srcSet for size ${size}:`, error);
+					return null;
+				}
+			})
+			.filter(Boolean)
+			.join(", ");
+	};
+
+	if (hasError && !fallbackSrc) {
+		return (
+			<div
+				className={`bg-gray-100 flex items-center justify-center ${className}`}
+			>
+				<svg
+					width="48"
+					height="48"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.5"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="text-gray-400"
+				>
+					<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+					<circle cx="8.5" cy="8.5" r="1.5" />
+					<polyline points="21,15 16,10 5,21" />
+				</svg>
+			</div>
+		);
+	}
 
 	return (
 		<div className={`relative ${className}`}>
-			{!imageLoaded && !imageError && (
-				<div
-					className="absolute inset-0 bg-gray-200 animate-pulse rounded"
-					style={{
-						aspectRatio: width && height ? `${width}/${height}` : "auto",
-					}}
-				/>
+			{isLoading && (
+				<div className="absolute inset-0 bg-gray-100 animate-pulse flex items-center justify-center">
+					<div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+				</div>
 			)}
+
 			<img
-				src={src}
+				ref={imgRef}
+				src={imageSrc}
+				srcSet={generateSrcSet(src)}
+				sizes={sizes}
 				alt={alt}
-				width={width}
-				height={height}
-				className={`transition-opacity duration-300 ${
-					imageLoaded ? "opacity-100" : "opacity-0"
+				className={`w-full h-full object-contain transition-opacity duration-200 ${
+					isLoading ? "opacity-0" : "opacity-100"
 				} ${className}`}
 				loading={loading}
-				fetchpriority={fetchPriority}
-				sizes={sizes}
-				srcSet={srcSet}
 				onError={handleError}
 				onLoad={handleLoad}
 				{...props}
 			/>
-			{imageError && (
-				<div
-					className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center"
-					style={{
-						aspectRatio: width && height ? `${width}/${height}` : "auto",
-					}}
-				>
-					<div className="text-gray-400">
-						<svg
-							width="48"
-							height="48"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							className="mb-2"
-						>
-							<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-							<circle cx="8.5" cy="8.5" r="1.5" />
-							<polyline points="21,15 16,10 5,21" />
-						</svg>
-					</div>
-					<div className="text-xs text-gray-500 font-medium text-center px-2">
-						No Image
-					</div>
-				</div>
-			)}
 		</div>
 	);
 };

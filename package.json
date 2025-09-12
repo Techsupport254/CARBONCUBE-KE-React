@@ -51,17 +51,14 @@
 	},
 	"scripts": {
 		"start": "GENERATE_SOURCEMAP=false PORT=3000 react-scripts --no-warnings start",
-		"build": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run generate-sitemap && npm run generate-shop-pages",
+		"build": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run generate-seo",
 		"build:prod": "CI=true GENERATE_SOURCEMAP=false react-scripts --no-warnings build",
 		"serve": "serve -s build -l 3000",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",
-		"generate-sitemap": "node scripts/generate-sitemap.js",
-		"generate-shop-pages": "node scripts/generate-shop-pages.js",
-		"generate-dynamic-sitemap": "node scripts/generate-dynamic-sitemap.js",
-		"generate-enhanced-sitemap": "node scripts/generate-enhanced-sitemap.js",
-		"generate-true-dynamic-sitemap": "node scripts/generate-true-dynamic-sitemap.js",
-		"generate-public-dynamic-sitemap": "node scripts/generate-public-dynamic-sitemap.js"
+		"generate-seo": "node scripts/seo-generator.js",
+		"update-seo": "node scripts/seo-generator.js",
+		"regenerate-seo": "node scripts/seo-generator.js"
 	},
 	"eslintConfig": {
 		"extends": [

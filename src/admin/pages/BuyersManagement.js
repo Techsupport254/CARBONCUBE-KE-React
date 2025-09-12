@@ -9,7 +9,7 @@ import {
 	Card,
 	Form,
 } from "react-bootstrap";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserShield, faKey } from "@fortawesome/free-solid-svg-icons";

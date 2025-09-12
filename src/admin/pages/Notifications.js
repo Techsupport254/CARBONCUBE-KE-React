@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge } from "react-bootstrap";
 import { Gear, Truck, GeoAlt } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTruckFast } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/Notifications.css"; // Custom CSS file

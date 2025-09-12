@@ -18,7 +18,7 @@ import {
 	faBuilding,
 	faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import AlertModal from "../../components/AlertModal";

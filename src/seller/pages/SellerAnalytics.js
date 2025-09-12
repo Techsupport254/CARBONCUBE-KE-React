@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import ClickEventsStats from "../components/ClickEventsStats";
 import TopWishListedAds from "../components/TopWishListedAds";

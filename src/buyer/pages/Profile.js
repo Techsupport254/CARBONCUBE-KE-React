@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
-import Sidebar from "../components/Sidebar";
+
 import { formatDate } from "../utils/formatDate";
 import AlertModal from "../../components/AlertModal";
 import useSEO from "../../hooks/useSEO";

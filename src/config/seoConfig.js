@@ -43,7 +43,7 @@ export const SEO_CONFIG = {
 				type: "font/woff2",
 			},
 		],
-		preloadImages: ["/logo.png", "/hero-banner.webp"],
+		preloadImages: [],
 		dnsPrefetch: [
 			"https://fonts.googleapis.com",
 			"https://fonts.gstatic.com",

@@ -9,7 +9,7 @@ import {
 	Form,
 } from "react-bootstrap";
 import { Trash, Pencil, Plus } from "react-bootstrap-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/TiersManagement.css";

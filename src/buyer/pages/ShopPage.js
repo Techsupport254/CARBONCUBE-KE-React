@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "react-bootstrap";
-import { getFallbackImage } from "../../utils/imageUtils";
 import {
 	getTierName,
 	getTierId,
@@ -12,8 +11,12 @@ import Footer from "../../components/Footer";
 import ReviewsModal from "../../components/ReviewsModal";
 import LeaveReviewModal from "../../components/LeaveReviewModal";
 import useSEO from "../../hooks/useSEO";
-import { generateShopSEO } from "../../utils/seoHelpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { preloadShopIcons } from "../../utils/iconLoader";
+import ResponsiveImage from "../../components/ResponsiveImage";
+import Spinner from "react-spinkit";
+
+// Import specific icons for better performance
 import {
 	faShare,
 	faStar,
@@ -29,7 +32,6 @@ import {
 	faWhatsapp,
 	faLinkedin,
 } from "@fortawesome/free-brands-svg-icons";
-import Spinner from "react-spinkit";
 
 const ShopPage = () => {
 	const { slug } = useParams();
@@ -78,6 +80,9 @@ const ShopPage = () => {
 			setUserRole(role);
 			setCurrentUserId(userId);
 		}
+
+		// Preload shop icons for better performance
+		preloadShopIcons();
 	}, []);
 
 	const handleShareShop = () => {
@@ -248,7 +253,8 @@ const ShopPage = () => {
 						? `registered business ${shop.business_registration_number}`
 						: ""
 				}, Kenya e-commerce, online shopping Kenya, verified seller Kenya`,
-				url: `${window.location.origin}/shop/${encodeURIComponent(slug)}`,
+				url: `https://carboncube-ke.com/shop/${shop.slug}`,
+				canonicalUrl: `https://carboncube-ke.com/shop/${shop.slug}`,
 				type: "website",
 				image: (() => {
 					if (shop?.profile_picture && shop.profile_picture.trim() !== "") {
@@ -690,7 +696,12 @@ const ShopPage = () => {
 	}, [shop, fetchReviewStats]);
 
 	const handleAdClick = (adId) => {
-		navigate(`/ads/${adId}`);
+		// Preserve current query parameters when navigating to ad details
+		const currentParams = new URLSearchParams(window.location.search);
+		const currentQuery = currentParams.toString();
+		const separator = currentQuery ? "?" : "";
+
+		navigate(`/ads/${adId}${separator}${currentQuery}`);
 	};
 
 	const handleLoadMore = () => {
@@ -755,7 +766,7 @@ const ShopPage = () => {
 		}
 		if (urlSubcategory !== selectedSubcategory)
 			setSelectedSubcategory(urlSubcategory);
-	}, [location.search]);
+	}, [location.search, searchTerm, selectedCategory, selectedSubcategory]);
 
 	// Validate subcategory selection
 	useEffect(() => {
@@ -899,7 +910,7 @@ const ShopPage = () => {
 						<nav className="text-sm text-gray-500 mb-3 sm:mb-4">
 							<span
 								onClick={() => navigate("/")}
-								className="cursor-pointer hover:text-yellow-600 transition-colors"
+								className="cursor-pointer hover:text-amber-700 transition-colors"
 							>
 								Home
 							</span>
@@ -965,7 +976,7 @@ const ShopPage = () => {
 									<button
 										onClick={handleShareShop}
 										disabled={!shop}
-										className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base lg:w-auto"
+										className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors duration-200 shadow-sm hover:shadow-md text-sm sm:text-base lg:w-auto"
 									>
 										<FontAwesomeIcon icon={faShare} />
 										<span className="hidden sm:inline">Share Shop</span>
@@ -1084,7 +1095,7 @@ const ShopPage = () => {
 									<div className="flex items-center gap-2">
 										<button
 											onClick={handleLeaveReview}
-											className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md font-medium text-xs transition-colors"
+											className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-medium text-xs transition-colors"
 										>
 											Leave Review
 										</button>
@@ -1114,9 +1125,9 @@ const ShopPage = () => {
 
 										{/* Rating Distribution */}
 										<div>
-											<h4 className="font-medium text-gray-900 mb-2 text-sm">
+											<h3 className="font-medium text-gray-900 mb-2 text-sm">
 												Rating Breakdown
-											</h4>
+											</h3>
 											<div className="space-y-1">
 												{reviewStats.rating_distribution
 													.slice()
@@ -1155,16 +1166,16 @@ const ShopPage = () => {
 												className="text-gray-400 text-lg"
 											/>
 										</div>
-										<h4 className="text-sm font-medium text-gray-900 mb-1">
+										<h3 className="text-sm font-medium text-gray-900 mb-1">
 											No Reviews Yet
-										</h4>
+										</h3>
 										<p className="text-xs text-gray-500 mb-3">
 											This shop doesn't have any reviews yet.
 										</p>
 										<div className="flex gap-2 justify-center">
 											<button
 												onClick={handleLeaveReview}
-												className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md font-medium text-xs transition-colors"
+												className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md font-medium text-xs transition-colors"
 											>
 												Leave Review
 											</button>
@@ -1182,9 +1193,9 @@ const ShopPage = () => {
 
 						{/* Search and Filter Section */}
 						<div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
-							<div className="flex flex-col lg:flex-row gap-3">
+							<div className="flex flex-col gap-3">
 								{/* Search Bar */}
-								<div className="flex-1">
+								<div className="w-full">
 									<div className="relative">
 										<input
 											type="text"
@@ -1202,58 +1213,69 @@ const ShopPage = () => {
 									</div>
 								</div>
 
-								{/* Category Filter */}
-								<div className="flex gap-2">
-									<select
-										value={selectedCategory}
-										onChange={handleCategoryChange}
-										className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm bg-white"
-									>
-										<option value="All">All Categories</option>
-										{categories.map((category) => (
-											<option key={category.id} value={category.id}>
-												{category.name}
-											</option>
-										))}
-									</select>
+								{/* Category Filters */}
+								<div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+									{/* Category Filter */}
+									<div className="flex-1 min-w-0">
+										<select
+											id="category-select"
+											value={selectedCategory}
+											onChange={handleCategoryChange}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm bg-white"
+											aria-label="Select Category"
+										>
+											<option value="All">All Categories</option>
+											{categories.map((category) => (
+												<option key={category.id} value={category.id}>
+													{category.name}
+												</option>
+											))}
+										</select>
+									</div>
 
 									{/* Subcategory Filter */}
-									<select
-										value={selectedSubcategory}
-										onChange={handleSubcategoryChange}
-										className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm ${
-											selectedCategory === "All"
-												? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
-												: "border-gray-300 bg-white"
-										}`}
-										disabled={selectedCategory === "All"}
-									>
-										<option value="All">
-											{selectedCategory === "All"
-												? "Select Category First"
-												: "All Subcategories"}
-										</option>
-										{selectedCategory !== "All" &&
-											categories
-												.find((cat) => cat.id === parseInt(selectedCategory))
-												?.subcategories?.map((subcategory) => (
-													<option key={subcategory.id} value={subcategory.id}>
-														{subcategory.name}
-													</option>
-												))}
-									</select>
+									<div className="flex-1 min-w-0">
+										<select
+											id="subcategory-select"
+											value={selectedSubcategory}
+											onChange={handleSubcategoryChange}
+											className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm ${
+												selectedCategory === "All"
+													? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+													: "border-gray-300 bg-white"
+											}`}
+											disabled={selectedCategory === "All"}
+											aria-label="Select Subcategory"
+										>
+											<option value="All">
+												{selectedCategory === "All"
+													? "Select Category First"
+													: "All Subcategories"}
+											</option>
+											{selectedCategory !== "All" &&
+												categories
+													.find((cat) => cat.id === parseInt(selectedCategory))
+													?.subcategories?.map((subcategory) => (
+														<option key={subcategory.id} value={subcategory.id}>
+															{subcategory.name}
+														</option>
+													))}
+										</select>
+									</div>
 
 									{/* Clear Filters Button */}
 									{(searchTerm ||
 										selectedCategory !== "All" ||
 										selectedSubcategory !== "All") && (
-										<button
-											onClick={clearFilters}
-											className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-										>
-											<FontAwesomeIcon icon={faFilter} className="h-3 w-3" />
-											Clear
-										</button>
+										<div className="flex-shrink-0">
+											<button
+												onClick={clearFilters}
+												className="w-full sm:w-auto px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+											>
+												<FontAwesomeIcon icon={faFilter} className="h-3 w-3" />
+												Clear
+											</button>
+										</div>
 									)}
 								</div>
 							</div>
@@ -1341,7 +1363,7 @@ const ShopPage = () => {
 									{ads.length > 0 && (
 										<button
 											onClick={clearFilters}
-											className="mt-3 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors"
+											className="mt-3 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
 										>
 											Clear Filters
 										</button>
@@ -1370,7 +1392,7 @@ const ShopPage = () => {
 														(ad.media &&
 															Array.isArray(ad.media) &&
 															ad.media.length > 0) ? (
-															<img
+															<ResponsiveImage
 																src={
 																	ad.first_media_url
 																		? ad.first_media_url
@@ -1383,12 +1405,17 @@ const ShopPage = () => {
 																		: ad.media[0].replace(/\n/g, "").trim()
 																}
 																alt={ad.title}
-																className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+																className="w-full h-full group-hover:scale-105 transition-transform duration-200"
 																loading="lazy"
+																sizes="(max-width: 640px) 192px, (max-width: 768px) 256px, (max-width: 1024px) 320px, 384px"
 																onError={(e) => {
-																	e.target.style.display = "none";
-																	e.target.nextElementSibling.style.display =
-																		"flex";
+																	if (e.target) {
+																		e.target.style.display = "none";
+																	}
+																	if (e.target && e.target.nextElementSibling) {
+																		e.target.nextElementSibling.style.display =
+																			"flex";
+																	}
 																}}
 															/>
 														) : null}
@@ -1443,7 +1470,7 @@ const ShopPage = () => {
 													</div>
 
 													<div className="p-2 sm:p-3 flex flex-col flex-grow">
-														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow text-left">
+														<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-amber-700 transition-colors duration-200 flex-grow text-left">
 															{ad.title}
 														</h3>
 														{/* Price and Rating with justify-between */}

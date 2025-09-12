@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import CategoryClickEvents from "../components/CategoryClickEvents";
 import TopWishListedAds from "../components/TopWishListedAds";

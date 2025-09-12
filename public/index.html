@@ -180,7 +180,7 @@
 		<link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 		<link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" />
 
-		<!-- Viewport and Theme -->
+		<!-- Essential Meta Tags (React Helmet will handle dynamic ones) -->
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#ffc107" />
 		<meta name="msapplication-TileColor" content="#ffc107" />
@@ -190,95 +190,7 @@
 		<meta name="apple-mobile-web-app-title" content="Carbon Cube Kenya" />
 		<meta name="application-name" content="Carbon Cube Kenya" />
 
-		<!-- Primary Meta Tags -->
-		<title>Carbon Cube Kenya | Kenya's Trusted Digital Marketplace</title>
-		<meta
-			name="title"
-			content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
-		/>
-		<meta
-			name="description"
-			content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers. Designed for trust, simplicity, and growth, our platform empowers businesses to showcase their products, gain visibility, and thrive in today's digital economy."
-		/>
-		<meta
-			name="keywords"
-			content="Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya, B2B marketplace, auto parts Kenya, industrial supplies, hardware suppliers, verified suppliers, business growth Kenya"
-		/>
-		<meta name="author" content="Carbon Cube Kenya Team" />
-		<meta
-			name="robots"
-			content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-		/>
-		<meta name="language" content="English" />
-		<meta name="revisit-after" content="7 days" />
-		<meta name="distribution" content="global" />
-		<meta name="rating" content="general" />
-		<meta name="geo.region" content="KE" />
-		<meta name="geo.placename" content="Nairobi, Kenya" />
-		<meta name="geo.position" content="-1.2921;36.8219" />
-		<meta name="ICBM" content="-1.2921, 36.8219" />
-		<meta
-			name="DC.title"
-			content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
-		/>
-		<meta
-			name="DC.description"
-			content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers."
-		/>
-		<meta
-			name="DC.subject"
-			content="Online Marketplace, B2B, Auto Parts, Industrial Supplies, Kenya"
-		/>
-		<meta name="DC.creator" content="Carbon Cube Kenya" />
-		<meta name="DC.publisher" content="Carbon Cube Kenya" />
-		<meta name="DC.contributor" content="Carbon Cube Kenya Team" />
-		<meta name="DC.date" content="2024-12-19" />
-		<meta name="DC.type" content="Website" />
-		<meta name="DC.format" content="text/html" />
-		<meta name="DC.identifier" content="https://carboncube-ke.com/" />
-		<meta name="DC.language" content="en" />
-		<meta name="DC.coverage" content="Kenya" />
-		<meta name="DC.rights" content="Copyright 2024 Carbon Cube Kenya" />
-
-		<!-- Open Graph / Facebook -->
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content="https://carboncube-ke.com/" />
-		<meta property="og:site_name" content="Carbon Cube Kenya" />
-		<meta
-			property="og:title"
-			content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
-		/>
-		<meta
-			property="og:description"
-			content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers. Designed for trust, simplicity, and growth, our platform empowers businesses to showcase their products, gain visibility, and thrive in today's digital economy."
-		/>
-		<meta property="og:image" content="https://carboncube-ke.com/logo.png" />
-		<meta property="og:image:width" content="1200" />
-		<meta property="og:image:height" content="630" />
-		<meta property="og:locale" content="en_US" />
-		<meta
-			property="og:image:alt"
-			content="Carbon Cube Kenya - Kenya's Trusted Digital Marketplace"
-		/>
-
-		<!-- Twitter Card -->
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:site" content="@carboncube_kenya" />
-		<meta
-			name="twitter:title"
-			content="Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
-		/>
-		<meta
-			name="twitter:description"
-			content="Carbon Cube Kenya is a smart, AI-powered marketplace built to connect credible sellers with serious buyers. Designed for trust, simplicity, and growth, our platform empowers businesses to showcase their products, gain visibility, and thrive in today's digital economy."
-		/>
-		<meta name="twitter:image" content="https://carboncube-ke.com/logo.png" />
-		<meta
-			name="twitter:image:alt"
-			content="Carbon Cube Kenya - Kenya's Trusted Digital Marketplace"
-		/>
-
-		<!-- Resource Hints for Performance -->
+		<!-- Resource Hints for Performance - Optimized based on PageSpeed Insights -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link rel="preconnect" href="https://www.googletagmanager.com" />
@@ -287,6 +199,7 @@
 		<link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 		<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
+		<link rel="dns-prefetch" href="https://api.cloudinary.com" />
 
 		<!-- Font Loading - Optimized for performance -->
 		<link
@@ -304,93 +217,6 @@
 
 		<!-- Canonical URL -->
 		<link rel="canonical" href="https://carboncube-ke.com/" />
-
-		<!-- Structured Data -->
-		<script type="application/ld+json">
-			{
-				"@context": "https://schema.org",
-				"@type": "WebSite",
-				"url": "https://carboncube-ke.com/",
-				"name": "Carbon Cube Kenya",
-				"description": "Kenya's most trusted and secure online marketplace",
-				"potentialAction": {
-					"@type": "SearchAction",
-					"target": "https://carboncube-ke.com/search?q={search_term_string}",
-					"query-input": "required name=search_term_string"
-				}
-			}
-		</script>
-
-		<script type="application/ld+json">
-			{
-				"@context": "https://schema.org",
-				"@type": "LocalBusiness",
-				"name": "Carbon Cube Kenya",
-				"description": "Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
-				"url": "https://carboncube-ke.com",
-				"telephone": "+254713270764",
-				"email": "info@carboncube-ke.com",
-				"image": "https://carboncube-ke.com/logo.png",
-				"address": {
-					"@type": "PostalAddress",
-					"streetAddress": "9th Floor, CMS Africa, Kilimani",
-					"addressLocality": "Nairobi",
-					"addressRegion": "Nairobi",
-					"addressCountry": "KE",
-					"postalCode": "00100"
-				},
-				"geo": {
-					"@type": "GeoCoordinates",
-					"latitude": -1.2921,
-					"longitude": 36.8219
-				},
-				"openingHours": "Mo-Su 00:00-23:59",
-				"priceRange": "$$",
-				"currenciesAccepted": "KES",
-				"paymentAccepted": "Cash, Credit Card, Mobile Money",
-				"areaServed": "KE",
-				"serviceType": "Online Marketplace"
-			}
-		</script>
-
-		<script type="application/ld+json">
-			{
-				"@context": "https://schema.org",
-				"@type": "Organization",
-				"name": "Carbon Cube Kenya",
-				"description": "Kenya's trusted digital marketplace connecting verified sellers with buyers",
-				"url": "https://carboncube-ke.com",
-				"logo": "https://carboncube-ke.com/logo.png",
-				"sameAs": [
-					"https://www.linkedin.com/company/carbon-cube-kenya/",
-					"https://www.facebook.com/profile.php?id=61574066312678",
-					"https://www.instagram.com/carboncube_kenya/"
-				],
-				"contactPoint": {
-					"@type": "ContactPoint",
-					"contactType": "customer service",
-					"availableLanguage": "English",
-					"areaServed": "KE",
-					"telephone": "+254713270764",
-					"email": "info@carboncube-ke.com"
-				},
-				"address": {
-					"@type": "PostalAddress",
-					"streetAddress": "9th Floor, CMS Africa, Kilimani",
-					"addressLocality": "Nairobi",
-					"addressRegion": "Nairobi",
-					"addressCountry": "KE",
-					"postalCode": "00100"
-				},
-				"foundingDate": "2023",
-				"numberOfEmployees": {
-					"@type": "QuantitativeValue",
-					"minValue": 2,
-					"maxValue": 10
-				},
-				"industry": "Internet Marketplace Platforms"
-			}
-		</script>
 
 		<!-- Analytics Loading - Completely deferred -->
 		<script>
@@ -439,11 +265,26 @@
 			});
 		</script>
 
+		<!-- Google tag (gtag.js) -->
+		<script
+			async
+			src="https://www.googletagmanager.com/gtag/js?id=AW-17543924705"
+		></script>
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+
+			gtag("config", "AW-17543924705");
+		</script>
+
 		<!-- Critical CSS for above-the-fold content -->
 		<style>
 			/* Critical styles for initial render */
 			body {
-				background-color: #e0e0e0;
+				background-color: #f9fafb;
 				margin: 0;
 				padding: 0;
 				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
@@ -451,13 +292,14 @@
 					"Helvetica Neue", sans-serif;
 				-webkit-font-smoothing: antialiased;
 				-moz-osx-font-smoothing: grayscale;
+				line-height: 1.5;
 			}
 
 			#root {
 				min-height: 100vh;
 			}
 
-			/* Loading spinner styles */
+			/* Critical loading spinner styles */
 			.loading-spinner {
 				display: flex;
 				justify-content: center;
@@ -465,24 +307,142 @@
 				min-height: 200px;
 			}
 
-			/* Critical banner styles */
-			.banner-container {
-				width: 100%;
-				max-width: 1280px;
-				margin: 0 auto;
-				position: relative;
-			}
-
-			/* Prevent layout shift */
-			img {
-				max-width: 100%;
-				height: auto;
-			}
-
 			/* Critical navbar styles */
 			.navbar {
 				background-color: #ffffff;
-				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+				position: sticky;
+				top: 0;
+				z-index: 50;
+			}
+
+			/* Critical shop page styles */
+			.min-h-screen {
+				min-height: 100vh;
+			}
+
+			.bg-gray-50 {
+				background-color: #f9fafb;
+			}
+
+			.flex {
+				display: flex;
+			}
+
+			.flex-col {
+				flex-direction: column;
+			}
+
+			.max-w-7xl {
+				max-width: 80rem;
+			}
+
+			.mx-auto {
+				margin-left: auto;
+				margin-right: auto;
+			}
+
+			.px-2 {
+				padding-left: 0.5rem;
+				padding-right: 0.5rem;
+			}
+
+			.py-4 {
+				padding-top: 1rem;
+				padding-bottom: 1rem;
+			}
+
+			/* Critical product grid styles */
+			.grid {
+				display: grid;
+			}
+
+			.grid-cols-2 {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			.gap-2 {
+				gap: 0.5rem;
+			}
+
+			/* Critical product card styles */
+			.bg-white {
+				background-color: #ffffff;
+			}
+
+			.rounded-xl {
+				border-radius: 0.75rem;
+			}
+
+			.shadow-sm {
+				box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+			}
+
+			.border {
+				border-width: 1px;
+			}
+
+			.border-gray-200 {
+				border-color: #e5e7eb;
+			}
+
+			/* Critical image styles */
+			img {
+				max-width: 100%;
+				height: auto;
+				display: block;
+			}
+
+			.object-contain {
+				object-fit: contain;
+			}
+
+			.w-full {
+				width: 100%;
+			}
+
+			.h-full {
+				height: 100%;
+			}
+
+			/* Critical responsive styles */
+			@media (min-width: 640px) {
+				.sm\:px-4 {
+					padding-left: 1rem;
+					padding-right: 1rem;
+				}
+				.sm\:py-8 {
+					padding-top: 2rem;
+					padding-bottom: 2rem;
+				}
+				.sm\:gap-3 {
+					gap: 0.75rem;
+				}
+			}
+
+			@media (min-width: 768px) {
+				.md\:grid-cols-3 {
+					grid-template-columns: repeat(3, minmax(0, 1fr));
+				}
+			}
+
+			@media (min-width: 1024px) {
+				.lg\:px-8 {
+					padding-left: 2rem;
+					padding-right: 2rem;
+				}
+				.lg\:grid-cols-4 {
+					grid-template-columns: repeat(4, minmax(0, 1fr));
+				}
+				.lg\:gap-4 {
+					gap: 1rem;
+				}
+			}
+
+			@media (min-width: 1280px) {
+				.xl\:grid-cols-5 {
+					grid-template-columns: repeat(5, minmax(0, 1fr));
+				}
 			}
 		</style>
 

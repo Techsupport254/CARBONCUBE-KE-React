@@ -4,6 +4,7 @@ import SubcategorySection from "./SubcategorySection";
 
 const CategorySection = ({
 	title,
+	categoryId,
 	randomizedSubcategories,
 	ads,
 	handleAdClick,
@@ -32,7 +33,7 @@ const CategorySection = ({
 			<Card.Header
 				className="bg-secondary text-white rounded-t-lg flex justify-between items-center shadow-md cursor-pointer hover:bg-yellow-600 transition-colors duration-200 px-2 sm:px-3 md:px-4 lg:px-5 py-2 sm:py-3 md:py-4"
 				onClick={() =>
-					handleSubcategoryClick && handleSubcategoryClick("All", title)
+					handleSubcategoryClick && handleSubcategoryClick("All", categoryId)
 				}
 				title={`View all ${title} subcategories`}
 			>
@@ -73,8 +74,8 @@ const CategorySection = ({
 							className="h-full p-0 flex flex-1 min-w-0 gap-0"
 						>
 							{isLoading ? (
-								<div className="h-full w-full rounded-lg bg-white/90">
-									<div className="h-full w-full animate-pulse rounded-lg border border-gray-200">
+								<div className="h-full w-full rounded-lg bg-transparent">
+									<div className="h-full w-full animate-pulse rounded-lg">
 										<div className="grid grid-cols-2 grid-rows-2 gap-0.5 sm:gap-1 md:gap-1.5 p-0.5 sm:p-1 md:p-1.5 h-full">
 											{Array.from({ length: 4 }).map((__, i) => (
 												<div key={i} className="h-full w-full">
@@ -93,6 +94,7 @@ const CategorySection = ({
 								<SubcategorySection
 									subcategory={subcategory.name}
 									categoryName={title}
+									categoryId={categoryId}
 									ads={ads[subcategory.id] || []}
 									onAdClick={handleAdClick}
 									onSubcategoryClick={handleSubcategoryClick}

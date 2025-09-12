@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge } from "react-bootstrap";
 import { Gear, Truck, GeoAlt } from "react-bootstrap-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTruckFast } from "@fortawesome/free-solid-svg-icons";
-import Sidebar from "../components/Sidebar";
+
 import Navbar from "../../components/Navbar";
 import Spinner from "react-spinkit";
 import "../css/SellerNotifications.css"; // Custom CSS file
@@ -30,7 +30,7 @@ const SellerNotifications = () => {
 						}
 					);
 
-								// Response Status and Headers
+					// Response Status and Headers
 
 					if (!response.ok) {
 						throw new Error(

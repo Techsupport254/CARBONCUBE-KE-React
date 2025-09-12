@@ -150,7 +150,7 @@ const Footer = () => (
 								<ul className="list-unstyled footer-links">
 									<li className="mb-2">
 										<a
-											href="/become-a-vendor"
+											href="/become-a-seller"
 											className="text-white text-decoration-none hover-link"
 										>
 											<Badge bg="success" className="me-2 small">

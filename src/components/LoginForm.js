@@ -215,7 +215,7 @@ const LoginForm = ({ onLogin }) => {
 											{/* Email/Phone Input */}
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
-													Email or Phone Number
+													Email
 												</label>
 												<div className="relative">
 													<FontAwesomeIcon
@@ -224,7 +224,7 @@ const LoginForm = ({ onLogin }) => {
 													/>
 													<input
 														type="text"
-														placeholder="Enter your email or phone number"
+														placeholder="Enter your email"
 														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={identifier}
 														onChange={(e) => setIdentifier(e.target.value)}

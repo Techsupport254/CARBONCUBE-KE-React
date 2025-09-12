@@ -308,7 +308,9 @@ const useSEO = ({
 	// Add preload images
 	if (preloadImages && preloadImages.length > 0) {
 		preloadImages.forEach((img) => {
-			links.push({ rel: "preload", href: img.url, as: "image" });
+			// Handle both string URLs and objects with url property
+			const href = typeof img === "string" ? img : img.url;
+			links.push({ rel: "preload", href, as: "image" });
 		});
 	}
 
