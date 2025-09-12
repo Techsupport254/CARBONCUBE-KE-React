@@ -8,11 +8,15 @@
  * - Dynamic robots.txt with current generation date
  * - Sitemap index file
  * - URL list for reference
+ * - Static HTML files for each route with proper meta tags (for social media crawlers)
  *
  * Features:
  * - ✅ Dynamic dates (no hardcoded timestamps)
  * - ✅ Comprehensive URL coverage
  * - ✅ Real API data only (no fallback data)
+ * - ✅ Static HTML generation for social media sharing
+ * - ✅ Proper Open Graph and Twitter Card meta tags
+ * - ✅ Structured data (JSON-LD) for search engines
  * - ✅ Detailed logging and error handling
  * - ✅ Easy to run and maintain
  *
@@ -36,6 +40,7 @@ const SITE_BASE_URL =
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const Handlebars = require("handlebars");
 
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
 console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
@@ -63,6 +68,22 @@ const staticRoutes = [
 		priority: "1.0",
 		keywords:
 			"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya",
+	},
+	{
+		path: "/home",
+		lastmod: CURRENT_DATE,
+		changefreq: "daily",
+		priority: "0.9",
+		keywords:
+			"Carbon Cube Kenya home, marketplace home, online shopping Kenya, buyer dashboard, Kenya marketplace",
+	},
+	{
+		path: "/seller/tiers",
+		lastmod: CURRENT_DATE,
+		changefreq: "weekly",
+		priority: "0.7",
+		keywords:
+			"seller tiers Carbon Cube Kenya, seller subscription plans, tier pricing, seller upgrade options, Kenya marketplace seller tiers",
 	},
 	{
 		path: "/categories",
@@ -161,6 +182,14 @@ const staticRoutes = [
 			"login Carbon Cube Kenya, sign in, marketplace login, Kenya online shopping, seller login, buyer login",
 	},
 	{
+		path: "/forgot-password",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.5",
+		keywords:
+			"forgot password Carbon Cube Kenya, password reset, account recovery, marketplace password help, Kenya online shopping password",
+	},
+	{
 		path: "/terms-and-conditions",
 		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
@@ -170,6 +199,14 @@ const staticRoutes = [
 	},
 	{
 		path: "/privacy-policy",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.5",
+		keywords:
+			"privacy policy, Carbon Cube Kenya data protection, Kenya marketplace privacy, user data protection, GDPR compliance",
+	},
+	{
+		path: "/privacy",
 		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.5",
@@ -192,7 +229,261 @@ const staticRoutes = [
 		keywords:
 			"how it works, Carbon Cube Kenya guide, Kenya marketplace tutorial, online shopping guide, buyer guide, seller guide",
 	},
+	{
+		path: "/how-to-pay",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.7",
+		keywords:
+			"how to pay Carbon Cube Kenya, M-Pesa payment guide, seller subscription, tier upgrade payment, Carbon Cube payment process, M-Pesa paybill 4160265, Kenya mobile payment",
+	},
+	{
+		path: "/how-to-shop",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.7",
+		keywords:
+			"how to shop Carbon Cube Kenya, online shopping guide, buyer tutorial, marketplace shopping guide, Kenya online shopping tips",
+	},
+	{
+		path: "/become-a-seller",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.7",
+		keywords:
+			"become a seller Carbon Cube Kenya, seller registration guide, how to become a seller, Kenya marketplace seller, online selling guide, seller signup process",
+	},
+	{
+		path: "/vendor-help",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.6",
+		keywords:
+			"vendor help Carbon Cube Kenya, seller support, marketplace help, seller assistance, vendor guide, seller help center",
+	},
+	{
+		path: "/seller-help",
+		lastmod: CURRENT_DATE,
+		changefreq: "monthly",
+		priority: "0.6",
+		keywords:
+			"seller help Carbon Cube Kenya, seller support, marketplace help, seller assistance, seller guide, seller help center",
+	},
 ];
+
+// HTML Template for static pages
+const HTML_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+
+		<!-- Favicon and App Icons -->
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+
+		<!-- Apple Touch Icons -->
+		<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png" />
+		<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png" />
+		<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png" />
+		<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png" />
+		<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png" />
+		<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png" />
+		<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png" />
+		<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png" />
+		<link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
+		<link rel="apple-touch-icon" sizes="1024x1024" href="/apple-touch-icon-1024x1024.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="apple-touch-icon-precomposed" href="/apple-touch-icon-precomposed.png" />
+
+		<!-- Android Chrome Icons -->
+		<link rel="icon" type="image/png" sizes="36x36" href="/android-chrome-36x36.png" />
+		<link rel="icon" type="image/png" sizes="48x48" href="/android-chrome-48x48.png" />
+		<link rel="icon" type="image/png" sizes="72x72" href="/android-chrome-72x72.png" />
+		<link rel="icon" type="image/png" sizes="96x96" href="/android-chrome-96x96.png" />
+		<link rel="icon" type="image/png" sizes="144x144" href="/android-chrome-144x144.png" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+		<link rel="icon" type="image/png" sizes="256x256" href="/android-chrome-256x256.png" />
+		<link rel="icon" type="image/png" sizes="384x384" href="/android-chrome-384x384.png" />
+		<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+
+		<!-- PWA Icons -->
+		<link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+		<link rel="icon" type="image/png" sizes="512x512" href="/logo512.png" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
+		<link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
+
+		<!-- Web App Manifest -->
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<link rel="manifest" href="/manifest.json" />
+		<link rel="manifest" href="/site.webmanifest" />
+
+		<!-- Essential Meta Tags -->
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#ffc107" />
+		<meta name="msapplication-TileColor" content="#ffc107" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="Carbon Cube Kenya" />
+		<meta name="application-name" content="Carbon Cube Kenya" />
+
+		<!-- Dynamic Meta Tags for Social Media Crawlers -->
+		<title>{{title}}</title>
+		<meta name="description" content="{{description}}" />
+		<meta name="keywords" content="{{keywords}}" />
+		<meta name="author" content="Carbon Cube Kenya Team" />
+		<meta name="robots" content="index, follow" />
+		<meta name="language" content="English" />
+		<meta name="geo.region" content="KE" />
+		<meta name="geo.placename" content="Kenya" />
+		<meta name="geo.position" content="-1.2921;36.8219" />
+		<meta name="ICBM" content="-1.2921, 36.8219" />
+
+		<!-- Open Graph Meta Tags (Facebook, LinkedIn, etc.) -->
+		<meta property="og:type" content="{{ogType}}" />
+		<meta property="og:url" content="{{ogUrl}}" />
+		<meta property="og:title" content="{{ogTitle}}" />
+		<meta property="og:description" content="{{ogDescription}}" />
+		<meta property="og:image" content="{{ogImage}}" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="{{ogImageAlt}}" />
+		<meta property="og:site_name" content="Carbon Cube Kenya" />
+		<meta property="og:locale" content="en_US" />
+		<meta property="og:updated_time" content="{{ogUpdatedTime}}" />
+
+		<!-- Twitter Card Meta Tags -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@carboncube_kenya" />
+		<meta name="twitter:creator" content="@carboncube_kenya" />
+		<meta name="twitter:title" content="{{twitterTitle}}" />
+		<meta name="twitter:description" content="{{twitterDescription}}" />
+		<meta name="twitter:image" content="{{twitterImage}}" />
+		<meta name="twitter:image:alt" content="{{twitterImageAlt}}" />
+
+		<!-- Additional SEO Meta Tags -->
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
+		<meta name="googlebot" content="index, follow" />
+		<meta name="bingbot" content="index, follow" />
+
+		<!-- Canonical URL -->
+		<link rel="canonical" href="{{canonicalUrl}}" />
+
+		<!-- Basic Structured Data (JSON-LD) for Search Engines -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "{{schemaType}}",
+			"name": "{{schemaName}}",
+			"description": "{{schemaDescription}}",
+			"url": "{{schemaUrl}}",
+			"image": "{{schemaImage}}",
+			"sameAs": [
+				"https://www.linkedin.com/company/carbon-cube-kenya/",
+				"https://www.facebook.com/profile.php?id=61574066312678",
+				"https://www.instagram.com/carboncube_kenya/"
+			],
+			"contactPoint": {
+				"@type": "ContactPoint",
+				"contactType": "customer service",
+				"availableLanguage": "English",
+				"areaServed": "KE",
+				"telephone": "+254713270764",
+				"email": "info@carboncube-ke.com"
+			},
+			"address": {
+				"@type": "PostalAddress",
+				"streetAddress": "9th Floor, CMS Africa, Kilimani",
+				"addressLocality": "Nairobi",
+				"addressRegion": "Nairobi",
+				"addressCountry": "KE",
+				"postalCode": "00100"
+			},
+			"foundingDate": "2023",
+			"industry": "Internet Marketplace Platforms"
+		}
+		</script>
+
+		<!-- Resource Hints for Performance -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preconnect" href="https://www.googletagmanager.com" />
+		<link rel="preconnect" href="https://cdn.matomo.cloud" />
+		<link rel="preconnect" href="https://res.cloudinary.com" />
+		<link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+		<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
+		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
+		<link rel="dns-prefetch" href="https://api.cloudinary.com" />
+
+		<!-- Font Loading -->
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+		<noscript>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+		</noscript>
+
+		<!-- Critical CSS for above-the-fold content -->
+		<style>
+			body {
+				background-color: #f9fafb;
+				margin: 0;
+				padding: 0;
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing: grayscale;
+				line-height: 1.5;
+			}
+			#root {
+				min-height: 100vh;
+			}
+			.loading-spinner {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 200px;
+			}
+		</style>
+	</head>
+
+	<body style="background-color: #e0e0e0">
+		<noscript>You need to enable JavaScript to run this app.</noscript>
+		<div id="root"></div>
+		
+		<!-- React App Scripts -->
+		<script>
+			// Analytics loading deferred
+			window.addEventListener("load", function () {
+				setTimeout(function () {
+					// Google Analytics
+					(function (i, s, o, g, r, a, m) {
+						i["GoogleAnalyticsObject"] = r;
+						(i[r] = i[r] || function () {
+							(i[r].q = i[r].q || []).push(arguments);
+						}),
+						(i[r].l = 1 * new Date());
+						(a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+						a.async = 1;
+						a.src = g;
+						m.parentNode.insertBefore(a, m);
+					})(
+						window,
+						document,
+						"script",
+						"https://www.googletagmanager.com/gtag/js?id=G-JCS1KWM0GH",
+						"ga"
+					);
+					ga("create", "G-JCS1KWM0GH", "auto");
+					ga("send", "pageview");
+				}, 1000);
+			});
+		</script>
+	</body>
+</html>`;
 
 // No fallback data - only use real API data
 
@@ -617,6 +908,88 @@ function escapeXml(str) {
 		.replace(/'/g, "&#39;");
 }
 
+// Generate HTML meta data for a route
+function generateRouteMetaData(route, additionalData = {}) {
+	const siteName = "Carbon Cube Kenya";
+	const fullTitle = route.title ? `${route.title} | ${siteName}` : siteName;
+	const description =
+		route.description ||
+		"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.";
+	const keywords =
+		route.keywords ||
+		"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce";
+	const image = "https://carboncube-ke.com/logo.png";
+	const url = `${SITE_BASE_URL}${route.path}`;
+	const currentTime = new Date().toISOString();
+
+	return {
+		title: fullTitle,
+		description: description,
+		keywords: keywords,
+		ogType: route.ogType || "website",
+		ogUrl: url,
+		ogTitle: fullTitle,
+		ogDescription: description,
+		ogImage: image,
+		ogImageAlt: fullTitle,
+		ogUpdatedTime: currentTime,
+		twitterTitle: fullTitle,
+		twitterDescription: description,
+		twitterImage: image,
+		twitterImageAlt: fullTitle,
+		canonicalUrl: url,
+		schemaType: route.schemaType || "WebPage",
+		schemaName: route.schemaName || fullTitle,
+		schemaDescription: description,
+		schemaUrl: url,
+		schemaImage: image,
+		...additionalData,
+	};
+}
+
+// Generate static HTML files for all routes
+function generateAllStaticHTML(allUrls, buildDir) {
+	console.log("📄 Generating static HTML files for social media crawlers...");
+
+	const compiledTemplate = Handlebars.compile(HTML_TEMPLATE);
+	let generatedCount = 0;
+
+	allUrls.forEach((route) => {
+		try {
+			const metaData = generateRouteMetaData(route);
+			const html = compiledTemplate(metaData);
+
+			// Determine file path
+			let filePath;
+			if (route.path === "/") {
+				filePath = path.join(buildDir, "index.html");
+			} else {
+				// Create directory structure for nested routes
+				const routePath = route.path.replace(/^\//, ""); // Remove leading slash
+				const routeDir = path.join(buildDir, routePath);
+				filePath = path.join(routeDir, "index.html");
+
+				// Create directory if it doesn't exist
+				if (!fs.existsSync(routeDir)) {
+					fs.mkdirSync(routeDir, { recursive: true });
+				}
+			}
+
+			fs.writeFileSync(filePath, html);
+			generatedCount++;
+
+			if (generatedCount % 10 === 0) {
+				console.log(`📄 Generated ${generatedCount} HTML files...`);
+			}
+		} catch (error) {
+			console.error(`Error generating HTML for ${route.path}:`, error.message);
+		}
+	});
+
+	console.log(`📄 Generated ${generatedCount} static HTML files total`);
+	return generatedCount;
+}
+
 // Generate XML sitemap
 function generateSitemapXML(urls) {
 	const currentDate = new Date().toISOString().split("T")[0];
@@ -851,6 +1224,14 @@ async function generateDynamicSitemap() {
 		fs.writeFileSync(urlListPath, urlList);
 		console.log(`URL list generated: ${urlListPath}`);
 
+		// Generate static HTML files for social media crawlers
+		const buildDir = path.join(__dirname, "../build");
+		if (!fs.existsSync(buildDir)) {
+			fs.mkdirSync(buildDir, { recursive: true });
+		}
+
+		const htmlCount = generateAllStaticHTML(allUrls, buildDir);
+
 		// Generate sitemap stats JSON
 		const sitemapStats = {
 			totalUrls: allUrls.length,
@@ -858,20 +1239,26 @@ async function generateDynamicSitemap() {
 			publicCategories: categoryUrls.length,
 			publicAds: adUrls.length,
 			publicBanners: 0, // Not implemented yet
+			staticHtmlFiles: htmlCount,
 			generatedAt: BUILD_TIMESTAMP,
 			baseUrl: SITE_BASE_URL,
 			apiUrl: API_BASE_URL,
-			note: "This sitemap is generated from public API endpoints (no authentication required). No fallback data used - only real API data.",
+			note: "This sitemap is generated from public API endpoints (no authentication required). No fallback data used - only real API data. Static HTML files generated for social media crawlers.",
 		};
 		const sitemapStatsPath = path.join(publicDir, "sitemap-stats.json");
 		fs.writeFileSync(sitemapStatsPath, JSON.stringify(sitemapStats, null, 2));
 		console.log(`Sitemap stats generated: ${sitemapStatsPath}`);
 
-		console.log("\n🎉 Dynamic sitemap generation completed successfully!");
+		console.log(
+			"\n🎉 Dynamic sitemap and static HTML generation completed successfully!"
+		);
 		console.log(`📁 Files generated in: ${publicDir}`);
+		console.log(`📄 Static HTML files generated in: ${buildDir}`);
 		console.log(`🌐 Site URL: ${SITE_BASE_URL}`);
 		console.log(`🔗 Sitemap URL: ${SITE_BASE_URL}/sitemap.xml`);
 		console.log(`🤖 Robots URL: ${SITE_BASE_URL}/robots.txt`);
+		console.log(`📊 Total URLs: ${allUrls.length}`);
+		console.log(`📄 Total HTML files: ${htmlCount}`);
 	} catch (error) {
 		console.error("Error generating sitemap:", error);
 		process.exit(1);
