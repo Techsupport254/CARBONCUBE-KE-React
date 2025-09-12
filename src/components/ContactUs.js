@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-	faEnvelope,
 	faShieldAlt,
 	faMapMarkerAlt,
 	faClock,
@@ -41,19 +40,42 @@ const ContactUs = () => {
 		setIsSubmitting(true);
 		setSubmitStatus(null);
 
-		// Simulate form submission
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 2000));
-			setSubmitStatus("success");
-			setFormData({
-				name: "",
-				email: "",
-				phone: "",
-				subject: "",
-				message: "",
-			});
+			const response = await fetch(
+				`${
+					process.env.REACT_APP_BACKEND_URL || "https://carboncube-ke.com"
+				}/contact/submit`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(formData),
+				}
+			);
+
+			const result = await response.json();
+
+			if (response.ok && result.success) {
+				setSubmitStatus("success");
+				// Clear form after successful submission
+				setFormData({
+					name: "",
+					email: "",
+					phone: "",
+					subject: "",
+					message: "",
+				});
+			} else {
+				setSubmitStatus("error");
+				console.error(
+					"Contact form error:",
+					result.error || result.message || "Unknown error"
+				);
+			}
 		} catch (error) {
 			setSubmitStatus("error");
+			console.error("Network error:", error);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -220,10 +242,17 @@ const ContactUs = () => {
 					></div>
 				</div>
 				<div className="container mx-auto px-2 sm:px-4 text-center position-relative max-w-6xl">
-					<div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-black rounded-full mx-auto mb-4 sm:mb-6 lg:mb-8 flex items-center justify-center border-2 sm:border-4 border-white">
-						<FontAwesomeIcon
-							icon={faEnvelope}
-							className="text-2xl sm:text-3xl lg:text-4xl text-white"
+					<div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white rounded-full mx-auto mb-4 sm:mb-6 lg:mb-8 flex items-center justify-center border-2 sm:border-4 border-black shadow-sm">
+						<img
+							src="https://carboncube-ke.com/logo.png"
+							alt="Carbon Cube Kenya Logo"
+							className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain"
+							onError={(e) => {
+								// Fallback to envelope icon if logo fails to load
+								e.target.style.display = "none";
+								e.target.parentElement.innerHTML =
+									'<i class="fas fa-envelope text-2xl sm:text-3xl lg:text-4xl text-black"></i>';
+							}}
 						/>
 					</div>
 					<h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black mb-3 sm:mb-4 lg:mb-6 leading-tight">
@@ -257,7 +286,17 @@ const ContactUs = () => {
 						<div className="lg:order-1">
 							<div className="p-0 sm:p-6 lg:p-8">
 								<div>
-									<p className="text-sm text-gray-500 mb-2">/get in touch/</p>
+									<div className="flex items-center gap-3 mb-4">
+										<img
+											src="https://carboncube-ke.com/logo.png"
+											alt="Carbon Cube Kenya"
+											className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+											onError={(e) => {
+												e.target.style.display = "none";
+											}}
+										/>
+										<p className="text-sm text-gray-500">/get in touch/</p>
+									</div>
 									<h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
 										We're here to help you succeed on our marketplace
 									</h2>
@@ -367,28 +406,29 @@ const ContactUs = () => {
 
 								{/* Success/Error Messages */}
 								{submitStatus === "success" && (
-									<div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+									<div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start">
 										<FontAwesomeIcon
 											icon={faCheckCircle}
-											className="text-green-600 mr-3 text-lg"
+											className="text-green-600 mr-3 text-lg mt-0.5 flex-shrink-0"
 										/>
 										<div>
 											<h4 className="text-green-800 font-semibold">
 												Message Sent Successfully!
 											</h4>
 											<p className="text-green-700 text-sm">
-												Thank you for contacting us. We'll get back to you
-												within 24 hours.
+												Thank you for contacting us! We've received your message
+												and will get back to you within 24 hours. Please check
+												your email for a confirmation.
 											</p>
 										</div>
 									</div>
 								)}
 
 								{submitStatus === "error" && (
-									<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+									<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
 										<FontAwesomeIcon
 											icon={faExclamationTriangle}
-											className="text-red-600 mr-3 text-lg"
+											className="text-red-600 mr-3 text-lg mt-0.5 flex-shrink-0"
 										/>
 										<div>
 											<h4 className="text-red-800 font-semibold">
@@ -396,7 +436,14 @@ const ContactUs = () => {
 											</h4>
 											<p className="text-red-700 text-sm">
 												There was an error sending your message. Please try
-												again or contact us directly.
+												again in a few moments, or contact us directly at{" "}
+												<a
+													href="mailto:info@carboncube-ke.com"
+													className="text-red-700 underline hover:text-red-900"
+												>
+													info@carboncube-ke.com
+												</a>{" "}
+												or call +254 712 990 524.
 											</p>
 										</div>
 									</div>
@@ -459,7 +506,7 @@ const ContactUs = () => {
 									<button
 										type="submit"
 										disabled={isSubmitting}
-										className="w-full bg-black text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-sm sm:text-base"
+										className="w-full bg-black text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center text-sm sm:text-base border border-black hover:border-gray-800"
 									>
 										{isSubmitting ? (
 											<>

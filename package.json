@@ -27,6 +27,7 @@
 		"express": "^5.1.0",
 		"flatpickr": "^4.6.13",
 		"framer-motion": "^11.5.4",
+		"handlebars": "^4.7.8",
 		"jwt-decode": "^4.0.0",
 		"lucide-react": "^0.475.0",
 		"nsfwjs": "^4.2.1",
@@ -58,7 +59,11 @@
 		"eject": "react-scripts eject",
 		"generate-seo": "node scripts/seo-generator.js",
 		"update-seo": "node scripts/seo-generator.js",
-		"regenerate-seo": "node scripts/seo-generator.js"
+		"regenerate-seo": "node scripts/seo-generator.js",
+		"cypress:open": "cypress open",
+		"cypress:run": "cypress run",
+		"cypress:run:contact": "cypress run --spec 'cypress/e2e/contact.cy.js'",
+		"test:e2e": "cypress run"
 	},
 	"eslintConfig": {
 		"extends": [
