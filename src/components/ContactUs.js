@@ -6,6 +6,7 @@ import {
 	faClock,
 	faCheckCircle,
 	faExclamationTriangle,
+	faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 import {
 	faFacebook,
@@ -243,16 +244,9 @@ const ContactUs = () => {
 				</div>
 				<div className="container mx-auto px-2 sm:px-4 text-center position-relative max-w-6xl">
 					<div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white rounded-full mx-auto mb-4 sm:mb-6 lg:mb-8 flex items-center justify-center border-2 sm:border-4 border-black shadow-sm">
-						<img
-							src="https://carboncube-ke.com/logo.png"
-							alt="Carbon Cube Kenya Logo"
-							className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 object-contain"
-							onError={(e) => {
-								// Fallback to envelope icon if logo fails to load
-								e.target.style.display = "none";
-								e.target.parentElement.innerHTML =
-									'<i class="fas fa-envelope text-2xl sm:text-3xl lg:text-4xl text-black"></i>';
-							}}
+						<FontAwesomeIcon
+							icon={faEnvelope}
+							className="text-black text-2xl sm:text-3xl lg:text-4xl"
 						/>
 					</div>
 					<h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black mb-3 sm:mb-4 lg:mb-6 leading-tight">

@@ -48,6 +48,83 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
+## Cypress End-to-End Testing
+
+This project includes comprehensive Cypress tests for critical user flows. All tests use API intercepts to prevent actual database modifications during testing.
+
+### Available Test Scripts
+
+### `npm run cypress:open`
+
+Opens the Cypress Test Runner in interactive mode.\
+Select and run individual tests or the entire test suite.
+
+### `npm run cypress:run`
+
+Runs all Cypress tests in headless mode.\
+Ideal for CI/CD pipelines and automated testing.
+
+### `npm run cypress:run:contact`
+
+Runs only the contact form tests in headless mode.
+
+### `npm run test:e2e`
+
+Alias for `npm run cypress:run`.
+
+### Test Structure
+
+The Cypress tests are organized as follows:
+
+- **Contact Tests** (`cypress/e2e/contact.cy.js`): Tests for the contact us page functionality
+- **OTP Tests** (`cypress/e2e/otp.cy.js`): Tests for the registration and OTP verification flow
+- **Seller Tests** (`cypress/e2e/seller.cy.js`): Tests for seller login and ad creation workflows
+
+### Key Features of the Seller Tests
+
+The seller tests (`cypress/e2e/seller.cy.js`) cover:
+
+1. **Seller Authentication**
+
+   - Login form validation
+   - Successful login flow
+   - Error handling for invalid credentials
+
+2. **Ad Creation Workflow**
+
+   - Form validation for required fields
+   - Category and subcategory selection
+   - Image upload with NSFW scanning simulation
+   - Successful ad creation with mocked API responses
+   - Error handling for network issues and validation errors
+   - Upload progress indicators
+
+3. **API Interception**
+   - All API calls are intercepted and mocked
+   - No actual data is created in the database
+   - Tests run independently of backend state
+   - Consistent test results across environments
+
+### Running Tests
+
+Before running tests, ensure:
+
+1. The frontend application is running on `http://localhost:3000`
+2. All dependencies are installed with `npm install`
+
+To run the seller tests specifically:
+
+```bash
+npx cypress run --spec 'cypress/e2e/seller.cy.js'
+```
+
+### Test Data
+
+Tests use mock data and fixtures:
+
+- `cypress/fixtures/test-image.jpg`: A minimal test image for upload testing
+- Mock API responses for consistent test behavior
+
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).

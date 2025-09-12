@@ -62,7 +62,7 @@
 		"regenerate-seo": "node scripts/seo-generator.js",
 		"cypress:open": "cypress open",
 		"cypress:run": "cypress run",
-		"cypress:run:contact": "cypress run --spec 'cypress/e2e/contact.cy.js'",
+		"cypress:run:seller": "cypress run --spec 'cypress/e2e/seller-login-ads.cy.js'",
 		"test:e2e": "cypress run"
 	},
 	"eslintConfig": {
