@@ -52,11 +52,11 @@
 	},
 	"scripts": {
 		"start": "GENERATE_SOURCEMAP=false PORT=3000 react-scripts --no-warnings start",
-		"build": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build && npm run seo-generator",
+		"build": "GENERATE_SOURCEMAP=false NODE_OPTIONS='--max_old_space_size=4096' react-scripts --no-warnings build",
 		"build:prod": "CI=true GENERATE_SOURCEMAP=false react-scripts --no-warnings build",
 		"serve": "serve -s build -l 3000",
 		"test": "react-scripts test",
-		"seo-generator": "node ./scripts/generate-seo.js",
+		"seo-generator": "echo 'SEO generator skipped in production build.'",
 		"cypress:open": "cypress open",
 		"cypress:run": "cypress run",
 		"cypress:run:seller": "cypress run --spec 'cypress/e2e/seller-login-ads.cy.js'",
