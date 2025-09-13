@@ -101,7 +101,7 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 
 				// Get or create connection using the manager
 				const wsUrl =
-					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3001";
 
 				// Get JWT token for authentication
 				const token = sessionStorage.getItem("token");

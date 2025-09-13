@@ -6,6 +6,7 @@ import {
 	faGem,
 	faCrown,
 } from "@fortawesome/free-solid-svg-icons";
+import Spinner from "react-spinkit";
 
 const CountDownDisplay = () => {
 	const [daysLeft, setDaysLeft] = useState(null);
@@ -222,8 +223,12 @@ const CountDownDisplay = () => {
 
 	if (loading) {
 		return (
-			<div className="flex justify-center items-center py-2 sm:py-4">
-				<div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-500"></div>
+			<div className="centered-loader">
+				<Spinner
+					variant="warning"
+					name="cube-grid"
+					style={{ width: 40, height: 40 }}
+				/>
 			</div>
 		);
 	}

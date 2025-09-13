@@ -2,17 +2,19 @@ import React from "react";
 import BuyerClickEvents from "./BuyerClickEvents";
 import BuyerWishlistStats from "./BuyerWishlistStats"; // Ensure both components are imported
 import "./BuyerDemographics.css";
+import Spinner from "react-spinkit";
 
 const BuyerDemographics = ({ data }) => {
 	const { clickEvents, wishlistStats } = data;
 
 	if (!clickEvents || !wishlistStats) {
 		return (
-			<div className="flex justify-center items-center py-4 sm:py-8">
-				<div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-500"></div>
-				<span className="ml-2 sm:ml-3 text-gray-600 text-sm sm:text-base">
-					Loading demographics...
-				</span>
+			<div className="centered-loader">
+				<Spinner
+					variant="warning"
+					name="cube-grid"
+					style={{ width: 40, height: 40 }}
+				/>
 			</div>
 		);
 	}

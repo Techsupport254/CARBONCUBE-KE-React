@@ -1,87 +1,89 @@
 /* AddAdModal.css */
 .custom-modal .modal-content {
-    background-color: #E0E0E0; /* Apply the background only to the modal content */
-  }
-  
-  .custom-modal-header {
-    border-bottom: none;
-  }
-  
-  .custom-modal-body {
-    padding: 15px;
-  }
-  
-  .custom-input {
-    border-radius: 12px;
-    border: 1px solid #B0C4DE;
-    padding: 6px;
-    font-size: 16px;
-    margin-bottom: 5px;
-  }
-  
-  .custom-input::placeholder {
-    color: #D3D3D3;
-  }
-  
-  .custom-input:focus {
-    border-color: #4682B4;
-    box-shadow: none;
-  }
-  
-  .upload-section {
-    border: 2px dashed #B0C4DE;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    background-color: #F5F5F5;
-  }
-  
-  .upload-icon {
-    font-size: 24px;
-    color: #4682B4;
-    margin-bottom: 10px;
-  }
-  
-  .custom-upload-btn {
-    background-color: #FFC107;
-    border: 1px solid #B0C4DE;
-    border-radius: 12px;
-  }
-  
-  .upload-instructions {
-    color: #919191;
-    margin-top: 10px;
-  }
-  
-  .add-ad-btn {
-    background-color: #FFC107;
-    color: black;
-    border-radius: 25px;
-    padding: 10px 20px;
-    border: none;
-  }
-  
-  .add-ad-btn:hover {
-    background-color: #E0A800;
-  }
-  
-  .custom-modal-footer {
-    border-top: none;
-    display: flex;
-    justify-content: flex-end;
-    padding: 10px 10px;
-  }
-  
+  background-color: #E0E0E0;
+  /* Apply the background only to the modal content */
+}
 
-  .card .transparent-card-body {
-    background-color: #E0E0E0;
+.custom-modal-header {
+  border-bottom: none;
+}
+
+.custom-modal-body {
+  padding: 15px;
+}
+
+.custom-input {
+  border-radius: 12px;
+  border: 1px solid #B0C4DE;
+  padding: 6px;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.custom-input::placeholder {
+  color: #D3D3D3;
+}
+
+.custom-input:focus {
+  border-color: #4682B4;
+  box-shadow: none;
+}
+
+.upload-section {
+  border: 2px dashed #B0C4DE;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  background-color: #F5F5F5;
+}
+
+.upload-icon {
+  font-size: 24px;
+  color: #4682B4;
+  margin-bottom: 10px;
+}
+
+.custom-upload-btn {
+  background-color: #FFC107;
+  border: 1px solid #B0C4DE;
+  border-radius: 12px;
+}
+
+.upload-instructions {
+  color: #919191;
+  margin-top: 10px;
+}
+
+.add-ad-btn {
+  background-color: #FFC107;
+  color: black;
+  border-radius: 25px;
+  padding: 10px 20px;
+  border: none;
+}
+
+.add-ad-btn:hover {
+  background-color: #E0A800;
+}
+
+.custom-modal-footer {
+  border-top: none;
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 10px;
+}
+
+
+.card .transparent-card-body {
+  background-color: #E0E0E0;
 }
 
 .carousel-item .delete-button {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1000; /* Ensure this is higher than the carousel controls */
+  z-index: 1000;
+  /* Ensure this is higher than the carousel controls */
 }
 
 .restore-button-wrapper div {
@@ -90,7 +92,8 @@
 
 .custom-carousel .carousel-control-prev-icon,
 .custom-carousel .carousel-control-next-icon {
-  background-color: #c9d2d2; /* Blue color */
+  background-color: #c9d2d2;
+  /* Blue color */
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -108,7 +111,7 @@
   opacity: 1;
 }
 
-.button{
+.button {
   border-radius: 1.5rem;
 }
 
@@ -116,9 +119,11 @@
   border: none;
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
+  background: linear-gradient(135deg, #fff69a, #cbcbcb);
+  /* Gradient from two colors */
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  color: #000; /* Ensure text is readable on the gradient background */
+  color: #000;
+  /* Ensure text is readable on the gradient background */
 }
 
 
@@ -162,4 +167,11 @@
   .search-container .search-input {
     width: 85%;
   }
+}
+
+.centered-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
 }

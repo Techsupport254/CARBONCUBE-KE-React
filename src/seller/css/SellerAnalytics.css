@@ -1,5 +1,6 @@
 .glass-modal .modal-content {
-  background: rgba(255, 255, 255, 0.1); /* Transparent white */
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent white */
   backdrop-filter: blur(10px) saturate(180%);
   -webkit-backdrop-filter: blur(10px) saturate(180%);
   border-radius: 20px;
@@ -15,4 +16,9 @@
   color: white;
 }
 
-
+.centered-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+}

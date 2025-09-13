@@ -63,7 +63,7 @@ const Notifications = () => {
 					);
 				}
 				return `${
-					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080"
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3001"
 				}/cable`;
 			};
 

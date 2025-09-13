@@ -906,15 +906,12 @@ const SellerProfile = () => {
 			<div className="min-h-screen bg-white">
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex h-[calc(100vh-64px)]">
-					<div className="flex-1 flex items-center justify-center">
-						<div className="text-center">
-							<Spinner
-								variant="warning"
-								name="cube-grid"
-								style={{ width: 40, height: 40 }}
-							/>
-							<p className="mt-3 text-gray-500 text-sm">Loading...</p>
-						</div>
+					<div className="flex-1 centered-loader">
+						<Spinner
+							variant="warning"
+							name="cube-grid"
+							style={{ width: 40, height: 40 }}
+						/>
 					</div>
 				</div>
 			</div>
