@@ -15,9 +15,10 @@ ENV REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL}
 ENV REACT_APP_SITE_URL=${REACT_APP_SITE_URL}
 ENV API_URL=${REACT_APP_BACKEND_URL}
 ENV SITE_URL=${REACT_APP_SITE_URL}
+ENV SKIP_POSTBUILD=true
 
 # Build without postbuild (react-snap) to avoid Puppeteer/Chrome issues
-RUN npm run build:prod
+RUN npm run build
 
 # Use Nginx as the web server
 FROM nginx:alpine

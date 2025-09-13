@@ -58,7 +58,7 @@
 		"start": "GENERATE_SOURCEMAP=false FAST_REFRESH=false react-scripts start",
 		"build": "GENERATE_SOURCEMAP=false react-scripts build",
 		"build:prod": "GENERATE_SOURCEMAP=false react-scripts build",
-		"postbuild": "react-snap",
+		"postbuild": "if [ \"$SKIP_POSTBUILD\" = \"true\" ]; then echo 'Skipping react-snap in Docker build'; else react-snap; fi",
 		"serve": "serve -s build -l 3000",
 		"test": "react-scripts test",
 		"seo-generator": "echo 'SEO generator skipped in production build.'",
