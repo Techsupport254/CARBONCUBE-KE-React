@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useSEO from "../../hooks/useSEO";
+import { getValidImageUrl } from "../../utils/imageUtils";
 import {
 	faStar,
 	faStarHalfAlt,
@@ -715,6 +717,86 @@ const SellerAdDetails = () => {
 		}
 	};
 
+	// Generate comprehensive SEO data based on ad content
+	const seoData = {
+		title: ad
+			? `${ad.title} - Seller Dashboard | Carbon Cube Kenya`
+			: "Ad Details - Seller Dashboard | Carbon Cube Kenya",
+		description: ad
+			? `Manage and monitor your listing: ${
+					ad.title
+			  }. View reviews, analytics, and performance metrics for this ${
+					ad.category?.name || "product"
+			  } on Carbon Cube Kenya's seller platform.`
+			: "Manage and monitor your product listings on Carbon Cube Kenya's seller platform.",
+		keywords: ad
+			? `seller dashboard, ad management, ${ad.title}, ${ad.category?.name}, ${ad.subcategory?.name}, Carbon Cube Kenya, seller tools, product analytics, reviews management, listing performance`
+			: "seller dashboard, ad management, Carbon Cube Kenya, seller tools",
+		url: `${window.location.origin}/seller/ads/${adId}`,
+		type: "article",
+		image: ad && ad.media && ad.media.length > 0 ? ad.media[0] : null,
+		author: "Carbon Cube Kenya Seller Tools",
+		schemaType: "Article",
+		section: "Seller Dashboard",
+		tags: [
+			"ad management",
+			"seller tools",
+			"product listing",
+			"analytics",
+			"reviews",
+			"Carbon Cube Kenya",
+		],
+		robots: "noindex, nofollow, noarchive, nosnippet", // Private seller data
+		customMetaTags: ad
+			? [
+					{ name: "seller:page_type", content: "ad_details" },
+					{ name: "seller:ad_id", content: ad.id?.toString() },
+					{ name: "seller:function", content: "ad_management" },
+					{ name: "seller:privacy_level", content: "private" },
+			  ]
+			: [
+					{ name: "seller:page_type", content: "ad_details" },
+					{ name: "seller:function", content: "ad_management" },
+					{ name: "seller:privacy_level", content: "private" },
+			  ],
+		...(ad && {
+			structuredData: {
+				"@context": "https://schema.org",
+				"@type": "Article",
+				headline: `Manage Your Listing: ${ad.title}`,
+				description: `Access analytics, reviews, and management tools for your ${
+					ad.category?.name || "product"
+				} listing on Carbon Cube Kenya.`,
+				author: {
+					"@type": "Organization",
+					name: "Carbon Cube Kenya",
+					url: "https://carboncube-ke.com",
+				},
+				publisher: {
+					"@type": "Organization",
+					name: "Carbon Cube Kenya",
+					logo: {
+						"@type": "ImageObject",
+						url: "https://carboncube-ke.com/logo.png",
+					},
+				},
+				datePublished: ad.created_at,
+				dateModified: ad.updated_at,
+				mainEntityOfPage: {
+					"@type": "WebPage",
+					"@id": `${window.location.origin}/seller/ads/${adId}`,
+				},
+				isPartOf: {
+					"@type": "WebSite",
+					name: "Carbon Cube Kenya Seller Dashboard",
+					url: `${window.location.origin}/seller`,
+				},
+			},
+		}),
+	};
+
+	const seoComponent = useSEO(seoData);
+
 	const formatPrice = (price) => {
 		if (!price) return "N/A";
 		const formattedPrice = parseFloat(price).toFixed(2);
@@ -765,6 +847,7 @@ const SellerAdDetails = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
+			{seoComponent}
 			<Navbar mode="seller" showSearch={false} showCategories={false} />
 			<div className="flex">
 				<div className="flex-1 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto w-full">
@@ -902,6 +985,12 @@ const SellerAdDetails = () => {
 									{ad.media &&
 										ad.media.map((image, index) => {
 											const isMarkedForRemoval = imagesToRemove.includes(image);
+											const validImageUrl = getValidImageUrl(image);
+											const hasValidImage =
+												validImageUrl &&
+												validImageUrl !==
+													"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNTAgNzVMMTgwIDEwNUwxNTAgMTM1TDEyMCAxMDVMMTUwIDc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8dGV4dCB4PSIxNTAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+";
+
 											return (
 												<div
 													key={index}
@@ -914,16 +1003,65 @@ const SellerAdDetails = () => {
 													}`}
 													onClick={() =>
 														!isEditMode &&
-														handlePreview(image, `${ad.title} - ${index + 1}`)
+														handlePreview(
+															validImageUrl,
+															`${ad.title} - ${index + 1}`
+														)
 													}
 												>
 													<div className="relative bg-white aspect-square">
-														<img
-															src={image}
-															alt={`${ad.title} view ${index + 1}`}
-															className="w-full h-full object-contain"
-															style={{ backgroundColor: "#f9fafb" }}
-														/>
+														{hasValidImage ? (
+															<img
+																src={validImageUrl}
+																alt={`${ad.title} view ${index + 1}`}
+																className="w-full h-full object-contain rounded-lg cursor-pointer transition-opacity duration-300 ease-in-out"
+																style={{ backgroundColor: "#f9fafb" }}
+																loading="lazy"
+																onLoad={(e) => {
+																	e.target.style.opacity = "1";
+																}}
+																onError={(e) => {
+																	e.target.style.display = "none";
+																	e.target.nextSibling.style.display = "flex";
+																}}
+															/>
+														) : null}
+
+														{/* Fallback for invalid/missing image */}
+														<div
+															className={`w-full h-full ${
+																hasValidImage ? "hidden" : "flex"
+															} bg-gradient-to-br from-gray-100 to-gray-200 flex-col items-center justify-center rounded-lg`}
+														>
+															<div className="text-gray-400">
+																<svg
+																	width="32"
+																	height="32"
+																	viewBox="0 0 24 24"
+																	fill="none"
+																	stroke="currentColor"
+																	strokeWidth="1.5"
+																	strokeLinecap="round"
+																	strokeLinejoin="round"
+																	className="mb-1"
+																>
+																	<rect
+																		x="3"
+																		y="3"
+																		width="18"
+																		height="18"
+																		rx="2"
+																		ry="2"
+																	/>
+																	<circle cx="8.5" cy="8.5" r="1.5" />
+																	<polyline points="21,15 16,10 5,21" />
+																</svg>
+															</div>
+															<div className="text-[8px] text-gray-500 font-medium text-center px-1">
+																No Image
+															</div>
+														</div>
+
 														{/* Image counter overlay for carousel */}
 														{!isEditMode && ad.media.length > 1 && (
 															<div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
@@ -1322,23 +1460,11 @@ const SellerAdDetails = () => {
 									</div>
 									<div className="flex justify-between items-center">
 										<span className="text-gray-600 text-xs sm:text-sm">
-											Sold:
-										</span>
-										<span className="font-semibold text-sm sm:text-base">
-											{ad.quantity_sold || 0}
-										</span>
-									</div>
-									<div className="flex justify-between items-center">
-										<span className="text-gray-600 text-xs sm:text-sm">
 											Status:
 										</span>
 										{ad.deleted ? (
 											<span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
 												Deleted
-											</span>
-										) : ad.sold_out ? (
-											<span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-												Sold Out
 											</span>
 										) : (
 											<span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
@@ -1460,99 +1586,93 @@ const SellerAdDetails = () => {
 								</div>
 							</div>
 
-							{/* Dimensions */}
-							{(isEditMode ||
-								ad.item_length ||
-								ad.item_width ||
-								ad.item_height ||
-								ad.item_weight) && (
-								<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
-									<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
-										Dimensions
-									</h2>
-									<div className="space-y-2 sm:space-y-3">
-										<div className="flex justify-between items-center">
-											<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-												<FontAwesomeIcon
-													icon={faRuler}
-													className="text-xs sm:text-sm"
-												/>
-												Length (cm):
-											</span>
-											<InlineEditField
-												field="item_length"
-												value={ad.item_length}
-												label="Length"
-												type="number"
+							{/* Dimensions - Always show */}
+							<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">
+								<h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+									Dimensions
+								</h2>
+								<div className="space-y-2 sm:space-y-3">
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+											<FontAwesomeIcon
+												icon={faRuler}
+												className="text-xs sm:text-sm"
 											/>
-										</div>
-										<div className="flex justify-between items-center">
-											<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-												<FontAwesomeIcon
-													icon={faRuler}
-													className="text-xs sm:text-sm"
-												/>
-												Width (cm):
-											</span>
-											<InlineEditField
-												field="item_width"
-												value={ad.item_width}
-												label="Width"
-												type="number"
+											Length (cm):
+										</span>
+										<InlineEditField
+											field="item_length"
+											value={ad.item_length}
+											label="Length"
+											type="number"
+										/>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+											<FontAwesomeIcon
+												icon={faRuler}
+												className="text-xs sm:text-sm"
 											/>
-										</div>
-										<div className="flex justify-between items-center">
-											<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-												<FontAwesomeIcon
-													icon={faRuler}
-													className="text-xs sm:text-sm"
-												/>
-												Height (cm):
-											</span>
-											<InlineEditField
-												field="item_height"
-												value={ad.item_height}
-												label="Height"
-												type="number"
+											Width (cm):
+										</span>
+										<InlineEditField
+											field="item_width"
+											value={ad.item_width}
+											label="Width"
+											type="number"
+										/>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+											<FontAwesomeIcon
+												icon={faRuler}
+												className="text-xs sm:text-sm"
 											/>
-										</div>
-										<div className="flex justify-between items-center">
-											<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-												<FontAwesomeIcon
-													icon={faWeightHanging}
-													className="text-xs sm:text-sm"
-												/>
-												Weight:
-											</span>
-											<InlineEditField
-												field="item_weight"
-												value={ad.item_weight}
-												label="Weight"
-												type="number"
+											Height (cm):
+										</span>
+										<InlineEditField
+											field="item_height"
+											value={ad.item_height}
+											label="Height"
+											type="number"
+										/>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+											<FontAwesomeIcon
+												icon={faWeightHanging}
+												className="text-xs sm:text-sm"
 											/>
-										</div>
-										<div className="flex justify-between items-center">
-											<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-												<FontAwesomeIcon
-													icon={faWeightHanging}
-													className="text-xs sm:text-sm"
-												/>
-												Weight Unit:
-											</span>
-											<InlineEditField
-												field="weight_unit"
-												value={ad.weight_unit || "Grams"}
-												label="Weight Unit"
-												type="select"
-												options={[
-													{ value: "Grams", label: "Grams" },
-													{ value: "Kilograms", label: "Kilograms" },
-												]}
+											Weight:
+										</span>
+										<InlineEditField
+											field="item_weight"
+											value={ad.item_weight}
+											label="Weight"
+											type="number"
+										/>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-gray-600 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+											<FontAwesomeIcon
+												icon={faWeightHanging}
+												className="text-xs sm:text-sm"
 											/>
-										</div>
+											Weight Unit:
+										</span>
+										<InlineEditField
+											field="weight_unit"
+											value={ad.weight_unit || "Grams"}
+											label="Weight Unit"
+											type="select"
+											options={[
+												{ value: "Grams", label: "Grams" },
+												{ value: "Kilograms", label: "Kilograms" },
+											]}
+										/>
 									</div>
 								</div>
-							)}
+							</div>
 
 							{/* Created Date */}
 							<div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 lg:p-6">

@@ -2,6 +2,14 @@
 module.exports = {
 	content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
 	theme: {
+		screens: {
+			xs: "475px",
+			sm: "640px",
+			md: "768px",
+			lg: "1024px",
+			xl: "1280px",
+			"2xl": "1536px",
+		},
 		extend: {
 			fontFamily: {
 				sans: [
@@ -46,6 +54,48 @@ module.exports = {
 				normal: "1.5",
 				relaxed: "1.625",
 				loose: "2",
+			},
+			animation: {
+				slideInUp: "slideInUp 0.3s ease-out",
+				"pulse-slow": "pulse 1.5s ease-in-out infinite",
+				scaleIn: "scaleIn 0.2s ease-out",
+			},
+			keyframes: {
+				slideInUp: {
+					"0%": {
+						opacity: "0",
+						transform: "translateY(10px)",
+					},
+					"100%": {
+						opacity: "1",
+						transform: "translateY(0)",
+					},
+				},
+				scaleIn: {
+					"0%": {
+						transform: "scale(0)",
+					},
+					"100%": {
+						transform: "scale(1)",
+					},
+				},
+			},
+			spacing: {
+				"safe-top": "env(safe-area-inset-top)",
+				"safe-bottom": "env(safe-area-inset-bottom)",
+				"safe-left": "env(safe-area-inset-left)",
+				"safe-right": "env(safe-area-inset-right)",
+			},
+			maxWidth: {
+				messages: "48rem",
+				bubble: "calc(100vw - 4rem)",
+			},
+			minHeight: {
+				touch: "44px",
+				conversation: "60px",
+			},
+			minWidth: {
+				touch: "44px",
 			},
 		},
 	},

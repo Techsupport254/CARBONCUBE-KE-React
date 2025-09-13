@@ -327,10 +327,10 @@ const SearchResultSection = ({
 	// Debug: Log current state before render
 
 	return (
-		<div className="max-w-7xl mx-auto px-2 sm:px-3 md:px-4 lg:px-6 xl:px-8 min-h-screen overflow-hidden">
+		<div className="max-w-7xl mx-auto px-1 sm:px-2 md:px-4 lg:px-6 xl:px-8 min-h-screen overflow-hidden">
 			{/* Enhanced Header */}
-			<div className="mb-4 sm:mb-5 md:mb-6 mt-2 sm:mt-3 md:mt-4">
-				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4">
+			<div className="mb-2 sm:mb-5 md:mb-6 mt-1 sm:mt-3 md:mt-4">
+				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-3 md:gap-4 mb-2 sm:mb-4">
 					<div className="flex-1 min-w-0">
 						<h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 break-words">
 							{searchQuery && searchQuery.trim() !== ""
@@ -363,7 +363,7 @@ const SearchResultSection = ({
 				</div>
 
 				{/* Breadcrumb */}
-				<nav className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
+				<nav className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">
 					<span
 						onClick={handleClearSearch}
 						className="cursor-pointer hover:text-yellow-600 transition-colors"
@@ -381,8 +381,8 @@ const SearchResultSection = ({
 
 			{/* Shops Section - Show when there are matching shops */}
 			{searchShops && searchShops.length > 0 && (
-				<div className="mb-6 sm:mb-8">
-					<div className="flex items-center justify-between mb-4 sm:mb-5">
+				<div className="mb-3 sm:mb-8">
+					<div className="flex items-center justify-between mb-2 sm:mb-5">
 						<h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900">
 							Matching Shops
 						</h2>
@@ -437,7 +437,7 @@ const SearchResultSection = ({
 					<div className="relative">
 						<div
 							ref={shopsContainerRef}
-							className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth"
+							className="flex gap-2 sm:gap-5 overflow-x-auto scrollbar-hide scroll-smooth"
 							style={{
 								scrollbarWidth: "none",
 								msOverflowStyle: "none",
@@ -460,9 +460,9 @@ const SearchResultSection = ({
 										}}
 										onClick={() => handleShopClickInternal(shop)}
 									>
-										<div className="p-4 sm:p-5 md:p-6 h-full flex flex-col">
+										<div className="p-2 sm:p-5 md:p-6 h-full flex flex-col">
 											{/* Header Section */}
-											<div className="flex items-start mb-3 sm:mb-4">
+											<div className="flex items-start mb-2 sm:mb-4">
 												{shop.profile_picture ? (
 													<img
 														src={shop.profile_picture}
@@ -498,7 +498,7 @@ const SearchResultSection = ({
 
 											{/* Description */}
 											{shop.description && (
-												<p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 flex-grow leading-relaxed">
+												<p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 line-clamp-2 flex-grow leading-relaxed">
 													{shop.description}
 												</p>
 											)}
@@ -633,7 +633,7 @@ const SearchResultSection = ({
 			)}
 
 			{!isLoading && errorMessage && (
-				<div className="flex items-center justify-between p-2 sm:p-3 md:p-4 mb-4 sm:mb-5 md:mb-6 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
+				<div className="flex items-center justify-between p-1 sm:p-3 md:p-4 mb-2 sm:mb-5 md:mb-6 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
 					<span className="text-xs sm:text-sm">{errorMessage}</span>
 					{onRetry && (
 						<Button
@@ -649,15 +649,15 @@ const SearchResultSection = ({
 			)}
 
 			{isLoading ? (
-				<div className="space-y-6 sm:space-y-7 md:space-y-8">
+				<div className="space-y-3 sm:space-y-7 md:space-y-8">
 					{Array.from({ length: 3 }).map((_, sectionIndex) => (
 						<div key={sectionIndex}>
-							<div className="h-4 sm:h-5 md:h-6 bg-gray-200 rounded w-32 sm:w-40 md:w-48 mb-3 sm:mb-4 animate-pulse"></div>
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+							<div className="h-4 sm:h-5 md:h-6 bg-gray-200 rounded w-32 sm:w-40 md:w-48 mb-2 sm:mb-4 animate-pulse"></div>
+							<div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-1 sm:gap-3 md:gap-4">
 								{Array.from({ length: 6 }).map((_, i) => (
 									<div key={i} className="bg-transparent rounded-lg">
 										<div className="w-full aspect-square bg-gray-200 animate-pulse rounded-t-lg" />
-										<div className="p-2 sm:p-2.5 md:p-3">
+										<div className="p-1 sm:p-2.5 md:p-3">
 											<div className="h-3 sm:h-3.5 md:h-4 bg-gray-200 rounded w-full mb-1 sm:mb-2 animate-pulse" />
 											<div className="h-2 sm:h-2.5 md:h-3 bg-gray-200 rounded w-2/3 animate-pulse" />
 										</div>
@@ -668,8 +668,8 @@ const SearchResultSection = ({
 					))}
 				</div>
 			) : paginatedResults.length === 0 && isSearchContext ? (
-				<div className="text-center py-8 sm:py-10 md:py-12">
-					<div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 mx-auto mb-3 sm:mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+				<div className="text-center py-4 sm:py-10 md:py-12">
+					<div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 mx-auto mb-2 sm:mb-4 bg-gray-100 rounded-full flex items-center justify-center">
 						<svg
 							className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 text-gray-400"
 							fill="none"
@@ -687,18 +687,18 @@ const SearchResultSection = ({
 					<h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2">
 						No Results Found
 					</h3>
-					<p className="text-gray-600 max-w-md mx-auto text-sm sm:text-base mb-4">
+					<p className="text-gray-600 max-w-md mx-auto text-sm sm:text-base mb-2">
 						No results found for "{searchQuery || "your search"}". Try searching
 						for automotive parts like: filters, batteries, pumps, brakes, or
 						tires
 					</p>
 				</div>
 			) : paginatedResults.length === 0 ? null : ( // Return null when not in search context and no results
-				<div className="space-y-6 sm:space-y-7 md:space-y-8">
+				<div className="space-y-3 sm:space-y-7 md:space-y-8">
 					{/* Single grid view for all results */}
 					<div className="bg-transparent rounded-lg">
-						<div className="p-2 sm:p-3">
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+						<div className="p-0 sm:p-3">
+							<div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-1 sm:gap-3 lg:gap-4">
 								{paginatedResults.map((ad) => {
 									// Normalize tier data for consistent display
 									const normalizedAd = {
@@ -727,20 +727,21 @@ const SearchResultSection = ({
 
 							{/* Pagination controls for main results - inside the white container */}
 							{!isSearchContext && totalPages > 1 && (
-								<div className="flex justify-center mt-6 sm:mt-7 md:mt-8">
-									<div className="flex items-center gap-2">
+								<div className="flex flex-col sm:flex-row justify-center items-center mt-3 sm:mt-7 md:mt-8 gap-2 sm:gap-0">
+									<div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
 										<Button
 											variant="outline-warning"
 											size="sm"
 											onClick={() => handlePageChange(currentPage - 1)}
 											disabled={currentPage <= 1 || isLoadingPage}
-											className="px-3 py-1.5 text-sm"
+											className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm"
 										>
-											Previous
+											<span className="hidden sm:inline">Previous</span>
+											<span className="sm:hidden">Prev</span>
 										</Button>
 
 										{/* Page numbers */}
-										<div className="flex items-center gap-1">
+										<div className="flex items-center gap-1 flex-wrap justify-center">
 											{Array.from(
 												{ length: Math.min(5, totalPages) },
 												(_, i) => {
@@ -766,7 +767,7 @@ const SearchResultSection = ({
 															size="sm"
 															onClick={() => handlePageChange(pageNum)}
 															disabled={isLoadingPage}
-															className="px-3 py-1.5 text-sm"
+															className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
 														>
 															{pageNum}
 														</Button>
@@ -780,13 +781,14 @@ const SearchResultSection = ({
 											size="sm"
 											onClick={() => handlePageChange(currentPage + 1)}
 											disabled={currentPage >= totalPages || isLoadingPage}
-											className="px-3 py-1.5 text-sm"
+											className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm"
 										>
-											Next
+											<span className="hidden sm:inline">Next</span>
+											<span className="sm:hidden">Next</span>
 										</Button>
 									</div>
-									{/* Debug info */}
-									<div className="ml-4 text-sm text-gray-500">
+									{/* Page info */}
+									<div className="text-xs sm:text-sm text-gray-500 text-center mt-2 sm:mt-0 sm:ml-4">
 										{isLoadingPage ? (
 											<span
 												className="spinner-border spinner-border-sm me-2"

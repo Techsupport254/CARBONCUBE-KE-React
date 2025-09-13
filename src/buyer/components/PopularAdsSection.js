@@ -59,7 +59,7 @@ const PopularAdsSection = ({
 					<div className="hidden sm:block w-1/2" />
 				</div>
 				<div className="p-0.5 sm:p-1 md:p-1.5 lg:p-2">
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2">
+					<div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2">
 						{Array.from({ length: 6 }).map((_, i) => (
 							<div key={i} className="flex flex-col items-center text-center">
 								<div className="w-full aspect-square bg-gray-200 rounded-lg animate-pulse" />
@@ -181,7 +181,7 @@ const PopularAdsSection = ({
 			<Card.Body className="bg-transparent p-0 min-h-[30vh]">
 				{/* Body */}
 				<div
-					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 p-0.5 sm:p-1 md:p-1.5 lg:p-2 h-full"
+					className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 p-0.5 sm:p-1 md:p-1.5 lg:p-2 h-full"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
@@ -195,7 +195,7 @@ const PopularAdsSection = ({
 							onClick={onAdClick}
 							size="default"
 							variant="best-seller"
-							showTierBadge={true}
+							showTierBadge={false}
 							showTierBorder={true}
 							showRating={true}
 							showPrice={true}

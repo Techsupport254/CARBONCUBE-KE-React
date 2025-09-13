@@ -10,7 +10,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import ReviewsModal from "../../components/ReviewsModal";
 import LeaveReviewModal from "../../components/LeaveReviewModal";
-import useSEO from "../../hooks/useSEO";
+import ShopSEO from "../../components/ShopSEO";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { preloadShopIcons } from "../../utils/iconLoader";
 import ResponsiveImage from "../../components/ResponsiveImage";
@@ -610,7 +610,34 @@ const ShopPage = () => {
 				type: "website",
 		  };
 
-	const seoComponent = useSEO(seoData);
+	// Prepare shop data for SEO
+	const shopData = shop ? {
+		id: shop.id,
+		enterprise_name: shop.enterprise_name,
+		name: shop.enterprise_name,
+		description: shop.description,
+		location: shop.county || shop.location || "Kenya",
+		tier: shop.tier_name || "Free",
+		product_count: shop.product_count || ads.length,
+		ads_count: ads.length,
+		reviews_count: reviewStats?.total_reviews || 0,
+		rating: reviewStats?.average_rating || 0,
+		categories: shop.categories || [],
+		images: shop.images || [],
+		created_at: shop.created_at,
+		updated_at: shop.updated_at,
+		keywords: [
+			shop.enterprise_name,
+			"shop",
+			"store",
+			"seller",
+			shop.county || "Kenya",
+			shop.tier_name || "Free",
+			"Carbon Cube Kenya",
+			"verified seller",
+		].filter(Boolean),
+		tags: ["shop", "store", "seller", shop.tier_name || "Free"].filter(Boolean),
+	} : null;
 
 	// Fetch categories
 	const fetchCategories = async () => {
@@ -893,7 +920,7 @@ const ShopPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
-			{seoComponent}
+			<ShopSEO shop={shopData} />
 			<Navbar
 				mode="buyer"
 				showSearch={false}

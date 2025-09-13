@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card } from "react-bootstrap";
 import AdCard from "../../components/AdCard";
 
@@ -35,19 +35,43 @@ const SubcategorySection = ({
 	isLoading = false,
 	errorMessage,
 	onRetry,
+	isReshuffled = false,
 }) => {
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [previousAds, setPreviousAds] = useState([]);
+	const [isMobile, setIsMobile] = useState(false);
+
+	// Handle window resize to update mobile status
+	const handleResize = useCallback(() => {
+		setIsMobile(window.innerWidth < 640);
+	}, []);
+
+	useEffect(() => {
+		// Set initial mobile status
+		handleResize();
+
+		// Add resize listener
+		window.addEventListener("resize", handleResize);
+
+		// Cleanup
+		return () => window.removeEventListener("resize", handleResize);
+	}, [handleResize]);
 
 	// Memoize sorted ads to prevent unnecessary recalculations
 	const sortedAds = useMemo(() => {
-		return Array.isArray(ads) ? sortAdsByTier(ads) : [];
-	}, [ads]);
+		if (!Array.isArray(ads)) return [];
+
+		// If ads have been reshuffled, preserve the reshuffled order
+		// Only apply tier sorting for initial load
+		return isReshuffled ? ads : sortAdsByTier(ads);
+	}, [ads, isReshuffled]);
 
 	// Memoize displayed ads to prevent unnecessary recalculations
+	// Show 6 items for mobile (3x2 grid), 4 items for larger screens (2x2 grid)
 	const displayedAds = useMemo(() => {
-		return sortedAds.slice(0, 4);
-	}, [sortedAds]);
+		const itemsToShow = isMobile ? 6 : 4;
+		return sortedAds.slice(0, itemsToShow);
+	}, [sortedAds, isMobile]);
 
 	// Detect when ads have been reshuffled and trigger animation
 	useEffect(() => {
@@ -73,8 +97,10 @@ const SubcategorySection = ({
 
 	return (
 		<Card
-			className={`h-full bg-transparent rounded-lg flex flex-col transition-all duration-500 ease-in-out ${
-				isAnimating ? "transform scale-105 shadow-lg" : ""
+			className={`h-full bg-transparent rounded-lg flex flex-col transition-all duration-600 ease-out ${
+				isAnimating
+					? "ring-1 ring-blue-200 ring-opacity-50 shadow-sm bg-blue-50 bg-opacity-30"
+					: ""
 			}`}
 		>
 			<Card.Body className="p-0 flex-grow flex flex-col justify-between">
@@ -93,28 +119,32 @@ const SubcategorySection = ({
 						)}
 					</div>
 				)}
-				{/* Responsive grid: 2x2 ads on all screen sizes */}
+				{/* Responsive grid: 3 columns for mobile (2 rows), 2 columns for larger screens (3 rows) */}
 				<div
-					className={`grid grid-cols-2 grid-rows-2 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 h-full p-0.5 sm:p-1 md:p-1.5 transition-all duration-300 ${
-						isAnimating ? "transform scale-102" : ""
+					className={`grid grid-cols-3 sm:grid-cols-2 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 h-full p-0.5 sm:p-1 md:p-1.5 transition-all duration-400 ease-out ${
+						isAnimating ? "opacity-95" : ""
 					}`}
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
 						minHeight: "20vh",
-						gridTemplateRows: "1fr 1fr",
 					}}
 				>
-					{Array.from({ length: 4 }).map((_, i) => {
+					{Array.from({ length: displayedAds.length }).map((_, i) => {
 						const ad = displayedAds[i];
 
 						if (!isLoading && ad) {
 							return (
 								<div
 									key={ad.id}
-									className={`h-full w-full transition-all duration-300 ease-in-out ${
-										isAnimating ? "transform scale-105 opacity-90" : ""
-									}`}
+									className={`h-full w-full transition-all duration-400 ease-out`}
+									style={{
+										transitionDelay: isAnimating ? `${i * 50}ms` : "0ms",
+										opacity: isAnimating ? 0.85 : 1,
+										transform: isAnimating
+											? "translateY(-2px)"
+											: "translateY(0px)",
+									}}
 								>
 									<AdCard
 										ad={ad}

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faTrashCan,
-	faStar,
 	faPencilAlt,
 	faRotateLeft,
 	faBox,
@@ -11,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import Spinner from "react-spinkit";
 import Navbar from "../../components/Navbar";
 import useSEO from "../../hooks/useSEO";
+import AdCard from "../../components/AdCard";
+import { getValidImageUrl } from "../../utils/imageUtils";
 
 const SellerAds = () => {
 	const [ads, setAds] = useState({ active: [], deleted: [] });
@@ -21,7 +22,7 @@ const SellerAds = () => {
 	const navigate = useNavigate();
 
 	// SEO Implementation - Private seller dashboard, should not be indexed
-	useSEO({
+	const seoComponent = useSEO({
 		title: "Manage Your Ads - Seller Dashboard | Carbon Cube Kenya",
 		description:
 			"Manage your product listings and ads on Carbon Cube Kenya. Create, edit, and track your product advertisements from your seller dashboard.",
@@ -180,169 +181,106 @@ const SellerAds = () => {
 		}
 	};
 
-	const renderAdCard = (ad) => (
-		<div key={ad.id} className="group h-full">
-			<div
-				className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200 h-full flex flex-col cursor-pointer"
-				onClick={() => handleViewDetailsClick(ad)}
-			>
-				{/* Image Section */}
-				<div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden flex-shrink-0">
-					{ad.media && ad.media.length > 0 ? (
-						<img
-							src={ad.media[0]}
-							alt={ad.title}
-							className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
-						/>
-					) : (
-						<div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200">
-							<div className="text-gray-400 group-hover:text-gray-500 transition-colors duration-200">
-								<svg
-									width="48"
-									height="48"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="1.5"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									className="mb-2"
-								>
-									<rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-									<circle cx="8.5" cy="8.5" r="1.5" />
-									<polyline points="21,15 16,10 5,21" />
-								</svg>
-							</div>
-							<div className="text-xs text-gray-500 font-medium text-center px-2">
-								No Image
-							</div>
-						</div>
-					)}
+	const renderAdCard = (ad) => {
+		// Prepare ad data for AdCard component
+		const adCardData = {
+			...ad,
+			// Ensure consistent data structure
+			rating: ad.mean_rating || ad.rating || 0,
+			mean_rating: ad.mean_rating || ad.rating || 0,
+			// Use consistent image handling
+			first_media_url:
+				ad.media && ad.media.length > 0 ? getValidImageUrl(ad.media[0]) : null,
+			media_urls: ad.media ? ad.media.map((url) => getValidImageUrl(url)) : [],
+			// Seller tier information
+			seller_tier: ad.seller_tier_name || "Free",
+			seller_tier_name: ad.seller_tier_name || "Free",
+		};
 
-					{/* Condition Badge - Top Left */}
-					{ad.condition && (
-						<div className="absolute top-2 left-2">
-							<span
-								className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-									ad.condition === "brand_new"
-										? "bg-green-100 text-green-800"
-										: ad.condition === "second_hand"
-										? "bg-red-100 text-red-800"
-										: ad.condition === "refurbished"
-										? "bg-blue-100 text-blue-800"
-										: "bg-gray-100 text-gray-800"
-								}`}
-							>
-								{ad.condition === "brand_new"
-									? "Brand New"
-									: ad.condition === "second_hand"
-									? "Second Hand"
-									: ad.condition === "refurbished"
-									? "Refurbished"
-									: ad.condition}
-							</span>
-						</div>
-					)}
+		const isDeleted = ads.deleted.some((p) => p.id === ad.id);
 
-					{/* Deleted Overlay */}
-					{ads.deleted.some((p) => p.id === ad.id) && (
-						<div className="absolute inset-0 bg-red-500 bg-opacity-80 flex items-center justify-center">
-							<div className="text-white text-center">
-								<FontAwesomeIcon icon={faTrashCan} className="text-3xl mb-2" />
-								<div className="text-lg font-bold uppercase">Deleted</div>
-							</div>
+		return (
+			<div key={ad.id} className="group h-full relative">
+				{/* Deleted Overlay */}
+				{isDeleted && (
+					<div className="absolute inset-0 bg-red-500 bg-opacity-80 flex items-center justify-center z-20 rounded-lg">
+						<div className="text-white text-center">
+							<FontAwesomeIcon icon={faTrashCan} className="text-3xl mb-2" />
+							<div className="text-lg font-bold uppercase">Deleted</div>
 						</div>
-					)}
+					</div>
+				)}
 
-					{/* Action Buttons Overlay */}
-					<div
-						className="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-						style={{ zIndex: 10 }}
+				{/* Action Buttons Overlay */}
+				<div className="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+					<button
+						onClick={(e) => {
+							e.stopPropagation();
+							handleEditAd(ad.id);
+						}}
+						className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+						title="Edit Ad"
 					>
+						<FontAwesomeIcon
+							icon={faPencilAlt}
+							className="text-gray-600 text-sm"
+						/>
+					</button>
+					{isDeleted ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation();
-								handleEditAd(ad.id);
+								handleRestoreAd(ad.id);
 							}}
-							className="w-8 h-8 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
-							title="Edit Ad"
+							className="w-8 h-8 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+							title="Restore Ad"
 						>
 							<FontAwesomeIcon
-								icon={faPencilAlt}
-								className="text-gray-600 text-sm"
+								icon={faRotateLeft}
+								className="text-white text-sm"
 							/>
 						</button>
-						{ads.deleted.some((p) => p.id === ad.id) ? (
-							<button
-								onClick={(e) => {
-									e.stopPropagation();
-									handleRestoreAd(ad.id);
-								}}
-								className="w-8 h-8 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
-								title="Restore Ad"
-							>
-								<FontAwesomeIcon
-									icon={faRotateLeft}
-									className="text-white text-sm"
-								/>
-							</button>
-						) : (
-							<button
-								onClick={(e) => {
-									e.stopPropagation();
-									// TODO: Implement delete functionality
-									alert("Delete functionality not implemented yet");
-								}}
-								className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
-								title="Delete Ad"
-							>
-								<FontAwesomeIcon
-									icon={faTrashCan}
-									className="text-white text-sm"
-								/>
-							</button>
-						)}
-					</div>
-
-					{/* Media Count Badge */}
-					{ad.media && ad.media.length > 1 && (
-						<div
-							className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full"
-							style={{ zIndex: 10 }}
+					) : (
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								// TODO: Implement delete functionality
+								alert("Delete functionality not implemented yet");
+							}}
+							className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-sm transition-all duration-200"
+							title="Delete Ad"
 						>
-							{ad.media.length} photos
-						</div>
+							<FontAwesomeIcon
+								icon={faTrashCan}
+								className="text-white text-sm"
+							/>
+						</button>
 					)}
 				</div>
 
-				{/* Content Section */}
-				<div className="p-2 sm:p-3 flex flex-col flex-grow">
-					{/* Title */}
-					<h3 className="font-semibold text-gray-900 text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-yellow-600 transition-colors duration-200 flex-grow">
-						{ad.title}
-					</h3>
-
-					{/* Price and Rating Row */}
-					<div className="flex items-center justify-between">
-						<span className="text-sm sm:text-base font-bold text-green-600">
-							Kshs {parseFloat(ad.price).toLocaleString()}
-						</span>
-						{ad.mean_rating && ad.mean_rating > 0 && (
-							<div className="flex items-center gap-1">
-								<FontAwesomeIcon
-									icon={faStar}
-									className="text-xs text-yellow-400"
-								/>
-								<span className="text-xs text-gray-600 font-medium">
-									{ad.mean_rating.toFixed(1)}
-								</span>
-							</div>
-						)}
+				{/* Media Count Badge */}
+				{ad.media && ad.media.length > 1 && (
+					<div className="absolute bottom-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full z-10">
+						{ad.media.length} photos
 					</div>
-				</div>
+				)}
+
+				{/* Use the unified AdCard component */}
+				<AdCard
+					ad={adCardData}
+					onClick={() => handleViewDetailsClick(ad)}
+					showTierBadge={false}
+					showTierBorder={false}
+					showRating={true}
+					showPrice={true}
+					showTitle={true}
+					size="default"
+					variant="default"
+					className="h-full"
+				/>
 			</div>
-		</div>
-	);
+		);
+	};
 
 	if (loading) {
 		return (
@@ -363,6 +301,7 @@ const SellerAds = () => {
 	return (
 		<>
 			<div className="min-h-screen bg-gray-50">
+				{seoComponent}
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex">
 					<div className="flex-1">

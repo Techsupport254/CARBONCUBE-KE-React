@@ -56,14 +56,18 @@ const usePresence = (
 					cableRef.current = null;
 				}
 
-				// Convert HTTP URL to WebSocket URL
+				// Use the new WebSocket URL
 				const wsUrl =
-					process.env.REACT_APP_BACKEND_URL?.replace(
-						"https://",
-						"wss://"
-					)?.replace("http://", "ws://") || "ws://localhost:3001";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
 
-				cableRef.current = createConsumer(`${wsUrl}/cable`);
+				// Get JWT token for authentication
+				const token = sessionStorage.getItem("token");
+
+				cableRef.current = createConsumer(`${wsUrl}/cable`, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
 
 				// Subscribe to presence channel
 				subscriptionRef.current = cableRef.current.subscriptions.create(

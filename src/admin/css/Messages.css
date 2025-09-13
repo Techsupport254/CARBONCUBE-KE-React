@@ -63,9 +63,10 @@
 }
 
 .message {
-  position: relative;      /* enable absolute positioning inside */
-  margin-bottom: 10px;
-  padding-bottom: 18px;    /* add space for the timestamp */
+  position: relative;
+  /* enable absolute positioning inside */
+  padding-bottom: 18px;
+  /* add space for the timestamp */
   max-width: 80%;
   border-radius: 10px;
   padding: 10px;
@@ -88,8 +89,10 @@
 }
 
 .message-content {
-  position: relative;       /* establish positioning context */
-  padding-bottom: 18px;     /* space for timestamp */
+  position: relative;
+  /* establish positioning context */
+  padding-bottom: 18px;
+  /* space for timestamp */
 }
 
 .message-timestamp {
@@ -121,7 +124,6 @@
 
 .conversation-card {
   cursor: pointer;
-  margin-bottom: 10px;
   transition: background-color 0.3s;
 }
 
@@ -135,8 +137,13 @@
 }
 
 @keyframes pullOverAnimation {
-  0% { background-color: #fff3e0; }
-  100% { background-color: transparent; }
+  0% {
+    background-color: #fff3e0;
+  }
+
+  100% {
+    background-color: transparent;
+  }
 }
 
 .select-conversation-card {
@@ -216,7 +223,8 @@
   }
 
   .message-input {
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
+    /* Prevents zoom on iOS */
   }
 }
 

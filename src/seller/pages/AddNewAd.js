@@ -7,6 +7,7 @@ import Spinner from "react-spinkit";
 import Navbar from "../../components/Navbar";
 import "../css/SellerAds.css";
 import Swal from "sweetalert2";
+import useSEO from "../../hooks/useSEO";
 
 const AddNewAd = () => {
 	const [categories, setCategories] = useState([]);
@@ -38,6 +39,60 @@ const AddNewAd = () => {
 	});
 
 	const nsfwModelRef = useRef(null);
+
+	// SEO Implementation - Private seller dashboard, should not be indexed
+	const seoComponent = useSEO({
+		title: "Create New Ad - Seller Dashboard | Carbon Cube Kenya",
+		description:
+			"Create and publish new product listings on Carbon Cube Kenya. Add detailed product information, images, and specifications to reach more customers.",
+		keywords:
+			"create ad, add product, new listing, Carbon Cube Kenya, seller tools, product upload, ad creation, marketplace Kenya",
+		url: `${window.location.origin}/seller/add-ad`,
+		robots: "noindex, nofollow, noarchive, nosnippet",
+		customMetaTags: [
+			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
+			{ name: "googlebot", content: "noindex, nofollow" },
+			{ name: "bingbot", content: "noindex, nofollow" },
+			{ property: "og:robots", content: "noindex, nofollow" },
+			{ name: "seller:dashboard_type", content: "ad_creation" },
+			{ name: "seller:page_function", content: "create_product_listing" },
+			{ name: "seller:privacy_level", content: "private" },
+		],
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebPage",
+			name: "Create New Product Listing - Carbon Cube Kenya",
+			description:
+				"Private seller dashboard for creating new product advertisements and listings",
+			url: `${window.location.origin}/seller/add-ad`,
+			isPartOf: {
+				"@type": "WebSite",
+				name: "Carbon Cube Kenya",
+				url: "https://carboncube.co.ke",
+			},
+			audience: {
+				"@type": "Audience",
+				audienceType: "Sellers",
+			},
+			accessMode: "private",
+			accessModeSufficient: "seller_authentication",
+		},
+		section: "Seller Dashboard",
+		tags: [
+			"Ad Creation",
+			"Product Upload",
+			"Listing Creation",
+			"Dashboard",
+			"Private",
+		],
+		conversationalKeywords: [
+			"how to create an ad on Carbon Cube Kenya",
+			"seller dashboard add new product Kenya",
+			"create product listing Carbon Cube",
+			"how to upload products on Carbon Cube Kenya",
+			"add new advertisement Kenya marketplace",
+		],
+	});
 
 	const removeImage = (index) => {
 		setSelectedImages((prev) => prev.filter((_, i) => i !== index));
@@ -695,6 +750,7 @@ const AddNewAd = () => {
 	return (
 		<>
 			<div className="min-h-screen bg-gray-50">
+				{seoComponent}
 				<Navbar mode="seller" showSearch={false} showCategories={false} />
 				<div className="flex">
 					<div className="flex-1 p-3 sm:p-4 lg:p-6 max-w-7xl mx-auto w-full">

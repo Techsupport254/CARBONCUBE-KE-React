@@ -295,6 +295,10 @@ function App() {
 									element={<Messages onLogout={handleLogout} />}
 								/>
 								<Route
+									path="messages/:conversationId"
+									element={<Messages onLogout={handleLogout} />}
+								/>
+								<Route
 									path="promotions"
 									element={<PromotionsDiscount onLogout={handleLogout} />}
 								/>
@@ -356,6 +360,10 @@ function App() {
 									element={<SellerMessages onLogout={handleLogout} />}
 								/>
 								<Route
+									path="messages/:conversationId"
+									element={<SellerMessages onLogout={handleLogout} />}
+								/>
+								<Route
 									path="notifications"
 									element={<SellerNotifications onLogout={handleLogout} />}
 								/>
@@ -388,6 +396,10 @@ function App() {
 								/>
 								<Route
 									path="messages"
+									element={<BuyerMessages onLogout={handleLogout} />}
+								/>
+								<Route
+									path="messages/:conversationId"
 									element={<BuyerMessages onLogout={handleLogout} />}
 								/>
 								<Route

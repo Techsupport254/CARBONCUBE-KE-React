@@ -32,6 +32,8 @@ import apiService from "../../services/apiService";
 import {
 	smartReshuffle,
 	createDebouncedReshuffle,
+	AutoReshuffleManager,
+	enhancedSmartReshuffle,
 } from "../utils/adReshuffleUtils";
 
 /*
@@ -98,9 +100,10 @@ const Home = () => {
 	// Ref to track abort controller for search requests
 	const abortControllerRef = useRef(null);
 
-	// Reshuffle functionality state
+	// Enhanced reshuffle functionality state
 	const [lastReshuffleTime, setLastReshuffleTime] = useState(null);
 	const [isReshuffling, setIsReshuffling] = useState(false);
+	const [reshuffleTrigger, setReshuffleTrigger] = useState("initial");
 	const [userBehavior, setUserBehavior] = useState(
 		{
 			preferredCategories: [],
@@ -108,10 +111,11 @@ const Home = () => {
 			avoidedAds: [],
 			timeOnPage: 0,
 			lastActivity: Date.now(),
+			scrollDepth: 0,
 		},
 		[navigate]
 	);
-	const reshuffleIntervalRef = useRef(null);
+	const autoReshuffleManagerRef = useRef(null);
 	const pageLoadTimeRef = useRef(Date.now());
 
 	// Ref to prevent duplicate requests
@@ -998,41 +1002,55 @@ const Home = () => {
 		(options = {}) => {
 			if (isReshuffling || Object.keys(ads).length === 0) return;
 
+			const {
+				trigger = "manual",
+				userBehavior: reshuffleUserBehavior,
+				timestamp,
+				sessionDuration,
+			} = options;
+
 			setIsReshuffling(true);
+			setReshuffleTrigger(trigger);
 
 			try {
-				const reshuffleOptions = {
-					maintainTierOrder: true,
-					shuffleWithinTier: true,
-					considerRecency: true,
-					considerPopularity: true,
-					...options,
-				};
-
-				// Update user behavior with current time on page
+				// Update user behavior with current session data
 				const currentTimeOnPage = Date.now() - pageLoadTimeRef.current;
+				const scrollDepth = Math.max(
+					userBehavior.scrollDepth || 0,
+					(window.scrollY /
+						(document.documentElement.scrollHeight - window.innerHeight)) *
+						100
+				);
+
 				const updatedUserBehavior = {
 					...userBehavior,
 					timeOnPage: currentTimeOnPage,
 					lastActivity: Date.now(),
+					scrollDepth,
+					sessionDuration:
+						sessionDuration || Date.now() - pageLoadTimeRef.current,
+					trigger,
 				};
 
-				// Perform smart reshuffle
-				const reshuffledAds = smartReshuffle(
+				// Use enhanced smart reshuffle for better personalization
+				const reshuffledAds = enhancedSmartReshuffle(
 					ads,
 					updatedUserBehavior,
-					reshuffleOptions
+					{ trigger, timestamp },
+					{
+						maintainTierOrder: true,
+						shuffleWithinTier: true,
+					}
 				);
 
-				// Update ads state
+				// Update ads state with smooth transition
 				setAds(reshuffledAds);
 				setLastReshuffleTime(Date.now());
 
-				// Log reshuffle stats for debugging
-				if (process.env.NODE_ENV === "development") {
-				}
+				// Update user behavior state
+				setUserBehavior(updatedUserBehavior);
 			} catch (error) {
-				console.error("Reshuffle error:", error);
+				console.error("Enhanced reshuffle error:", error);
 			} finally {
 				setIsReshuffling(false);
 			}
@@ -1046,35 +1064,45 @@ const Home = () => {
 		[performReshuffle]
 	);
 
-	// Automatic reshuffle effect
+	// Enhanced automatic reshuffle system
 	useEffect(() => {
-		if (Object.keys(ads).length === 0) return;
+		if (Object.keys(ads).length === 0 || !isComponentMounted) return;
 
-		// Set up automatic reshuffle interval (every 2 minutes)
-		const reshuffleInterval = setInterval(() => {
-			debouncedReshuffle({
-				randomSeed: Date.now(),
-				considerRecency: true,
-				considerPopularity: true,
-			});
-		}, 2 * 60 * 1000); // 2 minutes
+		// Initialize the auto reshuffle manager
+		const reshuffleManager = new AutoReshuffleManager();
 
-		reshuffleIntervalRef.current = reshuffleInterval;
+		// Define reshuffle callbacks (silent operation)
+		const onReshuffleStart = (triggerType) => {
+			setIsReshuffling(true);
+			setReshuffleTrigger(triggerType);
+		};
 
-		// Cleanup interval on unmount
+		const onReshuffleEnd = (triggerType) => {
+			setIsReshuffling(false);
+		};
+
+		// Start the intelligent reshuffle system
+		reshuffleManager.start(performReshuffle, {
+			userBehavior,
+			onReshuffleStart,
+			onReshuffleEnd,
+		});
+
+		autoReshuffleManagerRef.current = reshuffleManager;
+
+		// Cleanup on unmount
 		return () => {
-			if (reshuffleIntervalRef.current) {
-				clearInterval(reshuffleIntervalRef.current);
+			if (autoReshuffleManagerRef.current) {
+				autoReshuffleManagerRef.current.stop();
 			}
 		};
-	}, [ads, debouncedReshuffle]);
+	}, [ads, performReshuffle, userBehavior, isComponentMounted]);
 
 	// Manual reshuffle function for user-triggered reshuffles
 	const handleManualReshuffle = useCallback(() => {
 		performReshuffle({
-			randomSeed: Date.now(),
-			considerRecency: true,
-			considerPopularity: true,
+			trigger: "manual",
+			timestamp: Date.now(),
 		});
 	}, [performReshuffle]);
 
@@ -1120,24 +1148,37 @@ const Home = () => {
 			trackUserBehavior("activity");
 		};
 
+		const handleScroll = () => {
+			// Track scroll depth for reshuffle personalization
+			const scrollDepth = Math.max(
+				userBehavior.scrollDepth || 0,
+				(window.scrollY /
+					(document.documentElement.scrollHeight - window.innerHeight)) *
+					100
+			);
+
+			setUserBehavior((prev) => ({
+				...prev,
+				scrollDepth: Math.min(scrollDepth, 100), // Cap at 100%
+			}));
+		};
+
 		// Track various user activities
-		const events = [
-			"mousedown",
-			"mousemove",
-			"keypress",
-			"scroll",
-			"touchstart",
-		];
+		const events = ["mousedown", "mousemove", "keypress", "touchstart"];
 		events.forEach((event) => {
-			document.addEventListener(event, handleActivity, true);
+			document.addEventListener(event, handleActivity, { passive: true });
 		});
+
+		// Separate scroll tracking
+		window.addEventListener("scroll", handleScroll, { passive: true });
 
 		return () => {
 			events.forEach((event) => {
 				document.removeEventListener(event, handleActivity, true);
 			});
+			window.removeEventListener("scroll", handleScroll, true);
 		};
-	}, [trackUserBehavior]);
+	}, [trackUserBehavior, userBehavior.scrollDepth]);
 
 	// Enhanced handleAdClick with behavior tracking
 	const handleAdClickWithTracking = useCallback(
@@ -1372,7 +1413,7 @@ const Home = () => {
 				onCategoryChange={handleCategoryChange}
 				onSubcategoryChange={handleSubcategoryChange}
 			/>
-			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
+			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8 min-h-screen">
 				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto relative z-0 transition-all duration-300 ease-in-out">
 					<div className="w-full">
 						{/* Show Banner only when not in search mode */}
@@ -1387,88 +1428,7 @@ const Home = () => {
 
 							// Hide banner if searching, has search query, or has URL search parameters
 							return !isSearching && !searchQuery && !hasSearchParams;
-						})() && (
-							<>
-								<Banner />
-								{/* Manual Reshuffle Button */}
-								<div className="flex justify-center mt-4 mb-6">
-									<div className="flex items-center gap-4">
-										<button
-											onClick={handleManualReshuffle}
-											disabled={isReshuffling}
-											className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-yellow-600 text-white rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-											title="Refresh ads with new arrangement"
-										>
-											{isReshuffling ? (
-												<>
-													<svg
-														className="animate-spin h-4 w-4"
-														viewBox="0 0 24 24"
-													>
-														<circle
-															className="opacity-25"
-															cx="12"
-															cy="12"
-															r="10"
-															stroke="currentColor"
-															strokeWidth="4"
-															fill="none"
-														/>
-														<path
-															className="opacity-75"
-															fill="currentColor"
-															d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-														/>
-													</svg>
-													Shuffling...
-												</>
-											) : (
-												<>
-													<svg
-														className="h-4 w-4"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															strokeLinecap="round"
-															strokeLinejoin="round"
-															strokeWidth={2}
-															d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-														/>
-													</svg>
-													Refresh Ads
-												</>
-											)}
-										</button>
-
-										{/* Reshuffle Status Indicator */}
-										{lastReshuffleTime && (
-											<div className="flex items-center gap-2 text-sm text-gray-600">
-												<svg
-													className="h-4 w-4 text-green-500"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														strokeLinecap="round"
-														strokeLinejoin="round"
-														strokeWidth={2}
-														d="M5 13l4 4L19 7"
-													/>
-												</svg>
-												<span>
-													Auto-refresh:{" "}
-													{Math.floor((Date.now() - lastReshuffleTime) / 60000)}
-													m ago
-												</span>
-											</div>
-										)}
-									</div>
-								</div>
-							</>
-						)}
+						})() && <Banner />}
 						<div
 							className={`px-0 ${(() => {
 								const query = searchParams.get("query");
@@ -1945,6 +1905,11 @@ const Home = () => {
 																				}
 																				handleSubcategoryClick={
 																					handleSubcategoryClick
+																				}
+																				isReshuffled={
+																					!!lastReshuffleTime &&
+																					Date.now() - lastReshuffleTime <
+																						300000
 																				}
 																			/>
 																		</div>

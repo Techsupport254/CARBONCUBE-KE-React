@@ -17,7 +17,7 @@ class WebSocketConnectionManager {
 		return this.connections.get(key);
 	}
 
-	createConnection(userType, userId, wsUrl) {
+	createConnection(userType, userId, wsUrl, token) {
 		const key = this.getConnectionKey(userType, userId);
 
 		// Return existing connection if available
@@ -25,10 +25,13 @@ class WebSocketConnectionManager {
 			return this.connections.get(key);
 		}
 
-		// Create new connection
+		// Create new connection with authentication
 		const consumer = createConsumer(`${wsUrl}/cable`, {
 			timeout: 30000,
 			reconnect: false,
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
 		});
 
 		this.connections.set(key, consumer);
@@ -98,13 +101,16 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 
 				// Get or create connection using the manager
 				const wsUrl =
-					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
-					"ws://localhost:3001";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
+
+				// Get JWT token for authentication
+				const token = sessionStorage.getItem("token");
 
 				const consumer = connectionManager.createConnection(
 					userType,
 					userId,
-					wsUrl
+					wsUrl,
+					token
 				);
 
 				// Subscribe to conversations channel for new messages

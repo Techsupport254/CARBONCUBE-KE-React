@@ -17,7 +17,7 @@ class WebSocketConnectionManager {
 		return this.connections.get(key);
 	}
 
-	createConnection(userType, userId, wsUrl) {
+	createConnection(userType, userId, wsUrl, token) {
 		const key = this.getConnectionKey(userType, userId);
 
 		// Return existing connection if available
@@ -25,10 +25,13 @@ class WebSocketConnectionManager {
 			return this.connections.get(key);
 		}
 
-		// Create new connection
+		// Create new connection with authentication
 		const consumer = createConsumer(`${wsUrl}/cable`, {
 			timeout: 30000,
 			reconnect: false,
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
 		});
 
 		this.connections.set(key, consumer);
@@ -101,22 +104,19 @@ const useActionCable = (
 					subscriptionRef.current = null;
 				}
 
-				// Convert HTTP URL to WebSocket URL
-				// Remove /api prefix if present since ActionCable is mounted at /cable
-				let baseUrl =
-					process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
-				if (baseUrl.includes("/api")) {
-					baseUrl = baseUrl.replace("/api", "");
-				}
-				const wsUrl = baseUrl
-					.replace("https://", "wss://")
-					.replace("http://", "ws://");
+				// Use the new WebSocket URL
+				const wsUrl =
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
+
+				// Get JWT token for authentication
+				const token = sessionStorage.getItem("token");
 
 				// Get or create connection using the manager
 				const consumer = connectionManager.createConnection(
 					userType,
 					userId,
-					wsUrl
+					wsUrl,
+					token
 				);
 
 				// Subscribe to conversations channel

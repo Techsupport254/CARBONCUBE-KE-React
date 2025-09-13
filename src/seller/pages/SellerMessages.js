@@ -9,19 +9,14 @@ const SellerMessages = () => {
 	useSEO({
 		title: "Messages - Seller Communication | Carbon Cube Kenya",
 		description:
-			"Manage your customer communications and messages on Carbon Cube Kenya. Respond to inquiries, handle customer support, and maintain relationships with buyers.",
-		keywords:
-			"seller messages, customer communication, Carbon Cube Kenya, seller support, buyer inquiries",
+			"Manage your customer communications and messages on Carbon Cube Kenya",
+		keywords: "seller messages, customer communication, Carbon Cube Kenya",
 		url: `${window.location.origin}/seller/messages`,
-		robots: "noindex, nofollow, noarchive, nosnippet",
 		customMetaTags: [
 			{ name: "robots", content: "noindex, nofollow, noarchive, nosnippet" },
 			{ name: "googlebot", content: "noindex, nofollow" },
 			{ name: "bingbot", content: "noindex, nofollow" },
 			{ property: "og:robots", content: "noindex, nofollow" },
-			{ name: "seller:dashboard_type", content: "messages" },
-			{ name: "seller:page_function", content: "customer_communication" },
-			{ name: "seller:privacy_level", content: "private" },
 		],
 		structuredData: {
 			"@context": "https://schema.org",
@@ -34,28 +29,13 @@ const SellerMessages = () => {
 				name: "Carbon Cube Kenya",
 				url: "https://carboncube.co.ke",
 			},
-			audience: {
-				"@type": "Audience",
-				audienceType: "Sellers",
-			},
-			accessMode: "private",
-			accessModeSufficient: "seller_authentication",
 		},
-		section: "Seller Dashboard",
-		tags: ["Messages", "Communication", "Dashboard", "Private"],
-		conversationalKeywords: [
-			"how to manage customer messages Carbon Cube Kenya",
-			"seller communication tools Kenya",
-			"customer support Carbon Cube",
-			"seller messaging system",
-			"buyer inquiry management",
-		],
 	});
 
 	return (
 		<Messages
 			userType="seller"
-			apiBaseUrl="/seller/conversations"
+			apiBaseUrl="/conversations"
 			navbarComponent={
 				<Navbar mode="seller" showSearch={true} showCategories={true} />
 			}

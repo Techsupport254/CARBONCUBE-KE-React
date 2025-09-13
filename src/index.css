@@ -15,28 +15,122 @@
   /* Safari and Chrome */
 }
 
+/* Custom scrollbar for messages */
+.messages-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.messages-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.messages-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.messages-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Enhanced touch scrolling for mobile */
+.webkit-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tailwind-compatible responsive improvements */
+@layer utilities {
+
+  /* Better touch targets following Tailwind patterns */
+  .touch-target-enhanced {
+    min-height: 48px;
+    min-width: 48px;
+    touch-action: manipulation;
+  }
+
+  /* Enhanced mobile scrolling */
+  .mobile-scroll-enhanced {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Better text rendering on all screens */
+  .text-crisp {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Message bubble animations */
+@keyframes slideInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Touch-friendly interactions */
 .touch-target {
   min-height: 44px;
   min-width: 44px;
 }
 
+/* Enhanced touch manipulation using Tailwind layer */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  /* Improved message bubble responsiveness */
+  .message-bubble-responsive {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Enhanced conversation interactions */
+  .conversation-item {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .conversation-item:hover {}
+
+  .conversation-item:active {}
+
+  /* Safe area utilities for modern devices */
+  .safe-area-inset-all {}
+}
+
 /* Safe area handling for mobile devices */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
-}
+.safe-area-top {}
 
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
+.safe-area-bottom {}
 
-.safe-area-left {
-  padding-left: env(safe-area-inset-left);
-}
+.safe-area-left {}
 
-.safe-area-right {
-  padding-right: env(safe-area-inset-right);
-}
+.safe-area-right {}
 
 /* Prevent zoom on input focus for mobile */
 input[type="text"],
@@ -83,7 +177,6 @@ body {
   overscroll-behavior: none;
   overflow-x: hidden;
   font-size: 16px;
-  line-height: 1.5;
   color: #374151;
 }
 
@@ -101,8 +194,12 @@ h5,
 h6 {
   font-family: inherit;
   font-weight: 600;
-  line-height: 1.25;
   color: #111827;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 h1 {
@@ -136,8 +233,11 @@ h6 {
 }
 
 p {
-  margin-bottom: 1rem;
-  line-height: 1.6;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* Improve text rendering */

@@ -40,7 +40,7 @@ const Messages = () => {
 		const fetchConversations = async () => {
 			try {
 				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/admin/conversations`,
+					`${process.env.REACT_APP_BACKEND_URL}/conversations`,
 					{
 						headers: {
 							Authorization: "Bearer " + sessionStorage.getItem("token"),
@@ -49,7 +49,18 @@ const Messages = () => {
 				);
 				if (!response.ok) throw new Error("Network response was not ok");
 				const data = await response.json();
-				setConversations(Array.isArray(data) ? data : []);
+
+				// Handle grouped conversations format from unified API
+				let conversationsList = [];
+				if (Array.isArray(data)) {
+					// Legacy flat array format
+					conversationsList = data;
+				} else if (data && typeof data === "object") {
+					// New grouped format: flatten all conversation groups into a single array
+					conversationsList = Object.values(data).flat();
+				}
+
+				setConversations(conversationsList);
 			} catch (error) {
 				// console.error('Error fetching conversations:', error);
 			} finally {
@@ -64,7 +75,7 @@ const Messages = () => {
 		setLoadingMessages(true);
 		try {
 			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/admin/conversations/${conversationId}/messages`,
+				`${process.env.REACT_APP_BACKEND_URL}/conversations/${conversationId}/messages`,
 				{
 					headers: {
 						Authorization: "Bearer " + sessionStorage.getItem("token"),
@@ -111,7 +122,7 @@ const Messages = () => {
 
 		try {
 			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/admin/conversations/${selectedConversation.id}/messages`,
+				`${process.env.REACT_APP_BACKEND_URL}/conversations/${selectedConversation.id}/messages`,
 				{
 					method: "POST",
 					headers: {

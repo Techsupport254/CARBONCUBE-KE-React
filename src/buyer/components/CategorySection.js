@@ -12,6 +12,7 @@ const CategorySection = ({
 	isLoading = false,
 	errorMessage,
 	onRetry,
+	isReshuffled = false,
 }) => {
 	// Ensure we always have exactly 4 subcategory slots to maintain grid structure
 	const subcategoriesToDisplay = isLoading
@@ -61,7 +62,7 @@ const CategorySection = ({
 					</div>
 				)}
 				<div
-					className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-0 p-0 h-full"
+					className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 sm:gap-1.5 md:gap-2 p-0.5 sm:p-1 md:p-1.5 h-full"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
@@ -98,6 +99,7 @@ const CategorySection = ({
 									ads={ads[subcategory.id] || []}
 									onAdClick={handleAdClick}
 									onSubcategoryClick={handleSubcategoryClick}
+									isReshuffled={isReshuffled}
 								/>
 							)}
 						</div>

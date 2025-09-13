@@ -234,6 +234,399 @@ const AdDetails = () => {
 	}, []);
 
 	// SEO is now handled by ProductSEO component
+				keywords: `${ad.title}, ${ad.brand || ""}, ${ad.category_name}, ${
+					ad.subcategory_name
+				}, ${
+					ad.condition
+				}, Carbon Cube Kenya, online shopping Kenya, Kenya marketplace, ${
+					ad.seller_tier_name || "Free"
+				} tier seller, buy online Kenya, Kenya e-commerce, ${
+					ad.manufacturer || ""
+				}, ${ad.item_height ? `${ad.item_height}cm` : ""}, ${
+					ad.item_weight ? `${ad.item_weight}g` : ""
+				}`,
+				url: `${window.location.origin}/ads/${adId}`,
+				type: "product",
+				image:
+					ad.media_urls && ad.media_urls.length > 0 ? ad.media_urls[0] : null,
+				author: `${
+					ad.seller_enterprise_name || ad.seller_name || "Seller"
+				} Team`,
+				structuredData: {
+					"@context": "https://schema.org",
+					"@type": "Product",
+					name: ad.title,
+					description:
+						ad.description || `${ad.title} available on Carbon Cube Kenya`,
+					image: ad.media_urls && ad.media_urls.length > 0 ? ad.media_urls : [],
+					sku: ad.id?.toString(),
+					mpn: ad.manufacturer_part_number || ad.id?.toString(),
+					gtin: ad.gtin || ad.barcode,
+					brand: {
+						"@type": "Brand",
+						name: ad.brand || "Unknown",
+						url: ad.brand
+							? `https://carboncube.co.ke/brands/${ad.brand
+									.toLowerCase()
+									.replace(/\s+/g, "-")}`
+							: undefined,
+					},
+					manufacturer: {
+						"@type": "Organization",
+						name: ad.manufacturer || ad.brand || "Unknown",
+						url: ad.manufacturer
+							? `https://carboncube.co.ke/manufacturers/${ad.manufacturer
+									.toLowerCase()
+									.replace(/\s+/g, "-")}`
+							: undefined,
+					},
+					offers: {
+						"@type": "Offer",
+						price: ad.price ? Number(ad.price).toFixed(2) : "0.00",
+						priceCurrency: "KES",
+						priceValidUntil: new Date(
+							Date.now() + 30 * 24 * 60 * 60 * 1000
+						).toISOString(),
+						availability: "https://schema.org/InStock",
+						itemCondition:
+							ad.condition === "brand_new"
+								? "https://schema.org/NewCondition"
+								: ad.condition === "second_hand"
+								? "https://schema.org/UsedCondition"
+								: "https://schema.org/RefurbishedCondition",
+						seller: {
+							"@type": "Organization",
+							name:
+								ad.seller_enterprise_name || ad.seller_name || "Unknown Seller",
+							url: `https://carboncube.co.ke/sellers/${ad.seller_id}`,
+						},
+						url: `${window.location.origin}/ads/${adId}`,
+						shippingDetails: {
+							"@type": "OfferShippingDetails",
+							shippingRate: {
+								"@type": "MonetaryAmount",
+								value: "0",
+								currency: "KES",
+							},
+							deliveryTime: {
+								"@type": "ShippingDeliveryTime",
+								businessDays: {
+									"@type": "OpeningHoursSpecification",
+									dayOfWeek: [
+										"Monday",
+										"Tuesday",
+										"Wednesday",
+										"Thursday",
+										"Friday",
+									],
+									opens: "09:00",
+									closes: "17:00",
+								},
+							},
+						},
+					},
+					category: ad.category_name,
+					additionalProperty: [
+						{
+							"@type": "PropertyValue",
+							name: "Subcategory",
+							value: ad.subcategory_name,
+						},
+						{
+							"@type": "PropertyValue",
+							name: "Height",
+							value: ad.item_height ? `${ad.item_height} cm` : "Not specified",
+						},
+						{
+							"@type": "PropertyValue",
+							name: "Width",
+							value: ad.item_width ? `${ad.item_width} cm` : "Not specified",
+						},
+						{
+							"@type": "PropertyValue",
+							name: "Length",
+							value: ad.item_length ? `${ad.item_length} cm` : "Not specified",
+						},
+						{
+							"@type": "PropertyValue",
+							name: "Weight",
+							value: ad.item_weight
+								? `${ad.item_weight} ${ad.weight_unit || "Grams"}`
+								: "Not specified",
+						},
+						{
+							"@type": "PropertyValue",
+							name: "Seller Tier",
+							value: ad.seller_tier_name || "Free",
+						},
+					],
+					aggregateRating:
+						ad.rating || ad.mean_rating || ad.average_rating
+							? {
+									"@type": "AggregateRating",
+									ratingValue: ad.rating || ad.mean_rating || ad.average_rating,
+									reviewCount:
+										ad.review_count ||
+										ad.reviews_count ||
+										ad.total_reviews ||
+										0,
+									bestRating: 5,
+									worstRating: 1,
+							  }
+							: undefined,
+					url: `${window.location.origin}/ads/${adId}`,
+					datePublished: ad.created_at,
+					dateModified: ad.updated_at || ad.created_at,
+				},
+				additionalStructuredData: [
+					{
+						"@context": "https://schema.org",
+						"@type": "BreadcrumbList",
+						itemListElement: [
+							{
+								"@type": "ListItem",
+								position: 1,
+								name: "Home",
+								item: `${window.location.origin}/`,
+							},
+							{
+								"@type": "ListItem",
+								position: 2,
+								name: ad.category_name,
+								item: `${window.location.origin}/categories/${ad.category_id}`,
+							},
+							{
+								"@type": "ListItem",
+								position: 3,
+								name: ad.subcategory_name,
+								item: `${window.location.origin}/categories/${ad.category_id}/${ad.subcategory_id}`,
+							},
+							{
+								"@type": "ListItem",
+								position: 4,
+								name: ad.title,
+								item: `${window.location.origin}/ads/${adId}`,
+							},
+						],
+					},
+					{
+						"@context": "https://schema.org",
+						"@type": "Organization",
+						name: "Carbon Cube Kenya",
+						url: "https://carboncube.co.ke",
+						logo: "https://carboncube.co.ke/logo.png",
+						description:
+							"Kenya's leading online marketplace for buying and selling products",
+						address: {
+							"@type": "PostalAddress",
+							addressCountry: "KE",
+							addressLocality: "Nairobi",
+							addressRegion: "Nairobi",
+						},
+						contactPoint: {
+							"@type": "ContactPoint",
+							telephone: "+254-XXX-XXXXXX",
+							contactType: "customer service",
+							availableLanguage: ["English", "Swahili"],
+						},
+						sameAs: [
+							"https://facebook.com/carboncubekenya",
+							"https://twitter.com/CarbonCubeKE",
+							"https://instagram.com/carboncubekenya",
+						],
+					},
+					{
+						"@context": "https://schema.org",
+						"@type": "WebSite",
+						name: "Carbon Cube Kenya",
+						url: "https://carboncube.co.ke",
+						potentialAction: {
+							"@type": "SearchAction",
+							target: "https://carboncube.co.ke/search?q={search_term_string}",
+							"query-input": "required name=search_term_string",
+						},
+					},
+					// Enhanced Product Collection Schema
+					{
+						"@context": "https://schema.org",
+						"@type": "CollectionPage",
+						name: `${ad.category_name} - ${ad.subcategory_name}`,
+						description: `Browse ${ad.subcategory_name} products in ${ad.category_name} category`,
+						url: `${window.location.origin}/categories/${ad.category_id}/${ad.subcategory_id}`,
+						mainEntity: {
+							"@type": "ItemList",
+							name: `${ad.subcategory_name} Products`,
+							numberOfItems: 1,
+							itemListElement: [
+								{
+									"@type": "ListItem",
+									position: 1,
+									item: {
+										"@type": "Product",
+										name: ad.title,
+										url: `${window.location.origin}/ads/${adId}`,
+									},
+								},
+							],
+						},
+					},
+					// FAQ Schema for Common Questions
+					{
+						"@context": "https://schema.org",
+						"@type": "FAQPage",
+						mainEntity: [
+							{
+								"@type": "Question",
+								name: `What is the condition of ${ad.title}?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `This ${ad.title} is in ${
+										ad.condition === "brand_new"
+											? "brand new"
+											: ad.condition === "second_hand"
+											? "used"
+											: "refurbished"
+									} condition.`,
+								},
+							},
+							{
+								"@type": "Question",
+								name: `Is ${ad.title} available for delivery?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `Yes, ${ad.title} is available for delivery across Kenya with free shipping.`,
+								},
+							},
+							{
+								"@type": "Question",
+								name: `What is the price of ${ad.title}?`,
+								acceptedAnswer: {
+									"@type": "Answer",
+									text: `${ad.title} is priced at KSh ${
+										ad.price ? Number(ad.price).toLocaleString("en-KE") : "N/A"
+									}.`,
+								},
+							},
+						],
+					},
+					// Review Schema
+					...(ad.rating || ad.mean_rating || ad.average_rating
+						? [
+								{
+									"@context": "https://schema.org",
+									"@type": "Review",
+									itemReviewed: {
+										"@type": "Product",
+										name: ad.title,
+										description:
+											ad.description ||
+											`${ad.title} available on Carbon Cube Kenya`,
+									},
+									reviewRating: {
+										"@type": "Rating",
+										ratingValue:
+											ad.rating || ad.mean_rating || ad.average_rating,
+										bestRating: 5,
+										worstRating: 1,
+									},
+									author: {
+										"@type": "Organization",
+										name: "Carbon Cube Kenya Customers",
+									},
+									datePublished: ad.created_at,
+									publisher: {
+										"@type": "Organization",
+										name: "Carbon Cube Kenya",
+									},
+								},
+						  ]
+						: []),
+				],
+				// Advanced SEO Features
+				alternateLanguages: [
+					{ lang: "en", url: `${window.location.origin}/ads/${adId}` },
+					{ lang: "sw", url: `${window.location.origin}/sw/ads/${adId}` },
+				],
+				customMetaTags: [
+					{
+						name: "product:price:amount",
+						content: ad.price ? Number(ad.price).toFixed(2) : "0.00",
+					},
+					{ name: "product:price:currency", content: "KES" },
+					{
+						name: "product:availability",
+						content: "in stock",
+					},
+					{ name: "product:condition", content: ad.condition || "new" },
+					{ name: "product:brand", content: ad.brand || "Unknown" },
+					{ name: "product:category", content: ad.category_name || "General" },
+					{ name: "product:retailer", content: "Carbon Cube Kenya" },
+					{
+						name: "product:retailer_part_no",
+						content: ad.id?.toString() || "",
+					},
+					{
+						property: "og:price:amount",
+						content: ad.price ? Number(ad.price).toFixed(2) : "0.00",
+					},
+					{ property: "og:price:currency", content: "KES" },
+					{
+						property: "og:availability",
+						content: "in stock",
+					},
+					{ property: "og:condition", content: ad.condition || "new" },
+					{ property: "og:brand", content: ad.brand || "Unknown" },
+					{ property: "og:category", content: ad.category_name || "General" },
+					{ property: "og:retailer", content: "Carbon Cube Kenya" },
+					{ property: "og:retailer_part_no", content: ad.id?.toString() || "" },
+					{
+						property: "article:author",
+						content: ad.seller_enterprise_name || ad.seller_name || "Seller",
+					},
+					{
+						property: "article:published_time",
+						content: ad.created_at || new Date().toISOString(),
+					},
+					{
+						property: "article:modified_time",
+						content: ad.updated_at || ad.created_at || new Date().toISOString(),
+					},
+					{
+						property: "article:section",
+						content: ad.category_name || "Products",
+					},
+					{ property: "article:tag", content: ad.subcategory_name || "" },
+				],
+				imageWidth: 1200,
+				imageHeight: 630,
+				themeColor: "#FFD700",
+				viewport:
+					"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
+				// AI Search Optimization
+				aiSearchOptimized: true,
+				contentType: "product",
+				expertiseLevel: "expert",
+				contentDepth: "comprehensive",
+				aiFriendlyFormat: true,
+				conversationalKeywords: [
+					`where to buy ${ad.title} in Kenya`,
+					`best price for ${ad.title} Kenya`,
+					`${ad.brand || "product"} ${ad.title} Kenya`,
+					`buy ${ad.title} online Kenya`,
+					`${ad.condition} ${ad.title} Kenya`,
+					`verified seller ${ad.title}`,
+					`Carbon Cube Kenya ${ad.title}`,
+					`secure purchase ${ad.title}`,
+				],
+				aiCitationOptimized: true,
+		  }
+		: {
+				title: "Product Details - Carbon Cube Kenya",
+				description: "Loading product details...",
+				keywords: "Carbon Cube Kenya, online marketplace, product details",
+				url: `${window.location.origin}/ads/${adId}`,
+				type: "product",
+		  };
 	// Prepare product data for SEO
 	const productData = ad
 		? {
@@ -828,8 +1221,12 @@ const AdDetails = () => {
 		}
 
 		try {
-			// Use unified conversations endpoint for all user types
-			const endpoint = `${process.env.REACT_APP_BACKEND_URL}/conversations`;
+			// Use appropriate endpoint based on user role
+			const role = sessionStorage.getItem("userRole");
+			const endpoint =
+				role === "seller"
+					? `${process.env.REACT_APP_BACKEND_URL}/seller/conversations`
+					: `${process.env.REACT_APP_BACKEND_URL}/buyer/conversations`;
 
 			const response = await fetch(endpoint, {
 				method: "POST",

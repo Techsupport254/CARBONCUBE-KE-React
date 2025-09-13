@@ -347,7 +347,7 @@ class ApiService {
 	 * Get conversations
 	 */
 	async getConversations() {
-		const url = `${API_BASE_URL}/buyer/conversations`;
+		const url = `${API_BASE_URL}/conversations`;
 		return this.fetch(url);
 	}
 
@@ -355,7 +355,7 @@ class ApiService {
 	 * Get conversation messages
 	 */
 	async getConversationMessages(conversationId) {
-		const url = `${API_BASE_URL}/buyer/conversations/${conversationId}/messages`;
+		const url = `${API_BASE_URL}/conversations/${conversationId}/messages`;
 		return this.fetch(url);
 	}
 
@@ -363,7 +363,7 @@ class ApiService {
 	 * Get unread message count
 	 */
 	async getUnreadMessageCount() {
-		const url = `${API_BASE_URL}/buyer/conversations/unread_count`;
+		const url = `${API_BASE_URL}/conversations/unread_count`;
 		return this.fetch(url);
 	}
 

@@ -726,30 +726,10 @@ const AdsManagement = () => {
 												</Card.Body>
 											</Card>
 										</Col>
-										<Col xs={12} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Sold Out
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.sold_out ? "Yes" : "No"}
-												</Card.Body>
-											</Card>
-										</Col>
 									</Row>
 
 									<Row>
-										<Col xs={6} md={6}>
-											<Card className="mb-2 custom-card">
-												<Card.Header as="h6" className="justify-content-center">
-													Quantity Sold
-												</Card.Header>
-												<Card.Body className="text-center">
-													{selectedAd.quantity_sold || 0}
-												</Card.Body>
-											</Card>
-										</Col>
-										<Col xs={6} md={6}>
+										<Col xs={12} md={12}>
 											<Card className="mb-2 custom-card">
 												<Card.Header as="h6" className="justify-content-center">
 													Rating

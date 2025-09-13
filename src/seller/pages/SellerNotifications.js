@@ -70,8 +70,7 @@ const SellerNotifications = () => {
 					);
 				}
 				return `${
-					process.env.REACT_APP_BACKEND_URL?.replace("http", "ws") ||
-					"ws://localhost:3001"
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080"
 				}/cable`;
 			};
 

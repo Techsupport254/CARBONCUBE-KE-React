@@ -6,7 +6,7 @@ const AdminMessages = () => {
 	return (
 		<Messages
 			userType="admin"
-			apiBaseUrl="/admin/conversations"
+			apiBaseUrl="/conversations"
 			navbarComponent={
 				<Navbar mode="admin" showSearch={true} showCategories={true} />
 			}

@@ -165,6 +165,7 @@ const Navbar = ({
 		[userDropdownRef]
 	);
 
+	// Check authentication status on component mount
 	useEffect(() => {
 		const token = sessionStorage.getItem("token");
 		const role = sessionStorage.getItem("userRole");
@@ -177,8 +178,10 @@ const Navbar = ({
 		setUserName(name || "");
 		setUserUsername(username || "");
 		setUserEmail(email || "");
+	}, []); // Run only on mount
 
-		// Fetch categories only for buyer mode or when search is enabled
+	// Fetch categories when mode or showCategories changes
+	useEffect(() => {
 		if ((mode === "buyer" || mode === "default") && showCategories) {
 			fetchCategories();
 		}
@@ -212,9 +215,8 @@ const Navbar = ({
 
 		try {
 			const token = sessionStorage.getItem("token");
-			const apiUrl = `${
-				process.env.REACT_APP_BACKEND_URL
-			}/${userRole.toLowerCase()}/conversations/unread_count`;
+			// Use unified endpoint instead of role-specific endpoints
+			const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/conversations/unread_count`;
 
 			const response = await fetch(apiUrl, {
 				headers: {
