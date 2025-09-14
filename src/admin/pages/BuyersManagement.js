@@ -31,7 +31,7 @@ const BuyersManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/buyers?search_query=${searchQuery}`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -59,7 +59,7 @@ const BuyersManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/buyers/${buyerId}`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"), // Add token if required
+						Authorization: "Bearer " + localStorage.getItem("token"), // Add token if required
 					},
 				}
 			);
@@ -84,7 +84,7 @@ const BuyersManagement = () => {
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

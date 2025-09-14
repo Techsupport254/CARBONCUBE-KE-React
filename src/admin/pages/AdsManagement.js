@@ -46,7 +46,7 @@ const AdsManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/ads`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -75,7 +75,7 @@ const AdsManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/categories`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -150,7 +150,7 @@ const AdsManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/ads/${ad.id}`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -181,7 +181,7 @@ const AdsManagement = () => {
 				{
 					method: "POST",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
@@ -221,7 +221,7 @@ const AdsManagement = () => {
 				{
 					method: "PATCH",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -245,7 +245,7 @@ const AdsManagement = () => {
 				{
 					method: "PATCH",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

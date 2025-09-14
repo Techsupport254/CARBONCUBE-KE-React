@@ -36,7 +36,7 @@ const ContentManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/abouts`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -44,7 +44,7 @@ const ContentManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/faqs`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -52,7 +52,7 @@ const ContentManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/banners`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -103,7 +103,7 @@ const ContentManagement = () => {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
+					Authorization: "Bearer " + localStorage.getItem("token"),
 				},
 				body: JSON.stringify(data),
 			});
@@ -135,7 +135,7 @@ const ContentManagement = () => {
 				{
 					method: "DELETE",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -169,7 +169,7 @@ const ContentManagement = () => {
 				{
 					method: "POST",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: formData,
 				}
@@ -200,7 +200,7 @@ const ContentManagement = () => {
 				{
 					method: "DELETE",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

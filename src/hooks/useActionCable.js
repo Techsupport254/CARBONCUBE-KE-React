@@ -106,10 +106,10 @@ const useActionCable = (
 
 				// Use the new WebSocket URL
 				const wsUrl =
-					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080";
 
 				// Get JWT token for authentication
-				const token = sessionStorage.getItem("token");
+				const token = localStorage.getItem("token");
 
 				// Get or create connection using the manager
 				const consumer = connectionManager.createConnection(

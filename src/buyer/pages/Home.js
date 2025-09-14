@@ -55,7 +55,7 @@ Framework defaults (authoritative)
   - 2xl: 1536px
 */
 
-const Home = () => {
+const Home = ({ onLogout }) => {
 	const [categories, setCategories] = useState([]);
 	const [ads, setAds] = useState({});
 	const [bestSellers, setBestSellers] = useState([]);
@@ -1412,6 +1412,7 @@ const Home = () => {
 				selectedSubcategory={selectedSubcategory}
 				onCategoryChange={handleCategoryChange}
 				onSubcategoryChange={handleSubcategoryChange}
+				onLogout={onLogout}
 			/>
 			<div className="flex flex-col xl:flex-row gap-2 sm:gap-4 lg:gap-6 xl:gap-8 min-h-screen">
 				<div className="flex-1 min-w-0 w-full max-w-7xl mx-auto relative z-0 transition-all duration-300 ease-in-out">

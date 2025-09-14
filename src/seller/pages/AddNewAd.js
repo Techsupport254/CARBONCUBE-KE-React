@@ -435,7 +435,7 @@ const AddNewAd = () => {
 				xhr.open("POST", `${process.env.REACT_APP_BACKEND_URL}/seller/ads`);
 				xhr.setRequestHeader(
 					"Authorization",
-					"Bearer " + sessionStorage.getItem("token")
+					"Bearer " + localStorage.getItem("token")
 				);
 
 				xhr.upload.onprogress = (event) => {

@@ -25,14 +25,14 @@ import {
 import Spinner from "react-spinkit";
 import "../css/AnalyticsReporting.css";
 
-const AnalyticsReporting = () => {
+const AnalyticsReporting = ({ onLogout }) => {
 	const [analyticsData, setAnalyticsData] = useState(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		fetch(`${process.env.REACT_APP_BACKEND_URL}/admin/analytics`, {
 			headers: {
-				Authorization: "Bearer " + sessionStorage.getItem("token"),
+				Authorization: "Bearer " + localStorage.getItem("token"),
 			},
 		})
 			.then((response) => response.json())
@@ -63,7 +63,12 @@ const AnalyticsReporting = () => {
 
 	return (
 		<>
-			<Navbar mode="admin" showSearch={false} showCategories={false} />
+			<Navbar 
+				mode="admin" 
+				showSearch={false} 
+				showCategories={false}
+				onLogout={onLogout}
+			/>
 			<Container fluid className="analytics-reporting-page">
 				<Row>
 					<Col xs={12} md={10} lg={9} className="content-area">

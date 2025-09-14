@@ -66,7 +66,7 @@ export const logClickEvent = async (
 			"Content-Type": "application/json",
 		};
 
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			headers.Authorization = `Bearer ${token}`;
 		}
@@ -115,7 +115,7 @@ export const logAdSearch = async (
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: "Bearer " + sessionStorage.getItem("token"),
+				Authorization: "Bearer " + localStorage.getItem("token"),
 			},
 			body: JSON.stringify(payload),
 		});
@@ -152,7 +152,7 @@ export const logSubcategoryClick = async (subcategory, category) => {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: "Bearer " + sessionStorage.getItem("token"),
+				Authorization: "Bearer " + localStorage.getItem("token"),
 			},
 			body: JSON.stringify(payload),
 		});

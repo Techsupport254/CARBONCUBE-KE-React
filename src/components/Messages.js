@@ -427,7 +427,7 @@ const Messages = ({
 	}, [conversationId, conversations, onConversationSelect]);
 
 	useEffect(() => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			const payload = JSON.parse(atob(token.split(".")[1]));
 			const userId =
@@ -444,7 +444,7 @@ const Messages = ({
 					`${process.env.REACT_APP_BACKEND_URL}/conversations`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -477,7 +477,7 @@ const Messages = ({
 		if (!currentUser || !userType) return;
 
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			const response = await fetch(
 				`${process.env.REACT_APP_BACKEND_URL}/conversations/unread_counts`,
 				{
@@ -514,7 +514,7 @@ const Messages = ({
 				`${process.env.REACT_APP_BACKEND_URL}/conversations/${conversationId}/messages`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -696,7 +696,7 @@ const Messages = ({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: JSON.stringify(messagePayload),
 				}

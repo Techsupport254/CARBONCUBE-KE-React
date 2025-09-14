@@ -19,8 +19,10 @@
   border: none;
   border-radius: 15px;
   box-shadow: none;
-  background: linear-gradient(135deg, #fff69a, #cbcbcb); /* Gradient from two colors */
-  color: #000; /* Ensure text is readable on the gradient background */
+  background: linear-gradient(135deg, #fff69a, #cbcbcb);
+  /* Gradient from two colors */
+  color: #000;
+  /* Ensure text is readable on the gradient background */
 }
 
 
@@ -49,8 +51,21 @@
   color: #333;
 }
 
+.centered-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+}
+
 .analytics-price-container {
-  margin : 0;
+  margin: 0;
 }
 
 .text-center {
@@ -58,6 +73,7 @@
 }
 
 @media (max-width: 767px) {
+
   .card-title,
   .card-text {
     text-align: start;
@@ -66,12 +82,12 @@
 
   .content-area {
     padding-top: 3rem;
-    
+
   }
 
 
 
-  .analytics-reporting-page{
+  .analytics-reporting-page {
     margin-top: -2px;
     padding-top: 1rem;
     padding-left: 0.5rem;

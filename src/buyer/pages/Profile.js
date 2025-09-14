@@ -43,7 +43,7 @@ const ProfilePage = () => {
 	const [passwordMatch, setPasswordMatch] = useState(true);
 
 	// Retrieve token from sessionStorage
-	const token = sessionStorage.getItem("token"); // Adjust the key to match your app
+	const token = localStorage.getItem("token"); // Adjust the key to match your app
 
 	// SEO Implementation - Private user data, should not be indexed
 	useSEO({
@@ -168,7 +168,7 @@ const ProfilePage = () => {
 			.then((response) => {
 				alert("Password changed successfully. Please log in again.");
 				toggleChangePasswordModal();
-				sessionStorage.removeItem("token"); // Clear token to force login
+				localStorage.removeItem("token"); // Clear token to force login
 				window.location.href = "/login"; // Redirect to login page
 			})
 			.catch((error) => {
@@ -210,7 +210,7 @@ const ProfilePage = () => {
 						cancelText: "",
 						showCancel: false,
 						onConfirm: () => {
-							sessionStorage.removeItem("token");
+							localStorage.removeItem("token");
 							window.location.href = "/login";
 						},
 					});

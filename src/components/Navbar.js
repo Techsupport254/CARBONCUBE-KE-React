@@ -26,6 +26,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { CircleLoader } from "react-spinners";
 import apiService from "../services/apiService";
+import useAuth from "../hooks/useAuth";
 
 // Custom hook for click outside
 const useClickOutside = (ref, handler, excludeRefs = []) => {
@@ -75,20 +76,20 @@ const Navbar = ({
 	selectedSubcategory = "All",
 	onCategoryChange,
 	onSubcategoryChange,
+	onLogout,
 }) => {
 	const navigate = useNavigate();
 	const [categories, setCategories] = useState([]);
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [userRole, setUserRole] = useState(null);
-	const [userName, setUserName] = useState("");
-	const [userUsername, setUserUsername] = useState("");
-	const [userEmail, setUserEmail] = useState("");
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const [wishlistCount, setWishlistCount] = useState(0);
 	const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+
+	// Authentication state using custom hook
+	const { isAuthenticated, userRole, userName, userUsername, userEmail } =
+		useAuth();
 
 	// Ref to debounce dropdown selections
 	const dropdownDebounceRef = useRef(null);
@@ -105,7 +106,7 @@ const Navbar = ({
 
 	// Get user ID from token for real-time messaging
 	const getUserId = useCallback(() => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			try {
 				// Check if token has the correct JWT format (3 parts separated by dots)
@@ -133,7 +134,7 @@ const Navbar = ({
 	// Use the new message listener hook
 	useNewMessageListener(
 		userRole,
-		isLoggedIn ? getUserId() : null,
+		isAuthenticated ? getUserId() : null,
 		handleNewMessage
 	);
 
@@ -165,20 +166,7 @@ const Navbar = ({
 		[userDropdownRef]
 	);
 
-	// Check authentication status on component mount
-	useEffect(() => {
-		const token = sessionStorage.getItem("token");
-		const role = sessionStorage.getItem("userRole");
-		const name = sessionStorage.getItem("userName");
-		const username = sessionStorage.getItem("userUsername");
-		const email = sessionStorage.getItem("userEmail");
-
-		setIsLoggedIn(!!token);
-		setUserRole(role);
-		setUserName(name || "");
-		setUserUsername(username || "");
-		setUserEmail(email || "");
-	}, []); // Run only on mount
+	// Authentication state is now managed by parent component via props
 
 	// Fetch categories when mode or showCategories changes
 	useEffect(() => {
@@ -188,10 +176,10 @@ const Navbar = ({
 	}, [mode, showCategories]);
 
 	const fetchWishlistCount = useCallback(async () => {
-		if (!isLoggedIn || userRole !== "buyer") return;
+		if (!isAuthenticated || userRole !== "buyer") return;
 
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			const response = await fetch(
 				`${process.env.REACT_APP_BACKEND_URL}/buyer/wish_lists/count`,
 				{
@@ -208,13 +196,13 @@ const Navbar = ({
 		} catch (error) {
 			// Silently handle wishlist count errors
 		}
-	}, [isLoggedIn, userRole]);
+	}, [isAuthenticated, userRole]);
 
 	const fetchUnreadMessageCount = useCallback(async () => {
-		if (!isLoggedIn || !userRole) return;
+		if (!isAuthenticated || !userRole) return;
 
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			// Use unified endpoint instead of role-specific endpoints
 			const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/conversations/unread_count`;
 
@@ -233,23 +221,23 @@ const Navbar = ({
 		} catch (error) {
 			// Silently handle unread message count errors
 		}
-	}, [isLoggedIn, userRole]);
+	}, [isAuthenticated, userRole]);
 
 	// Fetch wishlist count when user logs in
 	useEffect(() => {
-		if (isLoggedIn && userRole === "buyer") {
+		if (isAuthenticated && userRole === "buyer") {
 			fetchWishlistCount();
 		} else {
 			setWishlistCount(0);
 		}
-	}, [isLoggedIn, userRole, fetchWishlistCount]);
+	}, [isAuthenticated, userRole, fetchWishlistCount]);
 
 	// Function to refresh unread message count (can be called from other components)
 	const refreshUnreadMessageCount = useCallback(() => {
-		if (isLoggedIn && userRole) {
+		if (isAuthenticated && userRole) {
 			fetchUnreadMessageCount();
 		}
-	}, [isLoggedIn, userRole, fetchUnreadMessageCount]);
+	}, [isAuthenticated, userRole, fetchUnreadMessageCount]);
 
 	// Expose refresh function to window for debugging
 	useEffect(() => {
@@ -261,12 +249,12 @@ const Navbar = ({
 
 	// Fetch unread message count when user logs in
 	useEffect(() => {
-		if (isLoggedIn && userRole) {
+		if (isAuthenticated && userRole) {
 			fetchUnreadMessageCount();
 		} else {
 			setUnreadMessageCount(0);
 		}
-	}, [isLoggedIn, userRole, fetchUnreadMessageCount]);
+	}, [isAuthenticated, userRole, fetchUnreadMessageCount]);
 
 	// Cleanup effect to clear debounce timeouts on unmount
 	useEffect(() => {
@@ -424,18 +412,18 @@ const Navbar = ({
 	};
 
 	const handleLogout = () => {
-		sessionStorage.removeItem("token");
-		sessionStorage.removeItem("userRole");
-		sessionStorage.removeItem("userName");
-		sessionStorage.removeItem("userUsername");
-		sessionStorage.removeItem("userEmail");
-		setIsLoggedIn(false);
-		setUserRole(null);
-		setUserName("");
-		setUserUsername("");
-		setUserEmail("");
-		setUnreadMessageCount(0);
-		window.location.href = "/login";
+		if (onLogout) {
+			onLogout();
+		} else {
+			// Fallback: clear local storage and redirect
+			localStorage.removeItem("token");
+			localStorage.removeItem("userRole");
+			localStorage.removeItem("userName");
+			localStorage.removeItem("userUsername");
+			localStorage.removeItem("userEmail");
+			setUnreadMessageCount(0);
+			window.location.href = "/login";
+		}
 	};
 
 	const toggleMobileMenu = () => {
@@ -548,17 +536,17 @@ const Navbar = ({
 	};
 
 	const getDisplayName = () => {
-		if (!isLoggedIn) return "Guest";
+		if (!isAuthenticated) return "Guest";
 		return userUsername || userName || "User";
 	};
 
 	const getFullDisplayName = () => {
-		if (!isLoggedIn) return "Guest";
+		if (!isAuthenticated) return "Guest";
 		return userName || userUsername || "User";
 	};
 
 	const getUserInitials = () => {
-		if (!isLoggedIn) return "G";
+		if (!isAuthenticated) return "G";
 		const displayName = userName || userUsername;
 		if (!displayName) return "U";
 
@@ -717,7 +705,7 @@ const Navbar = ({
 	};
 
 	const renderUserMenu = () => {
-		if (!isLoggedIn) {
+		if (!isAuthenticated) {
 			return null;
 		}
 
@@ -749,7 +737,7 @@ const Navbar = ({
 						className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200"
 					>
 						{/* User Info Header - Only show for logged in users */}
-						{isLoggedIn && (
+						{isAuthenticated && (
 							<div className="px-3 sm:px-4 py-3 border-b border-gray-200">
 								<div className="flex items-center space-x-3">
 									<div className="flex-shrink-0 w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-gray-900 font-semibold text-sm">
@@ -803,7 +791,7 @@ const Navbar = ({
 							</button>
 						))}
 
-						{isLoggedIn && (
+						{isAuthenticated && (
 							<>
 								<hr className="my-2 border-gray-200" />
 								<button
@@ -883,7 +871,7 @@ const Navbar = ({
 						))}
 
 						{/* Login/Signup buttons (for non-logged in users) */}
-						{!isLoggedIn &&
+						{!isAuthenticated &&
 							mode !== "minimal" &&
 							getPublicLinks().length === 0 && (
 								<div className="flex items-center space-x-2 lg:space-x-3">
@@ -899,7 +887,7 @@ const Navbar = ({
 							)}
 
 						{/* User Menu - Always show for logged in users */}
-						{isLoggedIn && renderUserMenu()}
+						{isAuthenticated && renderUserMenu()}
 					</div>
 
 					{/* Mobile menu button and sign out */}
@@ -908,7 +896,7 @@ const Navbar = ({
 						ref={mobileMenuButtonRef}
 					>
 						{/* Sign out button for mobile - always visible when logged in */}
-						{isLoggedIn && (
+						{isAuthenticated && (
 							<button
 								onClick={handleLogout}
 								className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-300 hover:bg-red-900 transition-colors duration-200"
@@ -1093,7 +1081,7 @@ const Navbar = ({
 								))}
 
 								{/* Login/Signup for non-logged in users */}
-								{!isLoggedIn &&
+								{!isAuthenticated &&
 									mode !== "minimal" &&
 									getPublicLinks().length === 0 && (
 										<div className="flex space-x-2">
@@ -1109,7 +1097,7 @@ const Navbar = ({
 									)}
 
 								{/* Logout for logged-in users (mobile) */}
-								{isLoggedIn && (
+								{isAuthenticated && (
 									<>
 										<hr className="my-2 border-gray-700" />
 										<button

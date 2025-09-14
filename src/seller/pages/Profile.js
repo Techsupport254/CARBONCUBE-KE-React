@@ -124,7 +124,7 @@ const SellerProfile = () => {
 		changePasswordConfirm: false,
 	});
 
-	const token = sessionStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
 	// Helper function to get tier ID for styling
 	const getTierId = (profile) => {
@@ -688,7 +688,7 @@ const SellerProfile = () => {
 				cancelText: "",
 				showCancel: false,
 				onConfirm: () => {
-					sessionStorage.removeItem("token");
+					localStorage.removeItem("token");
 					window.location.href = "/login";
 				},
 			});
@@ -742,7 +742,7 @@ const SellerProfile = () => {
 						cancelText: "",
 						showCancel: false,
 						onConfirm: () => {
-							sessionStorage.removeItem("token");
+							localStorage.removeItem("token");
 							window.location.href = "/login";
 						},
 					});

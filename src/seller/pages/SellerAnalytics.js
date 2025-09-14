@@ -123,7 +123,7 @@ const SellerAnalytics = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/seller/analytics`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -206,7 +206,7 @@ const SellerAnalytics = () => {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: JSON.stringify({ seller_reply: replyDraft }),
 				}
@@ -240,7 +240,7 @@ const SellerAnalytics = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/seller/reviews`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

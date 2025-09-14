@@ -66,7 +66,7 @@ const AdDetails = () => {
 
 	// Helper function to get user ID from JWT token
 	const getUserIdFromToken = () => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			try {
 				// Check if token has the correct JWT format (3 parts separated by dots)
@@ -278,7 +278,7 @@ const AdDetails = () => {
 	// Initialize authentication state
 	useEffect(() => {
 		const initializeAuth = () => {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (token) {
 				const role = sessionStorage.getItem("userRole");
 				const userId = getUserIdFromToken();
@@ -541,7 +541,7 @@ const AdDetails = () => {
 
 	const fetchSellerDetails = async () => {
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 
 			if (!token) {
 				throw new Error("You must be logged in to view seller details.");
@@ -598,7 +598,7 @@ const AdDetails = () => {
 	});
 
 	const handleSubmitReview = async () => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 
 		if (!token) {
 			setAlertModalConfig({
@@ -676,7 +676,7 @@ const AdDetails = () => {
 	};
 
 	const handleOpenChatModal = () => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (!token) {
 			Swal.fire({
 				title: "Login Required",
@@ -810,7 +810,7 @@ const AdDetails = () => {
 	};
 
 	const handleSendChatMessage = async (message) => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 
 		// Validate message before sending
 		if (!message || message.trim() === "") {
@@ -899,7 +899,7 @@ const AdDetails = () => {
 			});
 
 			// Check if user is authenticated for fetching seller details
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (!token) {
 				setAlertModalConfig({
 					isVisible: true,
@@ -984,7 +984,7 @@ const AdDetails = () => {
 			});
 
 			// Check if user is authenticated for adding to wishlist
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (!token) {
 				setAlertModalConfig({
 					isVisible: true,

@@ -34,7 +34,7 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 				`${process.env.REACT_APP_BACKEND_URL}/shop/${shopSlug}/reviews?page=1&per_page=10`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -60,7 +60,7 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 				`${process.env.REACT_APP_BACKEND_URL}/shop/${shopSlug}/reviews?page=${currentPage}&per_page=10`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

@@ -66,7 +66,7 @@ const CountDownDisplay = () => {
 	useEffect(() => {
 		const fetchCountdown = async () => {
 			try {
-				const token = sessionStorage.getItem("token");
+				const token = localStorage.getItem("token");
 				if (!token) {
 					throw new Error("No authentication token found");
 				}

@@ -49,7 +49,7 @@ const WishList = () => {
 	useEffect(() => {
 		const fetchWishLists = async () => {
 			try {
-				const token = sessionStorage.getItem("token");
+				const token = localStorage.getItem("token");
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/wish_lists`,
 					{
@@ -84,7 +84,7 @@ const WishList = () => {
 				{
 					method: "DELETE",
 					headers: {
-						Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
 						"Content-Type": "application/json",
 					},
 				}
@@ -130,7 +130,7 @@ const WishList = () => {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: JSON.stringify({
 						ad_id: adId,

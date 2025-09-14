@@ -77,7 +77,7 @@ const SellerAds = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/seller/ads`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -162,7 +162,7 @@ const SellerAds = () => {
 				{
 					method: "PUT", // or POST depending on your API
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

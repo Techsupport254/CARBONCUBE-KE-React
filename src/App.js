@@ -105,9 +105,9 @@ function App() {
 	// Initialize authentication state
 	useEffect(() => {
 		const initializeAuth = () => {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (token) {
-				const role = sessionStorage.getItem("userRole");
+				const role = localStorage.getItem("userRole");
 				setUserRole(role);
 				setIsAuthenticated(true);
 			}
@@ -163,27 +163,27 @@ function App() {
 	}, []);
 
 	const handleLogin = (token, user) => {
-		sessionStorage.setItem("token", token);
-		sessionStorage.setItem("userRole", user.role);
+		localStorage.setItem("token", token);
+		localStorage.setItem("userRole", user.role);
 		if (user.name) {
-			sessionStorage.setItem("userName", user.name);
+			localStorage.setItem("userName", user.name);
 		}
 		if (user.username) {
-			sessionStorage.setItem("userUsername", user.username);
+			localStorage.setItem("userUsername", user.username);
 		}
 		if (user.email) {
-			sessionStorage.setItem("userEmail", user.email);
+			localStorage.setItem("userEmail", user.email);
 		}
 		setUserRole(user.role);
 		setIsAuthenticated(true);
 	};
 
 	const handleLogout = () => {
-		sessionStorage.removeItem("token");
-		sessionStorage.removeItem("userRole");
-		sessionStorage.removeItem("userName");
-		sessionStorage.removeItem("userUsername");
-		sessionStorage.removeItem("userEmail");
+		localStorage.removeItem("token");
+		localStorage.removeItem("userRole");
+		localStorage.removeItem("userName");
+		localStorage.removeItem("userUsername");
+		localStorage.removeItem("userEmail");
 		setUserRole(null);
 		setIsAuthenticated(false);
 	};

@@ -41,7 +41,7 @@ const SellersManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers?search_query=${searchQuery}`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -72,7 +72,7 @@ const SellersManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				),
@@ -80,7 +80,7 @@ const SellersManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/ads`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				),
@@ -88,7 +88,7 @@ const SellersManagement = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/reviews`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				),
@@ -129,7 +129,7 @@ const SellersManagement = () => {
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -165,7 +165,7 @@ const SellersManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/sellers/${sellerId}/analytics`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);

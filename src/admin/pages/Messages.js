@@ -29,7 +29,7 @@ const Messages = () => {
 	}, []);
 
 	useEffect(() => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT token
 			setCurrentUser({ id: payload.admin_id, type: "Admin" });
@@ -43,7 +43,7 @@ const Messages = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/conversations`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);
@@ -78,7 +78,7 @@ const Messages = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/conversations/${conversationId}/messages`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -127,7 +127,7 @@ const Messages = () => {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: JSON.stringify({
 						content: newMessage,

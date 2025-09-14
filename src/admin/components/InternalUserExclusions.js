@@ -57,7 +57,7 @@ const InternalUserExclusions = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/internal_user_exclusions`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -79,7 +79,7 @@ const InternalUserExclusions = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/internal_user_exclusions/stats`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -107,7 +107,7 @@ const InternalUserExclusions = () => {
 				method,
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
+					Authorization: "Bearer " + localStorage.getItem("token"),
 				},
 				body: JSON.stringify(formData),
 			});
@@ -139,7 +139,7 @@ const InternalUserExclusions = () => {
 				{
 					method: "DELETE",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -174,7 +174,7 @@ const InternalUserExclusions = () => {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 					body: JSON.stringify(testData),
 				}

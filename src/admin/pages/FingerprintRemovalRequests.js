@@ -35,7 +35,7 @@ const FingerprintRemovalRequests = () => {
 
 			const response = await fetch(url, {
 				headers: {
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
+					Authorization: "Bearer " + localStorage.getItem("token"),
 				},
 			});
 
@@ -59,7 +59,7 @@ const FingerprintRemovalRequests = () => {
 				`${API_BASE_URL}/admin/internal_user_exclusions/stats`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -85,7 +85,7 @@ const FingerprintRemovalRequests = () => {
 				{
 					method: "POST",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 						"Content-Type": "application/json",
 					},
 				}
@@ -119,7 +119,7 @@ const FingerprintRemovalRequests = () => {
 				{
 					method: "POST",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({

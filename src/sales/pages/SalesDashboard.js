@@ -76,7 +76,7 @@ ChartJS.register(
 	BarElement
 );
 
-function SalesDashboard() {
+function SalesDashboard({ onLogout }) {
 	const [analytics, setAnalytics] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [showModal, setShowModal] = useState(false);
@@ -1604,16 +1604,20 @@ function SalesDashboard() {
 	}
 
 	if (!analytics) {
-		return <ErrorState />;
+		return <ErrorState onLogout={onLogout} />;
 	}
 
 	return (
 		<>
-			<Navbar mode="sales" showSearch={false} showCategories={false} />
+			<Navbar
+				mode="sales"
+				showSearch={false}
+				showCategories={false}
+				onLogout={onLogout}
+			/>
 
 			<div className="min-h-screen bg-gray-50 ">
 				<div className="flex flex-col xl:flex-row">
-
 					{/* Main Content Area - Responsive padding and width with max-width constraint */}
 					<div className="flex-1 min-w-0">
 						<div className="max-w-7xl mx-auto p-2 sm:p-3 md:p-4 lg:p-5 xl:p-6">

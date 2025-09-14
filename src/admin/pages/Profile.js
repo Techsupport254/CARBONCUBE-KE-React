@@ -34,7 +34,7 @@ const AdminProfilePage = () => {
 	const [loading, setLoading] = useState(false);
 
 	// Retrieve token from sessionStorage
-	const token = sessionStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
 	// Fetch profile data from the backend API
 	useEffect(() => {
@@ -178,7 +178,7 @@ const AdminProfilePage = () => {
 				onConfirm: () => {
 					setShowAlertModal(false);
 					toggleChangePasswordModal();
-					sessionStorage.removeItem("token");
+					localStorage.removeItem("token");
 					window.location.href = "/login";
 				},
 			});

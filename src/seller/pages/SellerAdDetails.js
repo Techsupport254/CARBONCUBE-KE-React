@@ -62,7 +62,7 @@ const SellerAdDetails = () => {
 	useEffect(() => {
 		const fetchAdDetails = async () => {
 			try {
-				const token = sessionStorage.getItem("token");
+				const token = localStorage.getItem("token");
 
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/seller/ads/${adId}`,
@@ -316,7 +316,7 @@ const SellerAdDetails = () => {
 	const handleSaveEdit = async () => {
 		try {
 			setIsSaving(true);
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 
 			// Check if we have any actual changes to save
 			const hasFieldChanges = Object.keys(editValues).some((field) => {
@@ -620,7 +620,7 @@ const SellerAdDetails = () => {
 		}
 
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (!token) {
 				showToastNotification("No authentication token found", "error");
 				return;
@@ -677,7 +677,7 @@ const SellerAdDetails = () => {
 		}
 
 		try {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (!token) {
 				showToastNotification("No authentication token found", "error");
 				return;

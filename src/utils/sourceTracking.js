@@ -450,7 +450,7 @@ class SourceTrackingService {
 	async getSourceAnalytics() {
 		try {
 			const token =
-				localStorage.getItem("token") || sessionStorage.getItem("token");
+				localStorage.getItem("token") || localStorage.getItem("token");
 
 			const url = `${this.API_URL}/source-tracking/analytics`;
 

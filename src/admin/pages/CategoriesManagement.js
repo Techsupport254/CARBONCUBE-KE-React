@@ -31,7 +31,7 @@ const CategoriesManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/categories`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -88,7 +88,7 @@ const CategoriesManagement = () => {
 			const categoryResponse = await fetch(url, {
 				method: method,
 				headers: {
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
+					Authorization: "Bearer " + localStorage.getItem("token"),
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ name: newCategory.name }),
@@ -122,7 +122,7 @@ const CategoriesManagement = () => {
 				const subcategoryResponse = await fetch(subcategoryUrl, {
 					method: subcategoryMethod,
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
@@ -162,7 +162,7 @@ const CategoriesManagement = () => {
 				const deleteResponse = await fetch(subcategoryUrl, {
 					method: "DELETE",
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 						"Content-Type": "application/json",
 					},
 				});

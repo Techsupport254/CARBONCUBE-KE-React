@@ -71,7 +71,7 @@ const ShopPage = () => {
 
 	// Initialize authentication state
 	useEffect(() => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		const role = sessionStorage.getItem("userRole");
 		const userId = sessionStorage.getItem("userId");
 
@@ -158,7 +158,7 @@ const ShopPage = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/shop/${slug}/reviews?page=1&per_page=1`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -646,7 +646,7 @@ const ShopPage = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -674,7 +674,7 @@ const ShopPage = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/shop/${slug}?page=${currentPage}&per_page=20`,
 					{
 						headers: {
-							Authorization: "Bearer " + sessionStorage.getItem("token"),
+							Authorization: "Bearer " + localStorage.getItem("token"),
 						},
 					}
 				);

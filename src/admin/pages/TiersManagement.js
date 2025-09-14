@@ -36,7 +36,7 @@ const TiersManagement = () => {
 				`${process.env.REACT_APP_BACKEND_URL}/admin/tiers`,
 				{
 					headers: {
-						Authorization: "Bearer " + sessionStorage.getItem("token"),
+						Authorization: "Bearer " + localStorage.getItem("token"),
 					},
 				}
 			);
@@ -125,7 +125,7 @@ const TiersManagement = () => {
 			const response = await fetch(url, {
 				method,
 				headers: {
-					Authorization: "Bearer " + sessionStorage.getItem("token"),
+					Authorization: "Bearer " + localStorage.getItem("token"),
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
@@ -166,7 +166,7 @@ const TiersManagement = () => {
 	};
 
 	const deleteTier = async (tierId) => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (!token) {
 			alert("Authorization token is missing. Please log in again.");
 			return;

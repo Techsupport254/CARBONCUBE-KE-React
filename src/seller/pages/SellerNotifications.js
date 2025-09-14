@@ -17,7 +17,7 @@ const SellerNotifications = () => {
 
 	useEffect(() => {
 		const fetchSellerId = async () => {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			if (token) {
 				try {
 					const response = await fetch(
@@ -93,7 +93,7 @@ const SellerNotifications = () => {
 
 	useEffect(() => {
 		const fetchNotifications = async () => {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 			const response = await fetch(
 				`${process.env.REACT_APP_BACKEND_URL}/seller/notifications`,
 				{

@@ -17,7 +17,7 @@ const LeaveReviewModal = ({ show, onHide, shopName, products }) => {
 	// Check authentication when modal opens
 	useEffect(() => {
 		if (show) {
-			const token = sessionStorage.getItem("token");
+			const token = localStorage.getItem("token");
 
 			if (token) {
 				setIsAuthenticated(true);

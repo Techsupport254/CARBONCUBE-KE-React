@@ -2,11 +2,11 @@
 import { createConsumer } from "@rails/actioncable";
 
 // Use the dedicated WebSocket URL instead of the backend API URL
-const wsUrl = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8081";
+const wsUrl = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080";
 
 // Get JWT token from sessionStorage
 const getToken = () => {
-	return sessionStorage.getItem("token");
+	return localStorage.getItem("token");
 };
 
 const cable = createConsumer(`${wsUrl}/cable`, {

@@ -252,7 +252,7 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 	// Memoize authentication token
 	const authToken = useMemo(() => {
 		const token =
-			localStorage.getItem("token") || sessionStorage.getItem("token");
+			localStorage.getItem("token") || localStorage.getItem("token");
 		return token ? `Bearer ${token}` : null;
 	}, []);
 

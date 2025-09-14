@@ -64,7 +64,7 @@ const TierPage = () => {
 	});
 
 	const fetchCurrentSellerTier = useCallback(async () => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 
 		if (!token) {
 			return;
@@ -92,7 +92,7 @@ const TierPage = () => {
 		} catch (error) {
 			// If unauthorized, the token is invalid - clear it and redirect to login
 			if (error.response?.status === 401) {
-				sessionStorage.removeItem("token");
+				localStorage.removeItem("token");
 				setIsSellerLoggedIn(false);
 				// Optionally redirect to login page
 				// navigate("/seller/login");
@@ -347,7 +347,7 @@ const TierPage = () => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
 						"Content-Type": "application/json",
 					},
 				}
@@ -401,7 +401,7 @@ const TierPage = () => {
 					`${process.env.REACT_APP_BACKEND_URL}/payments/status/${paymentId}`,
 					{
 						headers: {
-							Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+							Authorization: `Bearer ${localStorage.getItem("token")}`,
 						},
 					}
 				);
@@ -466,7 +466,7 @@ const TierPage = () => {
 						pricing_id: selectedPricing.id,
 					},
 					headers: {
-						Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
 					},
 				}
 			);
@@ -502,7 +502,7 @@ const TierPage = () => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
 						"Content-Type": "application/json",
 					},
 				}
@@ -541,7 +541,7 @@ const TierPage = () => {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
 						"Content-Type": "application/json",
 					},
 				}
@@ -576,7 +576,7 @@ const TierPage = () => {
 	};
 
 	useEffect(() => {
-		const token = sessionStorage.getItem("token");
+		const token = localStorage.getItem("token");
 		if (token) {
 			try {
 				const decoded = jwtDecode(token);

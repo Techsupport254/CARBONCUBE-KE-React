@@ -1,10 +1,15 @@
 import React from "react";
 import Navbar from "../../components/Navbar";
 
-const ErrorState = () => {
+const ErrorState = ({ onLogout }) => {
 	return (
 		<>
-			<Navbar mode="sales" showSearch={false} showCategories={false} />
+			<Navbar 
+				mode="sales" 
+				showSearch={false} 
+				showCategories={false}
+				onLogout={onLogout}
+			/>
 			<div
 				className="d-flex justify-content-center align-items-center"
 				style={{
