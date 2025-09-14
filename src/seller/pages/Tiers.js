@@ -9,6 +9,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { jwtDecode } from "jwt-decode";
 import useSEO from "../../hooks/useSEO";
+import Spinner from "react-spinkit";
 
 const TierPage = () => {
 	const [tiers, setTiers] = useState([]);
@@ -1340,7 +1341,11 @@ const TierPage = () => {
 									</div>
 
 									<div className="flex justify-center mb-3 sm:mb-4">
-										<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+										<Spinner
+											variant="warning"
+											name="cube-grid"
+											style={{ width: 40, height: 40 }}
+										/>
 									</div>
 
 									<div className="text-center">

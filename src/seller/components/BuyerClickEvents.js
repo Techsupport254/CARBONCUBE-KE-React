@@ -8,12 +8,21 @@ import {
 	Tooltip,
 	Legend,
 } from "chart.js";
+import Spinner from "react-spinkit";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const BuyerClickEvents = ({ data }) => {
 	if (!data) {
-		return <div>Loading...</div>;
+		return (
+			<div className="centered-loader">
+				<Spinner
+					variant="warning"
+					name="cube-grid"
+					style={{ width: 40, height: 40 }}
+				/>
+			</div>
+		);
 	}
 
 	const categories = Object.keys(data);

@@ -30,7 +30,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 					conversation.admin.fullname || conversation.admin.username || "Admin",
 				avatar: conversation.admin.profile_picture,
 				type: "admin",
-				online: true,
+				online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 			};
 		}
 		if (conversation.seller) {
@@ -41,7 +41,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 					"Seller",
 				avatar: conversation.seller.profile_picture,
 				type: "seller",
-				online: true,
+				online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 			};
 		}
 	} else if (userType === "seller") {
@@ -58,7 +58,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 						"Buyer",
 					avatar: conversation.buyer.profile_picture,
 					type: "buyer",
-					online: true,
+					online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 				};
 			}
 			if (conversation.inquirer_seller) {
@@ -69,7 +69,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 						"Seller",
 					avatar: conversation.inquirer_seller.profile_picture,
 					type: "seller",
-					online: true,
+					online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 				};
 			}
 		} else {
@@ -82,7 +82,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 						"Seller",
 					avatar: conversation.seller.profile_picture,
 					type: "seller",
-					online: true,
+					online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 				};
 			}
 		}
@@ -93,7 +93,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 					conversation.admin.fullname || conversation.admin.username || "Admin",
 				avatar: conversation.admin.profile_picture,
 				type: "admin",
-				online: true,
+				online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 			};
 		}
 
@@ -111,7 +111,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 					conversation.buyer.fullname || conversation.buyer.username || "Buyer",
 				avatar: conversation.buyer.profile_picture,
 				type: "buyer",
-				online: true,
+				online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 			};
 		}
 		if (conversation.seller) {
@@ -122,7 +122,7 @@ const getParticipantInfo = (conversation, currentUser, userType) => {
 					"Seller",
 				avatar: conversation.seller.profile_picture,
 				type: "seller",
-				online: true,
+				online: false, // Will be overridden by getParticipantInfoWithOnlineStatus
 			};
 		}
 	}
@@ -210,7 +210,19 @@ const getParticipantInfoWithOnlineStatus = (
 	onlineUsers
 ) => {
 	const baseInfo = getParticipantInfo(conversation, currentUser, userType);
-	const userId = `${baseInfo.type}_${conversation[baseInfo.type]?.id}`;
+
+	// Create consistent user ID format for online status tracking
+	let userId;
+	if (baseInfo.type === "buyer" && conversation.buyer) {
+		userId = `buyer_${conversation.buyer.id}`;
+	} else if (baseInfo.type === "seller" && conversation.seller) {
+		userId = `seller_${conversation.seller.id}`;
+	} else if (baseInfo.type === "admin" && conversation.admin) {
+		userId = `admin_${conversation.admin.id}`;
+	} else {
+		userId = `${baseInfo.type}_${conversation[baseInfo.type]?.id}`;
+	}
+
 	const isOnline = onlineUsers.has(userId);
 
 	return {
@@ -363,13 +375,23 @@ const Messages = ({
 		currentUser?.id,
 		useCallback((data) => {
 			// Handle online status changes
+			console.log("Messages component received online status:", data);
 			const userId = `${data.user_type}_${data.user_id}`;
+			console.log("User ID for online status:", userId);
+
 			if (data.online) {
-				setOnlineUsers((prev) => new Set([...prev, userId]));
+				console.log("Adding user to online set:", userId);
+				setOnlineUsers((prev) => {
+					const newSet = new Set([...prev, userId]);
+					console.log("Updated online users:", Array.from(newSet));
+					return newSet;
+				});
 			} else {
+				console.log("Removing user from online set:", userId);
 				setOnlineUsers((prev) => {
 					const newSet = new Set(prev);
 					newSet.delete(userId);
+					console.log("Updated online users:", Array.from(newSet));
 					return newSet;
 				});
 			}
@@ -437,6 +459,83 @@ const Messages = ({
 		}
 	}, [userType]);
 
+	// Request initial online status for conversation participants
+	const requestInitialOnlineStatus = useCallback(
+		async (conversationsList) => {
+			if (!currentUser || !userType) return;
+
+			try {
+				// Extract unique participant IDs from conversations
+				const participantIds = new Set();
+				conversationsList.forEach((conversation) => {
+					const participantInfo = getParticipantInfo(
+						conversation,
+						currentUser,
+						userType
+					);
+					if (participantInfo.type === "buyer" && conversation.buyer) {
+						participantIds.add(`buyer_${conversation.buyer.id}`);
+					} else if (participantInfo.type === "seller" && conversation.seller) {
+						participantIds.add(`seller_${conversation.seller.id}`);
+					} else if (participantInfo.type === "admin" && conversation.admin) {
+						participantIds.add(`admin_${conversation.admin.id}`);
+					}
+				});
+
+				// Request online status for all participants
+				if (participantIds.size > 0) {
+					const token = sessionStorage.getItem("token");
+					const response = await fetch(
+						`${process.env.REACT_APP_BACKEND_URL}/conversations/online_status`,
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${token}`,
+							},
+							body: JSON.stringify({
+								participant_ids: Array.from(participantIds),
+							}),
+						}
+					);
+
+					if (response.ok) {
+						const data = await response.json();
+						console.log("Initial online status response:", data);
+						// The response should contain online status for each participant
+						if (data.online_status) {
+							const onlineSet = new Set();
+							Object.entries(data.online_status).forEach(
+								([userId, isOnline]) => {
+									console.log(
+										`User ${userId} is ${isOnline ? "online" : "offline"}`
+									);
+									if (isOnline) {
+										onlineSet.add(userId);
+									}
+								}
+							);
+							console.log(
+								"Setting initial online users:",
+								Array.from(onlineSet)
+							);
+							setOnlineUsers(onlineSet);
+						}
+					} else {
+						console.error(
+							"Failed to fetch online status:",
+							response.status,
+							response.statusText
+						);
+					}
+				}
+			} catch (error) {
+				console.error("Error fetching initial online status:", error);
+			}
+		},
+		[currentUser, userType]
+	);
+
 	useEffect(() => {
 		const fetchConversations = async () => {
 			try {
@@ -462,6 +561,11 @@ const Messages = ({
 				}
 
 				setConversations(conversationsList);
+
+				// Request initial online status for all participants
+				if (conversationsList.length > 0) {
+					requestInitialOnlineStatus(conversationsList);
+				}
 			} catch (error) {
 				console.error("Error fetching conversations:", error);
 			} finally {
@@ -470,7 +574,7 @@ const Messages = ({
 		};
 
 		fetchConversations();
-	}, [apiBaseUrl]);
+	}, [apiBaseUrl, requestInitialOnlineStatus]);
 
 	// Fetch per-conversation unread counts
 	const fetchUnreadCounts = useCallback(async () => {
@@ -753,10 +857,11 @@ const Messages = ({
 	};
 
 	const filteredConversations = conversations.filter((conversation) => {
-		const participantInfo = getParticipantInfo(
+		const participantInfo = getParticipantInfoWithOnlineStatus(
 			conversation,
 			currentUser,
-			userType
+			userType,
+			onlineUsers
 		);
 		return participantInfo.name
 			.toLowerCase()
@@ -851,11 +956,13 @@ const Messages = ({
 															return dateB - dateA;
 														})
 														.map((conversation) => {
-															const participantInfo = getParticipantInfo(
-																conversation,
-																currentUser,
-																userType
-															);
+															const participantInfo =
+																getParticipantInfoWithOnlineStatus(
+																	conversation,
+																	currentUser,
+																	userType,
+																	onlineUsers
+																);
 															const lastMessage =
 																conversation.last_message?.content;
 															const isActive =

@@ -8,12 +8,21 @@ import {
 	Tooltip,
 	Legend,
 } from "chart.js";
+import Spinner from "react-spinkit";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const ClickEventsStats = ({ data }) => {
 	if (!data || data.length === 0) {
-		return <div>Loading...</div>;
+		return (
+			<div className="centered-loader">
+				<Spinner
+					variant="warning"
+					name="cube-grid"
+					style={{ width: 40, height: 40 }}
+				/>
+			</div>
+		);
 	}
 
 	// Extracting labels (months) and values

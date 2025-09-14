@@ -815,8 +815,15 @@ const SellerAdDetails = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<Spinner name="circle" color="#3B82F6" />
+			<div className="min-h-screen bg-gray-50">
+				<Navbar mode="seller" showSearch={false} showCategories={false} />
+				<div className="centered-loader">
+					<Spinner
+						variant="warning"
+						name="cube-grid"
+						style={{ width: 40, height: 40 }}
+					/>
+				</div>
 			</div>
 		);
 	}
@@ -1308,11 +1315,12 @@ const SellerAdDetails = () => {
 								</div>
 
 								{loadingReviews || loadingBuyerDetails ? (
-									<div className="text-center py-6 sm:py-8">
-										<Spinner name="circle" color="#3B82F6" />
-										<p className="text-gray-600 mt-2 text-sm">
-											Loading reviews and buyer details...
-										</p>
+									<div className="centered-loader">
+										<Spinner
+											variant="warning"
+											name="cube-grid"
+											style={{ width: 40, height: 40 }}
+										/>
 									</div>
 								) : reviews.length > 0 ? (
 									<div className="space-y-3 sm:space-y-4">

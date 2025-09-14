@@ -245,7 +245,7 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 
 	// Memoize WebSocket URL
 	const wsUrl = useMemo(() => {
-		const wsUrl = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080";
+		const wsUrl = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3001";
 		return `${wsUrl}/cable`;
 	}, []);
 
