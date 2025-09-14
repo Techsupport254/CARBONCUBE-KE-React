@@ -468,7 +468,7 @@ const Home = ({ onLogout }) => {
 
 						// Best sellers fetch with reduced timeout
 						fetch(
-							`${process.env.REACT_APP_BACKEND_URL}/best_sellers?limit=20`,
+							`${process.env.REACT_APP_BACKEND_URL}/api/best_sellers?limit=20`,
 							{
 								headers: {
 									Accept: "application/json",
