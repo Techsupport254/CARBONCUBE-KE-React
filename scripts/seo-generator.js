@@ -69,14 +69,7 @@ const staticRoutes = [
 		keywords:
 			"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya",
 	},
-	{
-		path: "/home",
-		lastmod: CURRENT_DATE,
-		changefreq: "daily",
-		priority: "0.9",
-		keywords:
-			"Carbon Cube Kenya home, marketplace home, online shopping Kenya, buyer dashboard, Kenya marketplace",
-	},
+	// Removed /home route since we redirect /home to / to prevent duplicate content
 	{
 		path: "/seller/tiers",
 		lastmod: CURRENT_DATE,

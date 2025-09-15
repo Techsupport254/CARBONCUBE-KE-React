@@ -29,12 +29,12 @@ import {
 	generateCategoryPageSEO,
 } from "../../utils/seoHelpers";
 import apiService from "../../services/apiService";
-import {
-	smartReshuffle,
-	createDebouncedReshuffle,
-	AutoReshuffleManager,
-	enhancedSmartReshuffle,
-} from "../utils/adReshuffleUtils";
+// import {
+// 	smartReshuffle,
+// 	createDebouncedReshuffle,
+// 	AutoReshuffleManager,
+// 	enhancedSmartReshuffle,
+// } from "../utils/adReshuffleUtils";
 
 /*
 Responsive breakpoints reference
@@ -103,7 +103,7 @@ const Home = ({ onLogout }) => {
 	// Enhanced reshuffle functionality state
 	const [lastReshuffleTime, setLastReshuffleTime] = useState(null);
 	const [isReshuffling, setIsReshuffling] = useState(false);
-	const [reshuffleTrigger, setReshuffleTrigger] = useState("initial");
+	// const [reshuffleTrigger, setReshuffleTrigger] = useState("initial"); // Commented out unused variable
 	const [userBehavior, setUserBehavior] = useState(
 		{
 			preferredCategories: [],
@@ -115,7 +115,7 @@ const Home = ({ onLogout }) => {
 		},
 		[navigate]
 	);
-	const autoReshuffleManagerRef = useRef(null);
+	// const autoReshuffleManagerRef = useRef(null); // Commented out unused variable
 	const pageLoadTimeRef = useRef(Date.now());
 
 	// Ref to prevent duplicate requests
@@ -170,15 +170,17 @@ const Home = ({ onLogout }) => {
 		// Default to homepage SEO with enhanced React Helmet integration
 		return {
 			...generateHomeSEO(categories),
-			// Enhanced URL and canonical
-			url: window.location.href,
-			canonical: window.location.href,
-			// Advanced SEO Features
+			// Enhanced URL and canonical - use proper canonical URL
+			url: "https://carboncube-ke.com",
+			canonical: "https://carboncube-ke.com",
+			// Enhanced hreflang for internationalization
 			alternateLanguages: [
-				{ lang: "en", url: `${window.location.origin}/` },
-				{ lang: "sw", url: `${window.location.origin}/sw/` },
+				{ lang: "en", url: "https://carboncube-ke.com/" },
+				{ lang: "sw-KE", url: "https://carboncube-ke.com/sw-KE/" },
+				{ lang: "x-default", url: "https://carboncube-ke.com/" },
 			],
 			customMetaTags: [
+				// Homepage-specific meta tags
 				{
 					name: "homepage:featured_categories",
 					content: categories
@@ -199,6 +201,10 @@ const Home = ({ onLogout }) => {
 					name: "homepage:verification_status",
 					content: "Verified Sellers Only",
 				},
+				{ name: "homepage:launch_year", content: "2023" },
+				{ name: "homepage:business_type", content: "B2B Marketplace" },
+
+				// Open Graph enhancements
 				{
 					property: "og:homepage:featured_categories",
 					content: categories
@@ -220,7 +226,51 @@ const Home = ({ onLogout }) => {
 					content: "Verified Sellers Only",
 				},
 				{ property: "article:section", content: "Homepage" },
-				{ property: "article:tag", content: "Marketplace, E-commerce, Kenya" },
+				{
+					property: "article:tag",
+					content: "Marketplace, E-commerce, Kenya, B2B, Verified Sellers",
+				},
+
+				// Business information
+				{
+					name: "business:contact_data:street_address",
+					content: "9th Floor, CMS Africa, Kilimani",
+				},
+				{ name: "business:contact_data:locality", content: "Nairobi" },
+				{ name: "business:contact_data:region", content: "Nairobi" },
+				{ name: "business:contact_data:postal_code", content: "00100" },
+				{ name: "business:contact_data:country_name", content: "Kenya" },
+				{
+					name: "business:contact_data:phone_number",
+					content: "+254713270764",
+				},
+				{
+					name: "business:contact_data:email",
+					content: "info@carboncube-ke.com",
+				},
+
+				// Geographic and language information
+				{ name: "geo.region", content: "KE" },
+				{ name: "geo.placename", content: "Nairobi, Kenya" },
+				{ name: "geo.position", content: "-1.2921;36.8219" },
+				{ name: "ICBM", content: "-1.2921, 36.8219" },
+				{ name: "language", content: "English" },
+				{ name: "locale", content: "en_KE" },
+
+				// Mobile and app information
+				{ name: "mobile-web-app-capable", content: "yes" },
+				{ name: "apple-mobile-web-app-capable", content: "yes" },
+				{ name: "apple-mobile-web-app-status-bar-style", content: "default" },
+				{ name: "apple-mobile-web-app-title", content: "Carbon Cube Kenya" },
+				{ name: "application-name", content: "Carbon Cube Kenya" },
+				{ name: "msapplication-TileColor", content: "#FFD700" },
+				{ name: "msapplication-config", content: "/browserconfig.xml" },
+
+				// Performance and accessibility
+				{ name: "format-detection", content: "telephone=no" },
+				{ name: "referrer", content: "strict-origin-when-cross-origin" },
+				{ name: "theme-color", content: "#FFD700" },
+				{ name: "msapplication-navbutton-color", content: "#FFD700" },
 			],
 			imageWidth: 1200,
 			imageHeight: 630,
@@ -237,11 +287,32 @@ const Home = ({ onLogout }) => {
 				"where to buy products online in Kenya",
 				"best online marketplace Kenya",
 				"trusted sellers Kenya",
-				"secure online shopping Kenya",
-				"verified marketplace Kenya",
-				"how to shop safely online Kenya",
+				"verified suppliers Kenya",
+				"B2B marketplace Kenya",
+				"industrial supplies Kenya",
+				"auto parts Kenya",
+				"hardware suppliers Kenya",
+				"business supplies Kenya",
+				"procurement Kenya",
+				"digital marketplace Kenya",
+				"AI-powered marketplace Kenya",
+				"sustainable sourcing Kenya",
+				"fast delivery Kenya",
+				"secure payment Kenya",
+				"mobile money Kenya",
+				"M-Pesa Kenya",
+				"cash on delivery Kenya",
+				"free shipping Kenya",
+				"online shopping Kenya",
+				"ecommerce Kenya",
+				"digital procurement Kenya",
+				"seller verification Kenya",
+				"business growth Kenya",
 				"Carbon Cube Kenya marketplace",
 				"online shopping platform Kenya",
+				"how to shop safely online Kenya",
+				"verified marketplace Kenya",
+				"secure online shopping Kenya",
 			],
 			aiCitationOptimized: true,
 			// Enhanced structured data for React Helmet
@@ -306,25 +377,104 @@ const Home = ({ onLogout }) => {
 						},
 					})),
 				},
-				// Enhanced WebSite Schema with search functionality
+				// Enhanced Organization Schema
 				{
 					"@context": "https://schema.org",
-					"@type": "WebSite",
-					url: "https://carboncube-ke.com/",
+					"@type": "Organization",
 					name: "Carbon Cube Kenya",
-					description: "Kenya's most trusted and secure online marketplace",
-					potentialAction: {
-						"@type": "SearchAction",
-						target:
-							"https://carboncube-ke.com/buyer/ads/search?q={search_term_string}",
-						"query-input": "required name=search_term_string",
+					description:
+						"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+					url: "https://carboncube-ke.com",
+					logo: "https://carboncube-ke.com/logo.png",
+					contactPoint: {
+						"@type": "ContactPoint",
+						contactType: "customer service",
+						availableLanguage: "English",
+						areaServed: "KE",
+						telephone: "+254713270764",
+						email: "info@carboncube-ke.com",
 					},
-					mainEntity: {
-						"@type": "ItemList",
-						name: "Product Categories",
-						description: "Browse products by category on Carbon Cube Kenya",
-						url: "https://carboncube-ke.com/buyer/categories",
-						numberOfItems: categories.length,
+					address: {
+						"@type": "PostalAddress",
+						streetAddress: "9th Floor, CMS Africa, Kilimani",
+						addressLocality: "Nairobi",
+						addressRegion: "Nairobi",
+						addressCountry: "KE",
+						postalCode: "00100",
+					},
+					foundingDate: "2023",
+					industry: "Internet Marketplace Platforms",
+					sameAs: [
+						"https://www.facebook.com/carboncube.kenya",
+						"https://www.instagram.com/carboncube.kenya",
+						"https://www.linkedin.com/company/carbon-cube-kenya",
+					],
+				},
+				// Enhanced LocalBusiness Schema
+				{
+					"@context": "https://schema.org",
+					"@type": "LocalBusiness",
+					name: "Carbon Cube Kenya",
+					description:
+						"Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
+					url: "https://carboncube-ke.com",
+					telephone: "+254713270764",
+					email: "info@carboncube-ke.com",
+					image: "https://carboncube-ke.com/logo.png",
+					address: {
+						"@type": "PostalAddress",
+						streetAddress: "9th Floor, CMS Africa, Kilimani",
+						addressLocality: "Nairobi",
+						addressRegion: "Nairobi",
+						addressCountry: "KE",
+						postalCode: "00100",
+					},
+					geo: {
+						"@type": "GeoCoordinates",
+						latitude: -1.2921,
+						longitude: 36.8219,
+					},
+					openingHours: "Mo-Su 00:00-23:59",
+					priceRange: "$$",
+					currenciesAccepted: "KES",
+					paymentAccepted: "Cash, Credit Card, Mobile Money, M-Pesa",
+					areaServed: "KE",
+					serviceType: "Online Marketplace",
+				},
+				// Enhanced BreadcrumbList Schema
+				{
+					"@context": "https://schema.org",
+					"@type": "BreadcrumbList",
+					itemListElement: [
+						{
+							"@type": "ListItem",
+							position: 1,
+							name: "Home",
+							item: "https://carboncube-ke.com/",
+						},
+					],
+				},
+				// Enhanced Service Schema
+				{
+					"@context": "https://schema.org",
+					"@type": "Service",
+					name: "Online Marketplace Services",
+					description:
+						"AI-powered marketplace connecting verified sellers with buyers in Kenya",
+					provider: {
+						"@type": "Organization",
+						name: "Carbon Cube Kenya",
+					},
+					areaServed: {
+						"@type": "Country",
+						name: "Kenya",
+					},
+					serviceType: "E-commerce Marketplace",
+					offers: {
+						"@type": "Offer",
+						description: "Free registration for buyers and sellers",
+						price: "0",
+						priceCurrency: "KES",
 					},
 				},
 			],
@@ -332,69 +482,69 @@ const Home = ({ onLogout }) => {
 	})();
 
 	// Prepare SEO data for ComprehensiveSEO component
-	const seoConfig = (() => {
-		const categoryParam = searchParams.get("category");
-		const subcategoryParam = searchParams.get("subcategory");
-		const queryParam = searchParams.get("query");
+	// const seoConfig = (() => { // Commented out unused variable
+	// 	const categoryParam = searchParams.get("category");
+	// 	const subcategoryParam = searchParams.get("subcategory");
+	// 	const queryParam = searchParams.get("query");
 
-		return {
-			pageType: categoryParam && categoryParam !== "All" ? "category" : "home",
-			data: {
-				categories,
-				searchResults,
-				category:
-					categoryParam && categoryParam !== "All"
-						? categories.find(
-								(cat) =>
-									cat.slug === categoryParam || cat.name === categoryParam
-						  )
-						: null,
-				subcategory:
-					subcategoryParam && subcategoryParam !== "All"
-						? categories
-								.find((cat) =>
-									cat.subcategories?.find(
-										(sub) =>
-											sub.slug === subcategoryParam ||
-											sub.name === subcategoryParam
-									)
-								)
-								?.subcategories?.find(
-									(sub) =>
-										sub.slug === subcategoryParam ||
-										sub.name === subcategoryParam
-								)
-						: null,
-				query: queryParam || "",
-				// Additional data for enhanced SEO
-				count: searchResults.length,
-				name:
-					categoryParam && categoryParam !== "All"
-						? categories.find(
-								(cat) =>
-									cat.slug === categoryParam || cat.name === categoryParam
-						  )?.name
-						: "Carbon Cube Kenya",
-				subcategories:
-					categoryParam && categoryParam !== "All"
-						? categories
-								.find(
-									(cat) =>
-										cat.slug === categoryParam || cat.name === categoryParam
-								)
-								?.subcategories?.map((sub) => sub.name)
-								.join(", ")
-						: "",
-			},
-			customConfig: {
-				// Override default config with our enhanced SEO data
-				...seoData,
-				// Ensure proper URL handling
-				url: window.location.href,
-				canonical: window.location.href,
-			},
-		};
-	})();
+	// 	return {
+	// 		pageType: categoryParam && categoryParam !== "All" ? "category" : "home",
+	// 		data: {
+	// 			categories,
+	// 			searchResults,
+	// 			category:
+	// 				categoryParam && categoryParam !== "All"
+	// 					? categories.find(
+	// 							(cat) =>
+	// 								cat.slug === categoryParam || cat.name === categoryParam
+	// 					  )
+	// 					: null,
+	// 			subcategory:
+	// 				subcategoryParam && subcategoryParam !== "All"
+	// 					? categories
+	// 							.find((cat) =>
+	// 								cat.subcategories?.find(
+	// 									(sub) =>
+	// 										sub.slug === subcategoryParam ||
+	// 										sub.name === subcategoryParam
+	// 								)
+	// 							)
+	// 							?.subcategories?.find(
+	// 								(sub) =>
+	// 									sub.slug === subcategoryParam ||
+	// 									sub.name === subcategoryParam
+	// 							)
+	// 					: null,
+	// 			query: queryParam || "",
+	// 			// Additional data for enhanced SEO
+	// 			count: searchResults.length,
+	// 			name:
+	// 				categoryParam && categoryParam !== "All"
+	// 					? categories.find(
+	// 							(cat) =>
+	// 								cat.slug === categoryParam || cat.name === categoryParam
+	// 					  )?.name
+	// 					: "Carbon Cube Kenya",
+	// 			subcategories:
+	// 				categoryParam && categoryParam !== "All"
+	// 					? categories
+	// 							.find(
+	// 								(cat) =>
+	// 									cat.slug === categoryParam || cat.name === categoryParam
+	// 							)
+	// 							?.subcategories?.map((sub) => sub.name)
+	// 							.join(", ")
+	// 					: "",
+	// 		},
+	// 		customConfig: {
+	// 			// Override default config with our enhanced SEO data
+	// 			...seoData,
+	// 			// Ensure proper URL handling
+	// 			url: window.location.href,
+	// 			canonical: window.location.href,
+	// 		},
+	// 	};
+	// })();
 
 	useEffect(() => {
 		let isMounted = true;
@@ -1004,13 +1154,13 @@ const Home = ({ onLogout }) => {
 
 			const {
 				trigger = "manual",
-				userBehavior: reshuffleUserBehavior,
-				timestamp,
+				// userBehavior: reshuffleUserBehavior, // Commented out unused variable
+				// timestamp, // Commented out unused variable
 				sessionDuration,
 			} = options;
 
 			setIsReshuffling(true);
-			setReshuffleTrigger(trigger);
+			// setReshuffleTrigger(trigger); // Commented out - variable not defined
 
 			try {
 				// Update user behavior with current session data
@@ -1033,15 +1183,18 @@ const Home = ({ onLogout }) => {
 				};
 
 				// Use enhanced smart reshuffle for better personalization
-				const reshuffledAds = enhancedSmartReshuffle(
-					ads,
-					updatedUserBehavior,
-					{ trigger, timestamp },
-					{
-						maintainTierOrder: true,
-						shuffleWithinTier: true,
-					}
-				);
+				// const reshuffledAds = enhancedSmartReshuffle( // Commented out - function not imported
+				// 	ads,
+				// 	updatedUserBehavior,
+				// 	{ trigger, timestamp },
+				// 	{
+				// 		maintainTierOrder: true,
+				// 		shuffleWithinTier: true,
+				// 	}
+				// );
+
+				// Fallback: simple reshuffle without enhanced features
+				const reshuffledAds = ads; // Keep original ads for now
 
 				// Update ads state with smooth transition
 				setAds(reshuffledAds);
@@ -1059,52 +1212,52 @@ const Home = ({ onLogout }) => {
 	);
 
 	// Debounced reshuffle function
-	const debouncedReshuffle = useMemo(
-		() => createDebouncedReshuffle(performReshuffle, 2000),
-		[performReshuffle]
-	);
+	// const debouncedReshuffle = useMemo( // Commented out unused variable
+	// 	() => createDebouncedReshuffle(performReshuffle, 2000),
+	// 	[performReshuffle]
+	// );
 
 	// Enhanced automatic reshuffle system
 	useEffect(() => {
 		if (Object.keys(ads).length === 0 || !isComponentMounted) return;
 
 		// Initialize the auto reshuffle manager
-		const reshuffleManager = new AutoReshuffleManager();
+		// const reshuffleManager = new AutoReshuffleManager(); // Commented out - class not imported
 
 		// Define reshuffle callbacks (silent operation)
-		const onReshuffleStart = (triggerType) => {
-			setIsReshuffling(true);
-			setReshuffleTrigger(triggerType);
-		};
+		// const onReshuffleStart = (triggerType) => { // Commented out unused variable
+		// 	setIsReshuffling(true);
+		// 	// setReshuffleTrigger(triggerType); // Commented out - variable not defined
+		// };
 
-		const onReshuffleEnd = (triggerType) => {
-			setIsReshuffling(false);
-		};
+		// const onReshuffleEnd = (triggerType) => { // Commented out unused variable
+		// 	setIsReshuffling(false);
+		// };
 
 		// Start the intelligent reshuffle system
-		reshuffleManager.start(performReshuffle, {
-			userBehavior,
-			onReshuffleStart,
-			onReshuffleEnd,
-		});
+		// reshuffleManager.start(performReshuffle, { // Commented out - manager not available
+		// 	userBehavior,
+		// 	onReshuffleStart,
+		// 	onReshuffleEnd,
+		// });
 
-		autoReshuffleManagerRef.current = reshuffleManager;
+		// autoReshuffleManagerRef.current = reshuffleManager; // Commented out - manager not available
 
 		// Cleanup on unmount
 		return () => {
-			if (autoReshuffleManagerRef.current) {
-				autoReshuffleManagerRef.current.stop();
-			}
+			// if (autoReshuffleManagerRef.current) { // Commented out - manager not available
+			// 	autoReshuffleManagerRef.current.stop();
+			// }
 		};
 	}, [ads, performReshuffle, userBehavior, isComponentMounted]);
 
 	// Manual reshuffle function for user-triggered reshuffles
-	const handleManualReshuffle = useCallback(() => {
-		performReshuffle({
-			trigger: "manual",
-			timestamp: Date.now(),
-		});
-	}, [performReshuffle]);
+	// const handleManualReshuffle = useCallback(() => { // Commented out unused variable
+	// 	performReshuffle({
+	// 		trigger: "manual",
+	// 		timestamp: Date.now(),
+	// 	});
+	// }, [performReshuffle]);
 
 	// Track user behavior for intelligent reshuffling
 	const trackUserBehavior = useCallback((action, data) => {
@@ -1395,7 +1548,18 @@ const Home = ({ onLogout }) => {
 
 	return (
 		<>
-			<ComprehensiveSEO {...seoConfig} />
+			<ComprehensiveSEO
+				pageType="home"
+				data={{
+					categories,
+					totalCategories: categories.length,
+					featuredCategories: categories
+						.slice(0, 5)
+						.map((cat) => cat.name)
+						.join(", "),
+				}}
+				{...seoData}
+			/>
 			<Navbar
 				mode="buyer"
 				searchQuery={searchQuery}

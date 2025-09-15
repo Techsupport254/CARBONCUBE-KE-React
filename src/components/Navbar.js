@@ -27,6 +27,7 @@ import {
 import { CircleLoader } from "react-spinners";
 import apiService from "../services/apiService";
 import useAuth from "../hooks/useAuth";
+import { cleanupOnLogout, clearAuthData } from "../utils/logoutUtils";
 
 // Custom hook for click outside
 const useClickOutside = (ref, handler, excludeRefs = []) => {
@@ -412,18 +413,37 @@ const Navbar = ({
 	};
 
 	const handleLogout = () => {
+		// Reset local state first
+		setUnreadMessageCount(0);
+		setWishlistCount(0);
+		setIsUserMenuOpen(false);
+		setIsMobileMenuOpen(false);
+		setIsDropdownOpen(false);
+
+		// Clean up any pending timeouts
+		if (searchDebounceRef.current) {
+			clearTimeout(searchDebounceRef.current);
+			searchDebounceRef.current = null;
+		}
+		if (dropdownDebounceRef.current) {
+			clearTimeout(dropdownDebounceRef.current);
+			dropdownDebounceRef.current = null;
+		}
+
+		// Call parent logout handler if available
 		if (onLogout) {
 			onLogout();
-		} else {
-			// Fallback: clear local storage and redirect
-			localStorage.removeItem("token");
-			localStorage.removeItem("userRole");
-			localStorage.removeItem("userName");
-			localStorage.removeItem("userUsername");
-			localStorage.removeItem("userEmail");
-			setUnreadMessageCount(0);
-			window.location.href = "/login";
 		}
+
+		// Perform comprehensive cleanup
+		cleanupOnLogout();
+		clearAuthData();
+
+		// Dispatch custom logout event for other components
+		window.dispatchEvent(new CustomEvent("userLogout"));
+
+		// Use React Router navigate for better state management
+		navigate("/login", { replace: true });
 	};
 
 	const toggleMobileMenu = () => {

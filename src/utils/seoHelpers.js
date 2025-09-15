@@ -238,18 +238,37 @@ export const generateHomeSEO = (categories = []) => {
 		.join(", ");
 	const totalCategories = categories.length;
 
+	// Ensure minimum length for SEO validation
+	const baseDescription =
+		"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.";
+	const categoryDescription =
+		totalCategories > 0
+			? ` Browse ${totalCategories} categories with thousands of products from verified sellers across Kenya.`
+			: " Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery.";
+
+	const fullDescription = baseDescription + categoryDescription;
+
 	return {
-		title: "Carbon Cube Kenya | Kenya's Trusted Digital Marketplace",
-		description: `Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Browse ${totalCategories} categories with thousands of products from verified sellers across Kenya.`,
+		title: "Carbon Cube Kenya | Kenya's Most Trusted Online Marketplace",
+		description: fullDescription,
 		keywords: `Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya, B2B marketplace, auto parts Kenya, industrial supplies, hardware suppliers, verified suppliers, business growth Kenya, ${categoryNames}`,
 		url: "https://carboncube-ke.com/",
+		canonical: "https://carboncube-ke.com/",
 		type: "website",
 		image: "https://carboncube-ke.com/logo.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		section: "Homepage",
 		tags: ["Marketplace", "E-commerce", "Kenya", "B2B", "Verified Sellers"],
+		robots:
+			"index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+		alternateLanguages: [
+			{ lang: "en", url: "https://carboncube-ke.com/" },
+			{ lang: "sw-KE", url: "https://carboncube-ke.com/sw-KE/" },
+			{ lang: "x-default", url: "https://carboncube-ke.com/" },
+		],
 		customMetaTags: [
+			// Homepage-specific meta tags
 			{ name: "homepage:featured_categories", content: categoryNames },
 			{
 				name: "homepage:total_categories",
@@ -261,6 +280,10 @@ export const generateHomeSEO = (categories = []) => {
 				name: "homepage:verification_status",
 				content: "Verified Sellers Only",
 			},
+			{ name: "homepage:launch_year", content: "2023" },
+			{ name: "homepage:business_type", content: "B2B Marketplace" },
+
+			// Open Graph enhancements
 			{ property: "og:homepage:featured_categories", content: categoryNames },
 			{
 				property: "og:homepage:total_categories",
@@ -276,7 +299,174 @@ export const generateHomeSEO = (categories = []) => {
 				content: "Verified Sellers Only",
 			},
 			{ property: "article:section", content: "Homepage" },
-			{ property: "article:tag", content: "Marketplace, E-commerce, Kenya" },
+			{
+				property: "article:tag",
+				content: "Marketplace, E-commerce, Kenya, B2B, Verified Sellers",
+			},
+
+			// Business information
+			{
+				name: "business:contact_data:street_address",
+				content: "9th Floor, CMS Africa, Kilimani",
+			},
+			{ name: "business:contact_data:locality", content: "Nairobi" },
+			{ name: "business:contact_data:region", content: "Nairobi" },
+			{ name: "business:contact_data:postal_code", content: "00100" },
+			{ name: "business:contact_data:country_name", content: "Kenya" },
+			{ name: "business:contact_data:phone_number", content: "+254713270764" },
+			{
+				name: "business:contact_data:email",
+				content: "info@carboncube-ke.com",
+			},
+
+			// Geographic and language information
+			{ name: "geo.region", content: "KE" },
+			{ name: "geo.placename", content: "Nairobi, Kenya" },
+			{ name: "geo.position", content: "-1.2921;36.8219" },
+			{ name: "ICBM", content: "-1.2921, 36.8219" },
+			{ name: "language", content: "English" },
+			{ name: "locale", content: "en_KE" },
+
+			// Mobile and app information
+			{ name: "mobile-web-app-capable", content: "yes" },
+			{ name: "apple-mobile-web-app-capable", content: "yes" },
+			{ name: "apple-mobile-web-app-status-bar-style", content: "default" },
+			{ name: "apple-mobile-web-app-title", content: "Carbon Cube Kenya" },
+			{ name: "application-name", content: "Carbon Cube Kenya" },
+			{ name: "msapplication-TileColor", content: "#FFD700" },
+			{ name: "msapplication-config", content: "/browserconfig.xml" },
+
+			// Performance and accessibility
+			{ name: "format-detection", content: "telephone=no" },
+			{ name: "referrer", content: "strict-origin-when-cross-origin" },
+			{ name: "theme-color", content: "#FFD700" },
+			{ name: "msapplication-navbutton-color", content: "#FFD700" },
+		],
+		// Enhanced structured data for better search engine understanding
+		structuredData: {
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			name: "Carbon Cube Kenya",
+			description: "Kenya's most trusted and secure online marketplace",
+			url: "https://carboncube-ke.com/",
+			potentialAction: {
+				"@type": "SearchAction",
+				target:
+					"https://carboncube-ke.com/buyer/ads/search?q={search_term_string}",
+				"query-input": "required name=search_term_string",
+			},
+			mainEntity: {
+				"@type": "ItemList",
+				name: "Product Categories",
+				description: "Browse products by category on Carbon Cube Kenya",
+				url: "https://carboncube-ke.com/buyer/categories",
+				numberOfItems: totalCategories,
+			},
+		},
+		additionalStructuredData: [
+			// Organization Schema
+			{
+				"@context": "https://schema.org",
+				"@type": "Organization",
+				name: "Carbon Cube Kenya",
+				description:
+					"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+				url: "https://carboncube-ke.com",
+				logo: "https://carboncube-ke.com/logo.png",
+				contactPoint: {
+					"@type": "ContactPoint",
+					contactType: "customer service",
+					availableLanguage: "English",
+					areaServed: "KE",
+					telephone: "+254713270764",
+					email: "info@carboncube-ke.com",
+				},
+				address: {
+					"@type": "PostalAddress",
+					streetAddress: "9th Floor, CMS Africa, Kilimani",
+					addressLocality: "Nairobi",
+					addressRegion: "Nairobi",
+					addressCountry: "KE",
+					postalCode: "00100",
+				},
+				foundingDate: "2023",
+				industry: "Internet Marketplace Platforms",
+				sameAs: [
+					"https://www.facebook.com/carboncube.kenya",
+					"https://www.instagram.com/carboncube.kenya",
+					"https://www.linkedin.com/company/carbon-cube-kenya",
+				],
+			},
+			// LocalBusiness Schema
+			{
+				"@context": "https://schema.org",
+				"@type": "LocalBusiness",
+				name: "Carbon Cube Kenya",
+				description:
+					"Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
+				url: "https://carboncube-ke.com",
+				telephone: "+254713270764",
+				email: "info@carboncube-ke.com",
+				image: "https://carboncube-ke.com/logo.png",
+				address: {
+					"@type": "PostalAddress",
+					streetAddress: "9th Floor, CMS Africa, Kilimani",
+					addressLocality: "Nairobi",
+					addressRegion: "Nairobi",
+					addressCountry: "KE",
+					postalCode: "00100",
+				},
+				geo: {
+					"@type": "GeoCoordinates",
+					latitude: -1.2921,
+					longitude: 36.8219,
+				},
+				openingHours: "Mo-Su 00:00-23:59",
+				priceRange: "$$",
+				currenciesAccepted: "KES",
+				paymentAccepted: "Cash, Credit Card, Mobile Money, M-Pesa",
+				areaServed: "KE",
+				serviceType: "Online Marketplace",
+			},
+			// FAQ Schema for Homepage
+			{
+				"@context": "https://schema.org",
+				"@type": "FAQPage",
+				mainEntity: [
+					{
+						"@type": "Question",
+						name: "What is Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "How do I start shopping on Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Simply browse our categories, search for products, and purchase from verified sellers. All transactions are secure and protected.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "Are all sellers verified on Carbon Cube Kenya?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "Yes, all sellers on Carbon Cube Kenya go through a verification process to ensure quality and reliability.",
+						},
+					},
+					{
+						"@type": "Question",
+						name: "What payment methods are accepted?",
+						acceptedAnswer: {
+							"@type": "Answer",
+							text: "We accept cash, credit cards, mobile money, and bank transfers for secure transactions.",
+						},
+					},
+				],
+			},
 		],
 		conversationalKeywords: [
 			"where to buy products online in Kenya",
@@ -298,7 +488,24 @@ export const generateHomeSEO = (categories = []) => {
 			"M-Pesa Kenya",
 			"cash on delivery Kenya",
 			"free shipping Kenya",
+			"online shopping Kenya",
+			"ecommerce Kenya",
+			"digital procurement Kenya",
+			"seller verification Kenya",
+			"business growth Kenya",
+			"Carbon Cube Kenya marketplace",
+			"online shopping platform Kenya",
+			"how to shop safely online Kenya",
+			"verified marketplace Kenya",
+			"secure online shopping Kenya",
 		],
+		// AI Search Optimization
+		aiSearchOptimized: true,
+		contentType: "marketplace",
+		expertiseLevel: "expert",
+		contentDepth: "comprehensive",
+		aiFriendlyFormat: true,
+		aiCitationOptimized: true,
 	};
 };
 

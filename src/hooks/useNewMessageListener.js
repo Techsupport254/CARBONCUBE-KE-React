@@ -70,6 +70,11 @@ class WebSocketConnectionManager {
 // Global instance
 const connectionManager = new WebSocketConnectionManager();
 
+// Expose connection manager globally for logout cleanup
+if (typeof window !== "undefined") {
+	window.connectionManager = connectionManager;
+}
+
 const useNewMessageListener = (userType, userId, onNewMessage) => {
 	const subscriptionRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);

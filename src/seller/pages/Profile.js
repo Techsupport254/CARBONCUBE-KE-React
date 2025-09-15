@@ -30,9 +30,9 @@ const SellerProfile = () => {
 
 	// SEO Implementation - Private user data, should not be indexed
 	useSEO({
-		title: "Seller Profile - Carbon Cube Kenya",
+		title: "Seller Dashboard - Manage Business Profile | Carbon Cube Kenya",
 		description:
-			"Manage your seller profile and business information on Carbon Cube Kenya",
+			"Access and manage your seller profile, business information, and account settings on Carbon Cube Kenya. Update your business details, contact information, and seller preferences in your secure seller dashboard.",
 		keywords: "seller profile, business profile, Carbon Cube Kenya",
 		url: `${window.location.origin}/seller/profile`,
 		customMetaTags: [

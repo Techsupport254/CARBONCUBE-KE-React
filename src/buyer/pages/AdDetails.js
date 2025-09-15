@@ -43,6 +43,7 @@ import ProductSEO from "../../components/ProductSEO";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl } from "../../utils/imageUtils";
+import Footer from "../../components/Footer";
 
 const AdDetails = () => {
 	const { adId } = useParams();
@@ -2521,6 +2522,7 @@ const AdDetails = () => {
 					</Toast>
 				</ToastContainer>
 			</div>
+			<Footer />
 		</>
 	);
 };

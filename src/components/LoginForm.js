@@ -78,7 +78,7 @@ const LoginForm = ({ onLogin }) => {
 
 			switch (user.role) {
 				case "buyer":
-					navigate("/buyer/home");
+					navigate("/");
 					break;
 				case "seller":
 					navigate("/seller/dashboard");

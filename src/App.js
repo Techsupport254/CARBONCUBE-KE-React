@@ -35,6 +35,9 @@ const DeviceFingerprint = lazy(() => import("./pages/DeviceFingerprint"));
 const HowToPay = lazy(() => import("./pages/HowToPay"));
 const HowToShop = lazy(() => import("./pages/HowToShop"));
 
+// SEO Test Component
+const SEOTest = lazy(() => import("./components/SEOValidationTest"));
+
 // Admin Imports - Lazy loaded
 const AnalyticsReporting = lazy(() =>
 	import("./admin/pages/AnalyticsReporting")
@@ -179,13 +182,12 @@ function App() {
 	};
 
 	const handleLogout = () => {
-		localStorage.removeItem("token");
-		localStorage.removeItem("userRole");
-		localStorage.removeItem("userName");
-		localStorage.removeItem("userUsername");
-		localStorage.removeItem("userEmail");
+		// Update state first to trigger re-render
 		setUserRole(null);
 		setIsAuthenticated(false);
+
+		// The actual cleanup and navigation will be handled by the Navbar component
+		// or other components that call this function
 	};
 
 	const handleBuyerSignup = () => {
@@ -225,8 +227,8 @@ function App() {
 						/>
 						<Route path="/shop/:slug" element={<ShopPage />} />
 						<Route path="/categories" element={<CategoriesPage />} />
-						<Route path="/home" element={<Home onLogout={handleLogout} />} />
 						<Route path="/" element={<Home onLogout={handleLogout} />} />
+						<Route path="/home" element={<Navigate to="/" replace />} />
 						<Route path="/admin" element={<Navigate to="/login" />} />
 						<Route path="/seller" element={<Navigate to="/login" />} />
 						<Route
@@ -254,6 +256,7 @@ function App() {
 						<Route path="/terms-and-conditions" element={<Terms />} />
 						<Route path="/privacy" element={<PrivacyPolicy />} />
 						<Route path="/analytics-test" element={<AnalyticsTest />} />
+						<Route path="/seo-test" element={<SEOTest />} />
 						<Route path="/fingerprint" element={<DeviceFingerprint />} />
 						<Route path="/how-to-pay" element={<HowToPay />} />
 						<Route path="/how-to-shop" element={<HowToShop />} />
@@ -385,7 +388,7 @@ function App() {
 									/>
 								}
 							>
-								<Route path="home" element={<Home onLogout={handleLogout} />} />
+								<Route path="home" element={<Navigate to="/" replace />} />
 								<Route
 									path="wishlist"
 									element={<WishList onLogout={handleLogout} />}

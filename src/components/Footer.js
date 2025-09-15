@@ -7,7 +7,6 @@ import {
 	faInstagram,
 	faFacebook,
 } from "@fortawesome/free-brands-svg-icons";
-import "./Footer.css"; // Assuming you have a CSS file for additional styles
 
 const Footer = () => (
 	<footer

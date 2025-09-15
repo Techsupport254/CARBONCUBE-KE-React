@@ -11,7 +11,7 @@ export const SEO_CONFIG = {
 		logo: "https://carboncube-ke.com/logo.png",
 		themeColor: "#FFD700",
 		locale: "en_US",
-		alternateLocales: ["sw_KE"],
+		alternateLocales: ["sw-KE"],
 		contact: {
 			phone: "+254713270764",
 			email: "info@carboncube-ke.com",
@@ -174,7 +174,7 @@ export const SEO_CONFIG = {
 		home: {
 			title: "Carbon Cube Kenya | Kenya's Trusted Digital Marketplace",
 			description:
-				"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+				"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery.",
 			keywords:
 				"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya, B2B marketplace, auto parts Kenya, industrial supplies, hardware suppliers, verified suppliers, business growth Kenya",
 			type: "website",
@@ -297,7 +297,11 @@ export const generateComprehensiveSEO = (
 		title,
 		description,
 		keywords: data.keywords || pageConfig.keywords || "",
-		url: data.url || `${config.site.url}/${pageType}`,
+		url:
+			data.url ||
+			(pageType === "home"
+				? config.site.url
+				: `${config.site.url}/${pageType}`),
 		type: pageConfig.type || "website",
 		image: data.image || config.site.logo,
 		imageWidth: 1200,

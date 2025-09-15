@@ -1,11 +1,11 @@
 {
-  "totalUrls": 1636,
-  "staticPages": 26,
+  "totalUrls": 1657,
+  "staticPages": 25,
   "publicCategories": 5,
-  "publicAds": 1509,
+  "publicAds": 1531,
   "publicBanners": 0,
-  "staticHtmlFiles": 1636,
-  "generatedAt": "2025-09-12T10:07:37.677Z",
+  "staticHtmlFiles": 1657,
+  "generatedAt": "2025-09-15T12:01:54.432Z",
   "baseUrl": "https://carboncube-ke.com",
   "apiUrl": "https://carboncube-ke.com",
   "note": "This sitemap is generated from public API endpoints (no authentication required). No fallback data used - only real API data. Static HTML files generated for social media crawlers."

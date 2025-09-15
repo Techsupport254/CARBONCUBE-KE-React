@@ -1,6 +1,11 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { generateComprehensiveSEO } from "../config/seoConfig";
+import {
+	generatePageSEO,
+	getCurrentPath,
+	shouldIndexPage,
+} from "../utils/seoUtils";
 
 // Comprehensive SEO Component for Carbon Cube Kenya
 const ComprehensiveSEO = ({
@@ -9,18 +14,38 @@ const ComprehensiveSEO = ({
 	customConfig = {},
 	children,
 }) => {
+	const currentPath = getCurrentPath();
 	const seoData = generateComprehensiveSEO(pageType, data, customConfig);
+
+	// Generate proper canonical URL and hreflang
+	const pageSEO = generatePageSEO(pageType, data, currentPath);
+
+	// Merge with existing SEO data
+	const finalSEOData = {
+		...seoData,
+		...pageSEO,
+		// Override with proper canonical URL
+		url: pageSEO.canonical,
+		// Override with proper hreflang links
+		alternateLocales: pageSEO.hreflang || seoData.alternateLocales,
+	};
+
+	// Check if page should be indexed
+	const shouldIndex = shouldIndexPage(currentPath);
 
 	return (
 		<Helmet>
-			<title>{seoData.title}</title>
+			<title>{finalSEOData.title}</title>
 
 			{/* Primary Meta Tags */}
-			<meta name="title" content={seoData.title} />
-			<meta name="description" content={seoData.description} />
-			<meta name="keywords" content={seoData.keywords} />
+			<meta name="title" content={finalSEOData.title} />
+			<meta name="description" content={finalSEOData.description} />
+			<meta name="keywords" content={finalSEOData.keywords} />
 			<meta name="author" content="Carbon Cube Kenya Team" />
-			<meta name="robots" content={seoData.robots} />
+			<meta
+				name="robots"
+				content={shouldIndex ? finalSEOData.robots : "noindex, nofollow"}
+			/>
 			<meta name="language" content="English" />
 			<meta name="geo.region" content="KE" />
 			<meta name="geo.placename" content="Kenya" />
@@ -39,11 +64,11 @@ const ComprehensiveSEO = ({
 			<meta name="referrer" content="strict-origin-when-cross-origin" />
 
 			{/* Open Graph Tags */}
-			<meta property="og:type" content={seoData.type} />
-			<meta property="og:url" content={seoData.url} />
-			<meta property="og:title" content={seoData.title} />
-			<meta property="og:description" content={seoData.description} />
-			<meta property="og:image" content={seoData.image} />
+			<meta property="og:type" content={finalSEOData.type} />
+			<meta property="og:url" content={finalSEOData.url} />
+			<meta property="og:title" content={finalSEOData.title} />
+			<meta property="og:description" content={finalSEOData.description} />
+			<meta property="og:image" content={finalSEOData.image} />
 			<meta property="og:site_name" content="Carbon Cube Kenya" />
 			<meta property="og:locale" content={seoData.locale} />
 			<meta property="og:updated_time" content={new Date().toISOString()} />
@@ -161,16 +186,17 @@ const ComprehensiveSEO = ({
 				})}
 
 			{/* Links */}
-			<link rel="canonical" href={seoData.url} />
+			<link rel="canonical" href={finalSEOData.url} />
 
 			{/* Alternate Language Links */}
-			{seoData.alternateLocales &&
-				seoData.alternateLocales.map((locale, index) => (
+			{finalSEOData.alternateLocales &&
+				Array.isArray(finalSEOData.alternateLocales) &&
+				finalSEOData.alternateLocales.map((locale, index) => (
 					<link
 						key={index}
-						rel="alternate"
-						hreflang={locale}
-						href={`${seoData.url}/${locale}`}
+						rel={locale.rel || "alternate"}
+						hreflang={locale.hreflang || locale}
+						href={locale.href || `${finalSEOData.url}/${locale}`}
 					/>
 				))}
 

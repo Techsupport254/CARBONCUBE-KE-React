@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	faUser,
+	faEnvelope,
+	faPhone,
+	faMapMarkerAlt,
+	faCalendarAlt,
+	faEdit,
+	faSave,
+	faTimes,
+	faKey,
+	faTrash,
+	faCamera,
+} from "@fortawesome/free-solid-svg-icons";
 
-import { formatDate } from "../utils/formatDate";
 import AlertModal from "../../components/AlertModal";
 import useSEO from "../../hooks/useSEO";
-import "../css/Profile.css";
 
 const ProfilePage = () => {
 	const [profile, setProfile] = useState({
@@ -18,7 +29,8 @@ const ProfilePage = () => {
 		gender: "",
 		location: "",
 		city: "",
-		birthdate: "",
+		created_at: null,
+		updated_at: null,
 	});
 
 	const [editMode, setEditMode] = useState(false);
@@ -41,14 +53,37 @@ const ProfilePage = () => {
 	});
 
 	const [passwordMatch, setPasswordMatch] = useState(true);
+	const [uploadingImage, setUploadingImage] = useState(false);
+
+	// Calculate profile completion percentage
+	const calculateProfileCompletion = () => {
+		const fields = [
+			profile.fullname,
+			profile.username,
+			profile.email,
+			profile.phone_number,
+			profile.gender,
+			profile.city,
+			profile.location,
+			profile.profile_picture,
+		];
+
+		const completedFields = fields.filter(
+			(field) => field && field.toString().trim() !== ""
+		).length;
+		return Math.round((completedFields / fields.length) * 100);
+	};
+
+	const profileCompletion = calculateProfileCompletion();
 
 	// Retrieve token from sessionStorage
 	const token = localStorage.getItem("token"); // Adjust the key to match your app
 
 	// SEO Implementation - Private user data, should not be indexed
 	useSEO({
-		title: "My Profile - Carbon Cube Kenya",
-		description: "Manage your profile information on Carbon Cube Kenya",
+		title: "My Profile Dashboard - Manage Account Settings | Carbon Cube Kenya",
+		description:
+			"Access and manage your personal profile information, account settings, and preferences on Carbon Cube Kenya. Update your contact details, shipping address, and account security settings in your secure buyer dashboard.",
 		keywords: "profile, account settings, Carbon Cube Kenya",
 		url: `${window.location.origin}/profile`,
 		customMetaTags: [
@@ -111,7 +146,7 @@ const ProfilePage = () => {
 	// Handle form submission to save updated profile
 	const handleSaveClick = () => {
 		if (!token) {
-			// console.error('No auth token found');
+			console.error("No auth token found");
 			return;
 		}
 
@@ -124,9 +159,40 @@ const ProfilePage = () => {
 			.then((response) => {
 				setProfile(response.data);
 				setEditMode(false);
+				// Show success message using AlertModal
+				setAlertModalMessage("Profile updated successfully!");
+				setAlertModalConfig({
+					icon: "success",
+					title: "Success",
+					confirmText: "OK",
+					cancelText: "",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
 			})
 			.catch((error) => {
-				// console.error('Error saving profile data:', error);
+				console.error("Error saving profile data:", error);
+				if (error.response) {
+					// Server responded with error status
+					setAlertModalMessage(
+						`Error: ${error.response.data.error || "Failed to update profile"}`
+					);
+				} else {
+					// Network or other error
+					setAlertModalMessage(
+						"Network error. Please check your connection and try again."
+					);
+				}
+				setAlertModalConfig({
+					icon: "error",
+					title: "Error",
+					confirmText: "OK",
+					cancelText: "",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
 			});
 	};
 
@@ -236,6 +302,92 @@ const ProfilePage = () => {
 		setShowAlertModal(true);
 	};
 
+	// Handle profile picture upload
+	const handleImageUpload = async (event) => {
+		const file = event.target.files[0];
+		if (!file) return;
+
+		// Validate file type
+		const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+		if (!allowedTypes.includes(file.type)) {
+			setAlertModalMessage(
+				"Please select a valid image file (JPEG, PNG, or WebP)."
+			);
+			setAlertModalConfig({
+				icon: "error",
+				title: "Invalid File Type",
+				confirmText: "OK",
+				cancelText: "",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
+			return;
+		}
+
+		// Validate file size (2MB max)
+		if (file.size > 2 * 1024 * 1024) {
+			setAlertModalMessage("Image size must be less than 2MB.");
+			setAlertModalConfig({
+				icon: "error",
+				title: "File Too Large",
+				confirmText: "OK",
+				cancelText: "",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
+			return;
+		}
+
+		setUploadingImage(true);
+
+		try {
+			const formData = new FormData();
+			formData.append("profile_picture", file);
+
+			const response = await axios.put(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/profile`,
+				formData,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "multipart/form-data",
+					},
+				}
+			);
+
+			setProfile(response.data);
+			setAlertModalMessage("Profile picture updated successfully!");
+			setAlertModalConfig({
+				icon: "success",
+				title: "Success",
+				confirmText: "OK",
+				cancelText: "",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
+		} catch (error) {
+			console.error("Error uploading profile picture:", error);
+			setAlertModalMessage(
+				error.response?.data?.error ||
+					"Failed to upload profile picture. Please try again."
+			);
+			setAlertModalConfig({
+				icon: "error",
+				title: "Upload Failed",
+				confirmText: "OK",
+				cancelText: "",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
+		} finally {
+			setUploadingImage(false);
+		}
+	};
+
 	// Toggle Modal
 	const toggleChangePasswordModal = () =>
 		setShowChangePasswordModal(!showChangePasswordModal);
@@ -243,333 +395,448 @@ const ProfilePage = () => {
 	return (
 		<>
 			<Navbar mode="buyer" showSearch={true} showCategories={true} />
-			<div className="profile-page">
-				<Container fluid className="p-0">
-					<Row>
-						<Col xs={12} md={9} className="p-2">
-							<div className="profile-container">
-								<Container>
-									<Row className="align-items-center text-center vertical-center d-flex mb-0">
-										{/* Left Side: Welcome Message and Date */}
-										<Col
-											xs={8}
-											md={6}
-											lg={6}
-											className="d-flex justify-content-start"
-										>
-											<div className="mt-4">
-												<h3>
-													Welcome,{" "}
-													<em className="text-primary">{profile.fullname}</em>
-												</h3>
-												<p>{new Date().toLocaleDateString()}</p>
-											</div>
-										</Col>
-
-										{/* Right Side: Profile Picture and Username */}
-										<Col
-											xs={4}
-											md={6}
-											lg={6}
-											className="d-flex justify-content-end"
-										>
-											<div className="text-right">
-												<img
-													src={profile.profile_picture}
-													alt="Profile"
-													className="profile-pic"
-												/>
-												<p>@{profile.username}</p>
-											</div>
-										</Col>
-									</Row>
-								</Container>
-								<div className="profile-info">
-									<Form>
-										{/* Bio Section */}
-										<Container className="mb-4">
-											<Row>
-												<Col className="justify-content-center">
-													<h4 className="section-heading text-center mb-0">
-														Bio
-													</h4>
-													<hr />
-												</Col>
-											</Row>
-											<Row>
-												<Col md={6}>
-													<Form.Group controlId="formFullName">
-														<Form.Label>Full Name</Form.Label>
-														<Form.Control
-															type="text"
-															name="fullname"
-															value={profile.fullname}
-															onChange={handleChange}
-															disabled={editMode}
-														/>
-													</Form.Group>
-												</Col>
-												<Col md={6}>
-													<Form.Group controlId="formGender">
-														<Form.Label>Gender</Form.Label>
-														<Form.Control
-															as="select"
-															name="gender"
-															value={profile.gender}
-															onChange={handleChange}
-															disabled={editMode}
-														>
-															<option value="Male">Male</option>
-															<option value="Female">Female</option>
-															<option value="Other">Other</option>
-														</Form.Control>
-													</Form.Group>
-												</Col>
-											</Row>
-
-											<Row>
-												<Col md={6}>
-													<Form.Group controlId="formBirthDate">
-														<Form.Label>Birth Date</Form.Label>
-														<Form.Control
-															type="date"
-															name="birthdate"
-															value={formatDate(profile.birthdate) || ""} // Format birthdate to YYYY-MM-DD
-															onChange={handleChange}
-															disabled={editMode}
-														/>
-													</Form.Group>
-												</Col>
-												<Col md={6}>
-													<Form.Group controlId="formUsername">
-														<Form.Label>Username</Form.Label>
-														<Form.Control
-															type="text"
-															name="username"
-															value={profile.username}
-															onChange={handleChange}
-															disabled={editMode}
-														/>
-													</Form.Group>
-												</Col>
-											</Row>
-										</Container>
-
-										{/* Contact Information Section */}
-										<Container>
-											<Row>
-												<Col className="justify-content-center">
-													<h4 className="section-heading text-center">
-														Contact Information
-													</h4>
-													<hr />
-												</Col>
-											</Row>
-
-											<Row>
-												<Col md={6}>
-													<Form.Group controlId="formEmail">
-														<Form.Label>Email</Form.Label>
-														<Form.Control
-															type="email"
-															name="email"
-															value={profile.email}
-															onChange={handleChange}
-															disabled={!editMode}
-														/>
-													</Form.Group>
-												</Col>
-												<Col md={6}>
-													<Form.Group controlId="formPhoneNumber">
-														<Form.Label>Phone Number</Form.Label>
-														<Form.Control
-															type="text"
-															name="phone_number"
-															value={profile.phone_number}
-															onChange={handleChange}
-															disabled={!editMode}
-														/>
-													</Form.Group>
-												</Col>
-											</Row>
-
-											<Row>
-												<Col md={6}>
-													<Form.Group controlId="formAddress">
-														<Form.Label>Physical Address</Form.Label>
-														<Form.Control
-															type="text"
-															name="location"
-															value={profile.location}
-															onChange={handleChange}
-															disabled={!editMode}
-														/>
-													</Form.Group>
-												</Col>
-												<Col md={6}>
-													<Form.Group controlId="formCity">
-														<Form.Label>City</Form.Label>
-														<Form.Control
-															type="text"
-															name="city"
-															value={profile.city}
-															onChange={handleChange}
-															disabled={!editMode}
-														/>
-													</Form.Group>
-												</Col>
-											</Row>
-
-											<Row>
-												<Col md={6}>
-													<Form.Group controlId="formZipCode">
-														<Form.Label>Zip Code (Optional)</Form.Label>
-														<Form.Control
-															type="text"
-															name="zipcode"
-															value={profile.zipcode}
-															onChange={handleChange}
-															disabled={!editMode}
-														/>
-													</Form.Group>
-												</Col>
-												<Col md={6}></Col>
-											</Row>
-
-											{/* Buttons Section */}
-											<Row className="button-row d-flex justify-content-between align-items-center">
-												<Col md={4} className="d-flex justify-content-start">
-													<Button
-														variant="warning"
-														id="button"
-														onClick={handleEditClick}
-													>
-														{editMode ? "Cancel" : "Edit"}
-													</Button>
-												</Col>
-												<Col md={4} className="d-flex justify-content-center">
-													<Button
-														variant="info"
-														id="button"
-														onClick={toggleChangePasswordModal}
-													>
-														Change Password
-													</Button>
-												</Col>
-												<Col md={4} className="d-flex justify-content-end">
-													{editMode && (
-														<Button
-															variant="success"
-															id="button"
-															onClick={handleSaveClick}
-															className="me-2"
-														>
-															Save
-														</Button>
-													)}
-													<Button
-														variant="danger"
-														id="button"
-														className="ml-2"
-														onClick={handleDeleteAccount}
-													>
-														Delete Account
-													</Button>
-												</Col>
-											</Row>
-										</Container>
-									</Form>
-
-									<AlertModal
-										isVisible={showAlertModal}
-										message={alertModalMessage}
-										onClose={() => setShowAlertModal(false)}
-										icon={alertModalConfig.icon}
-										title={alertModalConfig.title}
-										confirmText={alertModalConfig.confirmText}
-										cancelText={alertModalConfig.cancelText}
-										showCancel={alertModalConfig.showCancel}
-										onConfirm={alertModalConfig.onConfirm}
-									/>
+			<div className="min-h-screen bg-gray-50">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+					{/* Header Section */}
+					<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+						<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+							<div className="flex items-center space-x-4 mb-4 sm:mb-0">
+								<div className="relative">
+									{profile.profile_picture ? (
+										<img
+											src={profile.profile_picture}
+											alt="Profile"
+											className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200"
+										/>
+									) : (
+										<div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-300 border-2 border-gray-200 flex items-center justify-center">
+											<span className="text-gray-600 font-semibold text-lg sm:text-xl">
+												{profile.fullname
+													? profile.fullname
+															.split(" ")
+															.map((n) => n[0])
+															.join("")
+															.toUpperCase()
+															.slice(0, 2)
+													: profile.username
+													? profile.username.slice(0, 2).toUpperCase()
+													: "U"}
+											</span>
+										</div>
+									)}
+									<label className="absolute -bottom-0.5 -right-0.5 bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-yellow-600 transition-colors shadow-sm border-2 border-white cursor-pointer">
+										<FontAwesomeIcon icon={faCamera} className="w-2.5 h-2.5" />
+										<input
+											type="file"
+											accept="image/*"
+											onChange={handleImageUpload}
+											className="hidden"
+											disabled={uploadingImage}
+										/>
+									</label>
+								</div>
+								<div>
+									<h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+										Welcome, {profile.fullname || "User"}
+									</h1>
+									<p className="text-sm text-gray-500">@{profile.username}</p>
+									<p className="text-xs text-gray-400">
+										{new Date().toLocaleDateString()}
+									</p>
 								</div>
 							</div>
-						</Col>
-					</Row>
-				</Container>
-				{/* Change Password Modal */}
-				<Modal
-					centered
-					show={showChangePasswordModal}
-					onHide={toggleChangePasswordModal}
-				>
-					<Modal.Header>
-						<Modal.Title>Change Password</Modal.Title>
-					</Modal.Header>
-					<Modal.Body>
-						<Form>
-							<Form.Group controlId="formCurrentPassword">
-								<Form.Label>
-									<strong>Current Password</strong>
-								</Form.Label>
-								<Form.Control
-									type="password"
-									name="currentPassword"
-									value={passwordData.currentPassword}
-									onChange={(e) =>
-										setPasswordData({
-											...passwordData,
-											currentPassword: e.target.value,
-										})
-									}
-								/>
-							</Form.Group>
-							<Form.Group controlId="formNewPassword">
-								<Form.Label>
-									<strong>New Password</strong>
-								</Form.Label>
-								<Form.Control
-									type="password"
-									name="newPassword"
-									value={passwordData.newPassword}
-									onChange={(e) =>
-										setPasswordData({
-											...passwordData,
-											newPassword: e.target.value,
-										})
-									}
-								/>
-							</Form.Group>
-							<Form.Group controlId="formConfirmPassword">
-								<Form.Label>
-									<strong>Confirm New Password</strong>
-								</Form.Label>
-								<Form.Control
-									type="password"
-									name="confirmPassword"
-									value={passwordData.confirmPassword}
-									onChange={handleConfirmPasswordChange}
-								/>
-								{!passwordMatch && (
-									<Form.Text className="text-danger">
-										New password and confirm password do not match.
-									</Form.Text>
+							<div className="flex space-x-2">
+								<button
+									onClick={handleEditClick}
+									className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+										editMode
+											? "bg-gray-500 text-white hover:bg-gray-600"
+											: "bg-yellow-500 text-black hover:bg-yellow-600"
+									}`}
+								>
+									<FontAwesomeIcon
+										icon={editMode ? faTimes : faEdit}
+										className="mr-2"
+									/>
+									{editMode ? "Cancel" : "Edit Profile"}
+								</button>
+								{editMode && (
+									<button
+										onClick={handleSaveClick}
+										className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+									>
+										<FontAwesomeIcon icon={faSave} className="mr-2" />
+										Save Changes
+									</button>
 								)}
-							</Form.Group>
-						</Form>
-					</Modal.Body>
-					<Modal.Footer>
-						<Button variant="danger" onClick={toggleChangePasswordModal}>
-							Close
-						</Button>
-						<Button
-							variant="warning"
-							onClick={handlePasswordChange}
-							disabled={!passwordMatch} // Disable save if passwords do not match
-						>
-							Save Password
-						</Button>
-					</Modal.Footer>
-				</Modal>
+							</div>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						{/* Personal Information */}
+						<div className="lg:col-span-2">
+							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+								<div className="flex items-center mb-4">
+									<FontAwesomeIcon
+										icon={faUser}
+										className="w-5 h-5 text-gray-500 mr-2"
+									/>
+									<h2 className="text-lg font-semibold text-gray-900">
+										Personal Information
+									</h2>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Full Name
+										</label>
+										<input
+											type="text"
+											name="fullname"
+											value={profile.fullname}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Username
+										</label>
+										<input
+											type="text"
+											name="username"
+											value={profile.username}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Gender
+										</label>
+										<select
+											name="gender"
+											value={profile.gender}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										>
+											<option value="">Select Gender</option>
+											<option value="Male">Male</option>
+											<option value="Female">Female</option>
+											<option value="Other">Other</option>
+										</select>
+									</div>
+								</div>
+							</div>
+
+							{/* Contact Information */}
+							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+								<div className="flex items-center mb-4">
+									<FontAwesomeIcon
+										icon={faEnvelope}
+										className="w-5 h-5 text-gray-500 mr-2"
+									/>
+									<h2 className="text-lg font-semibold text-gray-900">
+										Contact Information
+									</h2>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Email Address
+										</label>
+										<input
+											type="email"
+											name="email"
+											value={profile.email}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Phone Number
+										</label>
+										<input
+											type="tel"
+											name="phone_number"
+											value={profile.phone_number}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Physical Address
+										</label>
+										<input
+											type="text"
+											name="location"
+											value={profile.location || ""}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											City
+										</label>
+										<input
+											type="text"
+											name="city"
+											value={profile.city}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Zip Code (Optional)
+										</label>
+										<input
+											type="text"
+											name="zipcode"
+											value={profile.zipcode || ""}
+											onChange={handleChange}
+											disabled={!editMode}
+											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Account Actions */}
+						<div className="lg:col-span-1">
+							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+								<h2 className="text-lg font-semibold text-gray-900 mb-4">
+									Account Actions
+								</h2>
+								<div className="space-y-3">
+									<button
+										onClick={toggleChangePasswordModal}
+										className="w-full flex items-center justify-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+									>
+										<FontAwesomeIcon icon={faKey} className="mr-2" />
+										Change Password
+									</button>
+									<button
+										onClick={handleDeleteAccount}
+										className="w-full flex items-center justify-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+									>
+										<FontAwesomeIcon icon={faTrash} className="mr-2" />
+										Delete Account
+									</button>
+								</div>
+							</div>
+
+							{/* Account Stats */}
+							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+								<h2 className="text-lg font-semibold text-gray-900 mb-4">
+									Account Statistics
+								</h2>
+
+								{/* Profile Completion */}
+								<div className="mb-4">
+									<div className="flex justify-between items-center mb-2">
+										<span className="text-sm text-gray-600">
+											Profile Completion
+										</span>
+										<span className="text-sm font-medium text-gray-900">
+											{profileCompletion}%
+										</span>
+									</div>
+									<div className="w-full bg-gray-200 rounded-full h-2">
+										<div
+											className={`h-2 rounded-full transition-all duration-300 ${
+												profileCompletion >= 80
+													? "bg-green-500"
+													: profileCompletion >= 60
+													? "bg-yellow-500"
+													: "bg-red-500"
+											}`}
+											style={{ width: `${profileCompletion}%` }}
+										></div>
+									</div>
+								</div>
+
+								<div className="space-y-3">
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-gray-600">Member Since</span>
+										<span className="text-sm font-medium text-gray-900">
+											{profile.created_at
+												? new Date(profile.created_at)
+														.toLocaleDateString("en-GB", {
+															day: "numeric",
+															month: "long",
+															year: "numeric",
+														})
+														.replace(/(\d+)/, (match) => {
+															const day = parseInt(match);
+															const suffix =
+																day === 1 || day === 21 || day === 31
+																	? "st"
+																	: day === 2 || day === 22
+																	? "nd"
+																	: day === 3 || day === 23
+																	? "rd"
+																	: "th";
+															return day + suffix;
+														})
+												: "N/A"}
+										</span>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-gray-600">Last Updated</span>
+										<span className="text-sm font-medium text-gray-900">
+											{profile.updated_at
+												? new Date(profile.updated_at)
+														.toLocaleDateString("en-GB", {
+															day: "numeric",
+															month: "long",
+															year: "numeric",
+														})
+														.replace(/(\d+)/, (match) => {
+															const day = parseInt(match);
+															const suffix =
+																day === 1 || day === 21 || day === 31
+																	? "st"
+																	: day === 2 || day === 22
+																	? "nd"
+																	: day === 3 || day === 23
+																	? "rd"
+																	: "th";
+															return day + suffix;
+														})
+												: "N/A"}
+										</span>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-gray-600">
+											Profile Status
+										</span>
+										<span className="text-sm font-medium text-green-600">
+											Active
+										</span>
+									</div>
+									<div className="flex justify-between items-center">
+										<span className="text-sm text-gray-600">Account Type</span>
+										<span className="text-sm font-medium text-gray-900">
+											Buyer
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<AlertModal
+						isVisible={showAlertModal}
+						message={alertModalMessage}
+						onClose={() => setShowAlertModal(false)}
+						icon={alertModalConfig.icon}
+						title={alertModalConfig.title}
+						confirmText={alertModalConfig.confirmText}
+						cancelText={alertModalConfig.cancelText}
+						showCancel={alertModalConfig.showCancel}
+						onConfirm={alertModalConfig.onConfirm}
+					/>
+				</div>
+
+				{/* Change Password Modal */}
+				{showChangePasswordModal && (
+					<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+						<div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-lg font-semibold text-gray-900">
+									Change Password
+								</h3>
+								<button
+									onClick={toggleChangePasswordModal}
+									className="text-gray-400 hover:text-gray-600"
+								>
+									<FontAwesomeIcon icon={faTimes} />
+								</button>
+							</div>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Current Password
+									</label>
+									<input
+										type="password"
+										name="currentPassword"
+										value={passwordData.currentPassword}
+										onChange={(e) =>
+											setPasswordData({
+												...passwordData,
+												currentPassword: e.target.value,
+											})
+										}
+										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+									/>
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										New Password
+									</label>
+									<input
+										type="password"
+										name="newPassword"
+										value={passwordData.newPassword}
+										onChange={(e) =>
+											setPasswordData({
+												...passwordData,
+												newPassword: e.target.value,
+											})
+										}
+										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+									/>
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Confirm New Password
+									</label>
+									<input
+										type="password"
+										name="confirmPassword"
+										value={passwordData.confirmPassword}
+										onChange={handleConfirmPasswordChange}
+										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+									/>
+									{!passwordMatch && (
+										<p className="text-red-500 text-sm mt-1">
+											New password and confirm password do not match.
+										</p>
+									)}
+								</div>
+							</div>
+							<div className="flex space-x-3 mt-6">
+								<button
+									onClick={toggleChangePasswordModal}
+									className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+								>
+									Cancel
+								</button>
+								<button
+									onClick={handlePasswordChange}
+									disabled={!passwordMatch}
+									className="flex-1 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+								>
+									Save Password
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 		</>
 	);
