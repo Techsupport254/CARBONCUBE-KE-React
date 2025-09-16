@@ -1020,127 +1020,32 @@ ${urlsetClose}`;
 
 // Generate robots.txt
 function generateRobotsTxt() {
-	const currentDate = new Date().toISOString().split("T")[0];
-	return `# Carbon Cube Kenya - Robots.txt
-# Generated on ${currentDate}
-
-# ==== ALLOW ALL SEARCH ENGINES ====
+	return `# *
 User-agent: *
-# ==== BLOCK PRIVATE/SENSITIVE AREAS ====
-# Admin areas - completely block from all crawlers
-Disallow: /admin/
-Disallow: /admin/*
-# User authentication and account areas
-Disallow: /auth/
-Disallow: /auth/*
-# Private seller areas
-Disallow: /seller/
-Disallow: /seller/*
-Allow: /seller-signup
-Allow: /seller/tiers
-# Private buyer areas
-Disallow: /buyer/
-Disallow: /buyer/*
-Allow: /buyer-signup
-# Private rider areas
-Disallow: /rider/
-Disallow: /rider/*
-# API endpoints (prevent indexing of raw JSON)
-Disallow: /api/
-Disallow: /api/*
-# Payment and transaction pages
-Disallow: /payments/
-Disallow: /payments/*
-# Search tracking and analytics
-Disallow: /ad_searches
-Disallow: /click_events
-# WebSocket connections
-Disallow: /cable
-Disallow: /cable/*
-# Development and health check endpoints
-Disallow: /up
-Disallow: /rails/
+Allow: /
 
-# ==== ALLOW PUBLIC AREAS ====
-# Public product listings
-Allow: /ads
-Allow: /ads/*
-# Public categories and navigation
-Allow: /categories
-Allow: /categories/*
-Allow: /subcategories
-Allow: /subcategories/*
-# Public information pages
-Allow: /banners
-Allow: /counties
-Allow: /age_groups
-Allow: /incomes
-Allow: /sectors
-Allow: /educations
-Allow: /employments
-Allow: /tiers
-Allow: /document_types
-
-# ==== CRAWL DELAY ====
-# Prevent aggressive crawling that could slow down your site
-Crawl-delay: 1
-
-# ==== SITEMAP LOCATION ====
-# Point crawlers to your sitemap
-Sitemap: ${SITE_BASE_URL}/sitemap.xml
-
-# ==== SPECIFIC SEARCH ENGINE RULES ====
-# Google Bot - allow more frequent crawling
+# Googlebot
 User-agent: Googlebot
-Crawl-delay: 1
-Allow: /ads
-Allow: /ads/*
-Allow: /categories
-Allow: /categories/*
-Allow: /subcategories
-Allow: /subcategories/*
-Disallow: /admin/
-Disallow: /seller/
-Disallow: /buyer/
-Disallow: /rider/
-Disallow: /auth/
-Disallow: /api/
+Allow: /*.xml$
+Allow: /*.txt$
 
-# Bing Bot
+# Bingbot
 User-agent: Bingbot
-Crawl-delay: 2
-Allow: /ads
-Allow: /ads/*
-Allow: /categories
-Allow: /categories/*
-Allow: /subcategories
-Allow: /subcategories/*
-Disallow: /admin/
-Disallow: /seller/
-Disallow: /buyer/
-Disallow: /rider/
-Disallow: /auth/
-Disallow: /api/
+Allow: /*.xml$
+Allow: /*.txt$
+Crawl-delay: 1
 
-# Block aggressive crawlers that might harm performance
-User-agent: AhrefsBot
-Disallow: /
-User-agent: SemrushBot
-Disallow: /
-User-agent: MJ12bot
-Disallow: /
-User-agent: DotBot
-Disallow: /
-User-agent: BLEXBot
-Disallow: /
+# Slurp
+User-agent: Slurp
+Allow: /*.xml$
+Allow: /*.txt$
+Crawl-delay: 1
 
-# ==== NOTES ====
-# 1. Place this file at: public/robots.txt
-# 2. Test at: ${SITE_BASE_URL}/robots.txt
-# 3. Submit to Google Search Console
-# 4. Create and submit sitemap.xml
-# 5. Monitor crawl errors in search console
-# 6. Update sitemap regularly for dynamic content
+# Host
+Host: ${SITE_BASE_URL}
+
+# Sitemaps
+Sitemap: ${SITE_BASE_URL}/sitemap.xml
 `;
 }
 
