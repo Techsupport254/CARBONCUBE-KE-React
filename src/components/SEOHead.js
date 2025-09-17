@@ -76,6 +76,12 @@ const SEOHead = ({
 			{/* Canonical URL */}
 			<link rel="canonical" href={canonical || url} />
 
+			{/* Facebook Domain Verification */}
+			<meta
+				name="facebook-domain-verification"
+				content="rbz3s6fs7rgfzogbpirpgo2249io0s"
+			/>
+
 			{/* Structured Data */}
 			{structuredData && (
 				<script type="application/ld+json">

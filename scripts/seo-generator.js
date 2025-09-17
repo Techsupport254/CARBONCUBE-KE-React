@@ -364,6 +364,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 		<meta name="referrer" content="strict-origin-when-cross-origin" />
 		<meta name="googlebot" content="index, follow" />
 		<meta name="bingbot" content="index, follow" />
+		
+		<!-- Facebook Domain Verification -->
+		<meta name="facebook-domain-verification" content="rbz3s6fs7rgfzogbpirpgo2249io0s" />
 
 		<!-- Canonical URL -->
 		<link rel="canonical" href="{{canonicalUrl}}" />
