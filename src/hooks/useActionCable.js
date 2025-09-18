@@ -25,13 +25,27 @@ class WebSocketConnectionManager {
 			return this.connections.get(key);
 		}
 
+		// Validate token format before creating connection
+		if (!token || typeof token !== "string") {
+			console.warn("Invalid token for WebSocket connection");
+			return null;
+		}
+
+		const parts = token.split(".");
+		if (parts.length !== 3 || !parts.every((part) => part.length > 0)) {
+			console.warn("Invalid token format for WebSocket connection");
+			return null;
+		}
+
 		// Create new connection with authentication
-		const consumer = createConsumer(`${wsUrl}/cable`, {
+		// Note: ActionCable doesn't support headers, so we pass token as query parameter
+		const cableUrl = token
+			? `${wsUrl}/cable?token=${encodeURIComponent(token)}`
+			: `${wsUrl}/cable`;
+
+		const consumer = createConsumer(cableUrl, {
 			timeout: 30000,
 			reconnect: false,
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
 		});
 
 		this.connections.set(key, consumer);
@@ -111,7 +125,7 @@ const useActionCable = (
 
 				// Use the new WebSocket URL
 				const wsUrl =
-					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3001";
 
 				// Get JWT token for authentication
 				const token = localStorage.getItem("token");

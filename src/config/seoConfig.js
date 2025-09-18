@@ -37,12 +37,7 @@ export const SEO_CONFIG = {
 
 	// Performance optimization settings
 	performance: {
-		preloadFonts: [
-			{
-				url: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-				type: "font/woff2",
-			},
-		],
+		preloadFonts: [], // Removed to prevent preload warnings
 		preloadImages: [],
 		dnsPrefetch: [
 			"https://fonts.googleapis.com",

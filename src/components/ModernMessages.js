@@ -15,6 +15,9 @@ import {
 	faWifiSlash,
 	faExclamationTriangle,
 	faEllipsisH,
+	faCheck,
+	faCheckDouble,
+	faClock,
 } from "@fortawesome/free-solid-svg-icons";
 
 const ModernMessages = ({
@@ -328,32 +331,37 @@ const ModernMessages = ({
 										<div className="flex items-center space-x-1">
 											{message.status === "sending" && (
 												<FontAwesomeIcon
-													icon={faCircle}
-													className="w-2 h-2 text-yellow-300"
+													icon={faClock}
+													className="w-3 h-3 text-gray-400 animate-pulse"
+													title="Sending..."
 												/>
 											)}
 											{message.status === "sent" && (
 												<FontAwesomeIcon
-													icon={faCircle}
-													className="w-2 h-2 text-green-300"
+													icon={faCheck}
+													className="w-3 h-3 text-gray-400"
+													title="Sent"
+												/>
+											)}
+											{message.status === "delivered" && (
+												<FontAwesomeIcon
+													icon={faCheckDouble}
+													className="w-3 h-3 text-gray-400"
+													title="Delivered"
 												/>
 											)}
 											{message.status === "read" && (
-												<div className="flex space-x-1">
-													<FontAwesomeIcon
-														icon={faCircle}
-														className="w-2 h-2 text-green-300"
-													/>
-													<FontAwesomeIcon
-														icon={faCircle}
-														className="w-2 h-2 text-green-300"
-													/>
-												</div>
+												<FontAwesomeIcon
+													icon={faCheckDouble}
+													className="w-3 h-3 text-yellow-500"
+													title="Read"
+												/>
 											)}
 											{message.status === "failed" && (
 												<FontAwesomeIcon
 													icon={faExclamationTriangle}
-													className="w-2 h-2 text-red-300"
+													className="w-3 h-3 text-red-500"
+													title="Failed"
 												/>
 											)}
 										</div>

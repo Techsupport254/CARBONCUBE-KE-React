@@ -27,7 +27,8 @@ import {
 import { CircleLoader } from "react-spinners";
 import apiService from "../services/apiService";
 import useAuth from "../hooks/useAuth";
-import { cleanupOnLogout, clearAuthData } from "../utils/logoutUtils";
+import tokenService from "../services/tokenService";
+import { cleanupOnLogout } from "../utils/logoutUtils";
 
 // Custom hook for click outside
 const useClickOutside = (ref, handler, excludeRefs = []) => {
@@ -87,10 +88,18 @@ const Navbar = ({
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const [wishlistCount, setWishlistCount] = useState(0);
 	const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+	const [connectionStatus, setConnectionStatus] = useState("disconnected");
 
 	// Authentication state using custom hook
-	const { isAuthenticated, userRole, userName, userUsername, userEmail } =
-		useAuth();
+	const {
+		isAuthenticated,
+		userRole,
+		userName,
+		userUsername,
+		userEmail,
+		userProfilePicture,
+		logout,
+	} = useAuth();
 
 	// Ref to debounce dropdown selections
 	const dropdownDebounceRef = useRef(null);
@@ -99,44 +108,75 @@ const Navbar = ({
 	// Ref to debounce search input
 	const searchDebounceRef = useRef(null);
 
-	// Listen for new messages in real-time
-	const handleNewMessage = useCallback((data) => {
-		// Dispatch a custom event to refresh unread count
-		window.dispatchEvent(new CustomEvent("newMessage"));
-	}, []);
+	// Ref to debounce unread count fetching
+	const lastUnreadCountFetchRef = useRef(0);
 
 	// Get user ID from token for real-time messaging
 	const getUserId = useCallback(() => {
-		const token = localStorage.getItem("token");
+		const token = tokenService.getToken();
 		if (token) {
-			try {
-				// Check if token has the correct JWT format (3 parts separated by dots)
-				const parts = token.split(".");
-				if (parts.length !== 3) {
-					// Silently handle invalid JWT token format
-					return null;
-				}
-
-				const payload = JSON.parse(atob(parts[1]));
-				const userId =
-					payload.seller_id ||
-					payload.buyer_id ||
-					payload.user_id ||
-					payload.id;
-				return userId;
-			} catch (error) {
-				// Silently handle token decode errors
-				return null;
-			}
+			const user = tokenService.getUserFromToken(token);
+			return user?.id || null;
 		}
 		return null;
+	}, []);
+
+	const fetchUnreadMessageCount = useCallback(async () => {
+		if (!isAuthenticated || !userRole) return;
+
+		// Debounce: Only fetch if it's been more than 2 seconds since last fetch
+		const now = Date.now();
+		if (now - lastUnreadCountFetchRef.current < 2000) {
+			// Skipping unread count fetch (debounced)
+			return;
+		}
+		lastUnreadCountFetchRef.current = now;
+
+		try {
+			// Fetching unread message count
+			const response = await apiService.getUnreadMessageCount();
+			const count = response.count || 0;
+			// Unread message count updated
+			setUnreadMessageCount(count);
+		} catch (error) {
+			console.error("Navbar: Error fetching unread message count:", error);
+		}
+	}, [isAuthenticated, userRole]);
+
+	// Function to refresh unread message count (can be called from other components)
+	const refreshUnreadMessageCount = useCallback(() => {
+		if (isAuthenticated && userRole) {
+			fetchUnreadMessageCount();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isAuthenticated, userRole]); // fetchUnreadMessageCount intentionally excluded to prevent loops
+
+	// Listen for new messages in real-time
+	const handleNewMessage = useCallback(
+		(data) => {
+			// New message received
+			// Triggering unread count refresh
+			// Dispatch a custom event to refresh unread count
+			window.dispatchEvent(new CustomEvent("newMessage"));
+			// Note: Removed direct refreshUnreadMessageCount call to prevent double triggers
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[] // No dependencies to prevent recreation
+	);
+
+	// Connection status callback
+	const handleConnectionStatus = useCallback((status) => {
+		// Connection status changed
+		// Setting connection status to:
+		setConnectionStatus(status);
 	}, []);
 
 	// Use the new message listener hook
 	useNewMessageListener(
 		userRole,
 		isAuthenticated ? getUserId() : null,
-		handleNewMessage
+		handleNewMessage,
+		handleConnectionStatus
 	);
 
 	// Refs for click outside functionality
@@ -180,47 +220,10 @@ const Navbar = ({
 		if (!isAuthenticated || userRole !== "buyer") return;
 
 		try {
-			const token = localStorage.getItem("token");
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/wish_lists/count`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				setWishlistCount(data.count || 0);
-			}
+			const response = await apiService.getWishlistCount();
+			setWishlistCount(response.count || 0);
 		} catch (error) {
 			// Silently handle wishlist count errors
-		}
-	}, [isAuthenticated, userRole]);
-
-	const fetchUnreadMessageCount = useCallback(async () => {
-		if (!isAuthenticated || !userRole) return;
-
-		try {
-			const token = localStorage.getItem("token");
-			// Use unified endpoint instead of role-specific endpoints
-			const apiUrl = `${process.env.REACT_APP_BACKEND_URL}/conversations/unread_count`;
-
-			const response = await fetch(apiUrl, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			if (response.ok) {
-				const data = await response.json();
-				setUnreadMessageCount(data.count || 0);
-			} else {
-				// Silently handle unread count fetch errors
-			}
-		} catch (error) {
-			// Silently handle unread message count errors
 		}
 	}, [isAuthenticated, userRole]);
 
@@ -233,20 +236,32 @@ const Navbar = ({
 		}
 	}, [isAuthenticated, userRole, fetchWishlistCount]);
 
-	// Function to refresh unread message count (can be called from other components)
-	const refreshUnreadMessageCount = useCallback(() => {
-		if (isAuthenticated && userRole) {
-			fetchUnreadMessageCount();
-		}
-	}, [isAuthenticated, userRole, fetchUnreadMessageCount]);
-
-	// Expose refresh function to window for debugging
+	// Listen for unread count updates from WebSocket
 	useEffect(() => {
-		window.refreshUnreadCount = refreshUnreadMessageCount;
-		return () => {
-			delete window.refreshUnreadCount;
+		const handleUnreadCountUpdate = (event) => {
+			// Received unread count update
+			setUnreadMessageCount(event.detail.unread_count);
 		};
-	}, [refreshUnreadMessageCount]);
+
+		window.addEventListener("unreadCountUpdate", handleUnreadCountUpdate);
+		return () => {
+			window.removeEventListener("unreadCountUpdate", handleUnreadCountUpdate);
+		};
+	}, []);
+
+	// Listen for new messages to refresh unread count
+	useEffect(() => {
+		const handleNewMessageEvent = () => {
+			// Received newMessage event, refreshing unread count
+			refreshUnreadMessageCount();
+		};
+
+		window.addEventListener("newMessage", handleNewMessageEvent);
+		return () => {
+			window.removeEventListener("newMessage", handleNewMessageEvent);
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // refreshUnreadMessageCount intentionally excluded to prevent loops
 
 	// Fetch unread message count when user logs in
 	useEffect(() => {
@@ -255,7 +270,8 @@ const Navbar = ({
 		} else {
 			setUnreadMessageCount(0);
 		}
-	}, [isAuthenticated, userRole, fetchUnreadMessageCount]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isAuthenticated, userRole]); // fetchUnreadMessageCount intentionally excluded to prevent loops
 
 	// Cleanup effect to clear debounce timeouts on unmount
 	useEffect(() => {
@@ -269,6 +285,8 @@ const Navbar = ({
 				searchDebounceRef.current = null;
 			}
 			isDropdownProcessingRef.current = false;
+			// Reset unread count fetch timer
+			lastUnreadCountFetchRef.current = 0;
 		};
 	}, []);
 
@@ -435,9 +453,11 @@ const Navbar = ({
 			onLogout();
 		}
 
+		// Use the logout function from useAuth hook
+		logout();
+
 		// Perform comprehensive cleanup
 		cleanupOnLogout();
-		clearAuthData();
 
 		// Dispatch custom logout event for other components
 		window.dispatchEvent(new CustomEvent("userLogout"));
@@ -581,6 +601,53 @@ const Navbar = ({
 
 		// If it's a username (single word), use first two characters
 		return displayName.substring(0, 2).toUpperCase();
+	};
+
+	const renderUserAvatar = (size = "w-8 h-8", textSize = "text-sm") => {
+		if (!isAuthenticated) {
+			return (
+				<div
+					className={`${size} bg-gray-500 rounded-full flex items-center justify-center text-white font-semibold ${textSize}`}
+				>
+					G
+				</div>
+			);
+		}
+
+		// If user has a profile picture, use it
+		if (userProfilePicture) {
+			return (
+				<div className="relative">
+					<img
+						src={userProfilePicture}
+						alt={`${userName || userUsername || "User"}'s profile`}
+						className={`${size} rounded-full object-cover border-2 border-yellow-500`}
+						onError={(e) => {
+							// Hide image and show fallback
+							e.target.style.display = "none";
+							const fallback = e.target.nextElementSibling;
+							if (fallback) {
+								fallback.style.display = "flex";
+							}
+						}}
+					/>
+					<div
+						className={`${size} bg-yellow-500 rounded-full flex items-center justify-center text-gray-900 font-semibold ${textSize} hidden`}
+					>
+						{getUserInitials()}
+					</div>
+				</div>
+			);
+		}
+
+		// Fallback to initials
+		return (
+			<div
+				className={`${size} bg-yellow-500 rounded-full flex items-center justify-center text-gray-900 font-semibold ${textSize}`}
+			>
+				{getUserInitials()}
+			</div>
+		);
 	};
 
 	const renderSearchBar = () => {
@@ -737,9 +804,7 @@ const Navbar = ({
 					aria-label="User menu"
 				>
 					{/* User Avatar */}
-					<div className="flex-shrink-0 w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-gray-900 font-semibold text-sm">
-						{getUserInitials()}
-					</div>
+					{renderUserAvatar("w-8 h-8", "text-sm")}
 					<div className="hidden lg:block text-left">
 						<div className="text-xs xl:text-sm font-medium leading-tight">
 							{getDisplayName()}
@@ -760,9 +825,7 @@ const Navbar = ({
 						{isAuthenticated && (
 							<div className="px-3 sm:px-4 py-3 border-b border-gray-200">
 								<div className="flex items-center space-x-3">
-									<div className="flex-shrink-0 w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-gray-900 font-semibold text-sm">
-										{getUserInitials()}
-									</div>
+									{renderUserAvatar("w-10 h-10", "text-sm")}
 									<div className="flex-1 min-w-0">
 										<div className="text-sm font-medium text-gray-900 truncate">
 											{getFullDisplayName()}

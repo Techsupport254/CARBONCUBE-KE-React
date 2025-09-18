@@ -7,12 +7,11 @@ import {
 	faArrowLeft,
 	faImage,
 	faPaperPlane,
-	faCheck,
-	faCheckDouble,
 	faClock,
 	faTimes,
 	faEye,
 } from "@fortawesome/free-solid-svg-icons";
+import { IoCheckmark, IoCheckmarkDone } from "react-icons/io5";
 import Spinner from "react-spinkit";
 import useActionCable from "../hooks/useActionCable";
 import usePresence from "../hooks/usePresence";
@@ -147,19 +146,18 @@ const formatTime = (timestamp) => {
 	}
 };
 
-const getMessageStatusIcon = (messageId, messageStatuses) => {
-	const status = messageStatuses[messageId];
-	if (!status) {
-		return (
-			<FontAwesomeIcon
-				icon={faCheck}
-				className="w-3.5 h-3.5 text-gray-400"
-				title="Sent"
-			/>
-		);
-	}
+const getMessageStatusIcon = (
+	messageId,
+	messageStatuses,
+	messageStatus = null
+) => {
+	// First check if we have a real-time status update
+	const realtimeStatus = messageStatuses[messageId];
 
-	switch (status.status) {
+	// Use real-time status if available, otherwise fall back to message's own status
+	const status = realtimeStatus?.status || messageStatus || "sent";
+
+	switch (status) {
 		case "sending":
 			return (
 				<FontAwesomeIcon
@@ -170,36 +168,18 @@ const getMessageStatusIcon = (messageId, messageStatuses) => {
 			);
 		case "read":
 			return (
-				<FontAwesomeIcon
-					icon={faCheckDouble}
-					className="w-3.5 h-3.5 text-yellow-500"
-					title="Read"
-				/>
+				<IoCheckmarkDone className="w-3.5 h-3.5 text-green-500" title="Read" />
 			);
 		case "delivered":
 			return (
-				<FontAwesomeIcon
-					icon={faCheckDouble}
+				<IoCheckmarkDone
 					className="w-3.5 h-3.5 text-gray-400"
 					title="Delivered"
 				/>
 			);
 		case "sent":
-			return (
-				<FontAwesomeIcon
-					icon={faCheck}
-					className="w-3.5 h-3.5 text-gray-400"
-					title="Sent"
-				/>
-			);
 		default:
-			return (
-				<FontAwesomeIcon
-					icon={faCheck}
-					className="w-3.5 h-3.5 text-gray-400"
-					title="Sent"
-				/>
-			);
+			return <IoCheckmark className="w-3.5 h-3.5 text-gray-400" title="Sent" />;
 	}
 };
 
@@ -264,8 +244,10 @@ const Messages = ({
 	const [typingUsers, setTypingUsers] = useState(new Set());
 	const [messageStatuses, setMessageStatuses] = useState({});
 	const [unreadCounts, setUnreadCounts] = useState({}); // Per-conversation unread counts
+	const [conversationsWithUnread, setConversationsWithUnread] = useState(0); // Number of conversations with unread messages
 	const [selectedProduct, setSelectedProduct] = useState(null); // For product popup
 	const messagesEndRef = useRef(null);
+	const processedMessagesRef = useRef(new Set()); // Track processed messages to prevent duplicates
 
 	// Simplified responsive state using Tailwind breakpoints
 	const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
@@ -375,23 +357,23 @@ const Messages = ({
 		currentUser?.id,
 		useCallback((data) => {
 			// Handle online status changes
-			console.log("Messages component received online status:", data);
+			// Messages component received online status
 			const userId = `${data.user_type}_${data.user_id}`;
-			console.log("User ID for online status:", userId);
+			// User ID for online status
 
 			if (data.online) {
-				console.log("Adding user to online set:", userId);
+				// Adding user to online set
 				setOnlineUsers((prev) => {
 					const newSet = new Set([...prev, userId]);
-					console.log("Updated online users:", Array.from(newSet));
+					// Updated online users
 					return newSet;
 				});
 			} else {
-				console.log("Removing user from online set:", userId);
+				// Removing user from online set
 				setOnlineUsers((prev) => {
 					const newSet = new Set(prev);
 					newSet.delete(userId);
-					console.log("Updated online users:", Array.from(newSet));
+					// Updated online users
 					return newSet;
 				});
 			}
@@ -418,6 +400,7 @@ const Messages = ({
 		),
 		useCallback((data) => {
 			// Handle message status changes (read/delivered)
+			// Message status update received
 			setMessageStatuses((prev) => ({
 				...prev,
 				[data.message_id]: {
@@ -426,8 +409,83 @@ const Messages = ({
 						data.type === "message_read" ? data.read_at : data.delivered_at,
 				},
 			}));
-		}, [])
+
+			// Update the message in the messages array to reflect the new status
+			setMessages((prevMessages) => {
+				return prevMessages.map((message) => {
+					if (message.id === data.message_id) {
+						return {
+							...message,
+							status: data.type === "message_read" ? "read" : "delivered",
+							read_at:
+								data.type === "message_read" ? data.read_at : message.read_at,
+							delivered_at:
+								data.type === "message_delivered"
+									? data.delivered_at
+									: message.delivered_at,
+						};
+					}
+					return message;
+				});
+			});
+
+			// Update conversation list to reflect the new status
+			setConversations((prevConversations) => {
+				return prevConversations.map((conversation) => {
+					if (
+						conversation.id === data.conversation_id &&
+						conversation.last_message?.id === data.message_id
+					) {
+						return {
+							...conversation,
+							last_message: {
+								...conversation.last_message,
+								status: data.type === "message_read" ? "read" : "delivered",
+							},
+						};
+					}
+					return conversation;
+				});
+			});
+		}, []),
+		selectedConversation?.id // Pass the current conversation ID
 	);
+
+	// Fetch per-conversation unread counts
+	const fetchUnreadCounts = useCallback(async () => {
+		if (!currentUser || !userType) return;
+
+		try {
+			const token = localStorage.getItem("token");
+			// Use per-conversation endpoint to get individual counts
+			const response = await fetch(
+				`${process.env.REACT_APP_BACKEND_URL}/conversations/unread_counts`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				const countsMap = {};
+				data.unread_counts.forEach((item) => {
+					countsMap[item.conversation_id] = item.unread_count;
+				});
+				setUnreadCounts(countsMap);
+				setConversationsWithUnread(data.conversations_with_unread || 0);
+			} else {
+				console.error(
+					"Messages: Failed to fetch unread counts:",
+					response.status,
+					response.statusText
+				);
+			}
+		} catch (error) {
+			console.error("Error fetching unread counts:", error);
+		}
+	}, [currentUser, userType]);
 
 	// Handle conversation selection from URL
 	useEffect(() => {
@@ -438,6 +496,8 @@ const Messages = ({
 			if (conversation) {
 				setSelectedConversation(conversation);
 				fetchMessages(conversation.id);
+				// Refresh unread counts when selecting a conversation
+				fetchUnreadCounts();
 				if (onConversationSelect) {
 					onConversationSelect(conversation);
 				}
@@ -446,7 +506,7 @@ const Messages = ({
 			setSelectedConversation(null);
 			setMessages([]);
 		}
-	}, [conversationId, conversations, onConversationSelect]);
+	}, [conversationId, conversations, onConversationSelect, fetchUnreadCounts]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -484,7 +544,7 @@ const Messages = ({
 
 				// Request online status for all participants
 				if (participantIds.size > 0) {
-					const token = sessionStorage.getItem("token");
+					const token = localStorage.getItem("token");
 					const response = await fetch(
 						`${process.env.REACT_APP_BACKEND_URL}/conversations/online_status`,
 						{
@@ -501,24 +561,19 @@ const Messages = ({
 
 					if (response.ok) {
 						const data = await response.json();
-						console.log("Initial online status response:", data);
+						// Initial online status response
 						// The response should contain online status for each participant
 						if (data.online_status) {
 							const onlineSet = new Set();
 							Object.entries(data.online_status).forEach(
 								([userId, isOnline]) => {
-									console.log(
-										`User ${userId} is ${isOnline ? "online" : "offline"}`
-									);
+									// User online status
 									if (isOnline) {
 										onlineSet.add(userId);
 									}
 								}
 							);
-							console.log(
-								"Setting initial online users:",
-								Array.from(onlineSet)
-							);
+							// Setting initial online users
 							setOnlineUsers(onlineSet);
 						}
 					} else {
@@ -574,42 +629,20 @@ const Messages = ({
 		};
 
 		fetchConversations();
-	}, [apiBaseUrl, requestInitialOnlineStatus]);
-
-	// Fetch per-conversation unread counts
-	const fetchUnreadCounts = useCallback(async () => {
-		if (!currentUser || !userType) return;
-
-		try {
-			const token = localStorage.getItem("token");
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/conversations/unread_counts`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
-
-			if (response.ok) {
-				const data = await response.json();
-				const countsMap = {};
-				data.unread_counts.forEach((item) => {
-					countsMap[item.conversation_id] = item.unread_count;
-				});
-				setUnreadCounts(countsMap);
-			}
-		} catch (error) {
-			console.error("Error fetching unread counts:", error);
-		}
-	}, [currentUser, userType]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [apiBaseUrl]); // requestInitialOnlineStatus intentionally excluded to prevent loops
 
 	// Fetch unread counts when conversations are loaded
 	useEffect(() => {
-		if (conversations.length > 0) {
+		if (conversations.length > 0 && currentUser) {
+			console.log(
+				"Messages: Conversations loaded, fetching unread counts. Current user:",
+				currentUser
+			);
 			fetchUnreadCounts();
 		}
-	}, [conversations, fetchUnreadCounts]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [conversations.length, currentUser]); // fetchUnreadCounts intentionally excluded to prevent loops
 
 	const fetchMessages = async (conversationId) => {
 		setLoadingMessages(true);
@@ -673,6 +706,28 @@ const Messages = ({
 		setTypingUsers(new Set());
 	}, [selectedConversation?.id]);
 
+	// Listen for unread count updates from WebSocket and navbar
+	useEffect(() => {
+		const handleUnreadCountUpdate = (event) => {
+			// Messages: Received unread count update
+			// Trigger a refresh of the unread counts
+			fetchUnreadCounts();
+		};
+
+		const handleNewMessage = () => {
+			// Refresh unread counts when new messages arrive
+			fetchUnreadCounts();
+		};
+
+		window.addEventListener("unreadCountUpdate", handleUnreadCountUpdate);
+		window.addEventListener("newMessage", handleNewMessage);
+
+		return () => {
+			window.removeEventListener("unreadCountUpdate", handleUnreadCountUpdate);
+			window.removeEventListener("newMessage", handleNewMessage);
+		};
+	}, [fetchUnreadCounts]);
+
 	const handleConversationClick = (conversation) => {
 		// Navigate to the conversation URL
 		const basePath = location.pathname.replace(/\/\d+$/, ""); // Remove existing conversation ID if any
@@ -699,23 +754,50 @@ const Messages = ({
 	useEffect(() => {
 		if (selectedConversation && messages.length > 0) {
 			// Mark unread messages as delivered
-			messages.forEach((message) => {
-				if (
+			const unreadMessages = messages.filter((message) => {
+				const isUnread =
 					!isMessageSentByCurrentUser(message) &&
-					!messageStatuses[message.id]
-				) {
+					(message.status === "sent" ||
+						message.status === null ||
+						message.status === undefined);
+				return isUnread;
+			});
+
+			// Only process messages that haven't been marked as delivered yet
+			const messagesToDeliver = unreadMessages.filter(
+				(message) =>
+					!messageStatuses[message.id] ||
+					messageStatuses[message.id].status !== "delivered"
+			);
+
+			messagesToDeliver.forEach((message) => {
+				const deliveryKey = `delivered_${message.id}`;
+				if (!processedMessagesRef.current.has(deliveryKey)) {
+					// Marking message as delivered
 					sendMessageDelivered(message.id);
-					// Dispatch custom event to notify Navbar to refresh unread count
-					window.dispatchEvent(new CustomEvent("messageDelivered"));
+					processedMessagesRef.current.add(deliveryKey);
+					// Update local status immediately for better UX
+					setMessageStatuses((prev) => ({
+						...prev,
+						[message.id]: {
+							status: "delivered",
+							timestamp: new Date().toISOString(),
+						},
+					}));
 				}
 			});
+
+			if (messagesToDeliver.length > 0) {
+				// Note: Removed event dispatch to prevent feedback loop
+			}
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		selectedConversation,
-		messages,
-		messageStatuses,
+		selectedConversation?.id, // Only depend on conversation ID, not the whole object
+		messages.length, // Only depend on messages length, not the whole array
 		sendMessageDelivered,
 		isMessageSentByCurrentUser,
+		// Remove messageStatuses from dependencies to prevent infinite loops
 	]);
 
 	// Mark messages as read when they are viewed
@@ -723,38 +805,85 @@ const Messages = ({
 		if (selectedConversation && messages.length > 0) {
 			// Mark unread messages as read after a short delay
 			const timer = setTimeout(() => {
-				messages.forEach((message) => {
-					if (
+				const unreadMessages = messages.filter((message) => {
+					const isUnread =
 						!isMessageSentByCurrentUser(message) &&
-						!messageStatuses[message.id]
-					) {
+						(message.status === "sent" ||
+							message.status === "delivered" ||
+							message.status === null ||
+							message.status === undefined);
+					return isUnread;
+				});
+
+				// Only process messages that haven't been marked as read yet
+				const messagesToRead = unreadMessages.filter(
+					(message) =>
+						!messageStatuses[message.id] ||
+						messageStatuses[message.id].status !== "read"
+				);
+
+				messagesToRead.forEach((message) => {
+					const readKey = `read_${message.id}`;
+					if (!processedMessagesRef.current.has(readKey)) {
+						// Marking message as read
 						sendMessageRead(message.id);
-						// Dispatch custom event to notify Navbar to refresh unread count
-						window.dispatchEvent(new CustomEvent("messageRead"));
+						processedMessagesRef.current.add(readKey);
+						// Update local status immediately for better UX
+						setMessageStatuses((prev) => ({
+							...prev,
+							[message.id]: {
+								status: "read",
+								timestamp: new Date().toISOString(),
+							},
+						}));
 					}
 				});
+
+				if (messagesToRead.length > 0) {
+					// Note: Removed event dispatch to prevent feedback loop
+				}
 			}, 1000); // 1 second delay
 
 			return () => clearTimeout(timer);
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		selectedConversation,
-		messages,
-		messageStatuses,
+		selectedConversation?.id, // Only depend on conversation ID, not the whole object
+		messages.length, // Only depend on messages length, not the whole array
 		sendMessageRead,
 		isMessageSentByCurrentUser,
+		// Remove messageStatuses from dependencies to prevent infinite loops
 	]);
 
 	// Update unread counts when messages are read
 	useEffect(() => {
 		if (selectedConversation && messages.length > 0) {
-			// Clear unread count for current conversation when messages are viewed
-			setUnreadCounts((prev) => ({
-				...prev,
-				[selectedConversation.id]: 0,
-			}));
+			// Only clear unread count after messages have been processed for read status
+			const hasUnreadMessages = messages.some((message) => {
+				return (
+					!isMessageSentByCurrentUser(message) &&
+					(message.status === "sent" ||
+						message.status === "delivered" ||
+						message.status === null ||
+						message.status === undefined)
+				);
+			});
+
+			// If no unread messages, clear the count
+			if (!hasUnreadMessages) {
+				setUnreadCounts((prev) => ({
+					...prev,
+					[selectedConversation.id]: 0,
+				}));
+			}
 		}
-	}, [selectedConversation, messages]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedConversation?.id, messages.length, isMessageSentByCurrentUser]);
+
+	// Clear processed messages when conversation changes
+	useEffect(() => {
+		processedMessagesRef.current.clear();
+	}, [selectedConversation?.id]);
 
 	// Listen for new messages to update unread counts
 	useEffect(() => {
@@ -763,10 +892,12 @@ const Messages = ({
 		};
 
 		window.addEventListener("newMessage", handleNewMessage);
+
 		return () => {
 			window.removeEventListener("newMessage", handleNewMessage);
 		};
-	}, [fetchUnreadCounts]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // fetchUnreadCounts intentionally excluded to prevent loops
 
 	const handleBackToConversations = () => {
 		// Navigate back to conversations list
@@ -893,17 +1024,9 @@ const Messages = ({
 												<h2 className="text-base sm:text-lg font-bold text-gray-900 text-left">
 													{title}
 												</h2>
-												{Object.values(unreadCounts).reduce(
-													(sum, count) => sum + count,
-													0
-												) > 0 && (
-													<div className="bg-yellow-500 text-white text-xs font-semibold rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
-														{Object.values(unreadCounts).reduce(
-															(sum, count) => sum + count,
-															0
-														)}
-													</div>
-												)}
+												<div className="bg-yellow-500 text-white text-xs font-semibold rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+													{conversationsWithUnread}
+												</div>
 											</div>
 											{showSearch && (
 												<div className="relative">
@@ -1055,35 +1178,10 @@ const Messages = ({
 																					<div className="flex items-center space-x-1 min-w-0 flex-1">
 																						{isMyMessage && messageStatus && (
 																							<div className="flex items-center flex-shrink-0">
-																								{messageStatus ===
-																									"sending" && (
-																									<FontAwesomeIcon
-																										icon={faClock}
-																										className="w-3 h-3 text-gray-400 animate-pulse"
-																										title="Sending..."
-																									/>
-																								)}
-																								{messageStatus === "sent" && (
-																									<FontAwesomeIcon
-																										icon={faCheck}
-																										className="w-3 h-3 text-gray-400"
-																										title="Sent"
-																									/>
-																								)}
-																								{messageStatus ===
-																									"delivered" && (
-																									<FontAwesomeIcon
-																										icon={faCheckDouble}
-																										className="w-3 h-3 text-gray-400"
-																										title="Delivered"
-																									/>
-																								)}
-																								{messageStatus === "read" && (
-																									<FontAwesomeIcon
-																										icon={faCheckDouble}
-																										className="w-3 h-3 text-yellow-500"
-																										title="Read"
-																									/>
+																								{getMessageStatusIcon(
+																									conversation.last_message?.id,
+																									messageStatuses,
+																									messageStatus
 																								)}
 																							</div>
 																						)}
@@ -1417,7 +1515,8 @@ const Messages = ({
 																							<div className="opacity-80">
 																								{getMessageStatusIcon(
 																									message.id,
-																									messageStatuses
+																									messageStatuses,
+																									message.status
 																								)}
 																							</div>
 																						</div>

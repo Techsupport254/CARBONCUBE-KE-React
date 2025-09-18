@@ -26,12 +26,14 @@ class WebSocketConnectionManager {
 		}
 
 		// Create new connection with authentication
-		const consumer = createConsumer(`${wsUrl}/cable`, {
+		// Send token as query parameter since ActionCable doesn't pass headers
+		const cableUrl = token
+			? `${wsUrl}/cable?token=${encodeURIComponent(token)}`
+			: `${wsUrl}/cable`;
+
+		const consumer = createConsumer(cableUrl, {
 			timeout: 30000,
 			reconnect: false,
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
 		});
 
 		this.connections.set(key, consumer);
@@ -75,13 +77,19 @@ if (typeof window !== "undefined") {
 	window.connectionManager = connectionManager;
 }
 
-const useNewMessageListener = (userType, userId, onNewMessage) => {
+const useNewMessageListener = (
+	userType,
+	userId,
+	onNewMessage,
+	onConnectionStatus
+) => {
 	const subscriptionRef = useRef(null);
 	const reconnectTimeoutRef = useRef(null);
 	const isConnectingRef = useRef(false);
 
 	useEffect(() => {
 		if (!userType || !userId || !onNewMessage) {
+			// Missing required parameters, skipping connection
 			return;
 		}
 
@@ -106,10 +114,16 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 
 				// Get or create connection using the manager
 				const wsUrl =
-					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:8080";
+					process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3001";
 
 				// Get JWT token for authentication
 				const token = localStorage.getItem("token");
+
+				if (!token) {
+					console.warn(
+						"No authentication token found, WebSocket connection will likely fail"
+					);
+				}
 
 				const consumer = connectionManager.createConnection(
 					userType,
@@ -117,6 +131,16 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 					wsUrl,
 					token
 				);
+
+				if (!consumer) {
+					console.error(
+						"useNewMessageListener: Failed to create WebSocket consumer"
+					);
+					isConnectingRef.current = false;
+					return;
+				}
+
+				// Consumer created successfully, subscribing to ConversationsChannel
 
 				// Subscribe to conversations channel for new messages
 				subscriptionRef.current = consumer.subscriptions.create(
@@ -127,7 +151,11 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 					},
 					{
 						connected() {
+							// Connected to ConversationsChannel
 							isConnectingRef.current = false;
+							if (onConnectionStatus) {
+								onConnectionStatus("connected");
+							}
 							// Clear any pending reconnect timeout
 							if (reconnectTimeoutRef.current) {
 								clearTimeout(reconnectTimeoutRef.current);
@@ -135,26 +163,53 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 							}
 						},
 						disconnected() {
+							// Disconnected from ConversationsChannel
 							isConnectingRef.current = false;
+							if (onConnectionStatus) {
+								onConnectionStatus("disconnected");
+							}
 
 							// Attempt to reconnect after a delay, but only if not already reconnecting
 							if (!reconnectTimeoutRef.current) {
 								reconnectTimeoutRef.current = setTimeout(() => {
+									// Attempting to reconnect
+									if (onConnectionStatus) {
+										onConnectionStatus("connecting");
+									}
 									connect();
 								}, 5000); // 5 second delay
 							}
 						},
 						rejected() {
 							isConnectingRef.current = false;
+							if (onConnectionStatus) {
+								onConnectionStatus("rejected");
+							}
+							console.warn(
+								"useNewMessageListener: ConversationsChannel subscription rejected - likely authentication issue"
+							);
 
-							// Attempt to reconnect after a longer delay for rejections
-							if (!reconnectTimeoutRef.current) {
-								reconnectTimeoutRef.current = setTimeout(() => {
-									connect();
-								}, 10000); // 10 second delay
+							// Check if token exists and is valid before attempting reconnect
+							const token = localStorage.getItem("token");
+							if (token) {
+								// Attempt to reconnect after a longer delay for rejections
+								if (!reconnectTimeoutRef.current) {
+									reconnectTimeoutRef.current = setTimeout(() => {
+										// Attempting to reconnect after rejection
+										if (onConnectionStatus) {
+											onConnectionStatus("connecting");
+										}
+										connect();
+									}, 10000); // 10 second delay
+								}
+							} else {
+								console.warn(
+									"useNewMessageListener: No token available, not attempting to reconnect"
+								);
 							}
 						},
 						received(data) {
+							// Message received
 							try {
 								if (data && data.type === "new_message") {
 									// Only trigger if the message is not from the current user
@@ -165,11 +220,29 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 											data.message.sender_type === userType
 										)
 									) {
+										// Triggering onNewMessage callback
 										onNewMessage(data);
+									} else {
+										// Message from current user, ignoring
 									}
+								} else if (data && data.type === "unread_count_update") {
+									// Handle unread count updates
+									// Received unread count update
+									// Dispatch a custom event for unread count updates
+									window.dispatchEvent(
+										new CustomEvent("unreadCountUpdate", {
+											detail: {
+												unread_count: data.unread_count,
+												timestamp: data.timestamp,
+											},
+										})
+									);
 								}
 							} catch (error) {
-								// Silently handle errors
+								console.error(
+									"useNewMessageListener: Error handling received message:",
+									error
+								);
 							}
 						},
 					}
@@ -208,7 +281,8 @@ const useNewMessageListener = (userType, userId, onNewMessage) => {
 
 			isConnectingRef.current = false;
 		};
-	}, [userType, userId, onNewMessage]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [userType, userId, onNewMessage]); // onConnectionStatus intentionally excluded to prevent loops
 
 	// Cleanup on component unmount
 	useEffect(() => {

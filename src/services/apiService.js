@@ -3,6 +3,8 @@
  * Provides optimized data fetching using constructed API endpoints
  */
 
+import tokenService from "./tokenService";
+
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 class ApiService {
@@ -15,15 +17,22 @@ class ApiService {
 	 * Get authentication headers
 	 */
 	getAuthHeaders() {
-		const token = localStorage.getItem("token");
-		return {
-			Authorization: `Bearer ${token}`,
+		const token = tokenService.getToken();
+
+		// Only include Authorization header if we have a valid token
+		const headers = {
 			"Content-Type": "application/json",
 		};
+
+		if (token) {
+			headers.Authorization = `Bearer ${token}`;
+		}
+
+		return headers;
 	}
 
 	/**
-	 * Generic fetch method with caching and request deduplication
+	 * Generic fetch method with caching, request deduplication, and token refresh
 	 */
 	async fetch(url, options = {}) {
 		const cacheKey = `${url}_${JSON.stringify(options)}`;
@@ -63,21 +72,65 @@ class ApiService {
 	}
 
 	/**
-	 * Make actual HTTP request
+	 * Make actual HTTP request with token refresh handling
 	 */
 	async _makeRequest(url, options = {}) {
-		const response = await fetch(url, {
-			headers: this.getAuthHeaders(),
-			...options,
-		});
+		try {
+			const response = await fetch(url, {
+				headers: this.getAuthHeaders(),
+				...options,
+			});
 
-		if (!response.ok) {
-			throw new Error(
-				`API request failed: ${response.status} ${response.statusText}`
-			);
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+
+				// Handle token expiration
+				if (
+					response.status === 401 &&
+					errorData.error_type === "token_expired"
+				) {
+					try {
+						// Try to refresh the token
+						await tokenService.refreshToken();
+
+						// Retry the original request with new token
+						const retryResponse = await fetch(url, {
+							headers: this.getAuthHeaders(),
+							...options,
+						});
+
+						if (!retryResponse.ok) {
+							throw new Error(
+								`API request failed after token refresh: ${retryResponse.status} ${retryResponse.statusText}`
+							);
+						}
+
+						return retryResponse.json();
+					} catch (refreshError) {
+						// If refresh fails, clear auth data
+						tokenService.clearAuthData();
+						throw refreshError;
+					}
+				}
+
+				// Handle refresh not allowed (remember me not enabled)
+				if (
+					response.status === 403 &&
+					errorData.error_type === "refresh_not_allowed"
+				) {
+					tokenService.clearAuthData();
+					throw new Error("Session expired. Please log in again.");
+				}
+
+				throw new Error(
+					`API request failed: ${response.status} ${response.statusText}`
+				);
+			}
+
+			return response.json();
+		} catch (error) {
+			throw error;
 		}
-
-		return response.json();
 	}
 
 	/**

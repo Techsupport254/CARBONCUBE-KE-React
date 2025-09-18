@@ -292,16 +292,8 @@
 		<!-- Font Loading - Optimized for performance -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-			rel="preload"
-			as="style"
-			onload="this.onload=null;this.rel='stylesheet'"
+			rel="stylesheet"
 		/>
-		<noscript>
-			<link
-				href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-				rel="stylesheet"
-			/>
-		</noscript>
 
 		<!-- Canonical URL -->
 		<link rel="canonical" href="https://carboncube-ke.com/" />
@@ -353,19 +345,70 @@
 			});
 		</script>
 
-		<!-- Google tag (gtag.js) -->
-		<script
-			async
-			src="https://www.googletagmanager.com/gtag/js?id=AW-17543924705"
-		></script>
+		<!-- Google tag (gtag.js) with error handling -->
 		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag() {
-				dataLayer.push(arguments);
-			}
-			gtag("js", new Date());
+			// Check if ad blockers are likely blocking the script
+			const checkAdBlocker = () => {
+				// Ensure document.body exists before proceeding
+				if (!document.body) {
+					console.log("Document body not ready - skipping ad blocker check");
+					return false;
+				}
 
-			gtag("config", "AW-17543924705");
+				const testAd = document.createElement("div");
+				testAd.innerHTML = "&nbsp;";
+				testAd.className = "adsbox";
+				testAd.style.cssText = "position:absolute;left:-10000px;top:-1000px;";
+				document.body.appendChild(testAd);
+
+				setTimeout(() => {
+					if (testAd.offsetHeight === 0) {
+						console.log("Ad blocker detected - Google Ads tracking disabled");
+						// Clean up the test element if it still exists
+						if (testAd.parentNode) {
+							testAd.parentNode.removeChild(testAd);
+						}
+						return true;
+					}
+					// Clean up the test element
+					if (testAd.parentNode) {
+						testAd.parentNode.removeChild(testAd);
+					}
+					return false;
+				}, 100);
+			};
+
+			// Wait for DOM to be ready before checking for ad blocker
+			const initGoogleAds = () => {
+				// Only load Google Ads if no ad blocker is detected
+				if (!checkAdBlocker()) {
+					const script = document.createElement("script");
+					script.async = true;
+					script.src =
+						"https://www.googletagmanager.com/gtag/js?id=AW-17543924705";
+					script.onerror = () => {
+						console.log(
+							"Google Ads script failed to load (likely blocked by ad blocker)"
+						);
+					};
+					document.head.appendChild(script);
+
+					window.dataLayer = window.dataLayer || [];
+					function gtag() {
+						dataLayer.push(arguments);
+					}
+					gtag("js", new Date());
+					gtag("config", "AW-17543924705");
+				}
+			};
+
+			// Initialize Google Ads when DOM is ready
+			if (document.readyState === "loading") {
+				document.addEventListener("DOMContentLoaded", initGoogleAds);
+			} else {
+				// DOM is already ready
+				initGoogleAds();
+			}
 		</script>
 
 		<!-- Critical CSS for above-the-fold content -->

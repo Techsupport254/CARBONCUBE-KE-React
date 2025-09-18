@@ -122,7 +122,6 @@ const AdDetails = () => {
 	const [hasMoreSellerAds, setHasMoreSellerAds] = useState(true);
 	const [isLoadingMoreSellerAds, setIsLoadingMoreSellerAds] = useState(false);
 	const [totalSellerAdsCount, setTotalSellerAdsCount] = useState(0);
-	const [isLargeScreen, setIsLargeScreen] = useState(false);
 	const [showAllRelatedProducts, setShowAllRelatedProducts] = useState(false);
 	const [showShareModal, setShowShareModal] = useState(false);
 
@@ -223,16 +222,6 @@ const AdDetails = () => {
 	};
 
 	// Check screen size for related products display
-	useEffect(() => {
-		const checkScreenSize = () => {
-			setIsLargeScreen(window.innerWidth >= 1024);
-		};
-
-		checkScreenSize();
-		window.addEventListener("resize", checkScreenSize);
-
-		return () => window.removeEventListener("resize", checkScreenSize);
-	}, []);
 
 	// SEO is now handled by ProductSEO component
 	// Prepare product data for SEO
@@ -366,19 +355,9 @@ const AdDetails = () => {
 
 	const handleShowReviewModal = () => {
 		if (!isAuthenticated) {
-			// Update the alert modal config with the desired configuration
-			setAlertModalConfig({
-				isVisible: true,
-				message: "You must be Signed In to post a review.",
-				title: "Login Required",
-				icon: "warning",
-				confirmText: "Go to Login", // Set the correct confirm button text
-				cancelText: "Cancel",
-				showCancel: true,
-				onConfirm: () => navigate("/login"),
-				onClose: () =>
-					setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
-			});
+			// Automatically redirect to login page with current URL as redirect parameter
+			const currentUrl = window.location.pathname + window.location.search;
+			navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
 			return;
 		}
 
@@ -602,18 +581,9 @@ const AdDetails = () => {
 		const token = localStorage.getItem("token");
 
 		if (!token) {
-			setAlertModalConfig({
-				isVisible: true,
-				message: "You must be signed in to submit a review.",
-				title: "Login Required",
-				icon: "warning",
-				confirmText: "Go to Login", // Ensure this is explicitly set here
-				cancelText: "Cancel",
-				showCancel: true,
-				onConfirm: () => navigate("/login"),
-				onClose: () =>
-					setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
-			});
+			// Automatically redirect to login page with current URL as redirect parameter
+			const currentUrl = window.location.pathname + window.location.search;
+			navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
 			return;
 		}
 
@@ -679,28 +649,9 @@ const AdDetails = () => {
 	const handleOpenChatModal = () => {
 		const token = localStorage.getItem("token");
 		if (!token) {
-			Swal.fire({
-				title: "Login Required",
-				text: "You must be signed in to start a chat with the seller.",
-				icon: "warning",
-				showCancelButton: true,
-				confirmButtonText: "Go to Login",
-				cancelButtonText: "Cancel",
-				customClass: {
-					popup: "futuristic-swal rounded-4 glass-bg",
-					title: "fw-semibold text-white",
-					htmlContainer: "text-light",
-					actions: "futuristic-actions",
-					confirmButton: "btn rounded-pill futuristic-confirm",
-					cancelButton: "btn rounded-pill futuristic-cancel",
-				},
-				backdrop: "rgba(0, 0, 0, 0.6)",
-				buttonsStyling: false,
-			}).then((result) => {
-				if (result.isConfirmed) {
-					navigate("/login");
-				}
-			});
+			// Automatically redirect to login page with current URL as redirect parameter
+			const currentUrl = window.location.pathname + window.location.search;
+			navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
 			return;
 		}
 
@@ -781,19 +732,24 @@ const AdDetails = () => {
 				const container = document.getElementById("suggested-msg-container");
 				const textarea = document.getElementById("chat-message");
 
-				suggestedMessages.forEach((msg) => {
-					const btn = document.createElement("button");
-					btn.textContent = msg;
-					btn.className = "swal2-styled";
-					btn.style.cssText = `
+				// Only proceed if container exists
+				if (container) {
+					suggestedMessages.forEach((msg) => {
+						const btn = document.createElement("button");
+						btn.textContent = msg;
+						btn.className = "swal2-styled";
+						btn.style.cssText = `
                 margin: 3px; padding: 3px 6px; background-color: #ffc107; color: #1e293b;
                 border: 2px solid #ffc107; border-radius: 30px; font-size: 0.85rem; cursor: pointer;
                 `;
-					btn.onclick = () => {
-						textarea.value = msg;
-					};
-					container.appendChild(btn);
-				});
+						btn.onclick = () => {
+							if (textarea) {
+								textarea.value = msg;
+							}
+						};
+						container.appendChild(btn);
+					});
+				}
 			},
 			preConfirm: () => {
 				const msg = document.getElementById("chat-message")?.value.trim();
@@ -832,18 +788,31 @@ const AdDetails = () => {
 			// Use unified conversations endpoint for all user types
 			const endpoint = `${process.env.REACT_APP_BACKEND_URL}/conversations`;
 
+			// Determine the correct parameters based on user role
+			const requestBody = {
+				ad_id: ad?.id,
+				content: message.trim(),
+			};
+
+			// If current user is a seller messaging another seller about their ad
+			if (userRole === "seller") {
+				// For seller-to-seller conversations, set seller_id to the ad owner
+				// The backend will automatically set inquirer_seller_id to current user
+				requestBody.seller_id = ad?.seller_id; // The ad owner
+				// Don't set buyer_id - backend will handle seller-to-seller logic
+			} else {
+				// For buyer-to-seller conversations
+				requestBody.seller_id = ad?.seller_id; // The ad owner
+				requestBody.buyer_id = currentUserId; // Current buyer
+			}
+
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({
-					seller_id: ad?.seller_id, // Always the ad owner
-					buyer_id: currentUserId, // Current user inquiring about the ad (whether buyer or seller)
-					ad_id: ad?.id,
-					content: message.trim(), // Ensure no extra whitespace
-				}),
+				body: JSON.stringify(requestBody),
 			});
 
 			const responseData = await response.json();
@@ -866,6 +835,11 @@ const AdDetails = () => {
 			}, 300);
 		} catch (error) {
 			console.error("Error sending message:", error);
+			console.error("Error details:", {
+				name: error.name,
+				message: error.message,
+				stack: error.stack,
+			});
 			setAlertModalConfig({
 				isVisible: true,
 				title: "Error",
@@ -902,18 +876,9 @@ const AdDetails = () => {
 			// Check if user is authenticated for fetching seller details
 			const token = localStorage.getItem("token");
 			if (!token) {
-				setAlertModalConfig({
-					isVisible: true,
-					message: "You must be signed in to view seller details.",
-					title: "Login Required",
-					icon: "warning",
-					confirmText: "Go to Login",
-					cancelText: "Cancel",
-					showCancel: true,
-					onConfirm: () => navigate("/login"),
-					onClose: () =>
-						setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
-				});
+				// Automatically redirect to login page with current URL as redirect parameter
+				const currentUrl = window.location.pathname + window.location.search;
+				navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
 				return;
 			}
 
@@ -987,18 +952,9 @@ const AdDetails = () => {
 			// Check if user is authenticated for adding to wishlist
 			const token = localStorage.getItem("token");
 			if (!token) {
-				setAlertModalConfig({
-					isVisible: true,
-					message: "You must be signed in to add to your wishlist.",
-					title: "Login Required",
-					icon: "warning",
-					confirmText: "Go to Login",
-					cancelText: "Cancel",
-					showCancel: true,
-					onConfirm: () => navigate("/login"),
-					onClose: () =>
-						setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
-				});
+				// Automatically redirect to login page with current URL as redirect parameter
+				const currentUrl = window.location.pathname + window.location.search;
+				navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
 				return;
 			}
 
@@ -1901,7 +1857,7 @@ const AdDetails = () => {
 																	<span>Manage Product</span>
 																</button>
 															) : /* Non-Owner View - Contact Seller */
-															userRole !== "seller" || userRole === "seller" ? (
+															true ? (
 																<>
 																	{showSellerDetails && seller ? (
 																		<a
@@ -1930,8 +1886,7 @@ const AdDetails = () => {
 															{!isAdOwner() && (
 																<div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
 																	{/* Allow sellers to add to wishlist */}
-																	{userRole !== "seller" ||
-																	userRole === "seller" ? (
+																	{true ? (
 																		<button
 																			className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
 																			disabled={!ad || wish_listLoading}
@@ -1963,8 +1918,7 @@ const AdDetails = () => {
 																	)}
 
 																	{/* Allow sellers to chat */}
-																	{userRole !== "seller" ||
-																	userRole === "seller" ? (
+																	{true ? (
 																		<button
 																			className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
 																			onClick={handleOpenChatModal}
@@ -2043,8 +1997,8 @@ const AdDetails = () => {
 										<div
 											className={`grid gap-2 sm:gap-3 md:gap-4 h-full ${
 												showAllRelatedProducts
-													? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-													: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+													? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
+													: "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
 											}`}
 										>
 											{relatedAds

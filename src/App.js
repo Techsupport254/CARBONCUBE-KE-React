@@ -8,6 +8,8 @@ import {
 import { HelmetProvider } from "react-helmet-async";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
+import useAuth from "./hooks/useAuth";
+import tokenService from "./services/tokenService";
 import Spinner from "react-spinkit";
 import BecomeASeller from "./pages/BecomeASeller";
 
@@ -100,25 +102,9 @@ const LoadingSpinner = () => (
 );
 
 function App() {
-	const [userRole, setUserRole] = useState(null); // For storing user role
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const { isAuthenticated, userRole, logout } = useAuth();
 	const [excludeTracking, setExcludeTracking] = useState(false);
-	const [isInitialized, setIsInitialized] = useState(false);
-
-	// Initialize authentication state
-	useEffect(() => {
-		const initializeAuth = () => {
-			const token = localStorage.getItem("token");
-			if (token) {
-				const role = localStorage.getItem("userRole");
-				setUserRole(role);
-				setIsAuthenticated(true);
-			}
-			setIsInitialized(true);
-		};
-
-		initializeAuth();
-	}, []);
+	const [isInitialized, setIsInitialized] = useState(true); // Always initialized since useAuth handles auth state
 
 	useEffect(() => {
 		// Determine if this device should be excluded from analytics trackers
@@ -166,7 +152,13 @@ function App() {
 	}, []);
 
 	const handleLogin = (token, user) => {
-		localStorage.setItem("token", token);
+		// Use tokenService to validate and store token
+		if (!tokenService.setToken(token)) {
+			console.error("Invalid token format, login failed");
+			return;
+		}
+
+		// Store user data in localStorage
 		localStorage.setItem("userRole", user.role);
 		if (user.name) {
 			localStorage.setItem("userName", user.name);
@@ -177,29 +169,32 @@ function App() {
 		if (user.email) {
 			localStorage.setItem("userEmail", user.email);
 		}
-		setUserRole(user.role);
-		setIsAuthenticated(true);
+		if (user.profile_picture) {
+			localStorage.setItem("userProfilePicture", user.profile_picture);
+		}
+
+		// Dispatch storage event to trigger useAuth to update
+		window.dispatchEvent(
+			new StorageEvent("storage", {
+				key: "token",
+				newValue: token,
+			})
+		);
 	};
 
 	const handleLogout = () => {
-		// Update state first to trigger re-render
-		setUserRole(null);
-		setIsAuthenticated(false);
-
-		// The actual cleanup and navigation will be handled by the Navbar component
-		// or other components that call this function
+		// Use the logout function from useAuth hook
+		logout();
 	};
 
 	const handleBuyerSignup = () => {
-		setIsAuthenticated(true);
-		setUserRole("buyer");
-		sessionStorage.setItem("userRole", "buyer"); // Use 'userRole' here
+		// This will be handled by the signup process
+		// The actual authentication will happen after successful signup
 	};
 
 	const handleSellerSignup = () => {
-		setIsAuthenticated(true);
-		setUserRole("seller");
-		sessionStorage.setItem("userRole", "seller"); // Use 'userRole' here
+		// This will be handled by the signup process
+		// The actual authentication will happen after successful signup
 	};
 
 	// Don't render until authentication is initialized
@@ -262,173 +257,167 @@ function App() {
 						<Route path="/how-to-shop" element={<HowToShop />} />
 						<Route path="/become-a-seller" element={<BecomeASeller />} />
 
-						{isAuthenticated && userRole === "admin" && (
+						{/* Admin Routes */}
+						<Route
+							path="/admin/*"
+							element={
+								<PrivateRoute
+									isAuthenticated={isAuthenticated}
+									role="admin"
+									userRole={userRole}
+								/>
+							}
+						>
 							<Route
-								path="/admin/*"
-								element={
-									<PrivateRoute
-										isAuthenticated={isAuthenticated}
-										role="admin"
-										userRole={userRole}
-									/>
-								}
-							>
-								<Route
-									path="analytics"
-									element={<AnalyticsReporting onLogout={handleLogout} />}
-								/>
-								<Route
-									path="content"
-									element={<ContentManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="buyers"
-									element={<BuyersManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="sellers"
-									element={<SellersManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="ads"
-									element={<AdsManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages"
-									element={<Messages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages/:conversationId"
-									element={<Messages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="promotions"
-									element={<PromotionsDiscount onLogout={handleLogout} />}
-								/>
-								<Route
-									path="notifications"
-									element={<Notifications onLogout={handleLogout} />}
-								/>
-								<Route
-									path="categories"
-									element={<CategoriesManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="tiers"
-									element={<TiersManagement onLogout={handleLogout} />}
-								/>
-								<Route
-									path="fingerprint-requests"
-									element={
-										<FingerprintRemovalRequests onLogout={handleLogout} />
-									}
-								/>
-								<Route
-									path="profile"
-									element={<AdminProfile onLogout={handleLogout} />}
-								/>
-							</Route>
-						)}
+								path="analytics"
+								element={<AnalyticsReporting onLogout={handleLogout} />}
+							/>
+							<Route
+								path="content"
+								element={<ContentManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="buyers"
+								element={<BuyersManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="sellers"
+								element={<SellersManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="ads"
+								element={<AdsManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages"
+								element={<Messages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages/:conversationId"
+								element={<Messages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="promotions"
+								element={<PromotionsDiscount onLogout={handleLogout} />}
+							/>
+							<Route
+								path="notifications"
+								element={<Notifications onLogout={handleLogout} />}
+							/>
+							<Route
+								path="categories"
+								element={<CategoriesManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="tiers"
+								element={<TiersManagement onLogout={handleLogout} />}
+							/>
+							<Route
+								path="fingerprint-requests"
+								element={<FingerprintRemovalRequests onLogout={handleLogout} />}
+							/>
+							<Route
+								path="profile"
+								element={<AdminProfile onLogout={handleLogout} />}
+							/>
+						</Route>
 
-						{isAuthenticated && userRole === "seller" && (
+						{/* Seller Routes */}
+						<Route
+							path="/seller/*"
+							element={
+								<PrivateRoute
+									isAuthenticated={isAuthenticated}
+									role="seller"
+									userRole={userRole}
+								/>
+							}
+						>
 							<Route
-								path="/seller/*"
-								element={
-									<PrivateRoute
-										isAuthenticated={isAuthenticated}
-										role="seller"
-										userRole={userRole}
-									/>
-								}
-							>
-								<Route
-									path="analytics"
-									element={<SellerAnalytics onLogout={handleLogout} />}
-								/>
-								<Route
-									path="ads"
-									element={<SellerAds onLogout={handleLogout} />}
-								/>
-								<Route path="ads/:adId" element={<SellerAdDetails />} />
-								<Route
-									path="add-ad"
-									element={<AddNewAd onLogout={handleLogout} />}
-								/>
-								<Route
-									path="dashboard"
-									element={<SellerShop onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages"
-									element={<SellerMessages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages/:conversationId"
-									element={<SellerMessages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="notifications"
-									element={<SellerNotifications onLogout={handleLogout} />}
-								/>
-								<Route
-									path="profile"
-									element={<SellerProfile onLogout={handleLogout} />}
-								/>
-							</Route>
-						)}
+								path="analytics"
+								element={<SellerAnalytics onLogout={handleLogout} />}
+							/>
+							<Route
+								path="ads"
+								element={<SellerAds onLogout={handleLogout} />}
+							/>
+							<Route path="ads/:adId" element={<SellerAdDetails />} />
+							<Route
+								path="add-ad"
+								element={<AddNewAd onLogout={handleLogout} />}
+							/>
+							<Route
+								path="dashboard"
+								element={<SellerShop onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages"
+								element={<SellerMessages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages/:conversationId"
+								element={<SellerMessages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="notifications"
+								element={<SellerNotifications onLogout={handleLogout} />}
+							/>
+							<Route
+								path="profile"
+								element={<SellerProfile onLogout={handleLogout} />}
+							/>
+						</Route>
 
-						{isAuthenticated && userRole === "buyer" && (
+						{/* Buyer Routes */}
+						<Route
+							path="/buyer/*"
+							element={
+								<PrivateRoute
+									isAuthenticated={isAuthenticated}
+									role="buyer"
+									userRole={userRole}
+								/>
+							}
+						>
+							<Route path="home" element={<Navigate to="/" replace />} />
 							<Route
-								path="/buyer/*"
-								element={
-									<PrivateRoute
-										isAuthenticated={isAuthenticated}
-										role="buyer"
-										userRole={userRole}
-									/>
-								}
-							>
-								<Route path="home" element={<Navigate to="/" replace />} />
-								<Route
-									path="wishlist"
-									element={<WishList onLogout={handleLogout} />}
-								/>
-								<Route
-									path="wish_lists"
-									element={<WishList onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages"
-									element={<BuyerMessages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="messages/:conversationId"
-									element={<BuyerMessages onLogout={handleLogout} />}
-								/>
-								<Route
-									path="profile"
-									element={<ProfilePage onLogout={handleLogout} />}
-								/>
-							</Route>
-						)}
+								path="wishlist"
+								element={<WishList onLogout={handleLogout} />}
+							/>
+							<Route
+								path="wish_lists"
+								element={<WishList onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages"
+								element={<BuyerMessages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="messages/:conversationId"
+								element={<BuyerMessages onLogout={handleLogout} />}
+							/>
+							<Route
+								path="profile"
+								element={<ProfilePage onLogout={handleLogout} />}
+							/>
+						</Route>
 
-						{isAuthenticated && userRole === "sales" && (
-							<Route
-								path="/sales/*"
-								element={
-									<PrivateRoute
-										isAuthenticated={isAuthenticated}
-										role="sales"
-										userRole={userRole}
-									/>
-								}
-							>
-								<Route
-									path="dashboard"
-									element={<SalesDashboard onLogout={handleLogout} />}
+						{/* Sales Routes */}
+						<Route
+							path="/sales/*"
+							element={
+								<PrivateRoute
+									isAuthenticated={isAuthenticated}
+									role="sales"
+									userRole={userRole}
 								/>
-							</Route>
-						)}
+							}
+						>
+							<Route
+								path="dashboard"
+								element={<SalesDashboard onLogout={handleLogout} />}
+							/>
+						</Route>
 					</Routes>
 				</Suspense>
 			</Router>

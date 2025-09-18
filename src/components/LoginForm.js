@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
@@ -9,13 +9,18 @@ import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
 import "./LoginForm.css";
 import useSEO from "../hooks/useSEO";
+import tokenService from "../services/tokenService";
 
 const LoginForm = ({ onLogin }) => {
 	const [identifier, setIdentifier] = useState("");
 	const [password, setPassword] = useState("");
+	const [rememberMe, setRememberMe] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	// const [error, setError] = useState('');  // No longer need inline error state
 	const [loading, setLoading] = useState(false);
+
+	const navigate = useNavigate();
+	const location = useLocation();
 
 	// SEO Implementation
 	useSEO({
@@ -52,8 +57,6 @@ const LoginForm = ({ onLogin }) => {
 		onConfirm: () => setShowAlertModal(false),
 	});
 
-	const navigate = useNavigate();
-
 	const handleCloseAlertModal = () => {
 		setShowAlertModal(false);
 	};
@@ -69,12 +72,28 @@ const LoginForm = ({ onLogin }) => {
 				{
 					identifier,
 					password,
+					remember_me: rememberMe,
 				}
 			);
 
 			const { token, user } = response.data;
-			localStorage.setItem("token", token);
+
+			// Use tokenService to validate and store token
+			if (!tokenService.setToken(token)) {
+				throw new Error("Invalid token received from server");
+			}
+
 			onLogin(token, user);
+
+			// Check for redirect parameter
+			const searchParams = new URLSearchParams(location.search);
+			const redirectUrl = searchParams.get("redirect");
+
+			// If there's a redirect URL, use it for buyers (most common case)
+			if (redirectUrl && user.role === "buyer") {
+				navigate(redirectUrl);
+				return;
+			}
 
 			switch (user.role) {
 				case "buyer":
@@ -287,6 +306,8 @@ const LoginForm = ({ onLogin }) => {
 												<label className="flex items-center text-sm text-gray-600 cursor-pointer">
 													<input
 														type="checkbox"
+														checked={rememberMe}
+														onChange={(e) => setRememberMe(e.target.checked)}
 														className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
 													/>
 													Remember me
