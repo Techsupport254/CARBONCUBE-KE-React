@@ -116,7 +116,6 @@ const usePresence = (
 								clearTimeout(reconnectTimeoutRef.current);
 								reconnectTimeoutRef.current = null;
 							}
-							console.log("PresenceChannel: Successfully connected");
 						},
 						disconnected() {
 							isConnectingRef.current = false;
@@ -267,18 +266,6 @@ const usePresence = (
 			isOpen &&
 			(subscriptionState === "connected" || subscriptionReady === true);
 
-		// Enhanced logging to debug connection issues
-		if (!isActive && process.env.NODE_ENV === "development") {
-			console.log("PresenceChannel: Connection not active", {
-				hasSubscription,
-				hasCable,
-				hasConnection,
-				isOpen,
-				subscriptionState,
-				subscriptionReady,
-				cableState: cableRef.current?.connection?.readyState,
-			});
-		}
 
 		return isActive;
 	};
@@ -324,9 +311,6 @@ const usePresence = (
 				conversation_id: currentConversationId,
 			});
 		} else {
-			console.log(
-				"PresenceChannel: Connection not active, falling back to API for message_read"
-			);
 			// Fallback to REST API for message status updates
 			updateMessageStatusViaAPI(messageId, "read", currentConversationId);
 		}
@@ -347,9 +331,6 @@ const usePresence = (
 				conversation_id: currentConversationId,
 			});
 		} else {
-			console.log(
-				"PresenceChannel: Connection not active, falling back to API for message_delivered"
-			);
 			// Fallback to REST API for message status updates
 			updateMessageStatusViaAPI(messageId, "delivered", currentConversationId);
 		}
@@ -400,14 +381,8 @@ const usePresence = (
 			);
 
 			if (response.ok) {
-				console.log(
-					`PresenceChannel: Successfully updated message ${messageId} status to ${status} via API`
-				);
 			} else if (response.status === 404) {
 				// Message doesn't exist - this is expected after clearing conversations
-				console.log(
-					`PresenceChannel: Message ${messageId} not found (likely deleted), ignoring status update`
-				);
 			} else {
 				console.warn(
 					`PresenceChannel: Failed to update message ${messageId} status to ${status} via API:`,

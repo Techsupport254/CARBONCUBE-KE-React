@@ -635,10 +635,6 @@ const Messages = ({
 	// Fetch unread counts when conversations are loaded
 	useEffect(() => {
 		if (conversations.length > 0 && currentUser) {
-			console.log(
-				"Messages: Conversations loaded, fetching unread counts. Current user:",
-				currentUser
-			);
 			fetchUnreadCounts();
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
