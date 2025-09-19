@@ -99,6 +99,10 @@ const TierPage = () => {
 				// navigate("/seller/login");
 				return;
 			}
+			// For social media crawlers or other errors, just continue without authentication
+			console.log(
+				"Authentication check failed, continuing without seller data"
+			);
 
 			// If seller tier not found, create a default tier response
 			if (error.response?.status === 404) {
@@ -143,16 +147,30 @@ const TierPage = () => {
 	}, []);
 
 	useEffect(() => {
+		// Set a timeout to ensure the page renders even if API is slow
+		const timeoutId = setTimeout(() => {
+			if (loading) {
+				setLoading(false);
+				setTiers([]);
+			}
+		}, 5000); // 5 second timeout
+
 		axios
-			.get(`${process.env.REACT_APP_BACKEND_URL}/tiers`)
+			.get(`${process.env.REACT_APP_BACKEND_URL}/tiers`, {
+				timeout: 3000, // 3 second timeout for the request
+			})
 			.then((response) => {
+				clearTimeout(timeoutId);
 				setTiers(response.data || []);
 				setLoading(false);
 			})
 			.catch((err) => {
+				clearTimeout(timeoutId);
 				console.error("Error fetching tier data:", err);
-				setError("Failed to fetch tier data. Please try again later.");
+				// For social media crawlers or when API fails, still render the page with default content
+				setTiers([]); // Set empty tiers array so the page can render
 				setLoading(false);
+				// Don't set error for social media crawlers - let the page render normally
 			});
 
 		// Fetch current seller tier information
