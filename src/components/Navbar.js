@@ -526,6 +526,11 @@ const Navbar = ({
 					{ href: "/admin/buyers", label: "Buyers", icon: faUsers },
 					{ href: "/admin/content", label: "CMS", icon: faFileAlt },
 					{ href: "/admin/promotions", label: "Promotions", icon: faPercent },
+					{
+						href: "/admin/communications",
+						label: "Communications",
+						icon: faEnvelope,
+					},
 					{ href: "/admin/messages", label: "Messages", icon: faEnvelope },
 					{
 						href: "/admin/fingerprint-requests",

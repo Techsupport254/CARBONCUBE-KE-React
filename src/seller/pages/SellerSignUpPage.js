@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
+import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 import "../css/SellerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -195,6 +196,15 @@ function SellerSignUpPage({ onSignup }) {
 						"This username is already taken. Please choose a different username.";
 				}
 			}
+
+			// Check if phone number already exists
+			if (formData.phone_number && !newErrors.phone_number) {
+				const phoneExists = await checkPhoneExists(formData.phone_number);
+				if (phoneExists) {
+					newErrors.phone_number =
+						"This phone number is already registered. Please use a different phone number.";
+				}
+			}
 		}
 
 		if (step === 2) {
@@ -219,6 +229,79 @@ function SellerSignUpPage({ onSignup }) {
 
 			if (formData.password && formData.password.length < 8) {
 				newErrors.password = "Password must be at least 8 characters long";
+			}
+
+			// Check for common passwords
+			const commonPasswords = [
+				"password",
+				"123456",
+				"123456789",
+				"qwerty",
+				"abc123",
+				"password123",
+				"admin",
+				"12345678",
+				"letmein",
+				"welcome",
+				"monkey",
+				"dragon",
+				"master",
+				"hello",
+				"login",
+				"passw0rd",
+				"123123",
+				"welcome123",
+				"1234567",
+				"12345",
+				"1234",
+				"111111",
+				"000000",
+				"1234567890",
+			];
+
+			if (
+				formData.password &&
+				commonPasswords.includes(formData.password.toLowerCase())
+			) {
+				newErrors.password =
+					"This password is too common. Please choose a more unique password.";
+			}
+
+			// Check for repeated characters
+			if (formData.password && /(.)\1{3,}/.test(formData.password)) {
+				newErrors.password = "Password contains too many repeated characters.";
+			}
+
+			// Check for sequential characters
+			if (
+				formData.password &&
+				/(0123456789|abcdefghijklmnopqrstuvwxyz|qwertyuiopasdfghjklzxcvbnm)/i.test(
+					formData.password
+				)
+			) {
+				newErrors.password =
+					"Password contains sequential characters which are easy to guess.";
+			}
+
+			// Check if password contains email or username
+			if (
+				formData.password &&
+				formData.email &&
+				formData.password
+					.toLowerCase()
+					.includes(formData.email.split("@")[0].toLowerCase())
+			) {
+				newErrors.password = "Password should not contain your email address.";
+			}
+
+			if (
+				formData.password &&
+				formData.username &&
+				formData.password
+					.toLowerCase()
+					.includes(formData.username.toLowerCase())
+			) {
+				newErrors.password = "Password should not contain your username.";
 			}
 
 			if (formData.password !== formData.password_confirmation) {
@@ -259,6 +342,7 @@ function SellerSignUpPage({ onSignup }) {
 
 	const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
 	const [usernameCheckTimeout, setUsernameCheckTimeout] = useState(null);
+	const [phoneCheckTimeout, setPhoneCheckTimeout] = useState(null);
 
 	const handleEmailChange = async (e) => {
 		const email = e.target.value;
@@ -348,6 +432,55 @@ function SellerSignUpPage({ onSignup }) {
 			}, 1000); // 1 second after user stops typing
 
 			setUsernameCheckTimeout(timeoutId);
+		}
+	};
+
+	const handlePhoneChange = async (e) => {
+		const phone_number = e.target.value;
+		handleChange(e);
+
+		// Clear previous phone number error
+		if (errors.phone_number) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.phone_number;
+				return newErrors;
+			});
+		}
+
+		// Validate phone number format immediately
+		const phoneRegex = /^\d{10}$/;
+		if (phone_number && !phoneRegex.test(phone_number)) {
+			setErrors((prev) => ({
+				...prev,
+				phone_number: "Phone number must be exactly 10 digits",
+			}));
+			return;
+		}
+
+		// Clear any existing timeout
+		if (phoneCheckTimeout) {
+			clearTimeout(phoneCheckTimeout);
+		}
+
+		// Check if phone number exists only when user stops typing (debounced)
+		if (
+			phone_number &&
+			phoneRegex.test(phone_number) &&
+			phone_number.length === 10
+		) {
+			const timeoutId = setTimeout(async () => {
+				const phoneExists = await checkPhoneExists(phone_number);
+				if (phoneExists) {
+					setErrors((prev) => ({
+						...prev,
+						phone_number:
+							"This phone number is already registered. Please use a different phone number.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setPhoneCheckTimeout(timeoutId);
 		}
 	};
 
@@ -659,6 +792,26 @@ function SellerSignUpPage({ onSignup }) {
 		}
 	};
 
+	const checkPhoneExists = async (phone_number) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/phone/exists`,
+				{ phone_number: phone_number.trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking phone number:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
 	const validateForm = () => {
 		const newErrors = {};
 
@@ -757,40 +910,6 @@ function SellerSignUpPage({ onSignup }) {
 										{step === 1 && (
 											<>
 												{/* Step 1 Errors */}
-												{(errors.fullname ||
-													errors.username ||
-													errors.phone ||
-													errors.email ||
-													errors.enterprise_name ||
-													errors.permit_number ||
-													errors.address) && (
-													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-														<div className="font-semibold mb-2">
-															Please fix the following errors:
-														</div>
-														<ul className="list-disc list-inside space-y-1">
-															{errors.fullname && (
-																<li>Full Name: {errors.fullname}</li>
-															)}
-															{errors.username && (
-																<li>Username: {errors.username}</li>
-															)}
-															{errors.phone && <li>Phone: {errors.phone}</li>}
-															{errors.email && <li>Email: {errors.email}</li>}
-															{errors.enterprise_name && (
-																<li>
-																	Enterprise Name: {errors.enterprise_name}
-																</li>
-															)}
-															{errors.permit_number && (
-																<li>Permit Number: {errors.permit_number}</li>
-															)}
-															{errors.address && (
-																<li>Address: {errors.address}</li>
-															)}
-														</ul>
-													</div>
-												)}
 												{/* Personal Information Section */}
 												<div className="space-y-6">
 													{/* Full Name */}
@@ -872,7 +991,7 @@ function SellerSignUpPage({ onSignup }) {
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 																	} focus:outline-none`}
 																	value={formData.phone_number}
-																	onChange={handleChange}
+																	onChange={handlePhoneChange}
 																/>
 															</div>
 															{errors.phone_number && (
@@ -1072,7 +1191,24 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="pt-4">
 													<button
 														type="button"
-														className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] text-sm shadow-md hover:shadow-lg"
+														disabled={
+															errors.fullname ||
+															errors.username ||
+															errors.phone_number ||
+															errors.email ||
+															errors.enterprise_name ||
+															errors.location
+														}
+														className={`w-full font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+															errors.fullname ||
+															errors.username ||
+															errors.phone_number ||
+															errors.email ||
+															errors.enterprise_name ||
+															errors.location
+																? "bg-gray-300 text-gray-500 cursor-not-allowed"
+																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
+														}`}
 														onClick={nextStep}
 													>
 														Continue
@@ -1084,52 +1220,6 @@ function SellerSignUpPage({ onSignup }) {
 										{step === 2 && (
 											<>
 												{/* Step 2 Errors */}
-												{(errors.county ||
-													errors.document_type ||
-													errors.document_expiry_date ||
-													errors.document_url ||
-													errors.profile_picture ||
-													errors.password ||
-													errors.password_confirmation ||
-													errors.terms) && (
-													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-														<div className="font-semibold mb-2">
-															Please fix the following errors:
-														</div>
-														<ul className="list-disc list-inside space-y-1">
-															{errors.county && (
-																<li>County: {errors.county}</li>
-															)}
-															{errors.document_type && (
-																<li>Document Type: {errors.document_type}</li>
-															)}
-															{errors.document_expiry_date && (
-																<li>
-																	Document Expiry Date:{" "}
-																	{errors.document_expiry_date}
-																</li>
-															)}
-															{errors.document_url && (
-																<li>Document Upload: {errors.document_url}</li>
-															)}
-															{errors.profile_picture && (
-																<li>
-																	Profile Picture: {errors.profile_picture}
-																</li>
-															)}
-															{errors.password && (
-																<li>Password: {errors.password}</li>
-															)}
-															{errors.password_confirmation && (
-																<li>
-																	Password Confirmation:{" "}
-																	{errors.password_confirmation}
-																</li>
-															)}
-															{errors.terms && <li>Terms: {errors.terms}</li>}
-														</ul>
-													</div>
-												)}
 												{/* Location Information Section */}
 												<div className="space-y-6">
 													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1549,6 +1639,11 @@ function SellerSignUpPage({ onSignup }) {
 																	{errors.password}
 																</div>
 															)}
+															<PasswordStrengthIndicator
+																password={formData.password}
+																email={formData.email}
+																username={formData.username}
+															/>
 														</div>
 
 														<div>
@@ -1643,8 +1738,20 @@ function SellerSignUpPage({ onSignup }) {
 													</button>
 													<button
 														type="submit"
-														disabled={!terms || submittingSignup}
-														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+														disabled={
+															!terms ||
+															submittingSignup ||
+															errors.password ||
+															errors.password_confirmation
+														}
+														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+															!terms ||
+															submittingSignup ||
+															errors.password ||
+															errors.password_confirmation
+																? "bg-gradient-to-r from-yellow-300 to-yellow-400 text-black scale-100 cursor-not-allowed"
+																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
+														}`}
 													>
 														{submittingSignup
 															? "Sending OTP..."
@@ -1657,17 +1764,6 @@ function SellerSignUpPage({ onSignup }) {
 										{step === 3 && (
 											<>
 												{/* Step 3 Errors */}
-												{(errors.otp || errors.terms) && (
-													<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-														<div className="font-semibold mb-2">
-															Please fix the following errors:
-														</div>
-														<ul className="list-disc list-inside space-y-1">
-															{errors.otp && <li>OTP Code: {errors.otp}</li>}
-															{errors.terms && <li>Terms: {errors.terms}</li>}
-														</ul>
-													</div>
-												)}
 												{/* OTP Verification Section */}
 												<div className="space-y-6">
 													<div>
@@ -1727,12 +1823,20 @@ function SellerSignUpPage({ onSignup }) {
 
 													<button
 														type="button"
-														className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+															!terms ||
+															otpCode.trim().length === 0 ||
+															verifyingOtp ||
+															errors.otp
+																? "bg-gradient-to-r from-yellow-300 to-yellow-400 text-black scale-100 cursor-not-allowed"
+																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
+														}`}
 														onClick={verifyOtpCode}
 														disabled={
 															!terms ||
 															otpCode.trim().length === 0 ||
-															verifyingOtp
+															verifyingOtp ||
+															errors.otp
 														}
 													>
 														{verifyingOtp

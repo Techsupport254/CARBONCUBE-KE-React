@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Table, Form } from "react-bootstrap";
-import "./BuyerInsights.css"; // Import the CSS files
 
 const BuyerInsights = () => {
 	const [selectedMetric, setSelectedMetric] = useState("Total Wishlists");
@@ -41,53 +39,48 @@ const BuyerInsights = () => {
 	return (
 		<div>
 			{loading ? (
-				<p className="text-center">Loading...</p>
+				<p className="text-center text-gray-600 py-4">Loading...</p>
 			) : (
-				<Table striped bordered hover className="text-center transparent-table">
-					<thead>
-						<tr>
-							<th>No:</th>
-							<th>Buyer Name</th>
-							<th>
-								<Form.Control
-									className="rounded-pill mb-0 text-center p-0 fw-bold"
-									as="select"
-									value={selectedMetric}
-									onChange={handleMetricChange}
-								>
-									<option>Total Wishlists</option>
-									<option>Total Click Events</option>
-								</Form.Control>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{buyersData.map((buyer, index) => (
-							<tr key={buyer.buyer_id || index}>
-								<td>{index + 1}</td>
-								<td>{buyer.fullname}</td>
-								<td>
-									{selectedMetric === "Total Wishlists" && (
-										<strong className=" text-success fw-bold">
-											{buyer.total_wishlists}
-										</strong>
-									)}
-									{selectedMetric === "Total Click Events" && (
-										<>
-											<strong
-												style={{ fontSize: "16px" }}
-												className="text-success"
-											>
-												{buyer.total_clicks || 0}
-												{}
-											</strong>
-										</>
-									)}
-								</td>
+				<div className="overflow-x-auto">
+					<table className="min-w-full border border-gray-300 rounded-lg">
+						<thead className="bg-gray-50">
+							<tr>
+								<th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-300">No:</th>
+								<th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b border-gray-300">Buyer Name</th>
+								<th className="px-4 py-2 text-center text-sm font-medium text-gray-700 border-b border-gray-300">
+									<select
+										className="rounded-full px-3 py-1 text-center font-bold text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+										value={selectedMetric}
+										onChange={handleMetricChange}
+									>
+										<option>Total Wishlists</option>
+										<option>Total Click Events</option>
+									</select>
+								</th>
 							</tr>
-						))}
-					</tbody>
-				</Table>
+						</thead>
+						<tbody className="bg-white divide-y divide-gray-200">
+							{buyersData.map((buyer, index) => (
+								<tr key={buyer.buyer_id || index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+									<td className="px-4 py-2 text-sm text-gray-900">{index + 1}</td>
+									<td className="px-4 py-2 text-sm text-gray-900">{buyer.fullname}</td>
+									<td className="px-4 py-2 text-center">
+										{selectedMetric === "Total Wishlists" && (
+											<strong className="text-green-600 font-bold">
+												{buyer.total_wishlists}
+											</strong>
+										)}
+										{selectedMetric === "Total Click Events" && (
+											<strong className="text-green-600 text-base">
+												{buyer.total_clicks || 0}
+											</strong>
+										)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			)}
 		</div>
 	);

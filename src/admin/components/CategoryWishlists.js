@@ -1,8 +1,6 @@
 import React from 'react';
 import { Doughnut } from 'react-chartjs-2';
-import { Col, Row } from 'react-bootstrap';
 import 'chart.js/auto';
-import './CategoryAnalytics.css'; // Ensure this file contains your CSS
 
 const CategoryWishlists = ({ data = [] }) => { // Default empty array
   if (!data || data.length === 0) {
@@ -35,26 +33,24 @@ const CategoryWishlists = ({ data = [] }) => { // Default empty array
   };
 
   return (
-    <Row>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {data.map((category, index) => (
-        <Col xs={6} md={4} lg={3} className="mb-4" key={index}>
-          <div className="category-analytics text-center">
-            <div className="chart-container">
-              <Doughnut data={chartData(category)} options={chartOptions} />
-            </div>
-            <div className="category-info mt-2">
-              <p><strong>{category.category_name}</strong></p>
-            </div>
-            <div className="wishlist-info">
-              <span><strong className="text-danger">{category.total_wishlists} Wishlists</strong></span>
-            </div>
-            <div className="percentage-info">
-              <span><strong className="text-primary">{category.wishlist_percentage} %</strong></span>
-            </div>
+        <div key={index} className="text-center">
+          <div className="h-24 w-24 mx-auto mb-2">
+            <Doughnut data={chartData(category)} options={chartOptions} />
           </div>
-        </Col>
+          <div className="mb-1">
+            <p className="font-bold text-sm">{category.category_name}</p>
+          </div>
+          <div className="mb-1">
+            <span className="font-bold text-red-600 text-sm">{category.total_wishlists} Wishlists</span>
+          </div>
+          <div>
+            <span className="font-bold text-blue-600 text-sm">{category.wishlist_percentage} %</span>
+          </div>
+        </div>
       ))}
-    </Row>
+    </div>
   );
 };
 

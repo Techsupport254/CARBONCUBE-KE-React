@@ -44,6 +44,9 @@ const SEOTest = lazy(() => import("./components/SEOValidationTest"));
 const AnalyticsReporting = lazy(() =>
 	import("./admin/pages/AnalyticsReporting")
 );
+const SellerCommunications = lazy(() =>
+	import("./admin/pages/SellerCommunications")
+);
 const ContentManagement = lazy(() => import("./admin/pages/ContentManagement"));
 const BuyersManagement = lazy(() => import("./admin/pages/BuyersManagement"));
 const SellersManagement = lazy(() => import("./admin/pages/SellersManagement"));
@@ -271,6 +274,10 @@ function App() {
 							<Route
 								path="analytics"
 								element={<AnalyticsReporting onLogout={handleLogout} />}
+							/>
+							<Route
+								path="communications"
+								element={<SellerCommunications onLogout={handleLogout} />}
 							/>
 							<Route
 								path="content"
