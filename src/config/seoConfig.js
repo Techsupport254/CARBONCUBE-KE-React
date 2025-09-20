@@ -13,7 +13,7 @@ export const SEO_CONFIG = {
 		locale: "en_US",
 		alternateLocales: ["sw-KE"],
 		contact: {
-			phone: "+254713270764",
+			phone: "+254 712 990 524",
 			email: "info@carboncube-ke.com",
 			address: {
 				street: "9th Floor, CMS Africa, Kilimani",
@@ -99,7 +99,7 @@ export const SEO_CONFIG = {
 				contactType: "customer service",
 				availableLanguage: "English",
 				areaServed: "KE",
-				telephone: "+254713270764",
+				telephone: "+254 712 990 524",
 				email: "info@carboncube-ke.com",
 			},
 			address: {
@@ -139,7 +139,7 @@ export const SEO_CONFIG = {
 			description:
 				"Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
 			url: "https://carboncube-ke.com",
-			telephone: "+254713270764",
+			telephone: "+254 712 990 524",
 			email: "info@carboncube-ke.com",
 			image: "https://carboncube-ke.com/logo.png",
 			address: {
@@ -167,7 +167,8 @@ export const SEO_CONFIG = {
 	// Page-specific configurations
 	pages: {
 		home: {
-			title: "Carbon Cube Kenya | Kenya's Trusted Digital Marketplace",
+			title:
+				"Carbon Cube Kenya - Kenya's #1 Online Marketplace | Trusted Sellers & Buyers",
 			description:
 				"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery.",
 			keywords:

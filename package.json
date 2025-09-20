@@ -40,7 +40,9 @@
 	},
 	"scripts": {
 		"start": "GENERATE_SOURCEMAP=false FAST_REFRESH=false react-scripts start",
+		"prebuild": "npm run generate-seo",
 		"build": "GENERATE_SOURCEMAP=false react-scripts build",
+		"generate-seo": "node scripts/seo-generator.js",
 		"seo-generator": "node scripts/seo-generator.js"
 	},
 	"eslintConfig": {

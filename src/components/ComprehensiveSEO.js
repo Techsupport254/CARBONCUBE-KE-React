@@ -35,10 +35,19 @@ const ComprehensiveSEO = ({
 
 	return (
 		<Helmet>
-			<title>{finalSEOData.title}</title>
+			<title>
+				{finalSEOData.title ||
+					"Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"}
+			</title>
 
 			{/* Primary Meta Tags */}
-			<meta name="title" content={finalSEOData.title} />
+			<meta
+				name="title"
+				content={
+					finalSEOData.title ||
+					"Carbon Cube Kenya | Kenya's Trusted Digital Marketplace"
+				}
+			/>
 			<meta name="description" content={finalSEOData.description} />
 			<meta name="keywords" content={finalSEOData.keywords} />
 			<meta name="author" content="Carbon Cube Kenya Team" />
@@ -239,6 +248,41 @@ const ComprehensiveSEO = ({
 						{JSON.stringify(data)}
 					</script>
 				))}
+
+			{/* Enhanced Homepage Structured Data */}
+			{pageType === "home" && (
+				<script type="application/ld+json">
+					{JSON.stringify({
+						"@context": "https://schema.org",
+						"@type": "WebSite",
+						name: "Carbon Cube Kenya",
+						alternateName: "Carbon Cube KE",
+						url: "https://carboncube-ke.com",
+						description:
+							"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
+						publisher: {
+							"@type": "Organization",
+							name: "Carbon Cube Kenya",
+							url: "https://carboncube-ke.com",
+							logo: {
+								"@type": "ImageObject",
+								url: "https://carboncube-ke.com/logo.png",
+							},
+						},
+						potentialAction: {
+							"@type": "SearchAction",
+							target: "https://carboncube-ke.com/search?q={search_term_string}",
+							"query-input": "required name=search_term_string",
+						},
+						mainEntity: {
+							"@type": "ItemList",
+							name: "Featured Products",
+							description:
+								"Verified products from trusted sellers across Kenya",
+						},
+					})}
+				</script>
+			)}
 
 			{children}
 		</Helmet>

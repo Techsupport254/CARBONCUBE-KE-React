@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+	useParams,
+	useNavigate,
+	useLocation,
+	useSearchParams,
+} from "react-router-dom";
 import { Button } from "react-bootstrap";
 import {
 	getTierName,
@@ -37,13 +42,17 @@ const ShopPage = () => {
 	const { slug } = useParams();
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [shop, setShop] = useState(null);
 	const [ads, setAds] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [error, setError] = useState(null);
-	const [currentPage, setCurrentPage] = useState(1);
-	const [hasMore, setHasMore] = useState(true);
+	const [currentPage, setCurrentPage] = useState(() => {
+		const page = parseInt(searchParams.get("page") || "1", 10);
+		return page;
+	});
+	const [totalPages, setTotalPages] = useState(1);
+	const [totalResults, setTotalResults] = useState(0);
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showReviewsModal, setShowReviewsModal] = useState(false);
 	const [showLeaveReviewModal, setShowLeaveReviewModal] = useState(false);
@@ -611,33 +620,39 @@ const ShopPage = () => {
 		  };
 
 	// Prepare shop data for SEO
-	const shopData = shop ? {
-		id: shop.id,
-		enterprise_name: shop.enterprise_name,
-		name: shop.enterprise_name,
-		description: shop.description,
-		location: shop.county || shop.location || "Kenya",
-		tier: shop.tier_name || "Free",
-		product_count: shop.product_count || ads.length,
-		ads_count: ads.length,
-		reviews_count: reviewStats?.total_reviews || 0,
-		rating: reviewStats?.average_rating || 0,
-		categories: shop.categories || [],
-		images: shop.images || [],
-		created_at: shop.created_at,
-		updated_at: shop.updated_at,
-		keywords: [
-			shop.enterprise_name,
-			"shop",
-			"store",
-			"seller",
-			shop.county || "Kenya",
-			shop.tier_name || "Free",
-			"Carbon Cube Kenya",
-			"verified seller",
-		].filter(Boolean),
-		tags: ["shop", "store", "seller", shop.tier_name || "Free"].filter(Boolean),
-	} : null;
+	const shopData = shop
+		? {
+				id: shop.id,
+				enterprise_name: shop.enterprise_name,
+				name: shop.enterprise_name,
+				description: shop.description,
+				location: shop.county || shop.location || "Kenya",
+				tier: shop.tier_name || "Free",
+				product_count: shop.product_count || ads.length,
+				ads_count: ads.length,
+				reviews_count: reviewStats?.total_reviews || 0,
+				rating: reviewStats?.average_rating || 0,
+				categories: shop.categories || [],
+				images: shop.images || [],
+				profile_picture: shop.profile_picture, // Add profile_picture for SEO
+				ads: ads, // Add ads data for fallback image selection
+				created_at: shop.created_at,
+				updated_at: shop.updated_at,
+				keywords: [
+					shop.enterprise_name,
+					"shop",
+					"store",
+					"seller",
+					shop.county || "Kenya",
+					shop.tier_name || "Free",
+					"Carbon Cube Kenya",
+					"verified seller",
+				].filter(Boolean),
+				tags: ["shop", "store", "seller", shop.tier_name || "Free"].filter(
+					Boolean
+				),
+		  }
+		: null;
 
 	// Fetch categories
 	const fetchCategories = async () => {
@@ -663,12 +678,7 @@ const ShopPage = () => {
 	useEffect(() => {
 		const fetchShopData = async () => {
 			try {
-				// Set loading state based on whether this is the first page or a subsequent page
-				if (currentPage === 1) {
-					setIsLoading(true);
-				} else {
-					setIsLoadingMore(true);
-				}
+				setIsLoading(true);
 
 				const response = await fetch(
 					`${process.env.REACT_APP_BACKEND_URL}/shop/${slug}?page=${currentPage}&per_page=20`,
@@ -685,35 +695,25 @@ const ShopPage = () => {
 
 				const data = await response.json();
 
-				// Set shop data only on first page
+				// Set shop data (only fetch once)
 				if (currentPage === 1) {
 					setShop(data.shop);
-					setAds(data.ads);
-					setFilteredAds(data.ads);
-				} else {
-					// Append new ads to existing ones
-					setAds((prevAds) => [...prevAds, ...data.ads]);
-					setFilteredAds((prevFilteredAds) => [
-						...prevFilteredAds,
-						...data.ads,
-					]);
+					fetchCategories();
 				}
 
-				setHasMore(data.pagination.current_page < data.pagination.total_pages);
+				// Set ads and pagination data for current page
+				setAds(data.ads);
+				setFilteredAds(data.ads);
+				setTotalPages(data.pagination.total_pages);
+				setTotalResults(data.pagination.total_count);
 			} catch (err) {
 				setError(err.message);
 			} finally {
 				setIsLoading(false);
-				setIsLoadingMore(false);
 			}
 		};
 
 		fetchShopData();
-
-		// Only fetch categories on first page load
-		if (currentPage === 1) {
-			fetchCategories();
-		}
 	}, [slug, currentPage]);
 
 	useEffect(() => {
@@ -721,6 +721,14 @@ const ShopPage = () => {
 			fetchReviewStats();
 		}
 	}, [shop, fetchReviewStats]);
+
+	// Sync currentPage with URL parameters
+	useEffect(() => {
+		const urlPage = parseInt(searchParams.get("page") || "1", 10);
+		if (urlPage !== currentPage) {
+			setCurrentPage(urlPage);
+		}
+	}, [searchParams, currentPage]);
 
 	const handleAdClick = (adId) => {
 		// Preserve current query parameters when navigating to ad details
@@ -731,8 +739,14 @@ const ShopPage = () => {
 		navigate(`/ads/${adId}${separator}${currentQuery}`);
 	};
 
-	const handleLoadMore = () => {
-		setCurrentPage((prev) => prev + 1);
+	const handlePageChange = (page) => {
+		setCurrentPage(page);
+		// Update URL parameters
+		const newSearchParams = new URLSearchParams(searchParams);
+		newSearchParams.set("page", page.toString());
+		setSearchParams(newSearchParams);
+		// Scroll to top when page changes
+		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
 	// Function to update URL parameters
@@ -1552,32 +1566,79 @@ const ShopPage = () => {
 								</div>
 							)}
 
-							{/* Load More Button */}
-							{hasMore &&
-								ads.length > 0 &&
+							{/* Pagination Controls */}
+							{ads.length > 0 &&
 								!searchTerm &&
 								selectedCategory === "All" &&
-								selectedSubcategory === "All" && (
-									<div className="text-center mt-8">
-										<Button
-											variant="outline-warning"
-											onClick={handleLoadMore}
-											disabled={isLoadingMore}
-											className="px-6 py-2"
-										>
-											{isLoadingMore ? (
-												<>
-													<Spinner
-														name="three-bounce"
-														color="#f59e0b"
-														style={{ width: 20, height: 20 }}
-													/>
-													<span className="ml-2">Loading...</span>
-												</>
+								selectedSubcategory === "All" &&
+								totalPages > 1 && (
+									<div className="flex justify-center mt-8">
+										<div className="flex items-center gap-2">
+											<Button
+												variant="outline-warning"
+												size="sm"
+												onClick={() => handlePageChange(currentPage - 1)}
+												disabled={currentPage <= 1 || isLoading}
+												className="px-3 py-1.5 text-sm"
+											>
+												Previous
+											</Button>
+
+											{/* Page numbers */}
+											<div className="flex items-center gap-1">
+												{Array.from(
+													{ length: Math.min(5, totalPages) },
+													(_, i) => {
+														const pageNum =
+															Math.max(
+																1,
+																Math.min(totalPages - 4, currentPage - 2)
+															) + i;
+														if (pageNum > totalPages) return null;
+
+														return (
+															<Button
+																key={pageNum}
+																variant={
+																	pageNum === currentPage
+																		? "warning"
+																		: "outline-warning"
+																}
+																size="sm"
+																onClick={() => handlePageChange(pageNum)}
+																disabled={isLoading}
+																className="px-3 py-1.5 text-sm min-w-[40px]"
+															>
+																{pageNum}
+															</Button>
+														);
+													}
+												)}
+											</div>
+
+											<Button
+												variant="outline-warning"
+												size="sm"
+												onClick={() => handlePageChange(currentPage + 1)}
+												disabled={currentPage >= totalPages || isLoading}
+												className="px-3 py-1.5 text-sm"
+											>
+												Next
+											</Button>
+										</div>
+
+										{/* Page info */}
+										<div className="text-sm text-gray-500 text-center mt-2 ml-4">
+											{isLoading ? (
+												<span
+													className="spinner-border spinner-border-sm me-2"
+													role="status"
+													aria-hidden="true"
+												></span>
 											) : (
-												"Load More Products"
+												`Page ${currentPage} of ${totalPages} (${totalResults} total items)`
 											)}
-										</Button>
+										</div>
 									</div>
 								)}
 						</div>

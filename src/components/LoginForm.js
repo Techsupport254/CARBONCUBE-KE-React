@@ -1,10 +1,19 @@
 import React, { useState } from "react";
-import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
+// import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
+import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faKey } from "@fortawesome/free-solid-svg-icons";
+import {
+	faEnvelope,
+	faKey,
+	faLeaf,
+	faUsers,
+	faChartLine,
+	faRecycle,
+	faEye,
+} from "@fortawesome/free-solid-svg-icons";
 import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
 import "./LoginForm.css";
@@ -159,56 +168,85 @@ const LoginForm = ({ onLogin }) => {
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
-							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 flex-col justify-between">
-								<div className="pt-2">
-									<h2 className="text-2xl font-bold mb-3">
-										<span className="text-white">Carbon</span>
-										<span className="text-yellow-400">Cube</span>
-									</h2>
-									<p className="text-gray-300 opacity-90 text-xs leading-relaxed">
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 flex-col justify-between">
+								{/* Header Section */}
+								<div className="space-y-3 sm:space-y-4 lg:space-y-4">
+									<div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4 lg:mb-4">
+										<img
+											src="/logo.png"
+											alt="CarbonCube Logo"
+											className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-contain"
+										/>
+										<h2 className="text-lg sm:text-xl font-bold">
+											<span className="text-white">Carbon</span>
+											<span className="text-yellow-400">Cube</span>
+										</h2>
+									</div>
+									<p className="text-slate-300 text-xs sm:text-sm leading-relaxed ml-8 sm:ml-10 lg:ml-11">
 										Welcome to CarbonCube - your trusted online marketplace for
 										sustainable products and eco-conscious shopping.
 									</p>
 								</div>
 
-								<div className="px-1 py-4">
-									<h5 className="text-yellow-400 mb-3 text-sm font-semibold">
+								{/* Features Section */}
+								<div className="space-y-5">
+									<h5 className="text-yellow-400 text-sm font-medium">
 										Why CarbonCube?
 									</h5>
-									<ul className="space-y-2">
-										<li className="flex items-center">
-											<span className="mr-2 text-yellow-400 text-xs">✓</span>
-											<span className="text-xs text-gray-300">
+									<div className="space-y-3">
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<FontAwesomeIcon
+													icon={faLeaf}
+													className="text-yellow-400 text-xs"
+												/>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Manage carbon product listings
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<FontAwesomeIcon
+													icon={faUsers}
+													className="text-yellow-400 text-xs"
+												/>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Connect with local sellers
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<FontAwesomeIcon
+													icon={faChartLine}
+													className="text-yellow-400 text-xs"
+												/>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Real-time deal tracking
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<FontAwesomeIcon
+													icon={faRecycle}
+													className="text-yellow-400 text-xs"
+												/>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Eco-conscious marketplace
 											</span>
-										</li>
-									</ul>
+										</div>
+									</div>
 								</div>
 
-								<div className="bg-black bg-opacity-50 p-3 rounded-lg mt-2">
-									<div className="flex items-center mb-1">
-										<div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></div>
-										<small className="font-semibold text-xs">Vision:</small>
-									</div>
-									<p className="italic text-xs text-gray-300">
+								{/* Vision Section */}
+								<div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+									<h6 className="text-yellow-400 font-medium text-sm mb-2">
+										Vision
+									</h6>
+									<p className="text-slate-300 text-xs leading-relaxed">
 										"To be Kenya's most trusted and innovative online
 										marketplace."
 									</p>
@@ -332,7 +370,7 @@ const LoginForm = ({ onLogin }) => {
 											</button>
 										</div>
 
-										<div className="relative my-6">
+										{/* <div className="relative my-6">
 											<div className="absolute inset-0 flex items-center">
 												<div className="w-full border-t border-gray-200"></div>
 											</div>
@@ -341,9 +379,9 @@ const LoginForm = ({ onLogin }) => {
 													or continue with
 												</span>
 											</div>
-										</div>
+										</div> */}
 
-										<div className="flex justify-center space-x-3 mb-6">
+										{/* <div className="flex justify-center space-x-3 mb-6">
 											<button
 												type="button"
 												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
@@ -362,7 +400,7 @@ const LoginForm = ({ onLogin }) => {
 											>
 												<Apple size={18} />
 											</button>
-										</div>
+										</div> */}
 
 										<div className="text-center">
 											<p className="text-gray-600 mb-4 text-sm">

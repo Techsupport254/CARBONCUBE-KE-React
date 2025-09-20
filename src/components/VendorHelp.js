@@ -50,7 +50,7 @@ const VendorHelp = () => {
 					contactType: "customer service",
 					availableLanguage: "English",
 					areaServed: "KE",
-					telephone: "+254-712-990524",
+					telephone: "+254 712 990 524",
 					email: "info@carboncube-ke.com",
 				},
 			},
@@ -280,7 +280,7 @@ const VendorHelp = () => {
 			{
 				question: "How can I contact Carbon Cube support?",
 				answer:
-					"Contact us via email at info@carboncube-ke.com, phone at +254-712-990524, or through the contact form on our website. We're available Monday-Friday, 8 AM-5 PM EAT.",
+					"Contact us via email at info@carboncube-ke.com, phone at +254 712 990 524, or through the contact form on our website. We're available Monday-Friday, 8 AM-5 PM EAT.",
 			},
 			{
 				question: "What's the best way to get help with a technical issue?",

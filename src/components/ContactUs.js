@@ -107,7 +107,7 @@ const ContactUs = () => {
 					{
 						"@type": "ContactPoint",
 						contactType: "customer service",
-						telephone: "+254-712-990524",
+						telephone: "+254 712 990 524",
 						availableLanguage: "English",
 						areaServed: "KE",
 						hoursAvailable: {
@@ -232,7 +232,7 @@ const ContactUs = () => {
 				style={{ backgroundColor: "#ffc107" }}
 			>
 				{/* Subtle background pattern */}
-				<div className="position-absolute top-0 start-0 w-100 h-100 opacity-30">
+				<div className="position-absolute top-0 start-0 w-100 h-100 opacity-60">
 					<div
 						style={{
 							background:

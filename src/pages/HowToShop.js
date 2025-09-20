@@ -165,7 +165,7 @@ const HowToShop = () => {
 				logo: `${window.location.origin}/assets/banners/carbon-cube-logo.png`,
 				contactPoint: {
 					"@type": "ContactPoint",
-					telephone: "+254-712-990524",
+					telephone: "+254 712 990 524",
 					contactType: "customer service",
 					email: "info@carboncube-ke.com",
 				},

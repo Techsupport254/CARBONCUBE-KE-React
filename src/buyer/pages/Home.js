@@ -24,6 +24,7 @@ import {
 	logSubcategoryClick,
 } from "../../utils/clickEventLogger";
 import ComprehensiveSEO from "../../components/ComprehensiveSEO";
+import HomepageSEO from "../../components/HomepageSEO";
 import {
 	generateHomeSEO,
 	generateCategoryPageSEO,
@@ -242,7 +243,7 @@ const Home = ({ onLogout }) => {
 				{ name: "business:contact_data:country_name", content: "Kenya" },
 				{
 					name: "business:contact_data:phone_number",
-					content: "+254713270764",
+					content: "+254 712 990 524",
 				},
 				{
 					name: "business:contact_data:email",
@@ -391,7 +392,7 @@ const Home = ({ onLogout }) => {
 						contactType: "customer service",
 						availableLanguage: "English",
 						areaServed: "KE",
-						telephone: "+254713270764",
+						telephone: "+254 712 990 524",
 						email: "info@carboncube-ke.com",
 					},
 					address: {
@@ -418,7 +419,7 @@ const Home = ({ onLogout }) => {
 					description:
 						"Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
 					url: "https://carboncube-ke.com",
-					telephone: "+254713270764",
+					telephone: "+254 712 990 524",
 					email: "info@carboncube-ke.com",
 					image: "https://carboncube-ke.com/logo.png",
 					address: {
@@ -1548,18 +1549,7 @@ const Home = ({ onLogout }) => {
 
 	return (
 		<>
-			<ComprehensiveSEO
-				pageType="home"
-				data={{
-					categories,
-					totalCategories: categories.length,
-					featuredCategories: categories
-						.slice(0, 5)
-						.map((cat) => cat.name)
-						.join(", "),
-				}}
-				{...seoData}
-			/>
+			<HomepageSEO categories={categories} />
 			<Navbar
 				mode="buyer"
 				searchQuery={searchQuery}

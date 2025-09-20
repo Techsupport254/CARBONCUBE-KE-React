@@ -49,9 +49,28 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 			.replace(/{tier}/g, tierName)
 			.replace(/{location}/g, shopLocation);
 
-	// Get primary image (shop logo or first product image)
-	const primaryImage =
-		images && images.length > 0 ? images[0].url || images[0] : siteConfig.logo;
+	// Get primary image (shop logo, profile picture, or first product image)
+	const primaryImage = (() => {
+		// First try profile_picture if available
+		if (shop.profile_picture) {
+			return shop.profile_picture.startsWith("http")
+				? shop.profile_picture
+				: `https://carboncube-ke.com${shop.profile_picture}`;
+		}
+		// Then try images array
+		if (images && images.length > 0) {
+			return images[0].url || images[0];
+		}
+		// Try to get first product image from ads if available
+		if (shop.ads && shop.ads.length > 0) {
+			const firstAd = shop.ads[0];
+			if (firstAd.images && firstAd.images.length > 0) {
+				return firstAd.images[0].url || firstAd.images[0];
+			}
+		}
+		// Fallback to site logo
+		return siteConfig.logo;
+	})();
 
 	// Build keywords array
 	const seoKeywords = [
@@ -82,7 +101,7 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 			enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
 		}`,
 		image: primaryImage,
-		telephone: "+254713270764", // Default contact
+		telephone: "+254 712 990 524", // Default contact
 		email: "info@carboncube-ke.com", // Default contact
 		address: {
 			"@type": "PostalAddress",
@@ -190,7 +209,12 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 			<meta property="og:image" content={primaryImage} />
 			<meta property="og:image:width" content="1200" />
 			<meta property="og:image:height" content="630" />
-			<meta property="og:image:alt" content={shopName} />
+			<meta
+				property="og:image:alt"
+				content={`${shopName} - Shop on Carbon Cube Kenya`}
+			/>
+			<meta property="og:image:type" content="image/jpeg" />
+			<meta property="og:image:secure_url" content={primaryImage} />
 			<meta property="og:site_name" content={siteConfig.name} />
 			<meta property="og:locale" content="en_US" />
 			<meta property="og:updated_time" content={new Date().toISOString()} />
@@ -212,7 +236,12 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 			<meta name="twitter:title" content={seoTitle} />
 			<meta name="twitter:description" content={seoDescription} />
 			<meta name="twitter:image" content={primaryImage} />
-			<meta name="twitter:image:alt" content={shopName} />
+			<meta
+				name="twitter:image:alt"
+				content={`${shopName} - Shop on Carbon Cube Kenya`}
+			/>
+			<meta name="twitter:image:width" content="1200" />
+			<meta name="twitter:image:height" content="630" />
 
 			{/* Article-specific meta tags */}
 			{created_at && (

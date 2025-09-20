@@ -313,7 +313,10 @@ export const generateHomeSEO = (categories = []) => {
 			{ name: "business:contact_data:region", content: "Nairobi" },
 			{ name: "business:contact_data:postal_code", content: "00100" },
 			{ name: "business:contact_data:country_name", content: "Kenya" },
-			{ name: "business:contact_data:phone_number", content: "+254713270764" },
+			{
+				name: "business:contact_data:phone_number",
+				content: "+254 712 990 524",
+			},
 			{
 				name: "business:contact_data:email",
 				content: "info@carboncube-ke.com",
@@ -378,7 +381,7 @@ export const generateHomeSEO = (categories = []) => {
 					contactType: "customer service",
 					availableLanguage: "English",
 					areaServed: "KE",
-					telephone: "+254713270764",
+					telephone: "+254 712 990 524",
 					email: "info@carboncube-ke.com",
 				},
 				address: {
@@ -405,7 +408,7 @@ export const generateHomeSEO = (categories = []) => {
 				description:
 					"Smart, AI-powered marketplace connecting credible sellers with serious buyers in Kenya",
 				url: "https://carboncube-ke.com",
-				telephone: "+254713270764",
+				telephone: "+254 712 990 524",
 				email: "info@carboncube-ke.com",
 				image: "https://carboncube-ke.com/logo.png",
 				address: {

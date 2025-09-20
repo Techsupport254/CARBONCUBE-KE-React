@@ -348,7 +348,7 @@ const useSEO = ({
 			contactType: "customer service",
 			availableLanguage: "English",
 			areaServed: "KE",
-			telephone: "+254713270764",
+			telephone: "+254 712 990 524",
 			email: "info@carboncube-ke.com",
 		},
 		address: {

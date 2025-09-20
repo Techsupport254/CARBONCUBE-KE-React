@@ -8,7 +8,7 @@
  * - Dynamic robots.txt with current generation date
  * - Sitemap index file
  * - URL list for reference
- * - Static HTML files for each route with proper meta tags (for social media crawlers)
+ * - Static HTML files for static pages only (Rendertron handles dynamic content)
  *
  * Features:
  * - ✅ Dynamic dates (no hardcoded timestamps)
@@ -30,7 +30,7 @@
 const API_BASE_URL =
 	process.env.REACT_APP_BACKEND_URL ||
 	process.env.API_URL ||
-	"https://carboncube-ke.com";
+	"https://carboncube-ke.com/api";
 const SITE_BASE_URL =
 	process.env.REACT_APP_SITE_URL ||
 	process.env.SITE_URL ||
@@ -44,8 +44,9 @@ const Handlebars = require("handlebars");
 
 console.log(`🔧 Using API URL: ${API_BASE_URL}`);
 console.log(`🔧 Using Site URL: ${SITE_BASE_URL}`);
+console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}`);
 
-// Dynamic date generation - always use current date/time
+// Dynamic date generation - always use current date/time (fresh timestamps on every build)
 const now = new Date();
 const CURRENT_DATE = now.toISOString().split("T")[0];
 const BUILD_TIMESTAMP = now.toISOString();
@@ -390,7 +391,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 				"contactType": "customer service",
 				"availableLanguage": "English",
 				"areaServed": "KE",
-				"telephone": "+254713270764",
+				"telephone": "+254 712 990 524",
 				"email": "info@carboncube-ke.com"
 			},
 			"address": {
@@ -492,8 +493,8 @@ async function fetchCategoriesAndSubcategories() {
 
 		[categoriesResponse, subcategoriesResponse] = await Promise.all([
 			axios
-				.get(`${API_BASE_URL}/api/sitemap/categories`, {
-					timeout: 15000,
+				.get(`${API_BASE_URL}/sitemap/categories`, {
+					timeout: 30000, // Increased timeout for production
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
@@ -515,8 +516,8 @@ async function fetchCategoriesAndSubcategories() {
 					return { data: [], status: error.response?.status };
 				}),
 			axios
-				.get(`${API_BASE_URL}/api/sitemap/subcategories`, {
-					timeout: 15000,
+				.get(`${API_BASE_URL}/sitemap/subcategories`, {
+					timeout: 30000, // Increased timeout for production
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
@@ -575,7 +576,7 @@ async function fetchCategoriesAndSubcategories() {
 			[categoriesResponse, subcategoriesResponse] = await Promise.all([
 				axios
 					.get(`${API_BASE_URL}/buyer/categories`, {
-						timeout: 15000,
+						timeout: 30000, // Increased timeout for production
 						headers: {
 							Accept: "application/json",
 							"Content-Type": "application/json",
@@ -591,7 +592,7 @@ async function fetchCategoriesAndSubcategories() {
 					}),
 				axios
 					.get(`${API_BASE_URL}/buyer/subcategories`, {
-						timeout: 15000,
+						timeout: 30000, // Increased timeout for production
 						headers: {
 							Accept: "application/json",
 							"Content-Type": "application/json",
@@ -718,10 +719,10 @@ function generateSubcategoryUrls(subcategories, categories) {
 async function fetchAds() {
 	try {
 		console.log("📡 Fetching individual ads...");
-		console.log(`📡 Ads API: ${API_BASE_URL}/api/sitemap/ads`);
+		console.log(`📡 Ads API: ${API_BASE_URL}/sitemap/ads`);
 
 		const adsResponse = await axios
-			.get(`${API_BASE_URL}/api/sitemap/ads`, {
+			.get(`${API_BASE_URL}/sitemap/ads`, {
 				timeout: 30000, // Longer timeout for large dataset
 				headers: {
 					Accept: "application/json",
@@ -797,11 +798,11 @@ function generateAdUrls(ads) {
 async function fetchSellers() {
 	try {
 		console.log("📡 Fetching sellers for shop pages...");
-		console.log(`📡 Sellers API: ${API_BASE_URL}/api/sitemap/sellers`);
+		console.log(`📡 Sellers API: ${API_BASE_URL}/sitemap/sellers`);
 
 		const sellersResponse = await axios
-			.get(`${API_BASE_URL}/api/sitemap/sellers`, {
-				timeout: 15000,
+			.get(`${API_BASE_URL}/sitemap/sellers`, {
+				timeout: 30000, // Increased timeout for production
 				headers: {
 					Accept: "application/json",
 					"Content-Type": "application/json",
@@ -940,14 +941,37 @@ function generateRouteMetaData(route, additionalData = {}) {
 	};
 }
 
-// Generate static HTML files for all routes
+// Generate static HTML files for static pages only (Rendertron handles dynamic content)
 function generateAllStaticHTML(allUrls, buildDir) {
-	console.log("📄 Generating static HTML files for social media crawlers...");
+	console.log(
+		"📄 Generating static HTML files for static pages only (Rendertron handles dynamic content)..."
+	);
 
 	const compiledTemplate = Handlebars.compile(HTML_TEMPLATE);
 	let generatedCount = 0;
 
-	allUrls.forEach((route) => {
+	// Filter to only include static pages (not dynamic content like ads, categories, shops)
+	const staticPages = allUrls.filter((route) => {
+		const path = route.path;
+		// Include only main static pages, exclude dynamic content
+		return (
+			!path.includes("/ads/") &&
+			!path.includes("/categories/") &&
+			!path.includes("/subcategories/") &&
+			!path.includes("/shop/") &&
+			!path.includes("/buyer/ads/") &&
+			!path.includes("/buyer/categories/") &&
+			!path.includes("/buyer/subcategories/") &&
+			!path.includes("/seller/categories/") &&
+			!path.includes("/seller/subcategories/")
+		);
+	});
+
+	console.log(
+		`📄 Found ${staticPages.length} static pages to generate HTML for (out of ${allUrls.length} total URLs)`
+	);
+
+	staticPages.forEach((route) => {
 		try {
 			const metaData = generateRouteMetaData(route);
 			const html = compiledTemplate(metaData);
@@ -979,7 +1003,9 @@ function generateAllStaticHTML(allUrls, buildDir) {
 		}
 	});
 
-	console.log(`📄 Generated ${generatedCount} static HTML files total`);
+	console.log(
+		`📄 Generated ${generatedCount} static HTML files for static pages only (Rendertron handles dynamic content)`
+	);
 	return generatedCount;
 }
 
@@ -1151,12 +1177,16 @@ async function generateDynamicSitemap() {
 			"\n🎉 Dynamic sitemap and static HTML generation completed successfully!"
 		);
 		console.log(`📁 Files generated in: ${publicDir}`);
-		console.log(`📄 Static HTML files generated in: ${buildDir}`);
+		console.log(
+			`📄 Static HTML files generated in: ${buildDir} (static pages only - Rendertron handles dynamic content)`
+		);
 		console.log(`🌐 Site URL: ${SITE_BASE_URL}`);
 		console.log(`🔗 Sitemap URL: ${SITE_BASE_URL}/sitemap.xml`);
 		console.log(`🤖 Robots URL: ${SITE_BASE_URL}/robots.txt`);
 		console.log(`📊 Total URLs: ${allUrls.length}`);
-		console.log(`📄 Total HTML files: ${htmlCount}`);
+		console.log(
+			`📄 Static HTML files: ${htmlCount} (Rendertron handles dynamic content)`
+		);
 	} catch (error) {
 		console.error("Error generating sitemap:", error);
 		process.exit(1);

@@ -53,7 +53,7 @@ const Privacy = () => {
 					style={{ backgroundColor: "#ffc107" }}
 				>
 					{/* Subtle background pattern */}
-					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-30">
+					<div className="position-absolute top-0 start-0 w-100 h-100 opacity-60">
 						<div
 							style={{
 								background:
