@@ -69,7 +69,7 @@ const useSEO = ({
 	const fullTitle = title ? `${title} | ${siteName}` : siteName;
 	const defaultDescription =
 		"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.";
-	const defaultImage = "https://carboncube-ke.com/logo.png";
+	const defaultImage = "https://carboncube-ke.com/og-image.png";
 	const defaultUrl = "https://carboncube-ke.com";
 
 	// Build comprehensive meta tags array
@@ -337,7 +337,7 @@ const useSEO = ({
 		description:
 			"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 		url: "https://carboncube-ke.com",
-		logo: "https://carboncube-ke.com/logo.png",
+		logo: "https://carboncube-ke.com/og-image.png",
 		sameAs: [
 			"https://www.linkedin.com/company/carbon-cube-kenya/",
 			"https://www.facebook.com/profile.php?id=61574066312678",

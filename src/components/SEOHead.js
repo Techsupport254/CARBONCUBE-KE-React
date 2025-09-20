@@ -20,7 +20,7 @@ const SEOHead = ({
 	title,
 	description,
 	keywords,
-	image = "https://carboncube-ke.com/logo.png",
+	image = "https://carboncube-ke.com/og-image.png",
 	url = "https://carboncube-ke.com",
 	type = "website",
 	structuredData = null,

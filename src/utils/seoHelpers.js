@@ -74,7 +74,7 @@ export const generateProductSEO = (product) => {
 		image:
 			product.images && product.images.length > 0
 				? product.images[0]
-				: "https://carboncube-ke.com/logo.png",
+				: "https://carboncube-ke.com/og-image.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		price: price,
@@ -182,7 +182,7 @@ export const generateShopSEO = (shop) => {
 		keywords,
 		url: `https://carboncube-ke.com/shop/${shop.slug}`,
 		type: "website",
-		image: shop.logo_url || "https://carboncube-ke.com/logo.png",
+		image: shop.logo_url || "https://carboncube-ke.com/og-image.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		publishedTime: shop.created_at,
@@ -255,7 +255,7 @@ export const generateHomeSEO = (categories = []) => {
 		url: "https://carboncube-ke.com/",
 		canonical: "https://carboncube-ke.com/",
 		type: "website",
-		image: "https://carboncube-ke.com/logo.png",
+		image: "https://carboncube-ke.com/og-image.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		section: "Homepage",
@@ -375,7 +375,7 @@ export const generateHomeSEO = (categories = []) => {
 				description:
 					"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 				url: "https://carboncube-ke.com",
-				logo: "https://carboncube-ke.com/logo.png",
+				logo: "https://carboncube-ke.com/og-image.png",
 				contactPoint: {
 					"@type": "ContactPoint",
 					contactType: "customer service",
@@ -410,7 +410,7 @@ export const generateHomeSEO = (categories = []) => {
 				url: "https://carboncube-ke.com",
 				telephone: "+254 712 990 524",
 				email: "info@carboncube-ke.com",
-				image: "https://carboncube-ke.com/logo.png",
+				image: "https://carboncube-ke.com/og-image.png",
 				address: {
 					"@type": "PostalAddress",
 					streetAddress: "9th Floor, CMS Africa, Kilimani",
@@ -571,7 +571,7 @@ export const generateCategorySEO = (category, subcategories = [], ads = []) => {
 		name: `${category.name} | Carbon Cube Kenya`,
 		description: description,
 		url: `https://carboncube-ke.com/category/${category.slug}`,
-		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		image: category.image_url || "https://carboncube-ke.com/og-image.png",
 		mainEntity: {
 			"@type": "ItemList",
 			name: `${category.name} Products`,
@@ -586,7 +586,7 @@ export const generateCategorySEO = (category, subcategories = [], ads = []) => {
 					image:
 						ad.images && ad.images[0]
 							? ad.images[0]
-							: "https://carboncube-ke.com/logo.png",
+							: "https://carboncube-ke.com/og-image.png",
 					offers: {
 						"@type": "Offer",
 						price: ad.price,
@@ -636,7 +636,7 @@ export const generateCategorySEO = (category, subcategories = [], ads = []) => {
 		keywords,
 		url: `https://carboncube-ke.com/category/${category.slug}`,
 		type: "website",
-		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		image: category.image_url || "https://carboncube-ke.com/og-image.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		section: category.name,
@@ -766,7 +766,7 @@ export const generateCategoryPageSEO = (
 		url: `https://carboncube-ke.com/?category=${category.slug}${
 			subcategory ? `&subcategory=${subcategory.slug}` : ""
 		}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ""}`,
-		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		image: category.image_url || "https://carboncube-ke.com/og-image.png",
 		mainEntity: {
 			"@type": "ItemList",
 			name: `${category.name} Products`,
@@ -781,7 +781,7 @@ export const generateCategoryPageSEO = (
 					image:
 						ad.images && ad.images[0]
 							? ad.images[0]
-							: "https://carboncube-ke.com/logo.png",
+							: "https://carboncube-ke.com/og-image.png",
 					offers: {
 						"@type": "Offer",
 						price: ad.price,
@@ -843,7 +843,7 @@ export const generateCategoryPageSEO = (
 			subcategory ? `&subcategory=${subcategory.slug}` : ""
 		}${searchQuery ? `&query=${encodeURIComponent(searchQuery)}` : ""}`,
 		type: "website",
-		image: category.image_url || "https://carboncube-ke.com/logo.png",
+		image: category.image_url || "https://carboncube-ke.com/og-image.png",
 		imageWidth: 1200,
 		imageHeight: 630,
 		section: subcategory ? subcategory.name : category.name,

@@ -912,7 +912,7 @@ function generateRouteMetaData(route, additionalData = {}) {
 	const keywords =
 		route.keywords ||
 		"Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce";
-	const image = "https://carboncube-ke.com/logo.png";
+	const image = "https://carboncube-ke.com/og-image.png";
 	const url = `${SITE_BASE_URL}${route.path}`;
 	const currentTime = new Date().toISOString();
 

@@ -9,7 +9,7 @@ const HomepageSEO = ({ categories = [], customConfig = {} }) => {
 	const siteConfig = {
 		name: "Carbon Cube Kenya",
 		url: "https://carboncube-ke.com",
-		logo: "https://carboncube-ke.com/logo.png",
+		logo: "https://carboncube-ke.com/og-image.png",
 		description:
 			"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 	};

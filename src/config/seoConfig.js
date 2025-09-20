@@ -8,7 +8,7 @@ export const SEO_CONFIG = {
 		description:
 			"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 		url: "https://carboncube-ke.com",
-		logo: "https://carboncube-ke.com/logo.png",
+		logo: "https://carboncube-ke.com/og-image.png",
 		themeColor: "#FFD700",
 		locale: "en_US",
 		alternateLocales: ["sw-KE"],
@@ -88,7 +88,7 @@ export const SEO_CONFIG = {
 			description:
 				"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 			url: "https://carboncube-ke.com",
-			logo: "https://carboncube-ke.com/logo.png",
+			logo: "https://carboncube-ke.com/og-image.png",
 			sameAs: [
 				"https://www.linkedin.com/company/carbon-cube-kenya/",
 				"https://www.facebook.com/profile.php?id=61574066312678",
@@ -141,7 +141,7 @@ export const SEO_CONFIG = {
 			url: "https://carboncube-ke.com",
 			telephone: "+254 712 990 524",
 			email: "info@carboncube-ke.com",
-			image: "https://carboncube-ke.com/logo.png",
+			image: "https://carboncube-ke.com/og-image.png",
 			address: {
 				"@type": "PostalAddress",
 				streetAddress: "9th Floor, CMS Africa, Kilimani",
