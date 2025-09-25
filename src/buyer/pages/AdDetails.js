@@ -286,6 +286,15 @@ const AdDetails = () => {
 		initializeAuth();
 	}, []);
 
+	// Debug useEffect to track seller and showSellerDetails state changes
+	useEffect(() => {
+		console.log("🔄 STATE CHANGE: seller =", seller);
+		console.log("🔄 STATE CHANGE: showSellerDetails =", showSellerDetails);
+		console.log("🔄 STATE CHANGE: seller.phone_number =", seller?.phone_number);
+		console.log("🔄 STATE CHANGE: seller.email =", seller?.email);
+		console.log("🔄 STATE CHANGE: seller.location =", seller?.location);
+	}, [seller, showSellerDetails]);
+
 	useEffect(() => {
 		if (ad && (ad.seller_id || ad.seller?.id) && showShopModal) {
 			setIsLoadingSellerAds(true);
@@ -526,38 +535,60 @@ const AdDetails = () => {
 
 	const fetchSellerDetails = async () => {
 		try {
+			console.log("🔍 fetchSellerDetails: Starting to fetch seller details");
+			console.log("🔍 fetchSellerDetails: adId =", adId);
+			console.log(
+				"🔍 fetchSellerDetails: REACT_APP_BACKEND_URL =",
+				process.env.REACT_APP_BACKEND_URL
+			);
+
 			const token = localStorage.getItem("token");
+			console.log("🔍 fetchSellerDetails: token exists =", !!token);
 
 			if (!token) {
 				throw new Error("You must be logged in to view seller details.");
 			}
 
-			// Set a local loading state instead of the global one
-			// This prevents a full re-render of the component
-			let sellerData;
+			// Clean the adId to remove any extra characters
+			const cleanAdId = adId?.toString().replace(/[?&]/g, "").trim();
+			console.log("🔍 fetchSellerDetails: Cleaned adId =", cleanAdId);
 
-			const response = await fetch(
-				`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}/seller`,
-				{
-					signal: AbortSignal.timeout(10000),
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
+			const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${cleanAdId}/seller`;
+			console.log("🔍 fetchSellerDetails: Fetching from URL =", url);
+
+			const response = await fetch(url, {
+				signal: AbortSignal.timeout(10000),
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			console.log("🔍 fetchSellerDetails: Response status =", response.status);
+			console.log("🔍 fetchSellerDetails: Response ok =", response.ok);
 
 			if (!response.ok) {
 				const errorText = await response.text();
+				console.error("🔍 fetchSellerDetails: Error response =", errorText);
 				throw new Error(
 					`HTTP error! status: ${response.status}, message: ${errorText}`
 				);
 			}
 
-			sellerData = await response.json();
+			const sellerData = await response.json();
+			console.log("🔍 fetchSellerDetails: Raw seller data =", sellerData);
+			console.log(
+				"🔍 fetchSellerDetails: Seller phone =",
+				sellerData?.phone_number
+			);
+			console.log("🔍 fetchSellerDetails: Seller email =", sellerData?.email);
+			console.log(
+				"🔍 fetchSellerDetails: Seller location =",
+				sellerData?.location
+			);
+
 			return sellerData;
 		} catch (error) {
-			// Handle error silently
-
+			console.error("🔍 fetchSellerDetails: Error occurred =", error);
 			throw error;
 		}
 	};
@@ -845,6 +876,13 @@ const AdDetails = () => {
 	};
 
 	const handleRevealSellerDetails = async (e) => {
+		console.log("🚀 handleRevealSellerDetails: Starting reveal process");
+		console.log("🚀 handleRevealSellerDetails: Current seller state =", seller);
+		console.log(
+			"🚀 handleRevealSellerDetails: Current showSellerDetails =",
+			showSellerDetails
+		);
+
 		// Make sure to prevent default on the event object
 		if (e && e.preventDefault) {
 			e.preventDefault();
@@ -854,6 +892,7 @@ const AdDetails = () => {
 		const revealButtonRef = e?.currentTarget;
 		if (revealButtonRef) {
 			revealButtonRef.disabled = true;
+			revealButtonRef.textContent = "Loading...";
 		}
 
 		try {
@@ -867,6 +906,9 @@ const AdDetails = () => {
 			// Check if user is authenticated for fetching seller details
 			const token = localStorage.getItem("token");
 			if (!token) {
+				console.log(
+					"🚀 handleRevealSellerDetails: No token, redirecting to login"
+				);
 				// Automatically redirect to login page with current URL as redirect parameter
 				const currentUrl = window.location.pathname + window.location.search;
 				navigate(`/login?redirect=${encodeURIComponent(currentUrl)}`);
@@ -875,20 +917,40 @@ const AdDetails = () => {
 
 			// Only fetch seller details if not already available
 			if (!seller) {
+				console.log(
+					"🚀 handleRevealSellerDetails: No seller data, fetching..."
+				);
 				const sellerData = await fetchSellerDetails();
+				console.log(
+					"🚀 handleRevealSellerDetails: Fetched seller data =",
+					sellerData
+				);
 				setSeller(sellerData);
+				console.log("🚀 handleRevealSellerDetails: Set seller state");
+			} else {
+				console.log(
+					"🚀 handleRevealSellerDetails: Seller data already exists =",
+					seller
+				);
 			}
 
 			// Show seller details and toast
+			console.log(
+				"🚀 handleRevealSellerDetails: Setting showSellerDetails to true"
+			);
 			setShowSellerDetails(true);
 			setShowSellerToast(true);
+			console.log(
+				"🚀 handleRevealSellerDetails: Process completed successfully"
+			);
 		} catch (error) {
-			// Handle error silently
+			// Handle error with better feedback
+			console.error("🚀 handleRevealSellerDetails: Error occurred =", error);
 
 			// Show a user-friendly error
 			setAlertModalConfig({
 				isVisible: true,
-				message: "Failed to reveal seller contact. Please try again.",
+				message: `Failed to reveal seller contact: ${error.message}. Please try again.`,
 				title: "Error",
 				icon: "error",
 				confirmText: "OK",
@@ -900,6 +962,7 @@ const AdDetails = () => {
 			// Re-enable the button
 			if (revealButtonRef) {
 				revealButtonRef.disabled = false;
+				revealButtonRef.textContent = "Reveal Seller Contact";
 			}
 		}
 	};
@@ -1622,26 +1685,73 @@ const AdDetails = () => {
 														) : /* Non-Owner View - Contact Seller */
 														true ? (
 															<>
-																{showSellerDetails && seller ? (
-																	<a
-																		href={`tel:${seller.phone_number}`}
-																		className="block w-full"
-																	>
-																		<button className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900">
-																			{seller.phone_number}
+																{(() => {
+																	console.log(
+																		"🎨 RENDER: Mobile section - showSellerDetails =",
+																		showSellerDetails
+																	);
+																	console.log(
+																		"🎨 RENDER: Mobile section - seller =",
+																		seller
+																	);
+																	console.log(
+																		"🎨 RENDER: Mobile section - seller.phone_number =",
+																		seller?.phone_number
+																	);
+																	return showSellerDetails && seller ? (
+																		<div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+																			<div className="space-y-2 sm:space-y-3">
+																				<div className="flex items-center space-x-2">
+																					<FontAwesomeIcon
+																						icon={faUser}
+																						className="text-gray-500 text-sm"
+																					/>
+																					<a
+																						href={`tel:${seller.phone_number}`}
+																						className="text-gray-800 hover:text-blue-600 transition-colors text-sm sm:text-base font-medium"
+																					>
+																						{seller.phone_number}
+																					</a>
+																				</div>
+																				{seller.email && (
+																					<div className="flex items-center space-x-2">
+																						<FontAwesomeIcon
+																							icon={faComments}
+																							className="text-gray-500 text-sm"
+																						/>
+																						<a
+																							href={`mailto:${seller.email}`}
+																							className="text-gray-800 hover:text-blue-600 transition-colors text-sm sm:text-base font-medium"
+																						>
+																							{seller.email}
+																						</a>
+																					</div>
+																				)}
+																				{seller.location && (
+																					<div className="flex items-center space-x-2">
+																						<FontAwesomeIcon
+																							icon={faBuilding}
+																							className="text-gray-500 text-sm"
+																						/>
+																						<span className="text-gray-800 text-sm sm:text-base font-medium">
+																							{seller.location}
+																						</span>
+																					</div>
+																				)}
+																			</div>
+																		</div>
+																	) : (
+																		<button
+																			className="w-full py-2 px-3 sm:py-3 sm:px-4 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors text-sm sm:text-base"
+																			onClick={handleRevealSellerDetails}
+																			disabled={loading}
+																		>
+																			{loading
+																				? "Loading..."
+																				: "Reveal Seller Contact"}
 																		</button>
-																	</a>
-																) : (
-																	<button
-																		className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900"
-																		onClick={handleRevealSellerDetails}
-																		disabled={loading}
-																	>
-																		{loading
-																			? "Loading..."
-																			: "Reveal Seller Contact"}
-																	</button>
-																)}
+																	);
+																})()}
 															</>
 														) : null}
 
@@ -2029,26 +2139,73 @@ const AdDetails = () => {
 															) : /* Non-Owner View - Contact Seller */
 															true ? (
 																<>
-																	{showSellerDetails && seller ? (
-																		<a
-																			href={`tel:${seller.phone_number}`}
-																			className="block w-full"
-																		>
-																			<button className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900">
-																				{seller.phone_number}
+																	{(() => {
+																		console.log(
+																			"🎨 RENDER: Desktop section - showSellerDetails =",
+																			showSellerDetails
+																		);
+																		console.log(
+																			"🎨 RENDER: Desktop section - seller =",
+																			seller
+																		);
+																		console.log(
+																			"🎨 RENDER: Desktop section - seller.phone_number =",
+																			seller?.phone_number
+																		);
+																		return showSellerDetails && seller ? (
+																			<div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+																				<div className="space-y-2 sm:space-y-3">
+																					<div className="flex items-center space-x-2">
+																						<FontAwesomeIcon
+																							icon={faUser}
+																							className="text-gray-500 text-sm"
+																						/>
+																						<a
+																							href={`tel:${seller.phone_number}`}
+																							className="text-gray-800 hover:text-blue-600 transition-colors text-sm sm:text-base font-medium"
+																						>
+																							{seller.phone_number}
+																						</a>
+																					</div>
+																					{seller.email && (
+																						<div className="flex items-center space-x-2">
+																							<FontAwesomeIcon
+																								icon={faComments}
+																								className="text-gray-500 text-sm"
+																							/>
+																							<a
+																								href={`mailto:${seller.email}`}
+																								className="text-gray-800 hover:text-blue-600 transition-colors text-sm sm:text-base font-medium"
+																							>
+																								{seller.email}
+																							</a>
+																						</div>
+																					)}
+																					{seller.location && (
+																						<div className="flex items-center space-x-2">
+																							<FontAwesomeIcon
+																								icon={faBuilding}
+																								className="text-gray-500 text-sm"
+																							/>
+																							<span className="text-gray-800 text-sm sm:text-base font-medium">
+																								{seller.location}
+																							</span>
+																						</div>
+																					)}
+																				</div>
+																			</div>
+																		) : (
+																			<button
+																				className="w-full py-2 px-3 sm:py-3 sm:px-4 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors text-sm sm:text-base"
+																				onClick={handleRevealSellerDetails}
+																				disabled={loading}
+																			>
+																				{loading
+																					? "Loading..."
+																					: "Reveal Seller Contact"}
 																			</button>
-																		</a>
-																	) : (
-																		<button
-																			className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900"
-																			onClick={handleRevealSellerDetails}
-																			disabled={loading}
-																		>
-																			{loading
-																				? "Loading..."
-																				: "Reveal Seller Contact"}
-																		</button>
-																	)}
+																		);
+																	})()}
 																</>
 															) : null}
 
