@@ -120,7 +120,7 @@ const AnalyticsReporting = ({ onLogout }) => {
 							<div
 								key={index}
 								className="bg-white border border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:shadow-md transition-shadow duration-200"
-								onClick={() => console.log("Card clicked:", { title, value })}
+								onClick={() => {/* Card clicked - analytics tracking could be added here */}}
 							>
 								<h6 className="text-sm text-gray-600 mb-2">{title}</h6>
 								<h3 className="text-2xl font-bold text-blue-600">

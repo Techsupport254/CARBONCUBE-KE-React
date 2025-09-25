@@ -6,6 +6,7 @@ import {
 	useSearchParams,
 } from "react-router-dom";
 import { Button } from "react-bootstrap";
+import { generateAdUrl } from "../../utils/slugUtils";
 import {
 	getTierName,
 	getTierId,
@@ -695,13 +696,13 @@ const ShopPage = () => {
 		}
 	}, [searchParams, currentPage]);
 
-	const handleAdClick = (adId) => {
+	const handleAdClick = (adUrl, adId) => {
 		// Preserve current query parameters when navigating to ad details
 		const currentParams = new URLSearchParams(window.location.search);
 		const currentQuery = currentParams.toString();
-		const separator = currentQuery ? "?" : "";
+		const separator = currentQuery ? "&" : "?";
 
-		navigate(`/ads/${adId}${separator}${currentQuery}`);
+		navigate(`${adUrl}${separator}${currentQuery}`);
 	};
 
 	const handlePageChange = (page) => {
@@ -1383,7 +1384,11 @@ const ShopPage = () => {
 											<div
 												key={ad.id}
 												className="group cursor-pointer h-full"
-												onClick={() => handleAdClick(ad.id)}
+												onClick={() => {
+													const adUrl = generateAdUrl(ad);
+													const adId = ad.id;
+													handleAdClick(adUrl, adId);
+												}}
 											>
 												<div
 													className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 h-full flex flex-col"

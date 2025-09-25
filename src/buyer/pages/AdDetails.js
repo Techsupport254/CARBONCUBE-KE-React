@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Carousel, Modal, Toast, ToastContainer } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -46,7 +46,9 @@ import { getValidImageUrl } from "../../utils/imageUtils";
 import Footer from "../../components/Footer";
 
 const AdDetails = () => {
-	const { adId } = useParams();
+	const { slug } = useParams();
+	const [searchParams] = useSearchParams();
+	const adId = searchParams.get("id");
 	const [ad, setAd] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [relatedAds, setRelatedAds] = useState([]);
@@ -85,7 +87,6 @@ const AdDetails = () => {
 					payload.id;
 				return userId;
 			} catch (error) {
-				console.error("Error decoding token:", error);
 				return null;
 			}
 		}
@@ -217,7 +218,7 @@ const AdDetails = () => {
 					setAlertModalConfig((prev) => ({ ...prev, isVisible: false })),
 			});
 		} catch (err) {
-			console.error("Failed to copy: ", err);
+			// Copy failed silently
 		}
 	};
 
@@ -324,7 +325,6 @@ const AdDetails = () => {
 					setIsLoadingSellerAds(false);
 				})
 				.catch((err) => {
-					console.error("Failed to fetch seller ads:", err);
 					setSellerAds([]);
 					setHasMoreSellerAds(false);
 					setTotalSellerAdsCount(0);
@@ -443,8 +443,6 @@ const AdDetails = () => {
 				const data = await response.json();
 				setAd(data);
 			} catch (error) {
-				console.error("Error fetching ad details:", error);
-
 				// Handle specific error types
 				if (error.name === "AbortError") {
 					setError("timeout_error");
@@ -461,7 +459,10 @@ const AdDetails = () => {
 		// Fetch Related Ads
 		const fetchRelatedAds = async () => {
 			try {
-				const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}/related`;
+				// Clean the adId to remove any extra characters including ?
+				const cleanAdId = adId?.toString().replace(/[?&]/g, "").trim();
+
+				const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${cleanAdId}/related`;
 
 				// Add timeout for mobile devices and better error handling
 				const controller = new AbortController();
@@ -478,17 +479,8 @@ const AdDetails = () => {
 				clearTimeout(timeoutId);
 
 				if (!response.ok) {
-					const text = await response.text().catch(() => "<no body>");
-					console.error("Related ads fetch failed", {
-						url,
-						status: response.status,
-						statusText: response.statusText,
-						body: text,
-					});
-
 					// Handle specific error cases
 					if (response.status === 404) {
-						console.warn("Ad not found, skipping related ads");
 						setRelatedAds([]);
 						return;
 					}
@@ -499,15 +491,23 @@ const AdDetails = () => {
 				}
 
 				const data = await response.json();
-				setRelatedAds(data);
-			} catch (error) {
-				console.error("Error fetching related ads:", error);
 
-				// Handle specific error types
+				// Handle both array and single object responses
+				let relatedAdsArray = Array.isArray(data) ? data : data ? [data] : [];
+
+				// Filter out the current ad from related ads
+				const currentAdId = parseInt(cleanAdId);
+				relatedAdsArray = relatedAdsArray.filter((relatedAd) => {
+					return relatedAd.id !== currentAdId;
+				});
+
+				setRelatedAds(relatedAdsArray);
+			} catch (error) {
+				// Handle specific error types silently
 				if (error.name === "AbortError") {
-					console.warn("Related ads request timed out");
+					// Request timed out
 				} else if (error.message.includes("Failed to fetch")) {
-					console.warn("Network error while fetching related ads");
+					// Network error
 				}
 
 				setRelatedAds([]);
@@ -516,7 +516,12 @@ const AdDetails = () => {
 
 		// Fetch all data
 		fetchAdDetails();
-		fetchRelatedAds();
+		// Only fetch related ads if we have a valid adId
+		if (adId && adId !== "unknown") {
+			fetchRelatedAds();
+		} else {
+			setRelatedAds([]);
+		}
 	}, [adId]);
 
 	const fetchSellerDetails = async () => {
@@ -543,11 +548,6 @@ const AdDetails = () => {
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				console.error("Fetch error:", {
-					status: response.status,
-					statusText: response.statusText,
-					body: errorText,
-				});
 				throw new Error(
 					`HTTP error! status: ${response.status}, message: ${errorText}`
 				);
@@ -556,11 +556,7 @@ const AdDetails = () => {
 			sellerData = await response.json();
 			return sellerData;
 		} catch (error) {
-			console.error("Detailed error:", {
-				message: error.message,
-				name: error.name,
-				stack: error.stack,
-			});
+			// Handle error silently
 
 			throw error;
 		}
@@ -834,12 +830,7 @@ const AdDetails = () => {
 				});
 			}, 300);
 		} catch (error) {
-			console.error("Error sending message:", error);
-			console.error("Error details:", {
-				name: error.name,
-				message: error.message,
-				stack: error.stack,
-			});
+			// Handle error silently
 			setAlertModalConfig({
 				isVisible: true,
 				title: "Error",
@@ -892,7 +883,7 @@ const AdDetails = () => {
 			setShowSellerDetails(true);
 			setShowSellerToast(true);
 		} catch (error) {
-			console.error("Error revealing seller details:", error);
+			// Handle error silently
 
 			// Show a user-friendly error
 			setAlertModalConfig({
@@ -1098,13 +1089,13 @@ const AdDetails = () => {
 				setHasMoreSellerAds(false);
 			}
 		} catch (error) {
-			console.error("Failed to load more seller ads:", error);
+			// Handle error silently
 		} finally {
 			setIsLoadingMoreSellerAds(false);
 		}
 	};
 
-	const handleAdClick = async (adId) => {
+	const handleAdClick = async (adUrl, adId) => {
 		if (!adId) return;
 
 		try {
@@ -1114,15 +1105,15 @@ const AdDetails = () => {
 				source: "related_ads",
 			});
 		} catch (error) {
-			console.warn("Logging failed, proceeding...");
+			// Logging failed, proceed silently
 		}
 
 		// Preserve current query parameters when navigating to ad details
 		const currentParams = new URLSearchParams(window.location.search);
 		const currentQuery = currentParams.toString();
-		const separator = currentQuery ? "?" : "";
+		const separator = currentQuery ? "&" : "?";
 
-		navigate(`/ads/${adId}${separator}${currentQuery}`);
+		navigate(`${adUrl}${separator}${currentQuery}`);
 		window.scrollTo({ top: 0, behavior: "smooth" });
 	};
 
@@ -1513,7 +1504,7 @@ const AdDetails = () => {
 												</div>
 											</div>
 
-											<div className="grid grid-cols-1 xl:grid-cols-2 gap-0 w-full">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full">
 												{/* Image Gallery */}
 												<div className="relative p-2 sm:p-3 md:p-4 lg:p-6 flex items-center justify-center min-h-[250px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[500px] xl:min-h-[600px] overflow-hidden">
 													{/* Image Container with Enhanced Styling */}
@@ -1559,6 +1550,185 @@ const AdDetails = () => {
 													background: rgba(0, 0, 0, 0.5) !important;
 												}
 											`}</style>
+												</div>
+
+												{/* Mobile Section - Shop and Action Buttons (below image on small screens) */}
+												<div className="md:hidden p-2 sm:p-3 bg-white w-full space-y-3">
+													{/* Seller Section */}
+													<div
+														className="p-3 rounded border border-gray-200 cursor-pointer hover:bg-gray-50"
+														onClick={handleViewShop}
+													>
+														<div className="flex items-center justify-between">
+															<div className="flex items-center space-x-3">
+																<div className="relative">
+																	{ad.seller_profile_picture ? (
+																		<img
+																			src={ad.seller_profile_picture}
+																			alt="Seller Profile"
+																			className="w-12 h-12 rounded-full object-cover border border-gray-200"
+																		/>
+																	) : (
+																		<div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-lg font-bold">
+																			<FontAwesomeIcon icon={faUser} />
+																		</div>
+																	)}
+																	{ad.seller?.document_verified && (
+																		<div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+																			<FontAwesomeIcon
+																				icon={faCheck}
+																				className="text-white text-xs"
+																			/>
+																		</div>
+																	)}
+																</div>
+																<div>
+																	<h3 className="font-semibold text-gray-900 text-sm">
+																		{ad.seller_enterprise_name ||
+																			ad.seller?.enterprise_name ||
+																			ad.seller_name ||
+																			"N/A"}
+																	</h3>
+																	<div className="flex items-center space-x-3 mt-1">
+																		<span className="text-xs text-gray-600">
+																			{ad.seller?.document_verified
+																				? "Verified"
+																				: "Unverified"}
+																		</span>
+																		<span className="text-xs text-gray-600">
+																			{ad.seller_tier_name || "Free"} Tier
+																		</span>
+																	</div>
+																</div>
+															</div>
+															<button className="px-3 py-2 bg-gray-800 text-white rounded text-xs font-medium hover:bg-gray-900">
+																View Shop
+															</button>
+														</div>
+													</div>
+
+													{/* Action Buttons - Mobile Only */}
+													<div className="space-y-3">
+														{/* Show different content based on ownership */}
+														{isAdOwner() ? (
+															/* Owner View - Manage Product Button */
+															<button
+																className="w-full py-3 px-4 bg-yellow-600 text-white rounded font-medium hover:bg-yellow-700 flex items-center justify-center space-x-2"
+																onClick={handleManageProduct}
+															>
+																<FontAwesomeIcon icon={faCog} />
+																<span>Manage Product</span>
+															</button>
+														) : /* Non-Owner View - Contact Seller */
+														true ? (
+															<>
+																{showSellerDetails && seller ? (
+																	<a
+																		href={`tel:${seller.phone_number}`}
+																		className="block w-full"
+																	>
+																		<button className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900">
+																			{seller.phone_number}
+																		</button>
+																	</a>
+																) : (
+																	<button
+																		className="w-full py-3 px-4 bg-gray-800 text-white rounded font-medium hover:bg-gray-900"
+																		onClick={handleRevealSellerDetails}
+																		disabled={loading}
+																	>
+																		{loading
+																			? "Loading..."
+																			: "Reveal Seller Contact"}
+																	</button>
+																)}
+															</>
+														) : null}
+
+														{/* Secondary Actions */}
+														{!isAdOwner() && (
+															<div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+																{/* Allow sellers to add to wishlist */}
+																{true ? (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		disabled={!ad || wish_listLoading}
+																		onClick={handleAddToWishlist}
+																	>
+																		<FontAwesomeIcon
+																			icon={faHeart}
+																			className="text-red-500"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Wishlist
+																		</span>
+																	</button>
+																) : null}
+
+																{userRole !== "seller" && (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		onClick={handleShowReviewModal}
+																	>
+																		<FontAwesomeIcon
+																			icon={faEdit}
+																			className="text-yellow-600"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Review
+																		</span>
+																	</button>
+																)}
+
+																{/* Allow sellers to chat */}
+																{true ? (
+																	<button
+																		className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																		onClick={handleOpenChatModal}
+																	>
+																		<FontAwesomeIcon
+																			icon={faComments}
+																			className="text-blue-600"
+																		/>
+																		<span className="text-xs font-medium text-gray-700">
+																			Chat
+																		</span>
+																	</button>
+																) : null}
+
+																<button
+																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1"
+																	onClick={handleShare}
+																>
+																	<FontAwesomeIcon
+																		icon={faShareAlt}
+																		className="text-green-600"
+																	/>
+																	<span className="text-xs font-medium text-gray-700">
+																		Share
+																	</span>
+																</button>
+															</div>
+														)}
+
+														{/* Show only Share button for ad owners */}
+														{isAdOwner() && (
+															<div className="flex justify-center">
+																<button
+																	className="p-3 bg-white rounded border border-gray-200 hover:bg-gray-50 flex flex-col items-center space-y-1 w-20"
+																	onClick={handleShare}
+																>
+																	<FontAwesomeIcon
+																		icon={faShareAlt}
+																		className="text-green-600"
+																	/>
+																	<span className="text-xs font-medium text-gray-700">
+																		Share
+																	</span>
+																</button>
+															</div>
+														)}
+													</div>
 												</div>
 
 												{/* Product Info */}
@@ -1791,9 +1961,9 @@ const AdDetails = () => {
 															</div>
 														</div>
 
-														{/* Seller Section */}
+														{/* Seller Section - Hidden on small screens, shown on md and up */}
 														<div
-															className="p-3 rounded border border-gray-200 cursor-pointer hover:bg-gray-50"
+															className="hidden md:block p-3 rounded border border-gray-200 cursor-pointer hover:bg-gray-50"
 															onClick={handleViewShop}
 														>
 															<div className="flex items-center justify-between">
@@ -1844,8 +2014,8 @@ const AdDetails = () => {
 															</div>
 														</div>
 
-														{/* Action Buttons */}
-														<div className="space-y-3">
+														{/* Action Buttons - Hidden on small screens, shown on md and up */}
+														<div className="hidden md:block space-y-3">
 															{/* Show different content based on ownership */}
 															{isAdOwner() ? (
 																/* Owner View - Manage Product Button */

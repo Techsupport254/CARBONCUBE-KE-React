@@ -711,7 +711,7 @@ const SearchResultSection = ({
 										<AdCard
 											key={ad.id || ad.ad_id || `ad-${Math.random()}`}
 											ad={normalizedAd}
-											onClick={() => handleAdClick(ad.id)}
+											onClick={handleAdClick}
 											size="default"
 											variant="default"
 											showTierBadge={true}

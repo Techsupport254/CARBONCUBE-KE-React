@@ -14,7 +14,6 @@ const DeferredAnalytics = () => {
 				process.env.NODE_ENV === "development" &&
 				process.env.REACT_APP_ENABLE_ANALYTICS !== "true"
 			) {
-				console.log("Analytics disabled in development mode");
 				return;
 			}
 

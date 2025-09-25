@@ -3,29 +3,17 @@ import axios from "axios";
 
 class GoogleOAuthService {
 	constructor() {
-		this.clientId =
-			process.env.REACT_APP_GOOGLE_CLIENT_ID ||
-			"810251363291-gk0b9ddj0b7ij75rpkkgiigfhdmq7q8e.apps.googleusercontent.com";
-		this.redirectUri =
-			process.env.REACT_APP_GOOGLE_REDIRECT_URI ||
-			`http://localhost:3001/auth/google_oauth2/callback`;
+		this.clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+		this.redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI;
 		this.scope = "openid email profile";
 
-		// Debug logging
-		console.log("=== GOOGLE OAUTH DEBUG ===");
-		console.log("Google OAuth Service initialized:");
-		console.log("Client ID:", this.clientId);
-		console.log("Redirect URI:", this.redirectUri);
-		console.log(
-			"REACT_APP_GOOGLE_CLIENT_ID from env:",
-			process.env.REACT_APP_GOOGLE_CLIENT_ID
-		);
-		console.log(
-			"REACT_APP_GOOGLE_REDIRECT_URI from env:",
-			process.env.REACT_APP_GOOGLE_REDIRECT_URI
-		);
-		console.log("Window location origin:", window.location.origin);
-		console.log("=== END DEBUG ===");
+		// Validate required environment variables
+		if (!this.clientId) {
+			console.error("REACT_APP_GOOGLE_CLIENT_ID is not set");
+		}
+		if (!this.redirectUri) {
+			console.error("REACT_APP_GOOGLE_REDIRECT_URI is not set");
+		}
 	}
 
 	// Generate Google OAuth URL
@@ -40,12 +28,6 @@ class GoogleOAuthService {
 		});
 
 		const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-
-		// Debug logging
-		console.log("=== OAUTH URL DEBUG ===");
-		console.log("Generated OAuth URL:", authUrl);
-		console.log("Redirect URI being sent:", this.redirectUri);
-		console.log("=== END OAUTH URL DEBUG ===");
 
 		return authUrl;
 	}
@@ -77,13 +59,6 @@ class GoogleOAuthService {
 
 	// Initiate Google OAuth flow
 	initiateAuth() {
-		// Final debug check before redirect
-		console.log("=== FINAL OAUTH CHECK ===");
-		console.log("About to redirect to Google OAuth with:");
-		console.log("Redirect URI:", this.redirectUri);
-		console.log("Full OAuth URL:", this.getAuthUrl());
-		console.log("=== END FINAL CHECK ===");
-
 		window.location.href = this.getAuthUrl();
 	}
 

@@ -14,74 +14,95 @@ const HomepageSEO = ({ categories = [], customConfig = {} }) => {
 			"Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement.",
 	};
 
-	// Enhanced title with power words
+	// Enhanced title with power words and exact company name match
 	const title =
 		"Carbon Cube Kenya - Kenya's #1 Online Marketplace | Trusted Sellers & Buyers";
 
-	// Enhanced description with more compelling copy
+	// Enhanced description with more compelling copy and exact company name
 	const description =
-		"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery.";
+		"Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery. Shop auto parts, industrial supplies, hardware, and more from trusted Kenyan suppliers.";
 
-	// Enhanced keywords
+	// Enhanced keywords with exact company name and location targeting
 	const keywords = [
 		"Carbon Cube Kenya",
+		"Carbon Cube",
 		"online marketplace Kenya",
-		"trusted sellers",
-		"secure ecommerce",
-		"AI-powered marketplace",
+		"Kenya marketplace",
+		"trusted sellers Kenya",
+		"secure ecommerce Kenya",
+		"AI-powered marketplace Kenya",
 		"digital procurement Kenya",
-		"seller verification",
+		"seller verification Kenya",
 		"sustainable sourcing Kenya",
 		"online shopping Kenya",
-		"B2B marketplace",
+		"B2B marketplace Kenya",
 		"auto parts Kenya",
-		"industrial supplies",
-		"hardware suppliers",
-		"verified suppliers",
+		"industrial supplies Kenya",
+		"hardware suppliers Kenya",
+		"verified suppliers Kenya",
 		"business growth Kenya",
 		"Kenya ecommerce",
 		"online store Kenya",
 		"marketplace Kenya",
 		"buy online Kenya",
 		"sell online Kenya",
+		"Nairobi marketplace",
+		"Kenya online shopping",
+		"Kenya B2B platform",
+		"Kenya business marketplace",
 	].join(", ");
 
-	// Enhanced structured data for homepage
+	// Enhanced structured data for homepage with comprehensive business information
 	const homepageStructuredData = {
 		"@context": "https://schema.org",
-		"@type": "WebSite",
+		"@type": ["WebSite", "Organization"],
 		name: "Carbon Cube Kenya",
-		alternateName: "Carbon Cube KE",
+		alternateName: [
+			"Carbon Cube",
+			"Carbon Cube KE",
+			"Carbon Cube Kenya Limited",
+		],
 		url: "https://carboncube-ke.com",
 		description: description,
-		publisher: {
-			"@type": "Organization",
-			name: "Carbon Cube Kenya",
-			url: "https://carboncube-ke.com",
-			logo: {
-				"@type": "ImageObject",
-				url: siteConfig.logo,
-				width: 1200,
-				height: 630,
-			},
-			contactPoint: {
-				"@type": "ContactPoint",
-				contactType: "customer service",
-				availableLanguage: "English",
-				areaServed: "KE",
-				telephone: "+254 712 990 524",
-				email: "info@carboncube-ke.com",
-			},
-			address: {
-				"@type": "PostalAddress",
-				streetAddress: "9th Floor, CMS Africa, Kilimani",
-				addressLocality: "Nairobi",
-				addressRegion: "Nairobi",
-				addressCountry: "KE",
-				postalCode: "00100",
-			},
-			foundingDate: "2023",
-			industry: "Internet Marketplace Platforms",
+		logo: {
+			"@type": "ImageObject",
+			url: siteConfig.logo,
+			width: 1200,
+			height: 630,
+		},
+		contactPoint: {
+			"@type": "ContactPoint",
+			contactType: "customer service",
+			availableLanguage: "English",
+			areaServed: "KE",
+			telephone: "+254 712 990 524",
+			email: "info@carboncube-ke.com",
+		},
+		address: {
+			"@type": "PostalAddress",
+			streetAddress: "9th Floor, CMS Africa, Kilimani",
+			addressLocality: "Nairobi",
+			addressRegion: "Nairobi",
+			addressCountry: "KE",
+			postalCode: "00100",
+		},
+		foundingDate: "2023",
+		industry: "Internet Marketplace Platforms",
+		knowsAbout: [
+			"Online Marketplace",
+			"E-commerce",
+			"B2B Platform",
+			"Digital Procurement",
+			"Seller Verification",
+			"Auto Parts",
+			"Industrial Supplies",
+			"Hardware",
+			"Kenya Business",
+		],
+		serviceArea: {
+			"@type": "Country",
+			name: "Kenya",
+			alternateName: "KE",
 		},
 		potentialAction: {
 			"@type": "SearchAction",
@@ -94,6 +115,11 @@ const HomepageSEO = ({ categories = [], customConfig = {} }) => {
 			description: "Verified products from trusted sellers across Kenya",
 			numberOfItems: categories.length,
 		},
+		sameAs: [
+			"https://www.linkedin.com/company/carbon-cube-kenya/",
+			"https://www.facebook.com/profile.php?id=61574066312678",
+			"https://www.instagram.com/carboncube_kenya/",
+		],
 	};
 
 	// LocalBusiness structured data

@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "react-bootstrap";
 import { getBorderColor } from "../buyer/utils/sellerTierUtils";
 import { getValidImageUrl } from "../utils/imageUtils";
+import { generateAdUrl } from "../utils/slugUtils";
 import ResponsiveImage from "./ResponsiveImage";
 
 /**
@@ -107,7 +108,28 @@ const AdCard = ({
 					? { border: `2px solid ${borderColor}` }
 					: { border: `1px solid #e5e7eb` }
 			}
-			onClick={() => onClick && onClick(ad.id || ad.ad_id)}
+			onClick={() => {
+				if (onClick) {
+					const adUrl = generateAdUrl(ad);
+					const adId = ad.id || ad.ad_id;
+
+					// Debug logging to understand the issue
+					console.log("AdCard click - ad object:", ad);
+					console.log("AdCard click - ad.id:", ad.id);
+					console.log("AdCard click - ad.ad_id:", ad.ad_id);
+					console.log("AdCard click - final adId:", adId);
+
+					// Additional fallback: if no id is found, try to extract from URL or use a placeholder
+					const finalAdId =
+						adId || ad.title?.replace(/\s+/g, "-").toLowerCase() || "unknown";
+
+					if (!adId) {
+						console.warn("No valid ad ID found, using fallback:", finalAdId);
+					}
+
+					onClick(adUrl, finalAdId);
+				}
+			}}
 			{...props}
 		>
 			{/* Tier Badge */}

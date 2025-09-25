@@ -29,10 +29,6 @@ const PerformanceMonitor = () => {
 				});
 			}
 
-			// Log to console in development
-			if (process.env.NODE_ENV === "development") {
-				console.log("Web Vital:", metric);
-			}
 		};
 
 		// Measure Core Web Vitals
@@ -78,11 +74,7 @@ const PerformanceMonitor = () => {
 		if ("memory" in performance) {
 			const logMemoryUsage = () => {
 				const memory = performance.memory;
-				console.log("Memory usage:", {
-					used: Math.round(memory.usedJSHeapSize / 1024 / 1024) + "MB",
-					total: Math.round(memory.totalJSHeapSize / 1024 / 1024) + "MB",
-					limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + "MB",
-				});
+				// Memory usage logging removed for production
 			};
 
 			// Log memory usage every 30 seconds

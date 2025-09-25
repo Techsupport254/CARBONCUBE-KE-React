@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 // import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
-import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,12 +12,10 @@ import {
 	faUsers,
 	faChartLine,
 	faRecycle,
-	faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
 import GoogleSignInButton from "./GoogleSignInButton";
-import GoogleOneTap from "./GoogleOneTap";
 import "./LoginForm.css";
 import useSEO from "../hooks/useSEO";
 import tokenService from "../services/tokenService";
@@ -74,7 +72,7 @@ const LoginForm = ({ onLogin }) => {
 	};
 
 	// Handle Google OAuth callback
-	const handleGoogleCallback = async () => {
+	const handleGoogleCallback = useCallback(async () => {
 		if (googleOAuthService.isCallback()) {
 			const searchParams = new URLSearchParams(location.search);
 			const token = searchParams.get("token");
@@ -237,12 +235,12 @@ const LoginForm = ({ onLogin }) => {
 				}
 			}
 		}
-	};
+	}, [location.search, navigate, onLogin]);
 
 	// Handle Google OAuth callback on component mount
 	useEffect(() => {
 		handleGoogleCallback();
-	}, []);
+	}, [handleGoogleCallback]);
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
@@ -250,9 +248,7 @@ const LoginForm = ({ onLogin }) => {
 		// setError('');  // replaced by modal
 
 		try {
-			console.log("REACT_APP_BACKEND_URL:", process.env.REACT_APP_BACKEND_URL);
 			const loginUrl = `${process.env.REACT_APP_BACKEND_URL}/auth/login`;
-			console.log("Login URL:", loginUrl);
 			const response = await axios.post(loginUrl, {
 				identifier,
 				password,
@@ -555,9 +551,9 @@ const LoginForm = ({ onLogin }) => {
 											</div>
 										</div>
 
-										{/* Google One Tap Sign-in */}
+										{/* Google Sign-in Button */}
 										<div className="mb-6">
-											<GoogleOneTap
+											<GoogleSignInButton
 												onSuccess={(token, user) => {
 													// Call onLogin to handle authentication and storage (same as normal login)
 													onLogin(token, user);

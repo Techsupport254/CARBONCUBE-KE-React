@@ -601,6 +601,8 @@ const Home = ({ onLogout }) => {
 								subcategoryCounts = {};
 							}
 
+							// Process ads data
+
 							// Organize ads by subcategory ID
 							const organizedAds = {};
 							if (Array.isArray(ads)) {
@@ -644,7 +646,6 @@ const Home = ({ onLogout }) => {
 						setCategories(categoriesResult.value);
 						setCategoriesError(null);
 					} else {
-						console.error("Categories Fetch Error:", categoriesResult.reason);
 						setCategoriesError("Failed to load categories");
 					}
 
@@ -654,7 +655,6 @@ const Home = ({ onLogout }) => {
 						setSubcategoryCounts(adsResult.value.subcategoryCounts);
 						setAdsError(null);
 					} else {
-						console.error("Ads Fetch Error:", adsResult.reason);
 						setAdsError("Failed to load ads");
 						setAds({});
 					}
@@ -664,16 +664,11 @@ const Home = ({ onLogout }) => {
 						setBestSellers(bestSellersResult.value);
 						setBestSellersError(null);
 					} else {
-						console.error(
-							"Best Sellers Fetch Error:",
-							bestSellersResult.reason
-						);
 						setBestSellersError("Failed to load best sellers");
 						setBestSellers([]);
 					}
 				}
 			} catch (err) {
-				console.error("Data Fetch Error:", err);
 				if (isMounted) {
 					setCategoriesError("Failed to load data");
 					setAdsError("Failed to load data");
@@ -962,8 +957,6 @@ const Home = ({ onLogout }) => {
 					setCurrentSearchType("category");
 				}
 			} catch (error) {
-				console.error("Search error:", error);
-
 				// Clear timeout on error
 				clearTimeout(timeoutId);
 
@@ -1064,31 +1057,37 @@ const Home = ({ onLogout }) => {
 	}, []);
 
 	const handleAdClick = useCallback(
-		async (adId) => {
-			if (!adId) {
-				console.error("Invalid adId");
-				return;
+		async (adUrl, adId) => {
+			if (!adId || adId === "unknown") {
+				// Still try to navigate even with invalid ID for better UX
 			}
 
 			try {
-				// Log the 'Ad-Click' event before navigating
-				await logClickEvent(adId, "Ad-Click");
+				// Log the 'Ad-Click' event before navigating (only if adId is valid)
+				if (
+					adId &&
+					adId !== "unknown" &&
+					typeof adId === "string" &&
+					adId.length > 0
+				) {
+					await logClickEvent(adId, "Ad-Click");
+				} else {
+					// Skip click event logging due to invalid adId
+				}
 
 				// Preserve current query parameters when navigating to ad details
 				const currentParams = new URLSearchParams(window.location.search);
 				const currentQuery = currentParams.toString();
-				const separator = currentQuery ? "?" : "";
+				const separator = currentQuery ? "&" : "?";
 
 				// Navigate to the ad details page with preserved query parameters
-				navigate(`/ads/${adId}${separator}${currentQuery}`);
+				navigate(`${adUrl}${separator}${currentQuery}`);
 			} catch (error) {
-				console.error("Error logging ad click:", error);
-
 				// Proceed with navigation even if logging fails
 				const currentParams = new URLSearchParams(window.location.search);
 				const currentQuery = currentParams.toString();
-				const separator = currentQuery ? "?" : "";
-				navigate(`/ads/${adId}${separator}${currentQuery}`);
+				const separator = currentQuery ? "&" : "?";
+				navigate(`${adUrl}${separator}${currentQuery}`);
 			}
 		},
 		[navigate]
@@ -1204,7 +1203,7 @@ const Home = ({ onLogout }) => {
 				// Update user behavior state
 				setUserBehavior(updatedUserBehavior);
 			} catch (error) {
-				console.error("Enhanced reshuffle error:", error);
+				// Handle reshuffle error silently
 			} finally {
 				setIsReshuffling(false);
 			}
@@ -1336,7 +1335,7 @@ const Home = ({ onLogout }) => {
 
 	// Enhanced handleAdClick with behavior tracking
 	const handleAdClickWithTracking = useCallback(
-		async (adId) => {
+		async (adUrl, adId) => {
 			// Track user behavior
 			const ad = Object.values(ads)
 				.flat()
@@ -1349,8 +1348,8 @@ const Home = ({ onLogout }) => {
 				});
 			}
 
-			// Call original handleAdClick
-			await handleAdClick(adId);
+			// Call original handleAdClick with both parameters
+			await handleAdClick(adUrl, adId);
 		},
 		[handleAdClick, ads, trackUserBehavior]
 	);
@@ -1377,10 +1376,6 @@ const Home = ({ onLogout }) => {
 	) => {
 		// Ensure newProducts is an array before processing
 		if (!Array.isArray(newProducts)) {
-			console.warn(
-				`handleSubcategoryLoadMore received non-array newProducts:`,
-				newProducts
-			);
 			return;
 		}
 

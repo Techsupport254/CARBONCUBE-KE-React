@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import Navbar from "../../components/Navbar";
 import useSEO from "../../hooks/useSEO";
+import { generateAdUrl } from "../../utils/slugUtils";
 
 const WishList = () => {
 	const [wish_lists, setWishLists] = useState([]);
@@ -95,7 +96,7 @@ const WishList = () => {
 		}
 	};
 
-	const handleAdClick = async (adId) => {
+	const handleAdClick = async (adUrl, adId) => {
 		if (!adId) {
 			console.error("Invalid adId");
 			return;
@@ -107,17 +108,17 @@ const WishList = () => {
 			// Preserve current query parameters when navigating to ad details
 			const currentParams = new URLSearchParams(window.location.search);
 			const currentQuery = currentParams.toString();
-			const separator = currentQuery ? "?" : "";
+			const separator = currentQuery ? "&" : "?";
 
-			navigate(`/ads/${adId}${separator}${currentQuery}`);
+			navigate(`${adUrl}${separator}${currentQuery}`);
 		} catch (error) {
 			console.error("Error logging ad click:", error);
 
 			// Fallback navigation with preserved query parameters
 			const currentParams = new URLSearchParams(window.location.search);
 			const currentQuery = currentParams.toString();
-			const separator = currentQuery ? "?" : "";
-			navigate(`/ads/${adId}${separator}${currentQuery}`);
+			const separator = currentQuery ? "&" : "?";
+			navigate(`${adUrl}${separator}${currentQuery}`);
 		}
 	};
 
@@ -181,7 +182,11 @@ const WishList = () => {
 										>
 											<div
 												className="relative cursor-pointer"
-												onClick={() => handleAdClick(wish_list.ad.id)}
+												onClick={() => {
+													const adUrl = generateAdUrl(wish_list.ad);
+													const adId = wish_list.ad.id;
+													handleAdClick(adUrl, adId);
+												}}
 											>
 												<img
 													src={wish_list.ad.first_media_url}

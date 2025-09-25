@@ -148,7 +148,7 @@ export const measurePerformance = (name, fn) => {
 	const result = fn();
 	const end = performance.now();
 
-	console.log(`${name} took ${end - start} milliseconds`);
+	// Performance logging removed for production
 	return result;
 };
 
@@ -158,7 +158,7 @@ export const measureAsyncPerformance = async (name, fn) => {
 	const result = await fn();
 	const end = performance.now();
 
-	console.log(`${name} took ${end - start} milliseconds`);
+	// Performance logging removed for production
 	return result;
 };
 

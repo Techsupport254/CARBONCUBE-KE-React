@@ -472,13 +472,6 @@ The Carbon Team`,
 
 				if (!selectedSeller && sellers.length > 0) {
 					selectedSeller = sellers[0];
-					console.log(
-						`Seller 114 not found, using first available seller: ${selectedSeller.fullname} (ID: ${selectedSeller.id})`
-					);
-				} else if (selectedSeller) {
-					console.log(
-						`Using seller 114: ${selectedSeller.fullname} (ID: ${selectedSeller.id})`
-					);
 				}
 
 				if (selectedSeller) {
@@ -941,7 +934,7 @@ The Carbon Team`,
 									onClick={async () => {
 										try {
 											// TODO: Implement actual email sending
-											console.log("Sending email:", previewData);
+											// Sending email with preview data
 											alert(
 												`Email sent to ${
 													previewData.recipient

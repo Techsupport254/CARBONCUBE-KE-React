@@ -112,8 +112,9 @@ const SellerAds = () => {
 		fetchAds();
 	}, []);
 
-	const handleViewDetailsClick = (ad) => {
-		navigate(`/seller/ads/${ad.id}`);
+	const handleViewDetailsClick = (adUrl, adId) => {
+		// For seller ads, navigate to the seller ad details page
+		navigate(`/seller/ads/${adId}`);
 	};
 
 	const handleEditAd = (adId) => {
@@ -268,7 +269,7 @@ const SellerAds = () => {
 				{/* Use the unified AdCard component */}
 				<AdCard
 					ad={adCardData}
-					onClick={() => handleViewDetailsClick(ad)}
+					onClick={handleViewDetailsClick}
 					showTierBadge={false}
 					showTierBorder={false}
 					showRating={true}

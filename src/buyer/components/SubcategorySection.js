@@ -148,7 +148,7 @@ const SubcategorySection = ({
 								>
 									<AdCard
 										ad={ad}
-										onClick={() => onAdClick(ad.id)}
+										onClick={onAdClick}
 										size="small"
 										variant="default"
 										showTierBadge={true}

@@ -100,9 +100,6 @@ const TierPage = () => {
 				return;
 			}
 			// For social media crawlers or other errors, just continue without authentication
-			console.log(
-				"Authentication check failed, continuing without seller data"
-			);
 
 			// If seller tier not found, create a default tier response
 			if (error.response?.status === 404) {

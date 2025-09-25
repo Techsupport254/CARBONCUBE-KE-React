@@ -9,7 +9,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import useAuth from "./hooks/useAuth";
-import useAutoGoogleOneTap from "./hooks/useAutoGoogleOneTap";
 import tokenService from "./services/tokenService";
 import Spinner from "react-spinkit";
 import BecomeASeller from "./pages/BecomeASeller";
@@ -23,7 +22,6 @@ import CategoryPageSEO from "./components/CategoryPageSEO";
 
 // Lazy load components for better performance
 const LoginForm = lazy(() => import("./components/LoginForm"));
-const AutoGoogleOneTap = lazy(() => import("./components/AutoGoogleOneTap"));
 const AboutUs = lazy(() => import("./components/AboutUs"));
 const ContactUs = lazy(() => import("./components/ContactUs"));
 const VendorHelp = lazy(() => import("./components/VendorHelp"));
@@ -585,7 +583,6 @@ function App() {
 	const handleLogin = (token, user) => {
 		// Use tokenService to validate and store token
 		if (!tokenService.setToken(token)) {
-			console.error("Invalid token format, login failed");
 			return;
 		}
 
@@ -612,8 +609,6 @@ function App() {
 			})
 		);
 	};
-
-	// Note: useAutoGoogleOneTap will be called inside Router context
 
 	useEffect(() => {
 		// Determine if this device should be excluded from analytics trackers
@@ -647,14 +642,14 @@ function App() {
 
 				// Track the visit for analytics (only if not excluded)
 				sourceTrackingService.trackVisit().catch((error) => {
-					console.error("Source tracking failed:", error);
+					// Source tracking failed silently
 				});
 			} catch (_) {
 				setExcludeTracking(false);
 
 				// Track the visit even if exclusion check fails
 				sourceTrackingService.trackVisit().catch((error) => {
-					console.error("Source tracking failed:", error);
+					// Source tracking failed silently
 				});
 			}
 		})();
@@ -707,14 +702,6 @@ function AppContent({
 	handleSellerSignup,
 	excludeTracking,
 }) {
-	// Auto Google One Tap for unauthenticated users
-	const {
-		showOneTap,
-		handleOneTapSuccess,
-		handleOneTapError,
-		handleCloseOneTap,
-	} = useAutoGoogleOneTap(isAuthenticated, handleLogin);
-
 	return (
 		<>
 			{/* Analytics Tracking Components */}
@@ -727,7 +714,7 @@ function AppContent({
 
 			<Suspense fallback={<LoadingSpinner />}>
 				<Routes>
-					<Route path="/ads/:adId" element={<AdDetails />} />
+					<Route path="/ads/:slug" element={<AdDetails />} />
 					<Route
 						path="/ad/:adId"
 						element={<Navigate to="/ads/:adId" replace />}
@@ -951,16 +938,6 @@ function AppContent({
 					<Route path="*" element={<NotFound />} />
 				</Routes>
 			</Suspense>
-
-			{/* Auto Google One Tap for unauthenticated users */}
-			{showOneTap && (
-				<AutoGoogleOneTap
-					onSuccess={handleOneTapSuccess}
-					onError={handleOneTapError}
-					onClose={handleCloseOneTap}
-					isVisible={showOneTap}
-				/>
-			)}
 		</>
 	);
 }
