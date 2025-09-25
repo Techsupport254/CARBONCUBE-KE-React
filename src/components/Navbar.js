@@ -165,11 +165,14 @@ const Navbar = ({
 	);
 
 	// Connection status callback
-	const handleConnectionStatus = useCallback((status) => {
-		// Connection status changed
-		// Setting connection status to:
-		setConnectionStatus(status);
-	}, []);
+	const handleConnectionStatus = useCallback(
+		(status) => {
+			// Connection status changed
+			// Setting connection status to:
+			setConnectionStatus(status);
+		},
+		[setConnectionStatus]
+	);
 
 	// Use the new message listener hook
 	useNewMessageListener(

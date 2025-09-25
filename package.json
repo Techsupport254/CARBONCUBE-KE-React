@@ -18,6 +18,7 @@
 		"date-fns": "^4.1.0",
 		"eslint-config-react-app": "^7.0.1",
 		"framer-motion": "^11.5.4",
+		"google-auth-library": "^10.3.0",
 		"handlebars": "^4.7.8",
 		"jwt-decode": "^4.0.0",
 		"nsfwjs": "^4.2.1",
@@ -41,7 +42,8 @@
 	"scripts": {
 		"start": "GENERATE_SOURCEMAP=false FAST_REFRESH=false react-scripts start",
 		"prebuild": "npm run generate-seo",
-		"build": "GENERATE_SOURCEMAP=false react-scripts build",
+		"build": "GENERATE_SOURCEMAP=false INLINE_RUNTIME_CHUNK=false react-scripts build",
+		"build:analyze": "GENERATE_SOURCEMAP=true npm run build && npx webpack-bundle-analyzer build/static/js/*.js",
 		"generate-seo": "node scripts/seo-generator.js",
 		"seo-generator": "node scripts/seo-generator.js"
 	},

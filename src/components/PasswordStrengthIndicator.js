@@ -157,19 +157,31 @@ const PasswordStrengthIndicator = ({ password, email, username }) => {
 				</span>
 			</div>
 
-			{/* Detailed Checks */}
-			<div className="text-xs space-y-1">
-				{checks.map((check, index) => (
-					<div key={index} className="flex items-center space-x-2">
-						<span className={check.passed ? "text-green-500" : "text-gray-400"}>
-							{check.passed ? "✓" : "○"}
-						</span>
-						<span className={check.passed ? "text-green-600" : "text-gray-500"}>
-							{check.label}
+			{/* Show only failed requirements */}
+			{checks.filter((check) => !check.passed).length > 0 ? (
+				<div className="text-xs space-y-1">
+					<div className="text-gray-600 font-medium mb-1">
+						Password requirements:
+					</div>
+					{checks
+						.filter((check) => !check.passed)
+						.map((check, index) => (
+							<div key={index} className="flex items-center space-x-2">
+								<span className="text-red-500">•</span>
+								<span className="text-red-600">{check.label}</span>
+							</div>
+						))}
+				</div>
+			) : (
+				<div className="text-xs">
+					<div className="flex items-center space-x-2">
+						<span className="text-green-500">✓</span>
+						<span className="text-green-600 font-medium">
+							Password meets all requirements
 						</span>
 					</div>
-				))}
-			</div>
+				</div>
+			)}
 		</div>
 	);
 };

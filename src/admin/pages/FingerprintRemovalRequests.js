@@ -24,7 +24,7 @@ const FingerprintRemovalRequests = () => {
 	const [successMessage, setSuccessMessage] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
 
-	const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "/api";
+	const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 	const fetchRequests = useCallback(async () => {
 		try {

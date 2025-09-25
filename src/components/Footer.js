@@ -119,6 +119,14 @@ const Footer = () => (
 											Terms & Conditions
 										</a>
 									</li>
+									<li className="mb-2">
+										<a
+											href="/data-deletion"
+											className="text-white text-decoration-none hover-link"
+										>
+											Data Deletion Request
+										</a>
+									</li>
 									{/* <li className="mb-2">
 										<a
 											href="/faqs"

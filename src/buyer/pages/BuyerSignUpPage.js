@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-// import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -27,588 +26,376 @@ function BuyerSignUpPage({ onSignup }) {
 		username: "",
 		phone_number: "",
 		email: "",
-		location: "",
 		password: "",
 		password_confirmation: "",
 		age_group_id: "",
 		gender: "",
-		city: "",
-		zipcode: "",
-		income_id: "",
-		sector_id: "",
-		education_id: "",
-		employment_id: "",
-		county_id: "", // Add this
-		sub_county_id: "",
 	});
 	const [errors, setErrors] = useState({});
+	const [successMessage, setSuccessMessage] = useState("");
 	const [options, setOptions] = useState({ age_groups: [] });
 	const navigate = useNavigate();
 	const [terms, setTerms] = useState(false);
-	const [step, setStep] = useState(1);
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [otpCode, setOtpCode] = useState("");
+	const [submittingSignup, setSubmittingSignup] = useState(false);
+	const [verifyingOtp, setVerifyingOtp] = useState(false);
+	const [otpRequested, setOtpRequested] = useState(false);
+	const [requestingOtp, setRequestingOtp] = useState(false);
+	const [validatingField, setValidatingField] = useState(null);
 
 	// Enhanced SEO Implementation
 	useSEO({
 		title: "Join Carbon Cube Kenya - Buyer Registration | Free Sign Up",
 		description:
 			"Join Carbon Cube Kenya as a buyer and start shopping from verified sellers. Create your free account today and enjoy secure online shopping in Kenya's most trusted marketplace with buyer protection.",
-		keywords:
-			"buyer signup, join Carbon Cube Kenya, create account, Kenya online shopping, marketplace registration, buyer registration, free signup, verified sellers, secure shopping Kenya",
-		url: `${window.location.origin}/buyer-signup`,
-		type: "website",
-		image: "https://carboncube-ke.com/logo.png",
-		author: "Carbon Cube Kenya Team",
-		structuredData: {
-			"@context": "https://schema.org",
-			"@type": "WebPage",
-			name: "Buyer Sign Up - Carbon Cube Kenya",
-			description: "Create your buyer account on Carbon Cube Kenya",
-			url: `${window.location.origin}/buyer-signup`,
-			mainEntity: {
-				"@type": "WebApplication",
-				name: "Carbon Cube Kenya Buyer Registration",
-				applicationCategory: "BusinessApplication",
-				operatingSystem: "Web Browser",
-				offers: {
-					"@type": "Offer",
-					price: "0",
-					priceCurrency: "KES",
-					description: "Free buyer registration",
-				},
-			},
-		},
-		additionalStructuredData: [
-			{
-				"@context": "https://schema.org",
-				"@type": "FAQPage",
-				mainEntity: [
-					{
-						"@type": "Question",
-						name: "Is buyer registration free on Carbon Cube Kenya?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "Yes, creating a buyer account on Carbon Cube Kenya is completely free. You only pay for the products you purchase.",
-						},
-					},
-					{
-						"@type": "Question",
-						name: "What information do I need to sign up as a buyer?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "You need basic information like your name, email, phone number, and location. We also collect optional demographic information to improve your shopping experience.",
-						},
-					},
-					{
-						"@type": "Question",
-						name: "Are all sellers verified on Carbon Cube Kenya?",
-						acceptedAnswer: {
-							"@type": "Answer",
-							text: "Yes, all sellers on Carbon Cube Kenya go through a verification process to ensure quality and reliability for buyers.",
-						},
-					},
-				],
-			},
-		],
-		alternateLanguages: [
-			{ lang: "en", url: `${window.location.origin}/buyer-signup` },
-			{ lang: "sw", url: `${window.location.origin}/sw/buyer-signup` },
-		],
-		customMetaTags: [
-			{ name: "signup:type", content: "buyer" },
-			{ name: "signup:cost", content: "free" },
-			{ name: "signup:verification", content: "required" },
-			{ property: "og:signup:type", content: "buyer" },
-			{ property: "og:signup:cost", content: "free" },
-			{ property: "og:signup:verification", content: "required" },
-		],
-		imageWidth: 1200,
-		imageHeight: 630,
-		themeColor: "#FFD700",
-		viewport:
-			"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes",
-		// AI Search Optimization
-		aiSearchOptimized: true,
-		contentType: "registration",
-		expertiseLevel: "expert",
-		contentDepth: "comprehensive",
-		aiFriendlyFormat: true,
-		conversationalKeywords: [
-			"how to join Carbon Cube Kenya",
-			"create buyer account Kenya",
-			"sign up for online shopping Kenya",
-			"join marketplace Kenya",
-			"become a buyer Carbon Cube",
-			"register for online shopping Kenya",
-			"free buyer registration Kenya",
+		keywords: [
+			"buyer registration Kenya",
+			"free buyer account",
+			"online shopping Kenya",
+			"secure buyer signup",
+			"Carbon Cube buyer",
+			"Kenya marketplace buyer",
+			"buyer protection",
+			"verified sellers",
 			"start shopping online Kenya",
 		],
 		aiCitationOptimized: true,
 	});
 
-	const nextStep = async () => {
-		const requiredFields = [
-			"fullname",
-			"username",
-			"email",
-			"phone_number",
-			"city",
-			"gender",
-			"age_group_id",
-		];
-		const newErrors = {};
-
-		requiredFields.forEach((field) => {
-			if (!formData[field] || formData[field].trim() === "") {
-				newErrors[field] = "This field is required";
-			}
-		});
-
-		// Check if email already exists
-		if (formData.email && !newErrors.email) {
-			const emailExists = await checkEmailExists(formData.email);
-			if (emailExists) {
-				newErrors.email =
-					"This email is already registered. Please use a different email address.";
-			}
-		}
-
-		// Check if username already exists
-		if (formData.username && !newErrors.username) {
-			const usernameExists = await checkUsernameExists(formData.username);
-			if (usernameExists) {
-				newErrors.username =
-					"This username is already taken. Please choose a different username.";
-			}
-		}
-
-		// Check if phone number already exists
-		if (formData.phone_number && !newErrors.phone_number) {
-			const phoneExists = await checkPhoneExists(formData.phone_number);
-			if (phoneExists) {
-				newErrors.phone_number =
-					"This phone number is already registered. Please use a different phone number.";
-			}
-		}
-
-		if (Object.keys(newErrors).length > 0) {
-			setErrors(newErrors);
-			return; // Stop from going to next step
-		}
-
-		setErrors({});
-		setStep((prev) => Math.min(prev + 1, 3));
-	};
-
-	const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
-	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-	const [otpCode, setOtpCode] = useState("");
-	const [submittingSignup, setSubmittingSignup] = useState(false);
-	const [verifyingOtp, setVerifyingOtp] = useState(false);
-	const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
-	const [usernameCheckTimeout, setUsernameCheckTimeout] = useState(null);
-	const [phoneCheckTimeout, setPhoneCheckTimeout] = useState(null);
-
-	const checkEmailExists = async (email) => {
-		try {
-			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/email/exists`,
-				{ email: email.toLowerCase().trim() },
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-					timeout: 5000, // 5 second timeout for lightweight check
-				}
-			);
-			return response.data.exists;
-		} catch (error) {
-			console.error("Error checking email:", error);
-			// If API fails, don't block user - let server validation handle it
-			return false;
-		}
-	};
-
-	const checkUsernameExists = async (username) => {
-		try {
-			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/username/exists`,
-				{ username: username.trim() },
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-					timeout: 5000, // 5 second timeout for lightweight check
-				}
-			);
-			return response.data.exists;
-		} catch (error) {
-			console.error("Error checking username:", error);
-			// If API fails, don't block user - let server validation handle it
-			return false;
-		}
-	};
-
-	const checkPhoneExists = async (phone_number) => {
-		try {
-			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/phone/exists`,
-				{ phone_number: phone_number.trim() },
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-					timeout: 5000, // 5 second timeout for lightweight check
-				}
-			);
-			return response.data.exists;
-		} catch (error) {
-			console.error("Error checking phone number:", error);
-			// If API fails, don't block user - let server validation handle it
-			return false;
-		}
-	};
-
-	const handleEmailChange = async (e) => {
-		const email = e.target.value;
-		handleChange(e);
-
-		// Clear previous email error
-		if (errors.email) {
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.email;
-				return newErrors;
-			});
-		}
-
-		// Validate email format immediately
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (email && !emailRegex.test(email)) {
-			setErrors((prev) => ({
-				...prev,
-				email: "Please enter a valid email address",
-			}));
-			return;
-		}
-
-		// Clear any existing timeout
-		if (emailCheckTimeout) {
-			clearTimeout(emailCheckTimeout);
-		}
-
-		// Check if email exists only when user stops typing (debounced)
-		if (email && emailRegex.test(email) && email.length > 5) {
-			const timeoutId = setTimeout(async () => {
-				const emailExists = await checkEmailExists(email);
-				if (emailExists) {
-					setErrors((prev) => ({
-						...prev,
-						email:
-							"This email is already registered. Please use a different email address.",
-					}));
-				}
-			}, 1000); // 1 second after user stops typing
-
-			setEmailCheckTimeout(timeoutId);
-		}
-	};
-
-	const handleUsernameChange = async (e) => {
-		const username = e.target.value;
-		handleChange(e);
-
-		// Clear previous username error
-		if (errors.username) {
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.username;
-				return newErrors;
-			});
-		}
-
-		// Validate username format immediately
-		const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
-		if (username && !usernameRegex.test(username)) {
-			setErrors((prev) => ({
-				...prev,
-				username:
-					"Username must be 3-20 characters and contain only letters, numbers, underscores, and hyphens",
-			}));
-			return;
-		}
-
-		// Clear any existing timeout
-		if (usernameCheckTimeout) {
-			clearTimeout(usernameCheckTimeout);
-		}
-
-		// Check if username exists only when user stops typing (debounced)
-		if (username && usernameRegex.test(username) && username.length >= 3) {
-			const timeoutId = setTimeout(async () => {
-				const usernameExists = await checkUsernameExists(username);
-				if (usernameExists) {
-					setErrors((prev) => ({
-						...prev,
-						username:
-							"This username is already taken. Please choose a different username.",
-					}));
-				}
-			}, 1000); // 1 second after user stops typing
-
-			setUsernameCheckTimeout(timeoutId);
-		}
-	};
-
-	const handlePhoneChange = async (e) => {
-		const phone_number = e.target.value;
-		handleChange(e);
-
-		// Clear previous phone number error
-		if (errors.phone_number) {
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.phone_number;
-				return newErrors;
-			});
-		}
-
-		// Validate phone number format immediately
-		const phoneRegex = /^\d{10}$/;
-		if (phone_number && !phoneRegex.test(phone_number)) {
-			setErrors((prev) => ({
-				...prev,
-				phone_number: "Phone number must be exactly 10 digits",
-			}));
-			return;
-		}
-
-		// Clear any existing timeout
-		if (phoneCheckTimeout) {
-			clearTimeout(phoneCheckTimeout);
-		}
-
-		// Check if phone number exists only when user stops typing (debounced)
-		if (
-			phone_number &&
-			phoneRegex.test(phone_number) &&
-			phone_number.length === 10
-		) {
-			const timeoutId = setTimeout(async () => {
-				const phoneExists = await checkPhoneExists(phone_number);
-				if (phoneExists) {
-					setErrors((prev) => ({
-						...prev,
-						phone_number:
-							"This phone number is already registered. Please use a different phone number.",
-					}));
-				}
-			}, 1000); // 1 second after user stops typing
-
-			setPhoneCheckTimeout(timeoutId);
-		}
-	};
-
-	const hasFocusedError = React.useRef(false);
-
 	useEffect(() => {
-		if (hasFocusedError.current) return;
-
-		const firstErrorKey = Object.keys(errors)[0];
-		if (firstErrorKey) {
-			const el = document.querySelector(`[name="${firstErrorKey}"]`);
-			if (el && el.scrollIntoView) {
-				el.scrollIntoView({ behavior: "smooth", block: "center" });
-				el.focus();
-				hasFocusedError.current = true; // prevent repeated focusing
-			}
-		}
-	}, [errors]);
-
-	// Reset the focus tracker when form is resubmitted
-	useEffect(() => {
-		hasFocusedError.current = false;
-	}, [step]);
-
-	// Cleanup email and username check timeouts on unmount
-	useEffect(() => {
-		return () => {
-			if (emailCheckTimeout) {
-				clearTimeout(emailCheckTimeout);
-			}
-			if (usernameCheckTimeout) {
-				clearTimeout(usernameCheckTimeout);
-			}
-		};
-	}, [emailCheckTimeout, usernameCheckTimeout]);
-
-	useEffect(() => {
-		// Fetch options for dropdowns from the API
-		const fetchOptions = async () => {
+		const fetchAgeGroups = async () => {
 			try {
-				const [age_groupRes] = await Promise.all([
-					axios.get(`${process.env.REACT_APP_BACKEND_URL}/age_groups`),
-				]);
-				setOptions({
-					age_groups: age_groupRes.data,
-				});
+				const response = await axios.get(
+					`${process.env.REACT_APP_BACKEND_URL}/age_groups`
+				);
+				setOptions({ age_groups: response.data });
 			} catch (error) {
-				console.error("Error fetching dropdown options:", error);
+				console.error("Failed to fetch age groups:", error);
 			}
 		};
 
-		fetchOptions();
+		fetchAgeGroups();
 	}, []);
 
+	// Debounced validation for unique fields
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			if (formData.email && formData.email.includes("@")) {
+				validateFieldUniqueness("email", formData.email);
+			}
+		}, 1000);
+
+		return () => clearTimeout(timeoutId);
+	}, [formData.email]);
+
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			if (formData.username && formData.username.length >= 3) {
+				validateFieldUniqueness("username", formData.username);
+			}
+		}, 1000);
+
+		return () => clearTimeout(timeoutId);
+	}, [formData.username]);
+
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			if (formData.phone_number && formData.phone_number.length === 10) {
+				validateFieldUniqueness("phone_number", formData.phone_number);
+			}
+		}, 1000);
+
+		return () => clearTimeout(timeoutId);
+	}, [formData.phone_number]);
+
 	const handleChange = (e) => {
-		setFormData({
-			...formData,
-			[e.target.name]: e.target.value,
-		});
-		// Clear the error for this field when the user starts typing
-		setErrors({
-			...errors,
-			[e.target.name]: null,
-		});
+		const { name, value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: value,
+		}));
+
+		// Clear error when user starts typing
+		if (errors[name]) {
+			setErrors((prev) => ({
+				...prev,
+				[name]: "",
+			}));
+		}
+	};
+
+	const handleEmailChange = (e) => {
+		const { value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			email: value,
+		}));
+
+		// Clear email error when user starts typing
+		if (errors.email) {
+			setErrors((prev) => ({
+				...prev,
+				email: "",
+			}));
+		}
+	};
+
+	const handleUsernameChange = (e) => {
+		const { value } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			username: value,
+		}));
+
+		// Clear username error when user starts typing
+		if (errors.username) {
+			setErrors((prev) => ({
+				...prev,
+				username: "",
+			}));
+		}
+	};
+
+	const handlePhoneChange = (e) => {
+		const { value } = e.target;
+		// Only allow numbers and limit to 10 digits
+		const numericValue = value.replace(/\D/g, "").slice(0, 10);
+		setFormData((prev) => ({
+			...prev,
+			phone_number: numericValue,
+		}));
+
+		// Clear phone error when user starts typing
+		if (errors.phone_number) {
+			setErrors((prev) => ({
+				...prev,
+				phone_number: "",
+			}));
+		}
 	};
 
 	const validatePassword = () => {
-		let isValid = true;
 		const newErrors = {};
 
-		if (formData.password.length < 8) {
+		if (!formData.password) {
+			newErrors.password = "Password is required";
+		} else if (formData.password.length < 8) {
 			newErrors.password = "Password must be at least 8 characters long";
-			isValid = false;
 		}
 
-		// Check for common passwords
-		const commonPasswords = [
-			"password",
-			"123456",
-			"123456789",
-			"qwerty",
-			"abc123",
-			"password123",
-			"admin",
-			"12345678",
-			"letmein",
-			"welcome",
-			"monkey",
-			"dragon",
-			"master",
-			"hello",
-			"login",
-			"passw0rd",
-			"123123",
-			"welcome123",
-			"1234567",
-			"12345",
-			"1234",
-			"111111",
-			"000000",
-			"1234567890",
-		];
-
-		if (commonPasswords.includes(formData.password.toLowerCase())) {
-			newErrors.password =
-				"This password is too common. Please choose a more unique password.";
-			isValid = false;
-		}
-
-		// Check for repeated characters
-		if (/(.)\1{3,}/.test(formData.password)) {
-			newErrors.password = "Password contains too many repeated characters.";
-			isValid = false;
-		}
-
-		// Check for sequential characters
-		if (
-			/(0123456789|abcdefghijklmnopqrstuvwxyz|qwertyuiopasdfghjklzxcvbnm)/i.test(
-				formData.password
-			)
-		) {
-			newErrors.password =
-				"Password contains sequential characters which are easy to guess.";
-			isValid = false;
-		}
-
-		// Check if password contains email or username
-		if (
-			formData.email &&
-			formData.password
-				.toLowerCase()
-				.includes(formData.email.split("@")[0].toLowerCase())
-		) {
-			newErrors.password = "Password should not contain your email address.";
-			isValid = false;
-		}
-
-		if (
-			formData.username &&
-			formData.password.toLowerCase().includes(formData.username.toLowerCase())
-		) {
-			newErrors.password = "Password should not contain your username.";
-			isValid = false;
-		}
-
-		if (formData.password !== formData.password_confirmation) {
+		if (!formData.password_confirmation) {
+			newErrors.password_confirmation = "Please confirm your password";
+		} else if (formData.password !== formData.password_confirmation) {
 			newErrors.password_confirmation = "Passwords do not match";
-			isValid = false;
 		}
 
 		setErrors({ ...errors, ...newErrors });
-		return isValid;
+		return Object.keys(newErrors).length === 0;
+	};
+
+	const validateUniqueness = async () => {
+		const validationErrors = {};
+
+		try {
+			// Check email uniqueness
+			if (formData.email) {
+				try {
+					const response = await axios.post(
+						`${process.env.REACT_APP_BACKEND_URL}/email/exists`,
+						{
+							email: formData.email,
+						}
+					);
+					if (response.data.exists) {
+						validationErrors.email = "Email is already registered";
+					}
+				} catch (error) {
+					console.error("Error checking email:", error);
+				}
+			}
+
+			// Check username uniqueness
+			if (formData.username) {
+				try {
+					const response = await axios.post(
+						`${process.env.REACT_APP_BACKEND_URL}/username/exists`,
+						{
+							username: formData.username,
+						}
+					);
+					if (response.data.exists) {
+						validationErrors.username = "Username is already taken";
+					}
+				} catch (error) {
+					console.error("Error checking username:", error);
+				}
+			}
+
+			// Check phone number uniqueness
+			if (formData.phone_number) {
+				try {
+					const response = await axios.post(
+						`${process.env.REACT_APP_BACKEND_URL}/phone/exists`,
+						{
+							phone_number: formData.phone_number,
+						}
+					);
+					if (response.data.exists) {
+						validationErrors.phone_number =
+							"Phone number is already registered";
+					}
+				} catch (error) {
+					console.error("Error checking phone number:", error);
+				}
+			}
+
+			return validationErrors;
+		} catch (error) {
+			console.error("Validation error:", error);
+			return { general: "Unable to validate information. Please try again." };
+		}
+	};
+
+	const validateFieldUniqueness = async (fieldName, value) => {
+		if (!value || value.length < 3) return;
+
+		setValidatingField(fieldName);
+
+		try {
+			let endpoint = "";
+			let payload = {};
+
+			switch (fieldName) {
+				case "email":
+					endpoint = "/email/exists";
+					payload = { email: value };
+					break;
+				case "username":
+					endpoint = "/username/exists";
+					payload = { username: value };
+					break;
+				case "phone_number":
+					endpoint = "/phone/exists";
+					payload = { phone_number: value };
+					break;
+				default:
+					return;
+			}
+
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}${endpoint}`,
+				payload,
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+
+			// Check if the field exists
+			if (response.data.exists) {
+				let errorMessage = "";
+				switch (fieldName) {
+					case "email":
+						errorMessage = "Email is already registered";
+						break;
+					case "username":
+						errorMessage = "Username is already taken";
+						break;
+					case "phone_number":
+						errorMessage = "Phone number is already registered";
+						break;
+				}
+				setErrors((prev) => ({ ...prev, [fieldName]: errorMessage }));
+			} else {
+				// Clear any existing error for this field
+				if (errors[fieldName]) {
+					setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+				}
+			}
+		} catch (error) {
+			console.error(`Error checking ${fieldName}:`, error);
+			// If API fails, don't block user - let server validation handle it
+		} finally {
+			setValidatingField(null);
+		}
+	};
+
+	const handleRequestOtp = async () => {
+		// Basic validation for email and fullname before requesting OTP
+		if (!formData.email || !formData.fullname) {
+			setSuccessMessage(""); // Clear success message
+			setErrors({ general: "Please fill in your email and full name first." });
+			return;
+		}
+
+		if (!/\S+@\S+\.\S+/.test(formData.email)) {
+			setSuccessMessage(""); // Clear success message
+			setErrors({ email: "Please enter a valid email address" });
+			return;
+		}
+
+		try {
+			setRequestingOtp(true);
+			setErrors({});
+
+			// First validate uniqueness
+			const uniquenessErrors = await validateUniqueness();
+			if (Object.keys(uniquenessErrors).length > 0) {
+				setErrors(uniquenessErrors);
+				return;
+			}
+
+			await axios.post(`${process.env.REACT_APP_BACKEND_URL}/email_otps`, {
+				email: formData.email,
+				fullname: formData.fullname,
+			});
+
+			setOtpRequested(true);
+			setSuccessMessage("OTP sent successfully! Please check your email.");
+			setErrors({});
+		} catch (error) {
+			console.error("OTP request error:", error);
+			setSuccessMessage(""); // Clear success message on error
+			if (error.response?.data?.errors) {
+				const serverErrors = {};
+				error.response.data.errors.forEach((err) => {
+					if (err.includes("Email has already been taken")) {
+						serverErrors.email = "Email has already been taken";
+					} else {
+						serverErrors.general = err;
+					}
+				});
+				setErrors(serverErrors);
+			} else {
+				setErrors({ general: "Failed to send OTP. Please try again." });
+			}
+		} finally {
+			setRequestingOtp(false);
+		}
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (!validateForm()) return;
+		if (!validatePassword()) return;
 
-		if (step === 2) {
-			if (!validatePassword()) return;
-
-			try {
-				setSubmittingSignup(true); // Start loader
-
-				await axios.post(`${process.env.REACT_APP_BACKEND_URL}/email_otps`, {
-					email: formData.email,
-					fullname: formData.fullname,
-				});
-
-				// Note: OTP sent state removed as it was unused
-				nextStep(); // move to step 3
-			} catch (error) {
-				const serverErrors = {};
-				if (error.response?.data?.errors) {
-					error.response.data.errors.forEach((err) => {
-						if (err.includes("Email has already been taken")) {
-							serverErrors.email = "Email has already been taken";
-						} else if (err.includes("not found")) {
-							serverErrors.email = "Email not found";
-						} else {
-							serverErrors.email = err;
-						}
-					});
-				} else {
-					serverErrors.email = "Failed to send OTP. Try again later.";
-				}
-				setErrors(serverErrors);
-			} finally {
-				setSubmittingSignup(false); // Reset loader in both success/failure
-			}
-
+		if (!otpRequested) {
+			setErrors({
+				general: "Please request OTP first by clicking 'Send OTP' button.",
+			});
 			return;
 		}
-		// If step is not handled, do nothing.
-	};
 
-	const verifyOtpCode = async () => {
 		try {
-			setVerifyingOtp(true); // start loading
+			setSubmittingSignup(true);
 
-			const res = await axios.post(
+			// Verify OTP and create account
+			const otpResponse = await axios.post(
 				`${process.env.REACT_APP_BACKEND_URL}/email_otps/verify`,
 				{
 					email: formData.email,
@@ -616,10 +403,7 @@ function BuyerSignUpPage({ onSignup }) {
 				}
 			);
 
-			if (res.data.verified) {
-				// Note: Email verified state removed as it was unused
-				setErrors({});
-
+			if (otpResponse.data.verified) {
 				const cleanedData = Object.fromEntries(
 					Object.entries(formData).map(([key, value]) => [
 						key,
@@ -628,63 +412,55 @@ function BuyerSignUpPage({ onSignup }) {
 				);
 
 				const payload = { buyer: cleanedData };
-				setSubmittingSignup(true);
-
 				const response = await axios.post(
 					`${process.env.REACT_APP_BACKEND_URL}/buyer/signup`,
 					payload
 				);
+
 				if (response.status === 201) {
-					onSignup();
-					navigate("/login");
+					// Auto-authenticate user after successful signup
+					const { token, buyer } = response.data;
+
+					// Store token and user data
+					localStorage.setItem("token", token);
+					localStorage.setItem("userRole", "buyer");
+					localStorage.setItem("userName", buyer.fullname);
+					localStorage.setItem("userUsername", buyer.username);
+					localStorage.setItem("userEmail", buyer.email);
+
+					// Trigger authentication update
+					window.dispatchEvent(
+						new StorageEvent("storage", {
+							key: "token",
+							newValue: token,
+						})
+					);
+
+					// Navigate to home page
+					navigate("/");
 				}
 			} else {
 				setErrors({ otp: "Invalid or expired OTP." });
 			}
-		} catch (err) {
+		} catch (error) {
 			const serverErrors = {};
-			if (err.response?.data?.errors) {
-				err.response.data.errors.forEach((error) => {
-					// Handle different error formats
-					if (error.includes("Email has already been taken")) {
+			if (error.response?.data?.errors) {
+				error.response.data.errors.forEach((err) => {
+					if (err.includes("Email has already been taken")) {
 						serverErrors.email = "Email has already been taken";
-					} else if (error.includes("Username has already been taken")) {
+					} else if (err.includes("Username has already been taken")) {
 						serverErrors.username = "Username has already been taken";
-					} else if (error.includes("Invalid or expired OTP")) {
+					} else if (err.includes("Invalid or expired OTP")) {
 						serverErrors.otp = "Invalid or expired OTP";
 					} else {
-						// For other errors, try to extract field and message
-						const [field, message] = error.includes(": ")
-							? error.split(": ")
-							: ["general", error];
-						serverErrors[field.toLowerCase()] = message;
+						serverErrors.general = err;
 					}
 				});
-			}
-
-			// If we're on step 3, show errors in a general alert since form fields aren't visible
-			if (step === 3) {
-				if (Object.keys(serverErrors).length === 0) {
-					setErrors({
-						general: "An error occurred during signup. Please try again.",
-					});
-				} else {
-					// Convert field-specific errors to general error message
-					const errorMessages = Object.values(serverErrors).join(", ");
-					setErrors({ general: errorMessages });
-				}
 			} else {
-				// For other steps, show field-specific errors
-				if (Object.keys(serverErrors).length === 0) {
-					setErrors({
-						general: "An error occurred during signup. Please try again.",
-					});
-				} else {
-					setErrors(serverErrors);
-				}
+				serverErrors.general = "An error occurred. Please try again.";
 			}
+			setErrors(serverErrors);
 		} finally {
-			setVerifyingOtp(false); // stop loading
 			setSubmittingSignup(false);
 		}
 	};
@@ -692,42 +468,49 @@ function BuyerSignUpPage({ onSignup }) {
 	const validateForm = () => {
 		const newErrors = {};
 
-		if (step === 1) {
-			const requiredFields = [
-				"fullname",
-				"username",
-				"email",
-				"phone_number",
-				"city",
-				"gender",
-				"age_group_id",
-			];
-			requiredFields.forEach((field) => {
-				if (!formData[field]) {
-					newErrors[field] = "This field is required";
-				}
-			});
+		const requiredFields = [
+			"fullname",
+			"username",
+			"email",
+			"phone_number",
+			"gender",
+			"age_group_id",
+		];
+
+		requiredFields.forEach((field) => {
+			if (!formData[field]) {
+				newErrors[field] = "This field is required";
+			}
+		});
+
+		// Email validation
+		if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+			newErrors.email = "Please enter a valid email address";
 		}
 
-		if (step === 2) {
-			if (!formData.password) {
-				newErrors.password = "Password is required";
-			}
-			if (!formData.password_confirmation) {
-				newErrors.password_confirmation = "Please confirm your password";
-			}
-			if (!terms) {
-				newErrors.terms = "You must agree to the terms and conditions.";
-			}
+		// Phone validation
+		if (formData.phone_number && !/^\d{10}$/.test(formData.phone_number)) {
+			newErrors.phone_number = "Phone number must be exactly 10 digits";
 		}
 
-		if (step === 3) {
-			if (!otpCode.trim()) {
-				newErrors.otp = "OTP is required";
-			}
-			if (!terms) {
-				newErrors.terms = "You must agree to the terms and conditions.";
-			}
+		// Username validation
+		if (formData.username && formData.username.length < 3) {
+			newErrors.username = "Username must be at least 3 characters long";
+		}
+
+		// Full name validation
+		if (formData.fullname && formData.fullname.length < 2) {
+			newErrors.fullname = "Full name must be at least 2 characters long";
+		}
+
+		// OTP validation - only check if OTP has been requested
+		if (otpRequested && !otpCode.trim()) {
+			newErrors.otp = "OTP is required";
+		}
+
+		// Terms validation
+		if (!terms) {
+			newErrors.terms = "You must agree to the terms and conditions.";
 		}
 
 		setErrors(newErrors);
@@ -738,690 +521,573 @@ function BuyerSignUpPage({ onSignup }) {
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
-				<div className="w-full max-w-4xl">
+				<div className="w-4/5 max-w-6xl">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
-							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 flex-col justify-between">
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10 flex-col justify-center">
 								{/* Header Section */}
-								<div className="space-y-3 sm:space-y-4 lg:space-y-4">
-									<div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4 lg:mb-4">
+								<div className="space-y-6">
+									<div className="flex items-center space-x-3 mb-6">
 										<img
 											src="/logo.png"
 											alt="CarbonCube Logo"
-											className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-contain"
+											className="w-8 h-8 object-contain"
 										/>
-										<h2 className="text-lg sm:text-xl font-bold">
-											<span className="text-white">Buyer</span>
-											<span className="text-yellow-400">Portal</span>
+										<h2 className="text-xl font-bold">
+											<span className="text-white">Carbon</span>
+											<span className="text-yellow-400">Cube</span>
 										</h2>
 									</div>
-									<p className="text-slate-300 text-xs sm:text-sm leading-relaxed ml-8 sm:ml-10 lg:ml-11">
-										Join to explore a world of eco-friendly products, curated
-										just for you.
+									<div>
+										<h3 className="text-3xl font-bold text-white mb-3">
+											Join Carbon Cube
+										</h3>
+										<p className="text-slate-300 text-lg mb-6">
+											Create your buyer account
+										</p>
+									</div>
+									<p className="text-slate-300 text-sm leading-relaxed mb-8">
+										Welcome to CarbonCube - your trusted online marketplace for
+										sustainable products and eco-conscious shopping.
 									</p>
 								</div>
 
 								{/* Features Section */}
-								<div className="space-y-5">
-									<h5 className="text-yellow-400 text-sm font-medium">
-										Why Shop with us?
+								<div className="space-y-8 mt-12">
+									<h5 className="text-yellow-400 text-lg font-bold mb-8">
+										Why CarbonCube?
 									</h5>
-									<div className="space-y-3">
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+									<div className="space-y-6">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faLeaf}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Wide variety of carbon-conscious products
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Manage carbon product listings
+												</span>
+												<span className="text-slate-400 text-sm">
+													Track and manage your carbon footprint
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faUsers}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Verified and trusted local sellers
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Connect with local sellers
+												</span>
+												<span className="text-slate-400 text-sm">
+													Find trusted sellers in your area
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faChartLine}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Secure and seamless
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Real-time deal tracking
+												</span>
+												<span className="text-slate-400 text-sm">
+													Monitor your transactions live
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faRecycle}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Support kenyan economy with every purchase
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Eco-conscious marketplace
+												</span>
+												<span className="text-slate-400 text-sm">
+													Supporting sustainable practices
+												</span>
+											</div>
 										</div>
 									</div>
 								</div>
 
 								{/* Vision Section */}
-								<div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-									<h6 className="text-yellow-400 font-medium text-sm mb-2">
+								<div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50 mt-8">
+									<h6 className="text-yellow-400 font-semibold text-sm mb-3">
 										Vision
 									</h6>
-									<p className="text-slate-300 text-xs leading-relaxed">
+									<p className="text-slate-300 text-sm leading-relaxed">
 										"To be Kenya's most trusted and innovative online
 										marketplace."
 									</p>
 								</div>
 							</div>
 
-							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10 flex items-center">
-								<div className="w-full max-w-md mx-auto">
-									{/* Header Section */}
-									<div className="text-center mb-8">
-										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
-											Buyer Sign Up
-										</h3>
-										<p className="text-gray-600 text-sm">
-											Create your buyer account
-										</p>
-									</div>
-
-									<form onSubmit={handleSubmit} className="space-y-6">
+							{/* Right Login Form Section */}
+							<div className="w-full lg:w-3/5 bg-white p-6 lg:p-8 flex items-center">
+								<div className="w-full max-w-2xl mx-auto">
+									<form onSubmit={handleSubmit} className="space-y-4">
+										{successMessage && (
+											<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+												{successMessage}
+											</div>
+										)}
 										{errors.general && (
 											<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 												{errors.general}
 											</div>
 										)}
 
-										{step === 1 && (
-											<>
-												{/* Step 1 Errors */}
-												{/* Personal Information Section */}
-												<div className="space-y-4">
-													{/* Full Name */}
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															Full Name
-														</label>
-														<div className="relative">
-															<FontAwesomeIcon
-																icon={faUser}
-																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-															/>
-															<input
-																type="text"
-																placeholder="Enter your full name"
-																name="fullname"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.fullname
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.fullname}
-																onChange={handleChange}
-															/>
-														</div>
-														{errors.fullname && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.fullname}
-															</div>
-														)}
-													</div>
-
-													{/* Username and Phone - Same Row */}
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Username
-															</label>
-															<div className="relative">
-																<FontAwesomeIcon
-																	icon={faUser}
-																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-																/>
-																<input
-																	type="text"
-																	placeholder="Enter username"
-																	name="username"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																		errors.username
-																			? "border-red-500 focus:ring-red-400"
-																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																	} focus:outline-none`}
-																	value={formData.username}
-																	onChange={handleUsernameChange}
-																/>
-															</div>
-															{errors.username && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.username}
-																</div>
-															)}
-														</div>
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Phone Number
-															</label>
-															<div className="relative">
-																<FontAwesomeIcon
-																	icon={faPhone}
-																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-																/>
-																<input
-																	type="text"
-																	placeholder="Enter phone number"
-																	name="phone_number"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																		errors.phone_number
-																			? "border-red-500 focus:ring-red-400"
-																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																	} focus:outline-none`}
-																	value={formData.phone_number}
-																	onChange={handlePhoneChange}
-																/>
-															</div>
-															{errors.phone_number && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.phone_number}
-																</div>
-															)}
-														</div>
-													</div>
-
-													{/* Email */}
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															Email Address
-														</label>
-														<div className="relative">
-															<FontAwesomeIcon
-																icon={faEnvelope}
-																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-															/>
-															<input
-																type="email"
-																placeholder="Enter your email address"
-																name="email"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.email
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.email}
-																onChange={handleEmailChange}
-															/>
-														</div>
-														{errors.email && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.email}
-															</div>
-														)}
-													</div>
-
-													{/* City and Gender - Same Row */}
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																City
-															</label>
-															<div className="relative">
-																<FontAwesomeIcon
-																	icon={faMapMarkerAlt}
-																	className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-																/>
-																<input
-																	type="text"
-																	placeholder="Enter your city"
-																	name="city"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																		errors.city
-																			? "border-red-500 focus:ring-red-400"
-																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																	} focus:outline-none`}
-																	value={formData.city}
-																	onChange={handleChange}
-																/>
-															</div>
-															{errors.city && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.city}
-																</div>
-															)}
-														</div>
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Gender
-															</label>
-															<select
-																name="gender"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.gender
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.gender}
-																onChange={handleChange}
-															>
-																<option value="" disabled hidden>
-																	Select gender
-																</option>
-																{["Male", "Female", "Other"].map((g) => (
-																	<option key={g} value={g}>
-																		{g}
-																	</option>
-																))}
-															</select>
-															{errors.gender && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.gender}
-																</div>
-															)}
-														</div>
-													</div>
-
-													{/* Age Group */}
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															Age Group
-														</label>
-														<select
-															name="age_group_id"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																errors.age_group_id
-																	? "border-red-500 focus:ring-red-400"
-																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-															} focus:outline-none`}
-															value={formData.age_group_id}
-															onChange={handleChange}
-														>
-															<option value="" disabled hidden>
-																Select age group
-															</option>
-															{options.age_groups.map((group) => (
-																<option key={group.id} value={group.id}>
-																	{group.name}
-																</option>
-															))}
-														</select>
-														{errors.age_group_id && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.age_group_id}
-															</div>
-														)}
-													</div>
+										{/* Personal Information Section */}
+										<div className="space-y-3">
+											{/* Full Name */}
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Full Name
+												</label>
+												<div className="relative">
+													<FontAwesomeIcon
+														icon={faUser}
+														className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+													/>
+													<input
+														type="text"
+														placeholder="Enter your full name"
+														name="fullname"
+														className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															errors.fullname
+																? "border-red-500 focus:ring-red-400"
+																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+														} focus:outline-none`}
+														value={formData.fullname}
+														onChange={handleChange}
+													/>
 												</div>
-
-												<div className="pt-2">
-													<button
-														id="step1ContinueBtn"
-														type="button"
-														disabled={
-															errors.fullname ||
-															errors.username ||
-															errors.email ||
-															errors.phone_number ||
-															errors.city ||
-															errors.gender ||
-															errors.age_group_id
-														}
-														className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
-															errors.fullname ||
-															errors.username ||
-															errors.email ||
-															errors.phone_number ||
-															errors.city ||
-															errors.gender ||
-															errors.age_group_id
-																? "bg-gray-300 text-gray-500 cursor-not-allowed"
-																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
-														}`}
-														onClick={nextStep}
-													>
-														Continue
-													</button>
-												</div>
-											</>
-										)}
-
-										{step === 2 && (
-											<>
-												{/* Step 2 Errors */}
-												{/* Account Security Section */}
-												<div className="space-y-4">
-													{/* Password Fields */}
-													<div className="space-y-4">
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Password
-															</label>
-															<div className="relative">
-																<input
-																	type={showPassword ? "text" : "password"}
-																	placeholder="Enter your password"
-																	name="password"
-																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
-																		errors.password
-																			? "border-red-500 focus:ring-red-400"
-																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																	} focus:outline-none`}
-																	value={formData.password}
-																	onChange={handleChange}
-																/>
-																<div
-																	onClick={() => setShowPassword(!showPassword)}
-																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
-																>
-																	<AnimatePresence mode="wait" initial={false}>
-																		{showPassword ? (
-																			<motion.span
-																				key="hidePwd"
-																				initial={{ opacity: 0, scale: 0.8 }}
-																				animate={{ opacity: 1, scale: 1 }}
-																				exit={{ opacity: 0, scale: 0.8 }}
-																				transition={{ duration: 0.2 }}
-																			>
-																				<EyeSlash size={16} />
-																			</motion.span>
-																		) : (
-																			<motion.span
-																				key="showPwd"
-																				initial={{ opacity: 0, scale: 0.8 }}
-																				animate={{ opacity: 1, scale: 1 }}
-																				exit={{ opacity: 0, scale: 0.8 }}
-																				transition={{ duration: 0.2 }}
-																			>
-																				<Eye size={16} />
-																			</motion.span>
-																		)}
-																	</AnimatePresence>
-																</div>
-															</div>
-															{errors.password && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.password}
-																</div>
-															)}
-															<PasswordStrengthIndicator
-																password={formData.password}
-																email={formData.email}
-																username={formData.username}
-															/>
-														</div>
-
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Confirm Password
-															</label>
-															<div className="relative">
-																<input
-																	type={
-																		showConfirmPassword ? "text" : "password"
-																	}
-																	placeholder="Confirm your password"
-																	name="password_confirmation"
-																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
-																		errors.password_confirmation
-																			? "border-red-500 focus:ring-red-400"
-																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																	} focus:outline-none`}
-																	value={formData.password_confirmation}
-																	onChange={handleChange}
-																/>
-																<div
-																	onClick={() =>
-																		setShowConfirmPassword(!showConfirmPassword)
-																	}
-																	className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
-																>
-																	<AnimatePresence mode="wait" initial={false}>
-																		{showConfirmPassword ? (
-																			<motion.span
-																				key="hideConfirm"
-																				initial={{ opacity: 0, scale: 0.8 }}
-																				animate={{ opacity: 1, scale: 1 }}
-																				exit={{ opacity: 0, scale: 0.8 }}
-																				transition={{ duration: 0.2 }}
-																			>
-																				<EyeSlash size={16} />
-																			</motion.span>
-																		) : (
-																			<motion.span
-																				key="showConfirm"
-																				initial={{ opacity: 0, scale: 0.8 }}
-																				animate={{ opacity: 1, scale: 1 }}
-																				exit={{ opacity: 0, scale: 0.8 }}
-																				transition={{ duration: 0.2 }}
-																			>
-																				<Eye size={16} />
-																			</motion.span>
-																		)}
-																	</AnimatePresence>
-																</div>
-															</div>
-															{errors.password_confirmation && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.password_confirmation}
-																</div>
-															)}
-														</div>
+												{errors.fullname && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.fullname}
 													</div>
+												)}
+											</div>
 
-													{/* Terms and Conditions */}
-													<div className="pt-1">
-														<div className="flex items-center">
-															<input
-																type="checkbox"
-																id="terms"
-																className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
-																checked={terms}
-																onChange={(e) => setTerms(e.target.checked)}
-															/>
-															<label
-																htmlFor="terms"
-																className="text-sm text-gray-600 cursor-pointer"
-															>
-																Agree to Terms and Conditions and receive
-																SMS/emails.
-															</label>
-														</div>
-														{errors.terms && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.terms}
-															</div>
-														)}
-													</div>
-												</div>
-
-												<div className="flex justify-between gap-4 pt-2">
-													<button
-														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
-														onClick={prevStep}
-													>
-														Back
-													</button>
-													<button
-														type="submit"
-														disabled={
-															!terms ||
-															submittingSignup ||
-															errors.password ||
-															errors.password_confirmation
-														}
-														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
-															!terms ||
-															submittingSignup ||
-															errors.password ||
-															errors.password_confirmation
-																? "bg-gradient-to-r from-yellow-300 to-yellow-400 text-black scale-100 cursor-not-allowed"
-																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
-														}`}
-													>
-														{submittingSignup
-															? "Sending OTP..."
-															: "Request OTP"}
-													</button>
-												</div>
-											</>
-										)}
-
-										{step === 3 && (
-											<>
-												{/* Step 3 Errors */}
-												{/* Email Verification Section */}
-												<div className="space-y-4">
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															OTP Code
-														</label>
+											{/* Username and Phone - Same Row */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Username
+													</label>
+													<div className="relative">
+														<FontAwesomeIcon
+															icon={faUser}
+															className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+														/>
 														<input
 															type="text"
-															placeholder="Enter OTP sent to your email"
-															name="otp"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																errors.otp
+															placeholder="Enter username"
+															name="username"
+															className={`w-full pl-10 pr-10 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.username
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 															} focus:outline-none`}
-															value={otpCode}
-															onChange={(e) => setOtpCode(e.target.value)}
+															value={formData.username}
+															onChange={handleUsernameChange}
 														/>
-														{errors.otp && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.otp}
+														{validatingField === "username" && (
+															<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+																<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500"></div>
 															</div>
 														)}
 													</div>
-
-													<div className="flex items-center pt-1">
-														<input
-															type="checkbox"
-															id="terms3"
-															className="mr-2 rounded border-gray-300 text-yellow-400 focus:ring-yellow-400 focus:ring-2"
-															checked={terms}
-															onChange={(e) => setTerms(e.target.checked)}
-														/>
-														<label
-															htmlFor="terms3"
-															className="text-sm text-gray-600 cursor-pointer"
-														>
-															Agree to Terms and Conditions and receive
-															SMS/emails.
-														</label>
-													</div>
-													{errors.terms && (
+													{errors.username && (
 														<div className="text-red-500 text-xs mt-1">
-															{errors.terms}
+															{errors.username}
+														</div>
+													)}
+												</div>
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Phone Number
+													</label>
+													<div className="relative">
+														<FontAwesomeIcon
+															icon={faPhone}
+															className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+														/>
+														<input
+															type="text"
+															placeholder="Enter phone number"
+															name="phone_number"
+															className={`w-full pl-10 pr-10 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.phone_number
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
+															value={formData.phone_number}
+															onChange={handlePhoneChange}
+														/>
+														{validatingField === "phone_number" && (
+															<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+																<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500"></div>
+															</div>
+														)}
+													</div>
+													{errors.phone_number && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.phone_number}
+														</div>
+													)}
+												</div>
+											</div>
+
+											{/* Email */}
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Email Address
+												</label>
+												<div className="relative">
+													<FontAwesomeIcon
+														icon={faEnvelope}
+														className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+													/>
+													<input
+														type="email"
+														placeholder="Enter your email address"
+														name="email"
+														className={`w-full pl-10 pr-10 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															errors.email
+																? "border-red-500 focus:ring-red-400"
+																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+														} focus:outline-none`}
+														value={formData.email}
+														onChange={handleEmailChange}
+													/>
+													{validatingField === "email" && (
+														<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-500"></div>
+														</div>
+													)}
+												</div>
+												{errors.email && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.email}
+													</div>
+												)}
+											</div>
+
+											{/* Gender and Age Group - Same Row */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Gender
+													</label>
+													<select
+														name="gender"
+														className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															errors.gender
+																? "border-red-500 focus:ring-red-400"
+																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+														} focus:outline-none`}
+														value={formData.gender}
+														onChange={handleChange}
+													>
+														<option value="" disabled hidden>
+															Select gender
+														</option>
+														{["Male", "Female", "Other"].map((g) => (
+															<option key={g} value={g}>
+																{g}
+															</option>
+														))}
+													</select>
+													{errors.gender && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.gender}
 														</div>
 													)}
 												</div>
 
-												<div className="flex justify-between gap-4 pt-2">
-													<button
-														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
-														onClick={prevStep}
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Age Group
+													</label>
+													<select
+														name="age_group_id"
+														className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															errors.age_group_id
+																? "border-red-500 focus:ring-red-400"
+																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+														} focus:outline-none`}
+														value={formData.age_group_id}
+														onChange={handleChange}
 													>
-														Back
-													</button>
+														<option value="" disabled hidden>
+															Select age group
+														</option>
+														{options.age_groups.map((group) => (
+															<option key={group.id} value={group.id}>
+																{group.name}
+															</option>
+														))}
+													</select>
+													{errors.age_group_id && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.age_group_id}
+														</div>
+													)}
+												</div>
+											</div>
+										</div>
 
+										{/* Account Security Section */}
+										<div className="space-y-3">
+											{/* Password Fields */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Password
+													</label>
+													<div className="relative">
+														<input
+															type={showPassword ? "text" : "password"}
+															placeholder="Enter password"
+															name="password"
+															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.password
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
+															value={formData.password}
+															onChange={handleChange}
+														/>
+														<button
+															type="button"
+															className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+															onClick={() => setShowPassword(!showPassword)}
+														>
+															{showPassword ? (
+																<EyeSlash size={16} />
+															) : (
+																<Eye size={16} />
+															)}
+														</button>
+													</div>
+													{errors.password && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.password}
+														</div>
+													)}
+													{formData.password && (
+														<PasswordStrengthIndicator
+															password={formData.password}
+														/>
+													)}
+												</div>
+
+												<div>
+													<label className="block text-sm font-medium text-gray-700 mb-2">
+														Confirm Password
+													</label>
+													<div className="relative">
+														<input
+															type={showConfirmPassword ? "text" : "password"}
+															placeholder="Confirm password"
+															name="password_confirmation"
+															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																errors.password_confirmation
+																	? "border-red-500 focus:ring-red-400"
+																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+															} focus:outline-none`}
+															value={formData.password_confirmation}
+															onChange={handleChange}
+														/>
+														<button
+															type="button"
+															className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+															onClick={() =>
+																setShowConfirmPassword(!showConfirmPassword)
+															}
+														>
+															{showConfirmPassword ? (
+																<EyeSlash size={16} />
+															) : (
+																<Eye size={16} />
+															)}
+														</button>
+													</div>
+													{errors.password_confirmation && (
+														<div className="text-red-500 text-xs mt-1">
+															{errors.password_confirmation}
+														</div>
+													)}
+												</div>
+											</div>
+										</div>
+
+										{/* Email Verification Section */}
+										<div className="space-y-3">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Email Verification
+												</label>
+												<div className="flex gap-2">
+													<input
+														type="text"
+														placeholder="Enter OTP code"
+														className={`flex-1 px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															errors.otp
+																? "border-red-500 focus:ring-red-400"
+																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+														} focus:outline-none`}
+														value={otpCode}
+														onChange={(e) => setOtpCode(e.target.value)}
+														disabled={!otpRequested}
+													/>
 													<button
-														id="verifyOtpBtn"
 														type="button"
-														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
-															!terms ||
-															otpCode.trim().length === 0 ||
-															verifyingOtp ||
-															errors.otp
-																? "bg-gradient-to-r from-yellow-300 to-yellow-400 text-black scale-100 cursor-not-allowed"
-																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
-														}`}
-														onClick={verifyOtpCode}
+														onClick={handleRequestOtp}
 														disabled={
-															!terms ||
-															otpCode.trim().length === 0 ||
-															verifyingOtp ||
-															errors.otp
+															requestingOtp ||
+															!formData.email ||
+															!formData.fullname ||
+															errors.email ||
+															errors.username ||
+															errors.phone_number ||
+															validatingField
 														}
+														className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+															requestingOtp ||
+															!formData.email ||
+															!formData.fullname ||
+															errors.email ||
+															errors.username ||
+															errors.phone_number ||
+															validatingField
+																? "bg-gray-300 text-gray-500 cursor-not-allowed"
+																: "bg-yellow-500 hover:bg-yellow-600 text-black hover:scale-105"
+														}`}
 													>
-														{verifyingOtp
-															? "Verifying OTP..."
-															: "Verify & Finish Sign Up"}
+														{requestingOtp
+															? "Sending..."
+															: otpRequested
+															? "Resend OTP"
+															: "Send OTP"}
 													</button>
 												</div>
-											</>
+												{errors.otp && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.otp}
+													</div>
+												)}
+												<p className="text-xs text-gray-500 mt-1">
+													{otpRequested
+														? "OTP sent! Please check your email and enter the code above."
+														: "Click 'Send OTP' to receive a verification code at your email address."}
+												</p>
+											</div>
+										</div>
+
+										{/* Terms and Conditions */}
+										<div className="flex items-start space-x-3 mt-4">
+											<input
+												type="checkbox"
+												id="terms"
+												checked={terms}
+												onChange={(e) => setTerms(e.target.checked)}
+												className="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+											/>
+											<label htmlFor="terms" className="text-sm text-gray-600">
+												I agree to the{" "}
+												<a
+													href="/terms-and-conditions"
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-yellow-600 hover:text-yellow-700 underline"
+												>
+													Terms and Conditions
+												</a>{" "}
+												and{" "}
+												<a
+													href="/privacy"
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-yellow-600 hover:text-yellow-700 underline"
+												>
+													Privacy Policy
+												</a>
+											</label>
+										</div>
+										{errors.terms && (
+											<div className="text-red-500 text-xs mt-1">
+												{errors.terms}
+											</div>
 										)}
 
-										{/* <div className="relative my-6">
-											<div className="absolute inset-0 flex items-center">
-												<div className="w-full border-t border-gray-200"></div>
-											</div>
-											<div className="relative flex justify-center text-sm">
-												<span className="px-4 bg-white text-gray-500">
-													or continue with
-												</span>
-											</div>
-										</div> */}
-
-										{/* <div className="flex justify-center space-x-3 mb-6">
+										{/* Submit Button */}
+										<div className="pt-4">
 											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
+												type="submit"
+												disabled={
+													errors.fullname ||
+													errors.username ||
+													errors.email ||
+													errors.phone_number ||
+													errors.gender ||
+													errors.age_group_id ||
+													errors.password ||
+													errors.password_confirmation ||
+													errors.otp ||
+													errors.terms ||
+													submittingSignup ||
+													!otpRequested ||
+													!terms
+												}
+												className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+													errors.fullname ||
+													errors.username ||
+													errors.email ||
+													errors.phone_number ||
+													errors.gender ||
+													errors.age_group_id ||
+													errors.password ||
+													errors.password_confirmation ||
+													errors.otp ||
+													errors.terms ||
+													submittingSignup ||
+													!otpRequested ||
+													!terms
+														? "bg-gray-300 text-gray-500 cursor-not-allowed"
+														: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
+												}`}
 											>
-												<Google size={18} />
+												{submittingSignup
+													? "Creating Account..."
+													: !otpRequested
+													? "Request OTP First"
+													: !terms
+													? "Accept Terms to Continue"
+													: "Create Account"}
 											</button>
-											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
-											>
-												<Facebook size={18} />
-											</button>
-											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
-											>
-												<Apple size={18} />
-											</button>
-										</div> */}
-
-										<div className="text-center">
-											<p className="text-gray-600 mb-4 text-sm">
-												Already have an account?
-											</p>
-											<a
-												href="./login"
-												className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200 text-sm font-medium"
-											>
-												Sign In
-											</a>
 										</div>
 									</form>
 								</div>
 							</div>
 						</div>
-					</div>
-				</div>
-
-				<div className="mt-4">
-					<div className="w-full bg-gray-200 rounded-full h-2">
-						<div
-							className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-							style={{ width: `${Math.round((step / 3) * 100)}%` }}
-						></div>
 					</div>
 				</div>
 			</div>

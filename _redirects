@@ -1,1 +1,18 @@
+# Redirect tracking parameters to clean URLs
+/?fbclid=* / 301
+/?utm_* / 301
+/?gclid=* / 301
+/?msclkid=* / 301
+
+# Redirect HTTP to HTTPS
+http://carboncube-ke.com/* https://carboncube-ke.com/:splat 301
+http://www.carboncube-ke.com/* https://carboncube-ke.com/:splat 301
+
+# Redirect www to non-www
+https://www.carboncube-ke.com/* https://carboncube-ke.com/:splat 301
+
+# Redirect /home to /
+/home / 301
+
+# SPA fallback
 /* /index.html 200

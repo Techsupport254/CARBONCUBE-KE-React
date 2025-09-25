@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 // import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
@@ -16,9 +16,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
+import GoogleSignInButton from "./GoogleSignInButton";
+import GoogleOneTap from "./GoogleOneTap";
 import "./LoginForm.css";
 import useSEO from "../hooks/useSEO";
 import tokenService from "../services/tokenService";
+import googleOAuthService from "../services/googleOAuthService";
 
 const LoginForm = ({ onLogin }) => {
 	const [identifier, setIdentifier] = useState("");
@@ -70,20 +73,191 @@ const LoginForm = ({ onLogin }) => {
 		setShowAlertModal(false);
 	};
 
+	// Handle Google OAuth callback
+	const handleGoogleCallback = async () => {
+		if (googleOAuthService.isCallback()) {
+			const searchParams = new URLSearchParams(location.search);
+			const token = searchParams.get("token");
+			const userParam = searchParams.get("user");
+			const success = searchParams.get("success");
+			const error = searchParams.get("error");
+
+			// Handle error cases
+			if (error) {
+				setLoading(false);
+				setAlertModalMessage(decodeURIComponent(error));
+				setAlertModalConfig({
+					icon: "error",
+					title: "Google Sign-in Failed",
+					confirmText: "OK",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
+				googleOAuthService.clearUrlParams();
+				return;
+			}
+
+			// Handle success case with token and user data
+			if (success === "true" && token && userParam) {
+				setLoading(true);
+				try {
+					const user = JSON.parse(decodeURIComponent(userParam));
+
+					// Call onLogin to handle authentication and storage (same as normal login)
+					onLogin(token, user);
+
+					// Check for redirect parameter (same as normal login)
+					const redirectUrl = searchParams.get("redirect");
+
+					// If there's a redirect URL, use it for buyers (most common case)
+					if (redirectUrl && user.role === "buyer") {
+						navigate(redirectUrl);
+						return;
+					}
+
+					// Navigate based on user role (same as normal login)
+					switch (user.role) {
+						case "buyer":
+							navigate("/");
+							break;
+						case "seller":
+							navigate("/seller/dashboard");
+							break;
+						case "admin":
+							navigate("/admin/analytics");
+							break;
+						case "sales":
+							navigate("/sales/dashboard");
+							break;
+						default:
+							setAlertModalMessage("Unexpected user role.");
+							setAlertModalConfig({
+								icon: "error",
+								title: "Error",
+								confirmText: "OK",
+								showCancel: false,
+								onConfirm: () => setShowAlertModal(false),
+							});
+							setShowAlertModal(true);
+					}
+				} catch (error) {
+					console.error("Google OAuth callback error:", error);
+					setAlertModalMessage(
+						"Failed to process Google sign-in. Please try again."
+					);
+					setAlertModalConfig({
+						icon: "error",
+						title: "Google Sign-in Failed",
+						confirmText: "OK",
+						showCancel: false,
+						onConfirm: () => setShowAlertModal(false),
+					});
+					setShowAlertModal(true);
+				} finally {
+					setLoading(false);
+					googleOAuthService.clearUrlParams();
+				}
+			} else {
+				// Fallback to old method for backward compatibility
+				const code = googleOAuthService.getCodeFromUrl();
+				if (code) {
+					setLoading(true);
+					try {
+						const result = await googleOAuthService.handleCallback(code);
+
+						if (result.success) {
+							// Use tokenService to validate and store token
+							if (!tokenService.setToken(result.token)) {
+								throw new Error("Invalid token received from server");
+							}
+
+							onLogin(result.token, result.user);
+
+							// Check for redirect parameter
+							const redirectUrl = searchParams.get("redirect");
+
+							// If there's a redirect URL, use it for buyers (most common case)
+							if (redirectUrl && result.user.role === "buyer") {
+								navigate(redirectUrl);
+								return;
+							}
+
+							// Navigate based on user role
+							switch (result.user.role) {
+								case "buyer":
+									navigate("/");
+									break;
+								case "seller":
+									navigate("/seller/dashboard");
+									break;
+								case "admin":
+									navigate("/admin/analytics");
+									break;
+								case "sales":
+									navigate("/sales/dashboard");
+									break;
+								default:
+									setAlertModalMessage("Unexpected user role.");
+									setAlertModalConfig({
+										icon: "error",
+										title: "Error",
+										confirmText: "OK",
+										showCancel: false,
+										onConfirm: () => setShowAlertModal(false),
+									});
+									setShowAlertModal(true);
+							}
+						} else {
+							setAlertModalMessage(result.error);
+							setAlertModalConfig({
+								icon: "error",
+								title: "Google Sign-in Failed",
+								confirmText: "OK",
+								showCancel: false,
+								onConfirm: () => setShowAlertModal(false),
+							});
+							setShowAlertModal(true);
+						}
+					} catch (error) {
+						console.error("Google OAuth error:", error);
+						setAlertModalMessage("Google sign-in failed. Please try again.");
+						setAlertModalConfig({
+							icon: "error",
+							title: "Google Sign-in Failed",
+							confirmText: "OK",
+							showCancel: false,
+							onConfirm: () => setShowAlertModal(false),
+						});
+						setShowAlertModal(true);
+					} finally {
+						setLoading(false);
+						googleOAuthService.clearUrlParams();
+					}
+				}
+			}
+		}
+	};
+
+	// Handle Google OAuth callback on component mount
+	useEffect(() => {
+		handleGoogleCallback();
+	}, []);
+
 	const handleLogin = async (e) => {
 		e.preventDefault();
 		setLoading(true);
 		// setError('');  // replaced by modal
 
 		try {
-			const response = await axios.post(
-				`${process.env.REACT_APP_BACKEND_URL}/auth/login`,
-				{
-					identifier,
-					password,
-					remember_me: rememberMe,
-				}
-			);
+			console.log("REACT_APP_BACKEND_URL:", process.env.REACT_APP_BACKEND_URL);
+			const loginUrl = `${process.env.REACT_APP_BACKEND_URL}/auth/login`;
+			console.log("Login URL:", loginUrl);
+			const response = await axios.post(loginUrl, {
+				identifier,
+				password,
+				remember_me: rememberMe,
+			});
 
 			const { token, user } = response.data;
 
@@ -370,7 +544,7 @@ const LoginForm = ({ onLogin }) => {
 											</button>
 										</div>
 
-										{/* <div className="relative my-6">
+										<div className="relative my-6">
 											<div className="absolute inset-0 flex items-center">
 												<div className="w-full border-t border-gray-200"></div>
 											</div>
@@ -379,28 +553,67 @@ const LoginForm = ({ onLogin }) => {
 													or continue with
 												</span>
 											</div>
-										</div> */}
+										</div>
 
-										{/* <div className="flex justify-center space-x-3 mb-6">
-											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
-											>
-												<Google size={18} />
-											</button>
-											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
-											>
-												<Facebook size={18} />
-											</button>
-											<button
-												type="button"
-												className="w-12 h-12 bg-white hover:bg-gray-50 text-gray-600 rounded-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md border border-gray-200"
-											>
-												<Apple size={18} />
-											</button>
-										</div> */}
+										{/* Google One Tap Sign-in */}
+										<div className="mb-6">
+											<GoogleOneTap
+												onSuccess={(token, user) => {
+													// Call onLogin to handle authentication and storage (same as normal login)
+													onLogin(token, user);
+
+													// Check for redirect parameter (same as normal login)
+													const searchParams = new URLSearchParams(
+														location.search
+													);
+													const redirectUrl = searchParams.get("redirect");
+
+													// If there's a redirect URL, use it for buyers (most common case)
+													if (redirectUrl && user.role === "buyer") {
+														navigate(redirectUrl);
+														return;
+													}
+
+													// Navigate based on user role (same as normal login)
+													switch (user.role) {
+														case "buyer":
+															navigate("/");
+															break;
+														case "seller":
+															navigate("/seller/dashboard");
+															break;
+														case "admin":
+															navigate("/admin/analytics");
+															break;
+														case "sales":
+															navigate("/sales/dashboard");
+															break;
+														default:
+															setAlertModalMessage("Unexpected user role.");
+															setAlertModalConfig({
+																icon: "error",
+																title: "Error",
+																confirmText: "OK",
+																showCancel: false,
+																onConfirm: () => setShowAlertModal(false),
+															});
+															setShowAlertModal(true);
+													}
+												}}
+												onError={(error) => {
+													setAlertModalMessage(error);
+													setAlertModalConfig({
+														icon: "error",
+														title: "Google Sign-in Failed",
+														confirmText: "OK",
+														showCancel: false,
+														onConfirm: () => setShowAlertModal(false),
+													});
+													setShowAlertModal(true);
+												}}
+												disabled={loading}
+											/>
+										</div>
 
 										<div className="text-center">
 											<p className="text-gray-600 mb-4 text-sm">

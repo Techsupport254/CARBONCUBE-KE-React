@@ -5,6 +5,7 @@ import {
 	faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { getValidImageUrl, getFallbackImage } from "../../utils/imageUtils";
+import ResponsiveImage from "../../components/ResponsiveImage";
 
 const ProductImageGallery = ({
 	ad,
@@ -27,12 +28,13 @@ const ProductImageGallery = ({
 
 		return (
 			<div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] rounded-lg sm:rounded-xl md:rounded-2xl overflow-hidden bg-gray-100">
-				<img
+				<ResponsiveImage
 					src={validUrl}
 					alt={`Product ${index + 1}`}
 					className="w-full h-full object-cover transition-transform duration-300"
 					onError={() => handleImageError(index)}
 					loading="lazy"
+					sizes="(max-width: 640px) 320px, (max-width: 768px) 400px, (max-width: 1024px) 500px, 600px"
 				/>
 				{/* Image Counter */}
 				<div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded-full text-xs font-medium">

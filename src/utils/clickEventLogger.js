@@ -59,7 +59,7 @@ export const logClickEvent = async (
 		};
 
 		// Send to backend
-		const backendUrl = process.env.REACT_APP_BACKEND_URL || "/api";
+		const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 		// Prepare headers - include Authorization only if token exists
 		const headers = {
@@ -110,7 +110,7 @@ export const logAdSearch = async (
 			},
 		};
 
-		const backendUrl = process.env.REACT_APP_BACKEND_URL || "/api";
+		const backendUrl = process.env.REACT_APP_BACKEND_URL;
 		const response = await fetch(`${backendUrl}/ad_searches`, {
 			method: "POST",
 			headers: {
@@ -147,7 +147,7 @@ export const logSubcategoryClick = async (subcategory, category) => {
 			},
 		};
 
-		const backendUrl = process.env.REACT_APP_BACKEND_URL || "/api";
+		const backendUrl = process.env.REACT_APP_BACKEND_URL;
 		const response = await fetch(`${backendUrl}/subcategory_clicks`, {
 			method: "POST",
 			headers: {

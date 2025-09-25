@@ -146,57 +146,74 @@ const ForgotPassword = () => {
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
-							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6 flex-col justify-between">
-								<div className="pt-2">
-									<h2 className="text-2xl font-bold mb-3">
-										<span className="text-white">Carbon</span>
-										<span className="text-yellow-400">Cube</span>
-									</h2>
-									<p className="text-gray-300 opacity-90 text-xs leading-relaxed">
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 flex-col justify-between">
+								<div className="space-y-3 sm:space-y-4 lg:space-y-4">
+									<div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4 lg:mb-4">
+										<img
+											src="/logo.png"
+											alt="CarbonCube Logo"
+											className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-contain"
+										/>
+										<h2 className="text-lg sm:text-xl font-bold">
+											<span className="text-white">Carbon</span>
+											<span className="text-yellow-400">Cube</span>
+										</h2>
+									</div>
+									<p className="text-slate-300 text-xs sm:text-sm leading-relaxed ml-8 sm:ml-10 lg:ml-11">
 										Reset your password and get back to trading on the Carbon
 										marketplace.
 									</p>
 								</div>
 
-								<div className="px-1 py-4">
-									<h5 className="text-yellow-400 mb-3 text-sm font-semibold">
+								{/* Features Section */}
+								<div className="space-y-5">
+									<h5 className="text-yellow-400 text-sm font-medium">
 										Secure Password Reset
 									</h5>
-									<ul className="space-y-2">
-										<li className="flex items-center">
-											<span className="mr-2 text-yellow-400 text-xs">✓</span>
-											<span className="text-xs text-gray-300">
+									<div className="space-y-3">
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<span className="text-yellow-400 text-xs">✓</span>
+											</div>
+											<span className="text-slate-300 text-sm">
 												OTP-based password reset
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<span className="text-yellow-400 text-xs">✓</span>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Fast recovery process
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<span className="text-yellow-400 text-xs">✓</span>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Email verification
 											</span>
-										</li>
-										<li className="flex items-center">
-											<span className="mr-3 text-yellow-400 text-sm">✓</span>
-											<span className="text-sm text-gray-300">
+										</div>
+										<div className="flex items-center space-x-3">
+											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+												<span className="text-yellow-400 text-xs">✓</span>
+											</div>
+											<span className="text-slate-300 text-sm">
 												Secure password strength
 											</span>
-										</li>
-									</ul>
+										</div>
+									</div>
 								</div>
 
-								<div className="bg-black bg-opacity-50 p-3 rounded-lg mt-2">
-									<div className="flex items-center mb-1">
-										<div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mr-2"></div>
-										<small className="font-semibold text-xs">Need Help?</small>
-									</div>
-									<p className="italic text-xs text-gray-300">
-										Contact support@carboncube-ke.com for assistance.
+								{/* Vision Section */}
+								<div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+									<h6 className="text-yellow-400 font-medium text-sm mb-2">
+										Vision
+									</h6>
+									<p className="text-slate-300 text-xs leading-relaxed">
+										"To be Kenya's most trusted and innovative online
+										marketplace."
 									</p>
 								</div>
 							</div>
@@ -207,260 +224,161 @@ const ForgotPassword = () => {
 									{/* Header Section */}
 									<div className="text-center mb-8">
 										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
-											Forgot Password
+											Reset Password
 										</h3>
 										<p className="text-gray-600 text-sm">
-											Reset your password to get back to your account
+											Enter your email to receive reset instructions
 										</p>
 									</div>
 
-									{/* Progress Indicator */}
-									<div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-										<div
-											className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-											style={{ width: `${Math.round((step / 3) * 100)}%` }}
-										></div>
-									</div>
+									{step === 1 && (
+										<form onSubmit={handleRequestOtp} className="space-y-6">
+											{errors.general && (
+												<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+													{errors.general}
+												</div>
+											)}
 
-									{/* Success Message */}
-									{message && (
-										<div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
-											{message}
-										</div>
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Email Address
+												</label>
+												<div className="relative">
+													<FontAwesomeIcon
+														icon={faEnvelope}
+														className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+													/>
+													<input
+														type="email"
+														placeholder="Enter your email address"
+														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														value={email}
+														onChange={(e) => setEmail(e.target.value)}
+														required
+													/>
+												</div>
+												{errors.email && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.email}
+													</div>
+												)}
+											</div>
+
+											<div className="pt-2">
+												<button
+													type="submit"
+													disabled={loading}
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+												>
+													{loading ? "Sending..." : "Send Reset Code"}
+												</button>
+											</div>
+										</form>
 									)}
 
-									{/* General Error Message */}
-									{errors.general && (
-										<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-											{errors.general}
-										</div>
+									{step === 2 && (
+										<form onSubmit={handleVerifyOtp} className="space-y-6">
+											{message && (
+												<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+													{message}
+												</div>
+											)}
+
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													Verification Code
+												</label>
+												<div className="relative">
+													<FontAwesomeIcon
+														icon={faKey}
+														className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
+													/>
+													<input
+														type="text"
+														placeholder="Enter verification code"
+														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														value={otp}
+														onChange={(e) => setOtp(e.target.value)}
+														required
+													/>
+												</div>
+												{errors.otp && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.otp}
+													</div>
+												)}
+											</div>
+
+											<div className="pt-2">
+												<button
+													type="submit"
+													disabled={loading}
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+												>
+													{loading ? "Verifying..." : "Verify Code"}
+												</button>
+											</div>
+										</form>
 									)}
 
-									<form
-										onSubmit={step === 1 ? handleRequestOtp : handleVerifyOtp}
-										className="space-y-6"
-									>
-										{step === 1 && (
-											<>
-												{/* Step 1: Email Input */}
-												<div className="space-y-4">
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															Email Address
-														</label>
-														<div className="relative">
-															<FontAwesomeIcon
-																icon={faEnvelope}
-																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-															/>
-															<input
-																type="email"
-																placeholder="Enter your email address"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.email
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={email}
-																onChange={handleEmailChange}
-																required
-															/>
-														</div>
-														{errors.email && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.email}
-															</div>
-														)}
-													</div>
-												</div>
-
-												<div className="pt-2">
-													<button
-														type="submit"
-														disabled={loading || !email.trim()}
-														className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
-															loading || !email.trim()
-																? "bg-gray-300 text-gray-500 cursor-not-allowed"
-																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
-														}`}
-													>
-														{loading ? "Sending OTP..." : "Send OTP"}
-													</button>
-												</div>
-											</>
-										)}
-
-										{step === 2 && (
-											<>
-												{/* Step 2: OTP and New Password */}
-												<div className="space-y-4">
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															OTP Code
-														</label>
-														<input
-															type="text"
-															placeholder="Enter OTP sent to your email"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																errors.otp
-																	? "border-red-500 focus:ring-red-400"
-																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-															} focus:outline-none`}
-															value={otp}
-															onChange={handleOtpChange}
-															required
-														/>
-														{errors.otp && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.otp}
-															</div>
-														)}
-													</div>
-
-													<div>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															New Password
-														</label>
-														<div className="relative">
-															<FontAwesomeIcon
-																icon={faKey}
-																className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"
-															/>
-															<input
-																type={showNewPassword ? "text" : "password"}
-																placeholder="Enter your new password"
-																className={`w-full pl-10 pr-12 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.password
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={newPassword}
-																onChange={handlePasswordChange}
-																required
-															/>
-															<div
-																onClick={() =>
-																	setShowNewPassword(!showNewPassword)
-																}
-																className="absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 transition-colors duration-200"
-															>
-																<AnimatePresence mode="wait" initial={false}>
-																	{showNewPassword ? (
-																		<motion.span
-																			key="hideNew"
-																			initial={{ opacity: 0, scale: 0.8 }}
-																			animate={{ opacity: 1, scale: 1 }}
-																			exit={{ opacity: 0, scale: 0.8 }}
-																			transition={{ duration: 0.2 }}
-																		>
-																			<EyeSlash size={16} />
-																		</motion.span>
-																	) : (
-																		<motion.span
-																			key="showNew"
-																			initial={{ opacity: 0, scale: 0.8 }}
-																			animate={{ opacity: 1, scale: 1 }}
-																			exit={{ opacity: 0, scale: 0.8 }}
-																			transition={{ duration: 0.2 }}
-																		>
-																			<Eye size={16} />
-																		</motion.span>
-																	)}
-																</AnimatePresence>
-															</div>
-														</div>
-														{errors.password && (
-															<div className="text-red-500 text-xs mt-1">
-																{errors.password}
-															</div>
-														)}
-														<PasswordStrengthIndicator
-															password={newPassword}
-															email={email}
-															username=""
-														/>
-													</div>
-												</div>
-
-												<div className="flex justify-between gap-4 pt-2">
+									{step === 3 && (
+										<form onSubmit={handlePasswordChange} className="space-y-6">
+											<div>
+												<label className="block text-sm font-medium text-gray-700 mb-2">
+													New Password
+												</label>
+												<div className="relative">
+													<input
+														type={showNewPassword ? "text" : "password"}
+														placeholder="Enter new password"
+														className="w-full px-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														value={newPassword}
+														onChange={(e) => setNewPassword(e.target.value)}
+														required
+													/>
 													<button
 														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
-														onClick={() => setStep(1)}
+														className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+														onClick={() => setShowNewPassword(!showNewPassword)}
 													>
-														Back
-													</button>
-													<button
-														type="submit"
-														disabled={
-															loading ||
-															!otp.trim() ||
-															!newPassword.trim() ||
-															errors.password ||
-															errors.otp
-														}
-														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
-															loading ||
-															!otp.trim() ||
-															!newPassword.trim() ||
-															errors.password ||
-															errors.otp
-																? "bg-gray-300 text-gray-500 cursor-not-allowed"
-																: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02] hover:shadow-lg"
-														}`}
-													>
-														{loading
-															? "Resetting Password..."
-															: "Reset Password"}
+														{showNewPassword ? (
+															<EyeSlash size={16} />
+														) : (
+															<Eye size={16} />
+														)}
 													</button>
 												</div>
-											</>
-										)}
-
-										{step === 3 && (
-											<>
-												{/* Step 3: Success */}
-												<div className="text-center">
-													<div className="inline-block bg-green-100 p-4 rounded-full shadow-sm">
-														<FontAwesomeIcon
-															icon={faCheckCircle}
-															className="text-green-500"
-															style={{ fontSize: "3rem" }}
-														/>
+												{errors.password && (
+													<div className="text-red-500 text-xs mt-1">
+														{errors.password}
 													</div>
-													<h3 className="mt-4 text-lg font-semibold text-gray-900">
-														Password Reset Successful!
-													</h3>
-													<p className="mt-2 text-sm text-gray-600">
-														Your password has been successfully reset. You can
-														now sign in with your new password.
-													</p>
-													<div className="mt-6">
-														<a
-															href="/login"
-															className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold rounded-lg transition-all duration-200 transform hover:scale-[1.02] text-sm shadow-md hover:shadow-lg"
-														>
-															<FontAwesomeIcon
-																icon={faRightToBracket}
-																className="mr-2"
-															/>
-															Return to Login
-														</a>
-													</div>
-												</div>
-											</>
-										)}
-									</form>
+												)}
+												{newPassword && (
+													<PasswordStrengthIndicator password={newPassword} />
+												)}
+											</div>
 
-									{/* Back to Login Link */}
-									<div className="text-center mt-6">
-										<p className="text-gray-600 text-sm">
+											<div className="pt-2">
+												<button
+													type="submit"
+													disabled={loading}
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+												>
+													{loading ? "Updating..." : "Update Password"}
+												</button>
+											</div>
+										</form>
+									)}
+
+									{/* Login Link */}
+									<div className="mt-6 text-center">
+										<p className="text-sm text-gray-600">
 											Remember your password?{" "}
 											<a
 												href="/login"
-												className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200 font-medium"
+												className="text-yellow-600 hover:text-yellow-700 font-medium"
 											>
-												Sign In
+												Sign in
 											</a>
 										</p>
 									</div>

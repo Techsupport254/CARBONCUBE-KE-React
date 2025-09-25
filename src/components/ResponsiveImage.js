@@ -6,7 +6,7 @@ const ResponsiveImage = ({
 	alt,
 	className = "",
 	fallbackSrc = null,
-	sizes = "(max-width: 640px) 192px, (max-width: 768px) 256px, (max-width: 1024px) 320px, 384px",
+	sizes = "(max-width: 480px) 128px, (max-width: 640px) 192px, (max-width: 768px) 256px, (max-width: 1024px) 320px, 384px",
 	loading = "lazy",
 	onError = null,
 	...props
@@ -33,8 +33,9 @@ const ResponsiveImage = ({
 					// Keep the full public ID including the original file extension
 					const publicId = urlParts.slice(publicIdIndex).join("/");
 
-					// Generate optimized URL preserving original aspect ratio
-					return `https://res.cloudinary.com/${urlParts[3]}/image/upload/w_${width},q_auto,f_auto/${version}/${publicId}`;
+					// Generate highly optimized URL with aggressive compression
+					// Use WebP/AVIF with quality auto, responsive width, and smart cropping
+					return `https://res.cloudinary.com/${urlParts[3]}/image/upload/w_${width},q_auto:low,f_auto,c_fill,g_auto/${version}/${publicId}`;
 				}
 			} catch (error) {
 				console.warn("Error generating Cloudinary URL:", error);
@@ -78,13 +79,14 @@ const ResponsiveImage = ({
 		setIsLoading(false);
 	};
 
-	// Generate srcSet for different screen sizes
+	// Generate srcSet for different screen sizes with optimized breakpoints
 	const generateSrcSet = (originalSrc) => {
 		if (!originalSrc || !originalSrc.includes("res.cloudinary.com")) {
 			return undefined;
 		}
 
-		const sizes = [192, 256, 320, 384, 512];
+		// Optimized breakpoints for mobile-first responsive design
+		const sizes = [128, 192, 256, 320, 384, 512, 640, 768];
 		return sizes
 			.map((size) => {
 				try {

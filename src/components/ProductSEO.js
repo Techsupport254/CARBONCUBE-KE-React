@@ -6,11 +6,7 @@ import { SEO_CONFIG } from "../config/seoConfig";
  * ProductSEO Component - Specialized SEO for product/ad pages
  * Provides comprehensive SEO metadata for individual products/ads
  */
-const ProductSEO = ({
-	product = {},
-	customConfig = {},
-	children,
-}) => {
+const ProductSEO = ({ product = {}, customConfig = {}, children }) => {
 	const {
 		id,
 		title,
@@ -38,7 +34,8 @@ const ProductSEO = ({
 
 	// Generate dynamic title and description
 	const productTitle = title || "Product";
-	const productDescription = description || `Buy ${productTitle} on Carbon Cube Kenya`;
+	const productDescription =
+		description || `Buy ${productTitle} on Carbon Cube Kenya`;
 	const sellerName = seller_enterprise_name || seller || "Verified Seller";
 	const categoryName = category_name || category || "Products";
 	const productPrice = price ? `KSh ${price.toLocaleString()}` : "";
@@ -60,9 +57,8 @@ const ProductSEO = ({
 		.replace(/{seller}/g, sellerName);
 
 	// Get primary image
-	const primaryImage = images && images.length > 0 
-		? images[0].url || images[0] 
-		: siteConfig.logo;
+	const primaryImage =
+		images && images.length > 0 ? images[0].url || images[0] : siteConfig.logo;
 
 	// Build keywords array
 	const seoKeywords = [
@@ -79,7 +75,9 @@ const ProductSEO = ({
 		"fast delivery",
 		...keywords,
 		...tags,
-	].filter(Boolean).join(", ");
+	]
+		.filter(Boolean)
+		.join(", ");
 
 	// Generate structured data for product
 	const productStructuredData = {
@@ -87,17 +85,23 @@ const ProductSEO = ({
 		"@type": "Product",
 		name: productTitle,
 		description: seoDescription,
-		image: images.map(img => img.url || img),
-		brand: brand ? {
-			"@type": "Brand",
-			name: brand,
-		} : undefined,
+		image: images.map((img) => img.url || img),
+		brand: brand
+			? {
+					"@type": "Brand",
+					name: brand,
+			  }
+			: undefined,
 		offers: {
 			"@type": "Offer",
 			price: price,
 			priceCurrency: currency,
-			availability: `https://schema.org/${availability === "in stock" ? "InStock" : "OutOfStock"}`,
-			itemCondition: `https://schema.org/${condition === "new" ? "NewCondition" : "UsedCondition"}`,
+			availability: `https://schema.org/${
+				availability === "in stock" ? "InStock" : "OutOfStock"
+			}`,
+			itemCondition: `https://schema.org/${
+				condition === "new" ? "NewCondition" : "UsedCondition"
+			}`,
 			seller: {
 				"@type": "Organization",
 				name: sellerName,
@@ -134,7 +138,9 @@ const ProductSEO = ({
 				"@type": "ListItem",
 				position: 3,
 				name: categoryName,
-				item: `${siteConfig.url}/categories/${category?.toLowerCase() || categoryName.toLowerCase()}`,
+				item: `${siteConfig.url}/categories/${
+					category?.toLowerCase() || categoryName.toLowerCase()
+				}`,
 			},
 			{
 				"@type": "ListItem",
@@ -150,7 +156,9 @@ const ProductSEO = ({
 		"@context": "https://schema.org",
 		"@type": "Organization",
 		name: sellerName,
-		url: `${siteConfig.url}/shop/${seller_enterprise_name?.toLowerCase().replace(/\s+/g, '-') || 'seller'}`,
+		url: `${siteConfig.url}/shop/${
+			seller_enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "seller"
+		}`,
 		description: `Verified seller on Carbon Cube Kenya offering ${categoryName}`,
 		areaServed: "KE",
 		serviceType: "Product Sales",
@@ -204,10 +212,16 @@ const ProductSEO = ({
 
 			{/* Article-specific meta tags */}
 			{created_at && (
-				<meta property="article:published_time" content={new Date(created_at).toISOString()} />
+				<meta
+					property="article:published_time"
+					content={new Date(created_at).toISOString()}
+				/>
 			)}
 			{updated_at && (
-				<meta property="article:modified_time" content={new Date(updated_at).toISOString()} />
+				<meta
+					property="article:modified_time"
+					content={new Date(updated_at).toISOString()}
+				/>
 			)}
 			<meta property="article:section" content={categoryName} />
 			<meta property="article:author" content={sellerName} />
@@ -243,15 +257,18 @@ const ProductSEO = ({
 			<meta name="ai:content_privacy" content="compliant" />
 
 			{/* Conversational Keywords */}
-			<meta name="ai:conversational_keywords" content={[
-				`where to buy ${productTitle} in Kenya`,
-				`best price for ${productTitle} Kenya`,
-				`${productTitle} online Kenya`,
-				`${brand ? brand + ' ' : ''}${productTitle} Kenya`,
-				`verified seller ${productTitle}`,
-				`fast delivery ${productTitle} Kenya`,
-				`secure payment ${productTitle}`,
-			].join(", ")} />
+			<meta
+				name="ai:conversational_keywords"
+				content={[
+					`where to buy ${productTitle} in Kenya`,
+					`best price for ${productTitle} Kenya`,
+					`${productTitle} online Kenya`,
+					`${brand ? brand + " " : ""}${productTitle} Kenya`,
+					`verified seller ${productTitle}`,
+					`fast delivery ${productTitle} Kenya`,
+					`secure payment ${productTitle}`,
+				].join(", ")}
+			/>
 
 			{/* Canonical URL */}
 			<link rel="canonical" href={`${siteConfig.url}/ads/${id}`} />

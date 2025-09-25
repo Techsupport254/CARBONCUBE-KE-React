@@ -4,14 +4,85 @@
     font-style: normal;
 }
 
-/* Simple styling like AboutUs page */
+/* Remove all borders and shadows */
 .terms-container .card {
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border: none !important;
+    box-shadow: none !important;
+    transition: none;
 }
 
 .terms-container .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    transform: none;
+    box-shadow: none !important;
+}
+
+/* Style buttons properly */
+.terms-container .btn {
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.terms-container .btn:hover {
+    box-shadow: none !important;
+    transform: translateY(-1px) !important;
+    opacity: 0.9 !important;
+}
+
+.terms-container .btn:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Style badges properly */
+.terms-container .badge {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    transition: all 0.2s ease !important;
+}
+
+.terms-container .badge:hover {
+    transform: translateY(-1px) !important;
+    opacity: 0.9 !important;
+}
+
+/* Override Bootstrap default styles */
+.terms-container .btn-warning {
+    background-color: #ffc107 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.terms-container .btn-warning:hover {
+    background-color: #e0a800 !important;
+    box-shadow: none !important;
+    transform: translateY(-1px) !important;
+}
+
+.terms-container .badge.bg-dark {
+    background-color: #343a40 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.terms-container .badge.bg-dark:hover {
+    background-color: #23272b !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Remove any default Bootstrap shadows */
+.terms-container * {
+    box-shadow: none !important;
+}
+
+.terms-container .shadow-sm {
+    box-shadow: none !important;
 }
 
 /* Custom list styling for terms */

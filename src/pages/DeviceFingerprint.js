@@ -7,7 +7,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import useSEO from "../hooks/useSEO";
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || "/api";
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 const DeviceFingerprint = () => {
 	// SEO Implementation

@@ -619,41 +619,6 @@ const ShopPage = () => {
 				type: "website",
 		  };
 
-	// Prepare shop data for SEO
-	const shopData = shop
-		? {
-				id: shop.id,
-				enterprise_name: shop.enterprise_name,
-				name: shop.enterprise_name,
-				description: shop.description,
-				location: shop.county || shop.location || "Kenya",
-				tier: shop.tier_name || "Free",
-				product_count: shop.product_count || ads.length,
-				ads_count: ads.length,
-				reviews_count: reviewStats?.total_reviews || 0,
-				rating: reviewStats?.average_rating || 0,
-				categories: shop.categories || [],
-				images: shop.images || [],
-				profile_picture: shop.profile_picture, // Add profile_picture for SEO
-				ads: ads, // Add ads data for fallback image selection
-				created_at: shop.created_at,
-				updated_at: shop.updated_at,
-				keywords: [
-					shop.enterprise_name,
-					"shop",
-					"store",
-					"seller",
-					shop.county || "Kenya",
-					shop.tier_name || "Free",
-					"Carbon Cube Kenya",
-					"verified seller",
-				].filter(Boolean),
-				tags: ["shop", "store", "seller", shop.tier_name || "Free"].filter(
-					Boolean
-				),
-		  }
-		: null;
-
 	// Fetch categories
 	const fetchCategories = async () => {
 		try {
@@ -934,7 +899,7 @@ const ShopPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
-			<ShopSEO shop={shopData} />
+			<ShopSEO shop={seoData} />
 			<Navbar
 				mode="buyer"
 				showSearch={false}

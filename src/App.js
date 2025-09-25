@@ -9,6 +9,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { getDeviceFingerprint } from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import useAuth from "./hooks/useAuth";
+import useAutoGoogleOneTap from "./hooks/useAutoGoogleOneTap";
 import tokenService from "./services/tokenService";
 import Spinner from "react-spinkit";
 import BecomeASeller from "./pages/BecomeASeller";
@@ -22,6 +23,7 @@ import CategoryPageSEO from "./components/CategoryPageSEO";
 
 // Lazy load components for better performance
 const LoginForm = lazy(() => import("./components/LoginForm"));
+const AutoGoogleOneTap = lazy(() => import("./components/AutoGoogleOneTap"));
 const AboutUs = lazy(() => import("./components/AboutUs"));
 const ContactUs = lazy(() => import("./components/ContactUs"));
 const VendorHelp = lazy(() => import("./components/VendorHelp"));
@@ -29,11 +31,13 @@ const FAQs = lazy(() => import("./components/Faqs"));
 const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
 const Terms = lazy(() => import("./components/Terms"));
 const PrivacyPolicy = lazy(() => import("./components/Privacy"));
+const DataDeletion = lazy(() => import("./components/DataDeletion"));
+const NotFound = lazy(() => import("./components/NotFound"));
 
-// Analytics Tracking Components
-const MatomoTracker = lazy(() => import("./components/MatomoTracker"));
-const GoogleAnalyticsTracker = lazy(() =>
-	import("./components/GoogleAnalyticsTracker")
+// Analytics Tracking Components - Deferred loading
+const DeferredAnalytics = lazy(() => import("./components/DeferredAnalytics"));
+const PerformanceMonitor = lazy(() =>
+	import("./components/PerformanceMonitor")
 );
 
 // Test Component
@@ -129,6 +133,13 @@ const PrivacyWithSEO = () => (
 	<>
 		<StaticPageSEO pageType="privacy" />
 		<PrivacyPolicy />
+	</>
+);
+
+const DataDeletionWithSEO = () => (
+	<>
+		<StaticPageSEO pageType="data-deletion" />
+		<DataDeletion />
 	</>
 );
 
@@ -571,51 +582,6 @@ function App() {
 	const [excludeTracking, setExcludeTracking] = useState(false);
 	const isInitialized = true; // Always initialized since useAuth handles auth state
 
-	useEffect(() => {
-		// Determine if this device should be excluded from analytics trackers
-		// and track the initial visit (only once per session)
-		(async () => {
-			try {
-				const fp = getDeviceFingerprint();
-
-				// Temporarily disable internal user check for testing
-				// if (isInternalUser(fp)) {
-				// 	setExcludeTracking(true);
-				// 	return;
-				// }
-
-				const API_URL = process.env.REACT_APP_BACKEND_URL || "/api";
-
-				const resp = await fetch(
-					`${API_URL}/internal_user_exclusions/check/${fp.hash}`
-				);
-				if (resp.ok) {
-					const data = await resp.json();
-					if (
-						(data && data.status === "approved") ||
-						data?.is_excluded === true
-					) {
-						setExcludeTracking(true);
-						return;
-					}
-				}
-				setExcludeTracking(false);
-
-				// Track the visit for analytics (only if not excluded)
-				sourceTrackingService.trackVisit().catch((error) => {
-					console.error("Source tracking failed:", error);
-				});
-			} catch (_) {
-				setExcludeTracking(false);
-
-				// Track the visit even if exclusion check fails
-				sourceTrackingService.trackVisit().catch((error) => {
-					console.error("Source tracking failed:", error);
-				});
-			}
-		})();
-	}, []);
-
 	const handleLogin = (token, user) => {
 		// Use tokenService to validate and store token
 		if (!tokenService.setToken(token)) {
@@ -647,6 +613,53 @@ function App() {
 		);
 	};
 
+	// Note: useAutoGoogleOneTap will be called inside Router context
+
+	useEffect(() => {
+		// Determine if this device should be excluded from analytics trackers
+		// and track the initial visit (only once per session)
+		(async () => {
+			try {
+				const fp = getDeviceFingerprint();
+
+				// Temporarily disable internal user check for testing
+				// if (isInternalUser(fp)) {
+				// 	setExcludeTracking(true);
+				// 	return;
+				// }
+
+				const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+				const resp = await fetch(
+					`${API_URL}/internal_user_exclusions/check/${fp.hash}`
+				);
+				if (resp.ok) {
+					const data = await resp.json();
+					if (
+						(data && data.status === "approved") ||
+						data?.is_excluded === true
+					) {
+						setExcludeTracking(true);
+						return;
+					}
+				}
+				setExcludeTracking(false);
+
+				// Track the visit for analytics (only if not excluded)
+				sourceTrackingService.trackVisit().catch((error) => {
+					console.error("Source tracking failed:", error);
+				});
+			} catch (_) {
+				setExcludeTracking(false);
+
+				// Track the visit even if exclusion check fails
+				sourceTrackingService.trackVisit().catch((error) => {
+					console.error("Source tracking failed:", error);
+				});
+			}
+		})();
+	}, []);
+
 	const handleLogout = () => {
 		// Use the logout function from useAuth hook
 		logout();
@@ -670,235 +683,285 @@ function App() {
 	return (
 		<HelmetProvider>
 			<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-				{/* Analytics Tracking Components */}
-				{!excludeTracking && (
-					<Suspense fallback={null}>
-						<MatomoTracker />
-						<GoogleAnalyticsTracker />
-					</Suspense>
-				)}
-
-				<Suspense fallback={<LoadingSpinner />}>
-					<Routes>
-						<Route path="/ads/:adId" element={<AdDetails />} />
-						<Route
-							path="/ad/:adId"
-							element={<Navigate to="/ads/:adId" replace />}
-						/>
-						<Route path="/shop/:slug" element={<ShopPage />} />
-						<Route path="/categories" element={<CategoriesPageWithSEO />} />
-						<Route path="/" element={<Home onLogout={handleLogout} />} />
-						<Route path="/home" element={<Navigate to="/" replace />} />
-						<Route path="/admin" element={<Navigate to="/login" />} />
-						<Route path="/seller" element={<Navigate to="/login" />} />
-						<Route
-							path="/login"
-							element={<LoginFormWithSEO onLogin={handleLogin} />}
-						/>
-						<Route
-							path="/forgot-password"
-							element={<ForgotPasswordWithSEO />}
-						/>
-						<Route
-							path="/buyer-signup"
-							element={<BuyerSignUpPageWithSEO onSignup={handleBuyerSignup} />}
-						/>
-						<Route
-							path="/seller-signup"
-							element={
-								<SellerSignUpPageWithSEO onSignup={handleSellerSignup} />
-							}
-						/>
-						<Route path="/seller/tiers" element={<TierPageWithSEO />} />
-						<Route path="/about-us" element={<AboutUsWithSEO />} />
-						<Route path="/contact-us" element={<ContactUsWithSEO />} />
-						<Route path="/vendor-help" element={<VendorHelpWithSEO />} />
-						<Route
-							path="/seller-help"
-							element={<Navigate to="/vendor-help" replace />}
-						/>
-						<Route path="/faqs" element={<FAQsWithSEO />} />
-						<Route path="/terms-and-conditions" element={<TermsWithSEO />} />
-						<Route path="/privacy" element={<PrivacyWithSEO />} />
-						<Route path="/analytics-test" element={<AnalyticsTestWithSEO />} />
-						<Route path="/seo-test" element={<SEOTestWithSEO />} />
-						<Route path="/fingerprint" element={<DeviceFingerprintWithSEO />} />
-						<Route path="/how-to-pay" element={<HowToPayWithSEO />} />
-						<Route path="/how-to-shop" element={<HowToShopWithSEO />} />
-						<Route path="/become-a-seller" element={<BecomeASellerWithSEO />} />
-
-						{/* Location-specific routes for local SEO */}
-						<Route path="/location/:location" element={<LocationPage />} />
-
-						{/* Admin Routes */}
-						<Route
-							path="/admin/*"
-							element={
-								<PrivateRoute
-									isAuthenticated={isAuthenticated}
-									role="admin"
-									userRole={userRole}
-								/>
-							}
-						>
-							<Route
-								path="analytics"
-								element={<AdminAnalyticsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="communications"
-								element={<AdminCommunicationsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="content"
-								element={<AdminContentWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="buyers"
-								element={<AdminBuyersWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="sellers"
-								element={<AdminSellersWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="ads"
-								element={<AdminAdsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages"
-								element={<AdminMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages/:conversationId"
-								element={<AdminMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="promotions"
-								element={<AdminPromotionsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="notifications"
-								element={<AdminNotificationsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="categories"
-								element={<AdminCategoriesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="tiers"
-								element={<AdminTiersWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="fingerprint-requests"
-								element={<AdminFingerprintWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="profile"
-								element={<AdminProfileWithSEO onLogout={handleLogout} />}
-							/>
-						</Route>
-
-						{/* Seller Routes */}
-						<Route
-							path="/seller/*"
-							element={
-								<PrivateRoute
-									isAuthenticated={isAuthenticated}
-									role="seller"
-									userRole={userRole}
-								/>
-							}
-						>
-							<Route
-								path="analytics"
-								element={<SellerAnalyticsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="ads"
-								element={<SellerAdsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route path="ads/:adId" element={<SellerAdDetailsWithSEO />} />
-							<Route
-								path="add-ad"
-								element={<AddNewAdWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="dashboard"
-								element={<SellerShopWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages"
-								element={<SellerMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages/:conversationId"
-								element={<SellerMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="notifications"
-								element={<SellerNotificationsWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="profile"
-								element={<SellerProfileWithSEO onLogout={handleLogout} />}
-							/>
-						</Route>
-
-						{/* Buyer Routes */}
-						<Route
-							path="/buyer/*"
-							element={
-								<PrivateRoute
-									isAuthenticated={isAuthenticated}
-									role="buyer"
-									userRole={userRole}
-								/>
-							}
-						>
-							<Route path="home" element={<Navigate to="/" replace />} />
-							<Route
-								path="wishlist"
-								element={<BuyerWishListWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="wish_lists"
-								element={<BuyerWishListWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages"
-								element={<BuyerMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="messages/:conversationId"
-								element={<BuyerMessagesWithSEO onLogout={handleLogout} />}
-							/>
-							<Route
-								path="profile"
-								element={<BuyerProfileWithSEO onLogout={handleLogout} />}
-							/>
-						</Route>
-
-						{/* Sales Routes */}
-						<Route
-							path="/sales/*"
-							element={
-								<PrivateRoute
-									isAuthenticated={isAuthenticated}
-									role="sales"
-									userRole={userRole}
-								/>
-							}
-						>
-							<Route
-								path="dashboard"
-								element={<SalesDashboardWithSEO onLogout={handleLogout} />}
-							/>
-						</Route>
-					</Routes>
-				</Suspense>
+				<AppContent
+					isAuthenticated={isAuthenticated}
+					userRole={userRole}
+					handleLogin={handleLogin}
+					handleLogout={handleLogout}
+					handleBuyerSignup={handleBuyerSignup}
+					handleSellerSignup={handleSellerSignup}
+					excludeTracking={excludeTracking}
+				/>
 			</Router>
 		</HelmetProvider>
+	);
+}
+
+// Component that uses Router context
+function AppContent({
+	isAuthenticated,
+	userRole,
+	handleLogin,
+	handleLogout,
+	handleBuyerSignup,
+	handleSellerSignup,
+	excludeTracking,
+}) {
+	// Auto Google One Tap for unauthenticated users
+	const {
+		showOneTap,
+		handleOneTapSuccess,
+		handleOneTapError,
+		handleCloseOneTap,
+	} = useAutoGoogleOneTap(isAuthenticated, handleLogin);
+
+	return (
+		<>
+			{/* Analytics Tracking Components */}
+			{!excludeTracking && (
+				<Suspense fallback={null}>
+					<DeferredAnalytics />
+					<PerformanceMonitor />
+				</Suspense>
+			)}
+
+			<Suspense fallback={<LoadingSpinner />}>
+				<Routes>
+					<Route path="/ads/:adId" element={<AdDetails />} />
+					<Route
+						path="/ad/:adId"
+						element={<Navigate to="/ads/:adId" replace />}
+					/>
+					<Route path="/shop/:slug" element={<ShopPage />} />
+					<Route path="/categories" element={<CategoriesPageWithSEO />} />
+					<Route path="/" element={<Home onLogout={handleLogout} />} />
+					<Route path="/home" element={<Navigate to="/" replace />} />
+					<Route path="/admin" element={<Navigate to="/login" />} />
+					<Route path="/seller" element={<Navigate to="/login" />} />
+					<Route
+						path="/login"
+						element={<LoginFormWithSEO onLogin={handleLogin} />}
+					/>
+					<Route
+						path="/auth/google_oauth2/callback"
+						element={<LoginFormWithSEO onLogin={handleLogin} />}
+					/>
+					<Route
+						path="/auth/google/callback"
+						element={<LoginFormWithSEO onLogin={handleLogin} />}
+					/>
+					<Route path="/forgot-password" element={<ForgotPasswordWithSEO />} />
+					<Route
+						path="/buyer-signup"
+						element={<BuyerSignUpPageWithSEO onSignup={handleBuyerSignup} />}
+					/>
+					<Route
+						path="/seller-signup"
+						element={<SellerSignUpPageWithSEO onSignup={handleSellerSignup} />}
+					/>
+					<Route path="/seller/tiers" element={<TierPageWithSEO />} />
+					<Route path="/about-us" element={<AboutUsWithSEO />} />
+					<Route path="/contact-us" element={<ContactUsWithSEO />} />
+					<Route path="/vendor-help" element={<VendorHelpWithSEO />} />
+					<Route
+						path="/seller-help"
+						element={<Navigate to="/vendor-help" replace />}
+					/>
+					<Route path="/faqs" element={<FAQsWithSEO />} />
+					<Route path="/terms-and-conditions" element={<TermsWithSEO />} />
+					<Route path="/privacy" element={<PrivacyWithSEO />} />
+					<Route path="/data-deletion" element={<DataDeletionWithSEO />} />
+					<Route path="/analytics-test" element={<AnalyticsTestWithSEO />} />
+					<Route path="/seo-test" element={<SEOTestWithSEO />} />
+					<Route path="/fingerprint" element={<DeviceFingerprintWithSEO />} />
+					<Route path="/how-to-pay" element={<HowToPayWithSEO />} />
+					<Route path="/how-to-shop" element={<HowToShopWithSEO />} />
+					<Route path="/become-a-seller" element={<BecomeASellerWithSEO />} />
+
+					{/* Location-specific routes for local SEO */}
+					<Route path="/location/:location" element={<LocationPage />} />
+
+					{/* Admin Routes */}
+					<Route
+						path="/admin/*"
+						element={
+							<PrivateRoute
+								isAuthenticated={isAuthenticated}
+								role="admin"
+								userRole={userRole}
+							/>
+						}
+					>
+						<Route
+							path="analytics"
+							element={<AdminAnalyticsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="communications"
+							element={<AdminCommunicationsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="content"
+							element={<AdminContentWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="buyers"
+							element={<AdminBuyersWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="sellers"
+							element={<AdminSellersWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="ads"
+							element={<AdminAdsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages"
+							element={<AdminMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages/:conversationId"
+							element={<AdminMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="promotions"
+							element={<AdminPromotionsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="notifications"
+							element={<AdminNotificationsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="categories"
+							element={<AdminCategoriesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="tiers"
+							element={<AdminTiersWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="fingerprint-requests"
+							element={<AdminFingerprintWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="profile"
+							element={<AdminProfileWithSEO onLogout={handleLogout} />}
+						/>
+					</Route>
+
+					{/* Seller Routes */}
+					<Route
+						path="/seller/*"
+						element={
+							<PrivateRoute
+								isAuthenticated={isAuthenticated}
+								role="seller"
+								userRole={userRole}
+							/>
+						}
+					>
+						<Route
+							path="analytics"
+							element={<SellerAnalyticsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="ads"
+							element={<SellerAdsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route path="ads/:adId" element={<SellerAdDetailsWithSEO />} />
+						<Route
+							path="add-ad"
+							element={<AddNewAdWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="dashboard"
+							element={<SellerShopWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages"
+							element={<SellerMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages/:conversationId"
+							element={<SellerMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="notifications"
+							element={<SellerNotificationsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="profile"
+							element={<SellerProfileWithSEO onLogout={handleLogout} />}
+						/>
+					</Route>
+
+					{/* Buyer Routes */}
+					<Route
+						path="/buyer/*"
+						element={
+							<PrivateRoute
+								isAuthenticated={isAuthenticated}
+								role="buyer"
+								userRole={userRole}
+							/>
+						}
+					>
+						<Route path="home" element={<Navigate to="/" replace />} />
+						<Route
+							path="wishlist"
+							element={<BuyerWishListWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="wish_lists"
+							element={<BuyerWishListWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages"
+							element={<BuyerMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="messages/:conversationId"
+							element={<BuyerMessagesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="profile"
+							element={<BuyerProfileWithSEO onLogout={handleLogout} />}
+						/>
+					</Route>
+
+					{/* Sales Routes */}
+					<Route
+						path="/sales/*"
+						element={
+							<PrivateRoute
+								isAuthenticated={isAuthenticated}
+								role="sales"
+								userRole={userRole}
+							/>
+						}
+					>
+						<Route
+							path="dashboard"
+							element={<SalesDashboardWithSEO onLogout={handleLogout} />}
+						/>
+					</Route>
+
+					{/* 404 Page - Catch all route */}
+					<Route path="*" element={<NotFound />} />
+				</Routes>
+			</Suspense>
+
+			{/* Auto Google One Tap for unauthenticated users */}
+			{showOneTap && (
+				<AutoGoogleOneTap
+					onSuccess={handleOneTapSuccess}
+					onError={handleOneTapError}
+					onClose={handleCloseOneTap}
+					isVisible={showOneTap}
+				/>
+			)}
+		</>
 	);
 }
 

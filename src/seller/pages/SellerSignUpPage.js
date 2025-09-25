@@ -20,6 +20,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
+import LocationSelector from "../../components/LocationSelector";
 import "../css/SellerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -50,7 +51,6 @@ function SellerSignUpPage({ onSignup }) {
 	const [previewURL, setPreviewURL] = useState(null);
 	const [profilePreviewURL, setProfilePreviewURL] = useState(null);
 	const navigate = useNavigate();
-	const [subCounties, setSubCounties] = useState([]);
 	const [options, setOptions] = useState({ age_groups: [], counties: [] });
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
@@ -408,12 +408,12 @@ function SellerSignUpPage({ onSignup }) {
 		}
 
 		// Validate username format immediately
-		const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+		const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
 		if (username && !usernameRegex.test(username)) {
 			setErrors((prev) => ({
 				...prev,
 				username:
-					"Username must be 3-20 characters and contain only letters, numbers, underscores, and hyphens",
+					"Username must be 3-20 characters and contain only letters, numbers, and underscores (no spaces or hyphens)",
 			}));
 			return;
 		}
@@ -538,25 +538,6 @@ function SellerSignUpPage({ onSignup }) {
 		fetchOptions();
 	}, []);
 
-	useEffect(() => {
-		const fetchSubCounties = async () => {
-			if (formData.county_id) {
-				try {
-					const res = await fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/counties/${formData.county_id}/sub_counties`
-					);
-					const data = await res.json();
-					setSubCounties(data);
-				} catch (err) {
-					console.error("Failed to fetch sub-counties", err);
-				}
-			} else {
-				setSubCounties([]);
-			}
-		};
-		fetchSubCounties();
-	}, [formData.county_id]);
-
 	const validatePassword = () => {
 		let isValid = true;
 		const newErrors = {};
@@ -622,6 +603,37 @@ function SellerSignUpPage({ onSignup }) {
 			if (res.data.verified) {
 				// Note: Email verified state removed as it was unused
 				setErrors({});
+
+				// Validate business name and business number uniqueness
+				const validationErrors = {};
+
+				// Check business name uniqueness
+				if (formData.enterprise_name) {
+					const businessNameExists = await checkBusinessNameExists(
+						formData.enterprise_name
+					);
+					if (businessNameExists) {
+						validationErrors.enterprise_name =
+							"Business name is already registered";
+					}
+				}
+
+				// Check business registration number uniqueness
+				if (formData.business_registration_number) {
+					const businessNumberExists = await checkBusinessNumberExists(
+						formData.business_registration_number
+					);
+					if (businessNumberExists) {
+						validationErrors.business_registration_number =
+							"Business registration number is already registered";
+					}
+				}
+
+				// If there are validation errors, show them and stop
+				if (Object.keys(validationErrors).length > 0) {
+					setErrors(validationErrors);
+					return;
+				}
 
 				const formDataToSend = new FormData();
 
@@ -703,18 +715,35 @@ function SellerSignUpPage({ onSignup }) {
 						});
 						setShowAlertModal(true);
 					} else {
+						// Auto-authenticate user after successful signup
+						const { token, seller } = response.data;
+
+						// Store token and user data
+						localStorage.setItem("token", token);
+						localStorage.setItem("userRole", "seller");
+						localStorage.setItem("userName", seller.fullname);
+						localStorage.setItem("userUsername", seller.username);
+						localStorage.setItem("userEmail", seller.email);
+
+						// Trigger authentication update
+						window.dispatchEvent(
+							new StorageEvent("storage", {
+								key: "token",
+								newValue: token,
+							})
+						);
+
 						setAlertModalMessage(
-							"Signup successful! You can now log in to your account."
+							"Signup successful! You are now logged in to your account."
 						);
 						setAlertModalConfig({
 							icon: "success",
 							title: "Success",
-							confirmText: "Go to Login",
+							confirmText: "Go to Dashboard",
 							cancelText: "",
 							showCancel: false,
 							onConfirm: () => {
-								onSignup();
-								navigate("/login");
+								navigate("/seller/dashboard");
 							},
 						});
 						setShowAlertModal(true);
@@ -812,6 +841,46 @@ function SellerSignUpPage({ onSignup }) {
 			return response.data.exists;
 		} catch (error) {
 			console.error("Error checking phone number:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
+	const checkBusinessNameExists = async (business_name) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/business_name/exists`,
+				{ business_name: business_name.trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking business name:", error);
+			// If API fails, don't block user - let server validation handle it
+			return false;
+		}
+	};
+
+	const checkBusinessNumberExists = async (business_number) => {
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/business_number/exists`,
+				{ business_number: business_number.trim() },
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+					timeout: 5000, // 5 second timeout for lightweight check
+				}
+			);
+			return response.data.exists;
+		} catch (error) {
+			console.error("Error checking business number:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -1258,26 +1327,14 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="space-y-6">
 													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																City
-															</label>
-															<input
-																type="text"
-																placeholder="Enter your city"
-																name="city"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.city
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.city}
-																onChange={handleChange}
+															<LocationSelector
+																formData={formData}
+																handleChange={handleChange}
+																errors={errors}
+																showCityInput={true}
+																showLocationInput={false}
+																className="space-y-3"
 															/>
-															{errors.city && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.city}
-																</div>
-															)}
 														</div>
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1298,63 +1355,6 @@ function SellerSignUpPage({ onSignup }) {
 															{errors.zipcode && (
 																<div className="text-red-500 text-xs mt-1">
 																	{errors.zipcode}
-																</div>
-															)}
-														</div>
-													</div>
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																County
-															</label>
-															<select
-																name="county_id"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.county_id
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.county_id}
-																onChange={handleChange}
-															>
-																<option value="">Select County</option>
-																{options.counties.map((county) => (
-																	<option key={county.id} value={county.id}>
-																		{county.name}
-																	</option>
-																))}
-															</select>
-															{errors.county_id && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.county_id}
-																</div>
-															)}
-														</div>
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Sub-County
-															</label>
-															<select
-																name="sub_county_id"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.sub_county_id
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.sub_county_id}
-																onChange={handleChange}
-																disabled={!formData.county_id}
-															>
-																<option value="">Select Sub-County</option>
-																{subCounties.map((sub) => (
-																	<option key={sub.id} value={sub.id}>
-																		{sub.name}
-																	</option>
-																))}
-															</select>
-															{errors.sub_county_id && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.sub_county_id}
 																</div>
 															)}
 														</div>
@@ -1752,8 +1752,25 @@ function SellerSignUpPage({ onSignup }) {
 														htmlFor="terms2"
 														className="text-sm text-gray-600 cursor-pointer"
 													>
-														Agree to Terms and Conditions and receive
-														SMS/emails.
+														I agree to the{" "}
+														<a
+															href="/terms-and-conditions"
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-yellow-600 hover:text-yellow-700 underline"
+														>
+															Terms and Conditions
+														</a>{" "}
+														and{" "}
+														<a
+															href="/privacy"
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-yellow-600 hover:text-yellow-700 underline"
+														>
+															Privacy Policy
+														</a>{" "}
+														and receive SMS/emails.
 													</label>
 												</div>
 												{errors.terms && (
@@ -1835,8 +1852,25 @@ function SellerSignUpPage({ onSignup }) {
 															htmlFor="terms3"
 															className="text-sm text-gray-600 cursor-pointer"
 														>
-															Agree to Terms and Conditions and receive
-															SMS/emails.
+															I agree to the{" "}
+															<a
+																href="/terms-and-conditions"
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-yellow-600 hover:text-yellow-700 underline"
+															>
+																Terms and Conditions
+															</a>{" "}
+															and{" "}
+															<a
+																href="/privacy"
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-yellow-600 hover:text-yellow-700 underline"
+															>
+																Privacy Policy
+															</a>{" "}
+															and receive SMS/emails.
 														</label>
 													</div>
 													{errors.terms && (

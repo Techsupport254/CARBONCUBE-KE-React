@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
+import LocationSelector from "../../components/LocationSelector";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faUser,
@@ -20,6 +22,7 @@ import AlertModal from "../../components/AlertModal";
 import useSEO from "../../hooks/useSEO";
 
 const ProfilePage = () => {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [profile, setProfile] = useState({
 		fullname: "",
 		username: "",
@@ -29,11 +32,18 @@ const ProfilePage = () => {
 		gender: "",
 		location: "",
 		city: "",
+		county_id: "",
+		sub_county_id: "",
+		age_group_id: "",
+		income_id: "",
+		employment_id: "",
+		education_id: "",
+		sector_id: "",
 		created_at: null,
 		updated_at: null,
 	});
 
-	const [editMode, setEditMode] = useState(false);
+	const [editMode, setEditMode] = useState(searchParams.get("edit") === "true");
 	const [showChangePasswordModal, setShowChangePasswordModal] = useState(false); // State for modal visibility
 	const [passwordData, setPasswordData] = useState({
 		currentPassword: "",
@@ -54,27 +64,17 @@ const ProfilePage = () => {
 
 	const [passwordMatch, setPasswordMatch] = useState(true);
 	const [uploadingImage, setUploadingImage] = useState(false);
+	const [ageGroups, setAgeGroups] = useState([]);
+	const [incomes, setIncomes] = useState([]);
+	const [employments, setEmployments] = useState([]);
+	const [educations, setEducations] = useState([]);
+	const [sectors, setSectors] = useState([]);
+	const [counties, setCounties] = useState([]);
+	const [subCounties, setSubCounties] = useState([]);
+	const [originalProfile, setOriginalProfile] = useState({});
 
-	// Calculate profile completion percentage
-	const calculateProfileCompletion = () => {
-		const fields = [
-			profile.fullname,
-			profile.username,
-			profile.email,
-			profile.phone_number,
-			profile.gender,
-			profile.city,
-			profile.location,
-			profile.profile_picture,
-		];
-
-		const completedFields = fields.filter(
-			(field) => field && field.toString().trim() !== ""
-		).length;
-		return Math.round((completedFields / fields.length) * 100);
-	};
-
-	const profileCompletion = calculateProfileCompletion();
+	// Profile completion percentage comes from backend
+	const profileCompletion = profile.profile_completion_percentage || 0;
 
 	// Retrieve token from sessionStorage
 	const token = localStorage.getItem("token"); // Adjust the key to match your app
@@ -106,6 +106,40 @@ const ProfilePage = () => {
 		},
 	});
 
+	// Fetch all optional data
+	useEffect(() => {
+		const fetchOptionalData = async () => {
+			try {
+				const [
+					ageGroupsRes,
+					incomesRes,
+					employmentsRes,
+					educationsRes,
+					sectorsRes,
+					countiesRes,
+				] = await Promise.all([
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/age_groups`),
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/incomes`),
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/employments`),
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/educations`),
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/sectors`),
+					axios.get(`${process.env.REACT_APP_BACKEND_URL}/counties`),
+				]);
+
+				setAgeGroups(ageGroupsRes.data);
+				setIncomes(incomesRes.data);
+				setEmployments(employmentsRes.data);
+				setEducations(educationsRes.data);
+				setSectors(sectorsRes.data);
+				setCounties(countiesRes.data);
+			} catch (error) {
+				console.error("Failed to fetch optional data:", error);
+			}
+		};
+
+		fetchOptionalData();
+	}, []);
+
 	// Fetch profile data from the backend API
 	useEffect(() => {
 		if (!token) {
@@ -121,6 +155,7 @@ const ProfilePage = () => {
 			})
 			.then((response) => {
 				setProfile(response.data);
+				setOriginalProfile({ ...response.data });
 			})
 			.catch((error) => {
 				// console.error('Error fetching profile data:', error);
@@ -130,17 +165,55 @@ const ProfilePage = () => {
 			});
 	}, [token]);
 
+	// Fetch sub-counties when county changes
+	useEffect(() => {
+		const fetchSubCounties = async () => {
+			if (profile.county_id) {
+				try {
+					const response = await axios.get(
+						`${process.env.REACT_APP_BACKEND_URL}/counties/${profile.county_id}/sub_counties`
+					);
+					setSubCounties(response.data);
+				} catch (error) {
+					console.error("Failed to fetch sub-counties:", error);
+					setSubCounties([]);
+				}
+			} else {
+				setSubCounties([]);
+			}
+		};
+
+		fetchSubCounties();
+	}, [profile.county_id]);
+
 	// Handle input change for editing the profile
 	const handleChange = (e) => {
+		const { name, value } = e.target;
 		setProfile({
 			...profile,
-			[e.target.name]: e.target.value,
+			[name]: value,
 		});
+
+		// Reset sub-county when county changes
+		if (name === "county_id") {
+			setProfile((prev) => ({
+				...prev,
+				sub_county_id: "",
+			}));
+		}
 	};
 
 	// Toggle edit mode
 	const handleEditClick = () => {
-		setEditMode(!editMode);
+		const newEditMode = !editMode;
+		setEditMode(newEditMode);
+
+		// Update URL parameters
+		if (newEditMode) {
+			setSearchParams({ edit: "true" });
+		} else {
+			setSearchParams({});
+		}
 	};
 
 	// Handle form submission to save updated profile
@@ -150,15 +223,36 @@ const ProfilePage = () => {
 			return;
 		}
 
+		// Only send changed fields
+		const changedFields = {};
+		Object.keys(profile).forEach((key) => {
+			if (profile[key] !== originalProfile[key]) {
+				changedFields[key] = profile[key];
+			}
+		});
+
+		// Don't send if no changes
+		if (Object.keys(changedFields).length === 0) {
+			setEditMode(false);
+			setSearchParams({});
+			return;
+		}
+
 		axios
-			.put(`${process.env.REACT_APP_BACKEND_URL}/buyer/profile`, profile, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			})
+			.patch(
+				`${process.env.REACT_APP_BACKEND_URL}/buyer/profile`,
+				changedFields,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			)
 			.then((response) => {
 				setProfile(response.data);
+				setOriginalProfile({ ...response.data });
 				setEditMode(false);
+				setSearchParams({}); // Remove edit parameter from URL
 				// Show success message using AlertModal
 				setAlertModalMessage("Profile updated successfully!");
 				setAlertModalConfig({
@@ -346,7 +440,7 @@ const ProfilePage = () => {
 			const formData = new FormData();
 			formData.append("profile_picture", file);
 
-			const response = await axios.put(
+			const response = await axios.patch(
 				`${process.env.REACT_APP_BACKEND_URL}/buyer/profile`,
 				formData,
 				{
@@ -358,6 +452,7 @@ const ProfilePage = () => {
 			);
 
 			setProfile(response.data);
+			setOriginalProfile({ ...response.data });
 			setAlertModalMessage("Profile picture updated successfully!");
 			setAlertModalConfig({
 				icon: "success",
@@ -517,18 +612,50 @@ const ProfilePage = () => {
 										<label className="block text-sm font-medium text-gray-700 mb-1">
 											Gender
 										</label>
-										<select
-											name="gender"
-											value={profile.gender}
-											onChange={handleChange}
-											disabled={!editMode}
-											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
-										>
-											<option value="">Select Gender</option>
-											<option value="Male">Male</option>
-											<option value="Female">Female</option>
-											<option value="Other">Other</option>
-										</select>
+										{editMode ? (
+											<select
+												name="gender"
+												value={profile.gender}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Gender</option>
+												<option value="Male">Male</option>
+												<option value="Female">Female</option>
+												<option value="Other">Other</option>
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.gender || "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Age Group (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="age_group_id"
+												value={profile.age_group_id}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Age Group</option>
+												{ageGroups.map((group) => (
+													<option key={group.id} value={group.id}>
+														{group.name}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.age_group_id
+													? ageGroups.find((g) => g.id === profile.age_group_id)
+															?.name || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
 									</div>
 								</div>
 							</div>
@@ -573,42 +700,242 @@ const ProfilePage = () => {
 									</div>
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
+											County (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="county_id"
+												value={profile.county_id || ""}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select County</option>
+												{counties.map((county) => (
+													<option key={county.id} value={county.id}>
+														{county.name}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.county_id
+													? counties.find((c) => c.id === profile.county_id)
+															?.name || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Sub-County (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="sub_county_id"
+												value={profile.sub_county_id || ""}
+												onChange={handleChange}
+												disabled={!profile.county_id}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100"
+											>
+												<option value="">
+													{!profile.county_id
+														? "Select County First"
+														: "Select Sub-County"}
+												</option>
+												{subCounties.map((subCounty) => (
+													<option key={subCounty.id} value={subCounty.id}>
+														{subCounty.name}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.sub_county_id
+													? subCounties.find(
+															(sc) => sc.id === profile.sub_county_id
+													  )?.name || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
 											Physical Address
 										</label>
-										<input
-											type="text"
-											name="location"
-											value={profile.location || ""}
-											onChange={handleChange}
-											disabled={!editMode}
-											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
-										/>
+										{editMode ? (
+											<input
+												type="text"
+												name="location"
+												value={profile.location || ""}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											/>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.location || "Not provided"}
+											</div>
+										)}
 									</div>
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
 											City
 										</label>
-										<input
-											type="text"
-											name="city"
-											value={profile.city}
-											onChange={handleChange}
-											disabled={!editMode}
-											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
-										/>
+										{editMode ? (
+											<input
+												type="text"
+												name="city"
+												value={profile.city || ""}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											/>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.city || "Not provided"}
+											</div>
+										)}
 									</div>
 									<div>
 										<label className="block text-sm font-medium text-gray-700 mb-1">
 											Zip Code (Optional)
 										</label>
-										<input
-											type="text"
-											name="zipcode"
-											value={profile.zipcode || ""}
-											onChange={handleChange}
-											disabled={!editMode}
-											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
-										/>
+										{editMode ? (
+											<input
+												type="text"
+												name="zipcode"
+												value={profile.zipcode || ""}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											/>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.zipcode || "Not provided"}
+											</div>
+										)}
+									</div>
+								</div>
+							</div>
+
+							{/* Optional Information */}
+							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+								<div className="flex items-center mb-4">
+									<FontAwesomeIcon
+										icon={faUser}
+										className="w-5 h-5 text-gray-500 mr-2"
+									/>
+									<h2 className="text-lg font-semibold text-gray-900">
+										Optional Information
+									</h2>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Income Range (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="income_id"
+												value={profile.income_id}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Income Range</option>
+												{incomes.map((income) => (
+													<option key={income.id} value={income.id}>
+														{income.range}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.income_id
+													? incomes.find((i) => i.id === profile.income_id)
+															?.range || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Employment Status (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="employment_id"
+												value={profile.employment_id}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Employment Status</option>
+												{employments.map((employment) => (
+													<option key={employment.id} value={employment.id}>
+														{employment.status}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.employment_id
+													? employments.find(
+															(e) => e.id === profile.employment_id
+													  )?.status || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Education Level (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="education_id"
+												value={profile.education_id}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Education Level</option>
+												{educations.map((education) => (
+													<option key={education.id} value={education.id}>
+														{education.level}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.education_id
+													? educations.find(
+															(e) => e.id === profile.education_id
+													  )?.level || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
+									</div>
+									<div>
+										<label className="block text-sm font-medium text-gray-700 mb-1">
+											Business Sector (Optional)
+										</label>
+										{editMode ? (
+											<select
+												name="sector_id"
+												value={profile.sector_id}
+												onChange={handleChange}
+												className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+											>
+												<option value="">Select Business Sector</option>
+												{sectors.map((sector) => (
+													<option key={sector.id} value={sector.id}>
+														{sector.name}
+													</option>
+												))}
+											</select>
+										) : (
+											<div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+												{profile.sector_id
+													? sectors.find((s) => s.id === profile.sector_id)
+															?.name || "Not provided"
+													: "Not provided"}
+											</div>
+										)}
 									</div>
 								</div>
 							</div>

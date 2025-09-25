@@ -2,6 +2,7 @@ import React from "react";
 import { Card } from "react-bootstrap";
 import { getBorderColor } from "../buyer/utils/sellerTierUtils";
 import { getValidImageUrl } from "../utils/imageUtils";
+import ResponsiveImage from "./ResponsiveImage";
 
 /**
  * Unified AdCard component for consistent display across all pages
@@ -144,14 +145,12 @@ const AdCard = ({
 				{/* Image Section */}
 				<div className="relative h-auto aspect-square overflow-hidden flex-shrink-0">
 					{hasImage ? (
-						<img
+						<ResponsiveImage
 							src={imageUrl}
 							alt={ad.title || "Product Image"}
 							className="w-full h-full object-contain rounded-lg cursor-pointer transition-opacity duration-300 ease-in-out"
 							loading="lazy"
-							onLoad={(e) => {
-								e.target.style.opacity = "1";
-							}}
+							sizes="(max-width: 480px) 128px, (max-width: 640px) 192px, (max-width: 768px) 256px, (max-width: 1024px) 320px, 384px"
 							onError={(e) => {
 								e.target.style.display = "none";
 								e.target.nextSibling.style.display = "flex";

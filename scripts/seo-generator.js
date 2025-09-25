@@ -418,8 +418,11 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 		<link rel="dns-prefetch" href="https://api.cloudinary.com" />
 
-		<!-- Font Loading -->
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+		<!-- Font Loading - Optimized for performance with preload -->
+		<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+		<noscript>
+			<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+		</noscript>
 
 		<!-- Critical CSS for above-the-fold content -->
 		<style>
