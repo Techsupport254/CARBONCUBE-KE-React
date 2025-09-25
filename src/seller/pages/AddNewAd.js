@@ -50,12 +50,9 @@ const AddNewAd = () => {
 			const usedMB = Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024);
 			const totalMB = Math.round(memoryInfo.totalJSHeapSize / 1024 / 1024);
 
-			console.log(`Memory usage: ${usedMB}MB / ${totalMB}MB`);
-
 			// If memory usage is high, trigger cleanup
 			if (usedMB > 2000) {
 				// 2GB threshold
-				console.warn("High memory usage detected, triggering cleanup");
 				cleanupWebGLResources();
 			}
 		}
@@ -164,8 +161,6 @@ const AddNewAd = () => {
 
 	// Cleanup function for WebGL resources
 	const cleanupWebGLResources = useCallback(() => {
-		console.log("🧹 Starting WebGL cleanup...");
-
 		// Dispose NSFW model
 		if (
 			nsfwModelRef.current &&
@@ -173,9 +168,8 @@ const AddNewAd = () => {
 		) {
 			try {
 				nsfwModelRef.current.dispose();
-				console.log("✅ NSFW model disposed");
 			} catch (error) {
-				console.warn("Error disposing NSFW model:", error);
+				// Error disposing NSFW model
 			}
 		}
 
@@ -186,18 +180,8 @@ const AddNewAd = () => {
 				if (typeof window.tf.dispose === "function") {
 					window.tf.dispose();
 				}
-
-				// Clear memory
-				if (
-					typeof window.tf.memory === "object" &&
-					window.tf.memory.numTensors
-				) {
-					console.log(
-						`🧠 TensorFlow memory cleared: ${window.tf.memory.numTensors} tensors`
-					);
-				}
 			} catch (error) {
-				console.warn("Error disposing TensorFlow resources:", error);
+				// Error disposing TensorFlow resources
 			}
 		}
 
@@ -210,10 +194,9 @@ const AddNewAd = () => {
 					const loseContext = gl.getExtension("WEBGL_lose_context");
 					if (loseContext) {
 						loseContext.loseContext();
-						console.log("✅ WebGL context lost");
 					}
 				} catch (error) {
-					console.warn("Error losing WebGL context:", error);
+					// Error losing WebGL context
 				}
 			}
 		});
@@ -222,13 +205,10 @@ const AddNewAd = () => {
 		if (window.gc) {
 			try {
 				window.gc();
-				console.log("🗑️ Garbage collection triggered");
 			} catch (error) {
-				console.warn("Error triggering garbage collection:", error);
+				// Error triggering garbage collection
 			}
 		}
-
-		console.log("✅ WebGL cleanup completed");
 	}, []);
 
 	// Load the NSFW model (lazy) when needed with proper memory management
@@ -319,7 +299,6 @@ const AddNewAd = () => {
 				nsfwModelRef.current = null;
 			}, 5 * 60 * 1000); // 5 minutes
 		} catch (error) {
-			console.error("Failed to load NSFW model:", error);
 			// Set a dummy model to prevent repeated loading attempts
 			nsfwModelRef.current = { classify: () => Promise.resolve([]) };
 		} finally {
@@ -386,14 +365,12 @@ const AddNewAd = () => {
 	// Function to check if an image is NSFW with memory optimization
 	const checkImage = async (file) => {
 		if (!nsfwModelRef.current) {
-			console.warn("NSFW model is not loaded yet. Loading now...");
 			await loadNSFWModel(); // Ensure model is loaded
 		}
 
 		return new Promise((resolve) => {
 			// Add timeout to prevent hanging
 			const timeoutId = setTimeout(() => {
-				console.warn("NSFW check timeout for image:", file.name);
 				resolve(false); // Assume safe on timeout
 			}, 10000); // Reduced to 10 second timeout
 
@@ -407,7 +384,6 @@ const AddNewAd = () => {
 					img.onload = async () => {
 						try {
 							if (!nsfwModelRef.current) {
-								console.error("NSFW model failed to load.");
 								clearTimeout(timeoutId);
 								resolve(false); // Assume safe if model fails
 								return;
@@ -455,7 +431,6 @@ const AddNewAd = () => {
 								resolve(false);
 							}
 						} catch (error) {
-							console.error("Error classifying image:", error);
 							clearTimeout(timeoutId);
 							resolve(false); // Assume safe if classification fails
 						} finally {
@@ -468,21 +443,16 @@ const AddNewAd = () => {
 					};
 
 					img.onerror = () => {
-						console.warn(
-							`Image loading failed for NSFW check: ${file.name}. Assuming safe.`
-						);
 						clearTimeout(timeoutId);
 						resolve(false); // Assume safe on image load error
 					};
 				} catch (error) {
-					console.error("Error in NSFW check:", error);
 					clearTimeout(timeoutId);
 					resolve(false); // Assume safe on error
 				}
 			};
 
 			reader.onerror = () => {
-				console.error("Error reading file for NSFW check");
 				clearTimeout(timeoutId);
 				resolve(false); // Assume safe on file read error
 			};
@@ -549,12 +519,10 @@ const AddNewAd = () => {
 							try {
 								const isUnsafe = await checkImage(file);
 								if (isUnsafe) {
-									console.warn("Blocked unsafe image:", file.name);
 									return { file, isUnsafe: true };
 								}
 								return { file, isUnsafe: false };
 							} catch (error) {
-								console.error("Error processing image:", file.name, error);
 								// On error, assume safe to avoid blocking legitimate images
 								return { file, isUnsafe: false };
 							}
@@ -571,7 +539,6 @@ const AddNewAd = () => {
 						}
 					});
 				} catch (error) {
-					console.error("Error during NSFW scanning:", error);
 					// If NSFW scanning fails completely, use all images
 					safeImages = [...selectedImages];
 					skippedImages = 0;
@@ -709,7 +676,6 @@ const AddNewAd = () => {
 							reject(new Error(`Upload failed with status: ${xhr.status}`));
 						}
 					} catch (err) {
-						console.error("Failed to parse response:", err);
 						reject(new Error("Invalid JSON response"));
 					}
 				};
@@ -748,7 +714,6 @@ const AddNewAd = () => {
 			setWeightUnit("Grams");
 			setSelectedImages([]);
 		} catch (error) {
-			console.error("Error adding ad:", error);
 			if (error.message.includes("Upload failed")) {
 				// Error message already shown in xhr.onload
 				return;
@@ -875,10 +840,6 @@ const AddNewAd = () => {
 												});
 											}
 										} catch (error) {
-											console.warn(
-												`NSFW check failed for ${file.name}:`,
-												error.message || error
-											);
 											// Remove from scanning even on error
 											setScanningImages((prev) =>
 												prev.filter((id) => id !== fileId)
@@ -955,10 +916,6 @@ const AddNewAd = () => {
 										});
 									}
 								} catch (error) {
-									console.warn(
-										`NSFW check failed for ${file.name}:`,
-										error.message || error
-									);
 									// Remove from scanning even on error
 									setScanningImages((prev) =>
 										prev.filter((id) => id !== fileId)
@@ -978,7 +935,7 @@ const AddNewAd = () => {
 				processImagesInBatches(validFiles);
 			}
 		} catch (error) {
-			console.error("Error processing selected images:", error);
+			// Error processing selected images
 		}
 	};
 

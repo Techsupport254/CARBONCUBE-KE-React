@@ -44,17 +44,11 @@ const usePresence = (
 		const connect = () => {
 			// Prevent multiple simultaneous connection attempts
 			if (isConnectingRef.current) {
-				console.debug(
-					"PresenceChannel: Connection already in progress, skipping"
-				);
 				return;
 			}
 
 			// Check connection attempt limit
 			if (connectionAttemptsRef.current >= maxConnectionAttempts) {
-				console.warn(
-					`PresenceChannel: Max connection attempts (${maxConnectionAttempts}) reached, stopping`
-				);
 				return;
 			}
 
@@ -80,9 +74,7 @@ const usePresence = (
 				const token = localStorage.getItem("token");
 
 				if (!token) {
-					console.warn(
-						"No authentication token found, WebSocket connection will likely fail"
-					);
+					// No authentication token found
 				}
 
 				// Send token as query parameter since ActionCable doesn't pass headers
@@ -265,7 +257,6 @@ const usePresence = (
 			hasConnection &&
 			isOpen &&
 			(subscriptionState === "connected" || subscriptionReady === true);
-
 
 		return isActive;
 	};

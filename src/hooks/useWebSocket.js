@@ -72,14 +72,12 @@ class WebSocketConnectionManager {
 			}, timeout);
 
 			ws.onopen = () => {
-				console.log(`WebSocket connected to ${url}`);
 				this.connections.set(url, ws);
 				this.setupHeartbeat(url, ws, heartbeatInterval);
 				resolveConnection();
 			};
 
 			ws.onclose = (event) => {
-				console.log(`WebSocket disconnected from ${url}`, event);
 				this.cleanup(url);
 
 				if (!isResolved) {
@@ -93,7 +91,6 @@ class WebSocketConnectionManager {
 			};
 
 			ws.onerror = (error) => {
-				console.error(`WebSocket error on ${url}:`, error);
 				if (!isResolved) {
 					rejectConnection(error);
 				}
@@ -294,10 +291,7 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 			wsStore.setConnectionState(WS_STATES.CONNECTED);
 			wsStore.resetReconnectAttempts();
 			wsStore.addConnection(channelName, ws);
-
-			console.log(`Successfully connected to channel: ${channelName}`);
 		} catch (error) {
-			console.error("WebSocket connection failed:", error);
 			wsStore.setConnectionState(WS_STATES.ERROR, error.message);
 			wsStore.incrementReconnectAttempts();
 

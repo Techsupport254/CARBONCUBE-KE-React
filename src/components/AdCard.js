@@ -113,19 +113,9 @@ const AdCard = ({
 					const adUrl = generateAdUrl(ad);
 					const adId = ad.id || ad.ad_id;
 
-					// Debug logging to understand the issue
-					console.log("AdCard click - ad object:", ad);
-					console.log("AdCard click - ad.id:", ad.id);
-					console.log("AdCard click - ad.ad_id:", ad.ad_id);
-					console.log("AdCard click - final adId:", adId);
-
 					// Additional fallback: if no id is found, try to extract from URL or use a placeholder
 					const finalAdId =
 						adId || ad.title?.replace(/\s+/g, "-").toLowerCase() || "unknown";
-
-					if (!adId) {
-						console.warn("No valid ad ID found, using fallback:", finalAdId);
-					}
 
 					onClick(adUrl, finalAdId);
 				}
