@@ -40,6 +40,7 @@ import AlertModal from "../../components/AlertModal";
 import Swal from "sweetalert2";
 import axios from "axios";
 import ProductSEO from "../../components/ProductSEO";
+import PageSEO from "../../components/PageSEO";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl } from "../../utils/imageUtils";
@@ -1426,7 +1427,16 @@ const AdDetails = () => {
 
 	return (
 		<>
-			<ProductSEO product={productData} />
+			{ad ? (
+				<ProductSEO product={productData} />
+			) : (
+				<PageSEO
+					pageType="product"
+					title="Product Details | Carbon Cube Kenya"
+					description="View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+					keywords="product, buy online, verified sellers, Kenya marketplace"
+				/>
+			)}
 			<Navbar
 				mode="buyer"
 				showSearch={false}

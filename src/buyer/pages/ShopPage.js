@@ -17,6 +17,7 @@ import Footer from "../../components/Footer";
 import ReviewsModal from "../../components/ReviewsModal";
 import LeaveReviewModal from "../../components/LeaveReviewModal";
 import ShopSEO from "../../components/ShopSEO";
+import PageSEO from "../../components/PageSEO";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { preloadShopIcons } from "../../utils/iconLoader";
 import ResponsiveImage from "../../components/ResponsiveImage";
@@ -900,7 +901,16 @@ const ShopPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
-			<ShopSEO shop={seoData} />
+			{shop ? (
+				<ShopSEO shop={seoData} />
+			) : (
+				<PageSEO
+					pageType="shop"
+					title={`Shop - ${slug || "Loading..."} | Carbon Cube Kenya`}
+					description="Browse products from verified sellers on Carbon Cube Kenya. Fast delivery across Kenya."
+					keywords="shop, products, verified sellers, Kenya marketplace"
+				/>
+			)}
 			<Navbar
 				mode="buyer"
 				showSearch={false}

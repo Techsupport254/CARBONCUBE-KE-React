@@ -525,6 +525,78 @@
 			}
 		</style>
 
+		<!-- Dynamic Meta Tags for Social Media Crawlers -->
+		<script>
+			// Update meta tags based on URL for social media crawlers
+			(function () {
+				const path = window.location.pathname;
+				const searchParams = new URLSearchParams(window.location.search);
+
+				// Function to update meta tag
+				function updateMetaTag(property, content) {
+					let meta =
+						document.querySelector(`meta[property="${property}"]`) ||
+						document.querySelector(`meta[name="${property}"]`);
+					if (meta) {
+						meta.setAttribute("content", content);
+					}
+				}
+
+				// Function to update title
+				function updateTitle(title) {
+					document.title = title;
+					updateMetaTag("title", title);
+					updateMetaTag("og:title", title);
+					updateMetaTag("twitter:title", title);
+				}
+
+				// Function to update description
+				function updateDescription(description) {
+					updateMetaTag("description", description);
+					updateMetaTag("og:description", description);
+					updateMetaTag("twitter:description", description);
+				}
+
+				// Function to update URL
+				function updateURL(url) {
+					updateMetaTag("og:url", url);
+				}
+
+				// Handle different page types
+				if (path.startsWith("/shop/")) {
+					const shopName =
+						path.split("/shop/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
+						"Shop";
+					const title = `${shopName} - Shop | Carbon Cube Kenya`;
+					const description = `Browse products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(`https://carboncube-ke.com${path}`);
+				} else if (path.startsWith("/ads/")) {
+					const productName =
+						path.split("/ads/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
+						"Product";
+					const title = `${productName} | Carbon Cube Kenya`;
+					const description = `Buy ${productName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(`https://carboncube-ke.com${path}`);
+				} else if (path.startsWith("/categories/")) {
+					const categoryName =
+						path.split("/categories/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
+						"Category";
+					const title = `${categoryName} Products | Carbon Cube Kenya`;
+					const description = `Browse ${categoryName} products on Carbon Cube Kenya. Fast delivery across Kenya.`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(`https://carboncube-ke.com${path}`);
+				}
+			})();
+		</script>
+
 		<!-- Non-critical CSS loading -->
 		<script>
 			// Load non-critical CSS after page load
