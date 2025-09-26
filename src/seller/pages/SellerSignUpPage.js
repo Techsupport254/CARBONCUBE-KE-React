@@ -48,7 +48,11 @@ function SellerSignUpPage({ onSignup }) {
 	const [previewURL, setPreviewURL] = useState(null);
 	const [profilePreviewURL, setProfilePreviewURL] = useState(null);
 	const navigate = useNavigate();
-	const [options, setOptions] = useState({ age_groups: [], counties: [], sub_counties: [] });
+	const [options, setOptions] = useState({
+		age_groups: [],
+		counties: [],
+		sub_counties: [],
+	});
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
 
@@ -580,9 +584,9 @@ function SellerSignUpPage({ onSignup }) {
 	const handleCountyChange = (e) => {
 		handleChange(e);
 		// Reset sub-county when county changes
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
-			sub_county_id: ""
+			sub_county_id: "",
 		}));
 	};
 
@@ -647,21 +651,21 @@ function SellerSignUpPage({ onSignup }) {
 					const response = await axios.get(
 						`${process.env.REACT_APP_BACKEND_URL}/counties/${formData.county_id}/sub_counties`
 					);
-					setOptions(prev => ({
+					setOptions((prev) => ({
 						...prev,
-						sub_counties: response.data
+						sub_counties: response.data,
 					}));
 				} catch (error) {
 					console.error("Error fetching sub-counties:", error);
-					setOptions(prev => ({
+					setOptions((prev) => ({
 						...prev,
-						sub_counties: []
+						sub_counties: [],
 					}));
 				}
 			} else {
-				setOptions(prev => ({
+				setOptions((prev) => ({
 					...prev,
-					sub_counties: []
+					sub_counties: [],
 				}));
 			}
 		};
@@ -1528,7 +1532,10 @@ function SellerSignUpPage({ onSignup }) {
 																		: "Select Sub-County"}
 																</option>
 																{options.sub_counties.map((subCounty) => (
-																	<option key={subCounty.id} value={subCounty.id}>
+																	<option
+																		key={subCounty.id}
+																		value={subCounty.id}
+																	>
 																		{subCounty.name}
 																	</option>
 																))}

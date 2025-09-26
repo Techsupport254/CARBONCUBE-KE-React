@@ -13,14 +13,14 @@ const PopularAdsSection = ({
 	// Handle best sellers data format from backend
 	const processedAds = Array.isArray(ads)
 		? ads.map((ad) => ({
-				id: ad.ad_id,
+				id: ad.ad_id || ad.id,
 				title: ad.title,
 				media: ad.media,
 				media_urls: ad.media_urls,
 				first_media_url: ad.first_media_url,
 				price: ad.price,
 				created_at: ad.created_at,
-				seller_tier: ad.seller_tier_id,
+				seller_tier: ad.seller_tier, // Use seller_tier directly
 				seller_tier_name: ad.seller_tier_name,
 				comprehensive_score: ad.comprehensive_score,
 				metrics: ad.metrics,
@@ -200,6 +200,7 @@ const PopularAdsSection = ({
 							showRating={true}
 							showPrice={true}
 							showTitle={true}
+							isLoading={isLoading}
 						/>
 					))}
 				</div>

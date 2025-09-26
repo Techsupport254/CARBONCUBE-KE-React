@@ -20,9 +20,13 @@ const AdCard = ({
 	showTitle = true,
 	size = "default", // "small", "default", "large"
 	variant = "default", // "default", "best-seller", "featured"
+	isLoading = false,
 	...props
 }) => {
-	if (!ad) return null;
+	// Show skeleton loading if ad is loading or not available
+	if (isLoading || !ad) {
+		return <AdCardSkeleton size={size} className={className} />;
+	}
 
 	// Size configurations
 	const sizeConfig = {
@@ -261,6 +265,86 @@ const AdCard = ({
 				<div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-900"></div>
 			</div>
 		</Card>
+	);
+};
+
+/**
+ * Skeleton loading component for AdCard
+ */
+const AdCardSkeleton = ({ size = "default", className = "" }) => {
+	// Size configurations for skeleton
+	const sizeConfig = {
+		small: {
+			imageHeight: "h-24 sm:h-28 md:h-32",
+			titleHeight: "h-3",
+			priceHeight: "h-3",
+			ratingHeight: "h-3",
+			padding: "p-1 sm:p-2",
+			iconSize: "w-3 h-3",
+		},
+		default: {
+			imageHeight: "h-32 sm:h-36 lg:h-40",
+			titleHeight: "h-4",
+			priceHeight: "h-4",
+			ratingHeight: "h-3",
+			padding: "p-2 sm:p-3",
+			iconSize: "w-3 h-3",
+		},
+		large: {
+			imageHeight: "h-40 sm:h-44 lg:h-48",
+			titleHeight: "h-5",
+			priceHeight: "h-5",
+			ratingHeight: "h-4",
+			padding: "p-3 sm:p-4",
+			iconSize: "w-4 h-4",
+		},
+	};
+
+	const config = sizeConfig[size] || sizeConfig.default;
+
+	return (
+		<div
+			className={`h-full w-full bg-white rounded-lg overflow-hidden border border-gray-200 flex flex-col relative ${className}`}
+		>
+			{/* Image skeleton */}
+			<div
+				className={`relative ${config.imageHeight} bg-gray-200 animate-pulse`}
+			>
+				{/* Tier badge skeleton */}
+				<div className="absolute top-1 left-1 w-12 h-4 bg-gray-300 rounded-full animate-pulse"></div>
+
+				{/* Variant badge skeleton */}
+				<div className="absolute top-1 right-1 w-16 h-4 bg-gray-300 rounded-full animate-pulse"></div>
+			</div>
+
+			{/* Content skeleton */}
+			<div
+				className={`px-0.5 sm:px-1 md:px-1.5 lg:px-2 py-0.5 sm:py-0.5 md:py-1 bg-white flex flex-col justify-between flex-grow`}
+			>
+				{/* Title skeleton */}
+				<div
+					className={`${config.titleHeight} bg-gray-200 rounded animate-pulse mb-1`}
+				></div>
+
+				{/* Price and Rating skeleton */}
+				<div className="flex justify-between items-center">
+					{/* Price skeleton */}
+					<div
+						className={`${config.priceHeight} w-16 bg-gray-200 rounded animate-pulse`}
+					></div>
+
+					{/* Rating skeleton */}
+					<div className="flex items-center gap-0.5">
+						<div
+							className={`${config.iconSize} bg-gray-200 rounded animate-pulse`}
+						></div>
+						<div
+							className={`${config.ratingHeight} w-6 bg-gray-200 rounded animate-pulse`}
+						></div>
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 };
 

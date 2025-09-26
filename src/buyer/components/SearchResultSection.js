@@ -719,6 +719,7 @@ const SearchResultSection = ({
 											showRating={true}
 											showPrice={true}
 											showTitle={true}
+											isLoading={isLoading}
 											className="h-full"
 										/>
 									);

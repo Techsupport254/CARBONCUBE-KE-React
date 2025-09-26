@@ -9,32 +9,32 @@ const GoogleSignInButton = ({
 	role = "buyer",
 }) => {
 	useEffect(() => {
-		// Load Google Identity Services script
-		const script = document.createElement("script");
-		script.src = "https://accounts.google.com/gsi/client";
-		script.async = true;
-		document.head.appendChild(script);
-
+		// Cleanup on unmount
 		return () => {
-			// Cleanup script on unmount
-			const existingScript = document.querySelector(
-				'script[src="https://accounts.google.com/gsi/client"]'
-			);
-			if (existingScript) {
-				document.head.removeChild(existingScript);
-			}
+			googleOAuthService.cleanup();
 		};
 	}, []);
 
-	const handleGoogleSignIn = () => {
-		if (disabled) return;
+	const handleGoogleSignIn = async () => {
+		if (disabled) {
+			console.log("🚫 Button is disabled");
+			return;
+		}
+
+		console.log("🖱️ Google sign-in button clicked");
+		console.log("Role:", role);
 
 		try {
-			googleOAuthService.initiateAuth(role);
+			// Set callbacks for authentication
+			googleOAuthService.setCallbacks(onSuccess, onError);
+			console.log("✅ Callbacks set");
+
+			// Initiate GSI popup-based authentication
+			await googleOAuthService.initiateAuth(role);
 		} catch (error) {
-			console.error("Google sign-in error:", error);
+			console.error("❌ Google sign-in error:", error);
 			if (onError) {
-				onError("Failed to initiate Google sign-in");
+				onError("Failed to initiate Google sign-in: " + error.message);
 			}
 		}
 	};

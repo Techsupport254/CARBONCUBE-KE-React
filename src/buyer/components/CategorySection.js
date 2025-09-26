@@ -5,14 +5,13 @@ import SubcategorySection from "./SubcategorySection";
 const CategorySection = ({
 	title,
 	categoryId,
-	randomizedSubcategories,
+	subcategories,
 	ads,
 	handleAdClick,
 	handleSubcategoryClick,
 	isLoading = false,
 	errorMessage,
 	onRetry,
-	isReshuffled = false,
 }) => {
 	// Ensure we always have exactly 4 subcategory slots to maintain grid structure
 	const subcategoriesToDisplay = isLoading
@@ -21,8 +20,8 @@ const CategorySection = ({
 				name: "",
 				isPlaceholder: true,
 		  }))
-		: randomizedSubcategories && randomizedSubcategories.length > 0
-		? randomizedSubcategories.slice(0, 4) // Limit to exactly 4 subcategories
+		: subcategories && subcategories.length > 0
+		? subcategories.slice(0, 4) // Limit to exactly 4 subcategories
 		: Array.from({ length: 4 }).map((_, idx) => ({
 				id: `empty-${idx}`,
 				name: "",
@@ -99,7 +98,6 @@ const CategorySection = ({
 									ads={ads[subcategory.id] || []}
 									onAdClick={handleAdClick}
 									onSubcategoryClick={handleSubcategoryClick}
-									isReshuffled={isReshuffled}
 								/>
 							)}
 						</div>

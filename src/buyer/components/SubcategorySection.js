@@ -35,10 +35,7 @@ const SubcategorySection = ({
 	isLoading = false,
 	errorMessage,
 	onRetry,
-	isReshuffled = false,
 }) => {
-	const [isAnimating, setIsAnimating] = useState(false);
-	const [previousAds, setPreviousAds] = useState([]);
 	const [isMobile, setIsMobile] = useState(false);
 
 	// Handle window resize to update mobile status
@@ -57,14 +54,13 @@ const SubcategorySection = ({
 		return () => window.removeEventListener("resize", handleResize);
 	}, [handleResize]);
 
-	// Memoize sorted ads to prevent unnecessary recalculations
+	// Memoize ads (backend provides randomized data, no frontend sorting needed)
 	const sortedAds = useMemo(() => {
 		if (!Array.isArray(ads)) return [];
 
-		// If ads have been reshuffled, preserve the reshuffled order
-		// Only apply tier sorting for initial load
-		return isReshuffled ? ads : sortAdsByTier(ads);
-	}, [ads, isReshuffled]);
+		// Use ads as-is from backend (already randomized)
+		return ads;
+	}, [ads]);
 
 	// Memoize displayed ads to prevent unnecessary recalculations
 	// Show 6 items for mobile (3x2 grid), 4 items for larger screens (2x2 grid)
@@ -73,36 +69,10 @@ const SubcategorySection = ({
 		return sortedAds.slice(0, itemsToShow);
 	}, [sortedAds, isMobile]);
 
-	// Detect when ads have been reshuffled and trigger animation
-	useEffect(() => {
-		if (previousAds.length > 0 && displayedAds.length > 0) {
-			const currentIds = displayedAds.map((ad) => ad.id).sort();
-			const previousIds = previousAds.map((ad) => ad.id).sort();
-
-			// Check if the order has changed
-			const hasChanged =
-				JSON.stringify(currentIds) !== JSON.stringify(previousIds);
-
-			if (hasChanged) {
-				setIsAnimating(true);
-				// Reset animation after a short delay
-				setTimeout(() => setIsAnimating(false), 1000);
-			}
-		}
-
-		setPreviousAds(displayedAds);
-	}, [displayedAds, previousAds]); // Include previousAds in dependency array as required by ESLint
-
 	// Debug logging removed for cleaner console
 
 	return (
-		<Card
-			className={`h-full bg-transparent rounded-lg flex flex-col transition-all duration-600 ease-out ${
-				isAnimating
-					? "ring-1 ring-blue-200 ring-opacity-50 shadow-sm bg-blue-50 bg-opacity-30"
-					: ""
-			}`}
-		>
+		<Card className="h-full bg-transparent rounded-lg flex flex-col transition-all duration-600 ease-out">
 			<Card.Body className="p-0 flex-grow flex flex-col justify-between">
 				{!isLoading && errorMessage && (
 					<div className="mb-0.5 p-0.5 sm:p-0.5 md:p-1 bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center justify-between">
@@ -121,9 +91,7 @@ const SubcategorySection = ({
 				)}
 				{/* Responsive grid: 3 columns for mobile (2 rows), 2 columns for larger screens (3 rows) */}
 				<div
-					className={`grid grid-cols-3 sm:grid-cols-2 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 h-full p-0.5 sm:p-1 md:p-1.5 transition-all duration-400 ease-out ${
-						isAnimating ? "opacity-95" : ""
-					}`}
+					className="grid grid-cols-3 sm:grid-cols-2 gap-0.5 sm:gap-1 md:gap-1.5 lg:gap-2 h-full p-0.5 sm:p-1 md:p-1.5"
 					style={{
 						alignItems: "stretch",
 						justifyItems: "stretch",
@@ -133,42 +101,21 @@ const SubcategorySection = ({
 					{Array.from({ length: displayedAds.length }).map((_, i) => {
 						const ad = displayedAds[i];
 
-						if (!isLoading && ad) {
-							return (
-								<div
-									key={ad.id}
-									className={`h-full w-full transition-all duration-400 ease-out`}
-									style={{
-										transitionDelay: isAnimating ? `${i * 50}ms` : "0ms",
-										opacity: isAnimating ? 0.85 : 1,
-										transform: isAnimating
-											? "translateY(-2px)"
-											: "translateY(0px)",
-									}}
-								>
-									<AdCard
-										ad={ad}
-										onClick={onAdClick}
-										size="small"
-										variant="default"
-										showTierBadge={true}
-										showTierBorder={true}
-										showRating={true}
-										showPrice={true}
-										showTitle={true}
-										className="h-full"
-									/>
-								</div>
-							);
-						}
-
-						// Empty slot that maintains consistent sizing
 						return (
-							<div
-								key={`slot-${i}`}
-								className="h-full w-full min-h-[8vh] sm:min-h-[10vh] md:min-h-[12vh] lg:min-h-[14vh]"
-							>
-								{/* Completely empty slot */}
+							<div key={ad?.id || `slot-${i}`} className="h-full w-full">
+								<AdCard
+									ad={ad}
+									onClick={onAdClick}
+									size="small"
+									variant="default"
+									showTierBadge={true}
+									showTierBorder={true}
+									showRating={true}
+									showPrice={true}
+									showTitle={true}
+									isLoading={isLoading || !ad}
+									className="h-full"
+								/>
 							</div>
 						);
 					})}

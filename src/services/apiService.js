@@ -453,6 +453,8 @@ class ApiService {
 
 	/**
 	 * Get best sellers with pagination support
+	 * @deprecated This method is deprecated. Best sellers are now included in the ads API response.
+	 * Use the buyer/ads endpoint with balanced=true parameter instead.
 	 * @param {Object} params - Query parameters
 	 * @param {number} params.page - Page number
 	 * @param {number} params.per_page - Items per page

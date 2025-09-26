@@ -30,12 +30,6 @@ import {
 	generateCategoryPageSEO,
 } from "../../utils/seoHelpers";
 import apiService from "../../services/apiService";
-// import {
-// 	smartReshuffle,
-// 	createDebouncedReshuffle,
-// 	AutoReshuffleManager,
-// 	enhancedSmartReshuffle,
-// } from "../utils/adReshuffleUtils";
 
 /*
 Responsive breakpoints reference
@@ -101,10 +95,7 @@ const Home = ({ onLogout }) => {
 	// Ref to track abort controller for search requests
 	const abortControllerRef = useRef(null);
 
-	// Enhanced reshuffle functionality state
-	const [lastReshuffleTime, setLastReshuffleTime] = useState(null);
-	const [isReshuffling, setIsReshuffling] = useState(false);
-	// const [reshuffleTrigger, setReshuffleTrigger] = useState("initial"); // Commented out unused variable
+	// User behavior tracking for analytics (no reshuffling)
 	const [userBehavior, setUserBehavior] = useState(
 		{
 			preferredCategories: [],
@@ -116,7 +107,14 @@ const Home = ({ onLogout }) => {
 		},
 		[navigate]
 	);
-	// const autoReshuffleManagerRef = useRef(null); // Commented out unused variable
+
+	// Add caching for API responses
+	const [cachedData, setCachedData] = useState({
+		categories: null,
+		ads: null,
+		bestSellers: null,
+		lastFetch: null,
+	});
 	const pageLoadTimeRef = useRef(Date.now());
 
 	// Ref to prevent duplicate requests
@@ -550,94 +548,98 @@ const Home = ({ onLogout }) => {
 	useEffect(() => {
 		let isMounted = true;
 
+		// Check if we have cached data that's still fresh (5 minutes)
+		const isCacheValid =
+			cachedData.lastFetch && Date.now() - cachedData.lastFetch < 5 * 60 * 1000; // 5 minutes
+
+		// If we have valid cached data, use it immediately
+		if (isCacheValid && cachedData.categories && cachedData.ads) {
+			setCategories(cachedData.categories);
+			setAds(cachedData.ads);
+			setBestSellers(cachedData.bestSellers || []);
+			setCategoriesError(null);
+			setAdsError(null);
+			setBestSellersError(null);
+			setIsLoadingCategories(false);
+			setIsLoadingAds(false);
+			setIsLoadingBestSellers(false);
+			return;
+		}
+
 		// Fetch all data in parallel for instant loading
 		const fetchAllData = async () => {
 			try {
 				// Start all requests simultaneously
-				const [categoriesResult, adsResult, bestSellersResult] =
-					await Promise.allSettled([
-						// Categories fetch
-						apiService
-							.batchFetch([
-								`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
-								`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
-							])
-							.then(([categoryData, subcategoryData]) => {
-								const categoriesWithSubcategories = categoryData.map(
-									(category) => ({
-										...category,
-										subcategories: subcategoryData.filter(
-											(sub) => sub.category_id === category.id
-										),
-									})
-								);
-								return categoriesWithSubcategories;
-							}),
+				const [categoriesResult, adsResult] = await Promise.allSettled([
+					// Categories fetch
+					apiService
+						.batchFetch([
+							`${process.env.REACT_APP_BACKEND_URL}/buyer/categories`,
+							`${process.env.REACT_APP_BACKEND_URL}/buyer/subcategories`,
+						])
+						.then(([categoryData, subcategoryData]) => {
+							const categoriesWithSubcategories = categoryData.map(
+								(category) => ({
+									...category,
+									subcategories: subcategoryData.filter(
+										(sub) => sub.category_id === category.id
+									),
+								})
+							);
+							return categoriesWithSubcategories;
+						}),
 
-						// Ads fetch with reduced timeout and fewer items
-						fetch(
-							`${process.env.REACT_APP_BACKEND_URL}/buyer/ads?per_page=100&balanced=true`,
-							{
-								headers: {
-									Accept: "application/json",
-									"Content-Type": "application/json",
-								},
-							}
-						).then(async (response) => {
-							if (!response.ok) {
-								throw new Error(`Failed to fetch ads: ${response.status}`);
-							}
-							const adData = await response.json();
+					// Ads fetch with optimized parameters for faster loading
+					fetch(
+						`${
+							process.env.REACT_APP_BACKEND_URL
+						}/buyer/ads?per_page=80&balanced=true&_t=${Date.now()}`,
+						{
+							headers: {
+								Accept: "application/json",
+								"Content-Type": "application/json",
+							},
+							// Add timeout for faster failure detection
+							signal: AbortSignal.timeout(10000), // 10 second timeout
+						}
+					).then(async (response) => {
+						if (!response.ok) {
+							throw new Error(`Failed to fetch ads: ${response.status}`);
+						}
+						const adData = await response.json();
 
-							// Handle new API response format with subcategory counts
-							let ads, subcategoryCounts;
-							if (adData.ads && adData.subcategory_counts) {
-								// New format with subcategory counts
-								ads = adData.ads;
-								subcategoryCounts = adData.subcategory_counts;
-							} else {
-								// Old format - just array of ads
-								ads = adData;
-								subcategoryCounts = {};
-							}
+						// Handle new API response format with subcategory counts and best sellers
+						let ads, subcategoryCounts, bestSellers;
+						if (adData.ads && adData.subcategory_counts) {
+							// New format with subcategory counts and best sellers
+							ads = adData.ads;
+							subcategoryCounts = adData.subcategory_counts;
+							bestSellers = adData.best_sellers || [];
+						} else {
+							// Old format - just array of ads
+							ads = adData;
+							subcategoryCounts = {};
+							bestSellers = [];
+						}
 
-							// Process ads data
+						// Process ads data
 
-							// Organize ads by subcategory ID
-							const organizedAds = {};
-							if (Array.isArray(ads)) {
-								ads.forEach((ad) => {
-									if (ad.subcategory_id) {
-										if (!organizedAds[ad.subcategory_id]) {
-											organizedAds[ad.subcategory_id] = [];
-										}
-										organizedAds[ad.subcategory_id].push(ad);
+						// Organize ads by subcategory ID
+						const organizedAds = {};
+						if (Array.isArray(ads)) {
+							ads.forEach((ad) => {
+								if (ad.subcategory_id) {
+									if (!organizedAds[ad.subcategory_id]) {
+										organizedAds[ad.subcategory_id] = [];
 									}
-								});
-							}
+									organizedAds[ad.subcategory_id].push(ad);
+								}
+							});
+						}
 
-							return { organizedAds, subcategoryCounts };
-						}),
-
-						// Best sellers fetch with reduced timeout
-						fetch(
-							`${process.env.REACT_APP_BACKEND_URL}/best_sellers?limit=20`,
-							{
-								headers: {
-									Accept: "application/json",
-									"Content-Type": "application/json",
-								},
-							}
-						).then(async (response) => {
-							if (!response.ok) {
-								throw new Error(
-									`Failed to fetch best sellers: ${response.status}`
-								);
-							}
-							const bestSellersData = await response.json();
-							return bestSellersData.best_sellers || [];
-						}),
-					]);
+						return { organizedAds, subcategoryCounts, bestSellers };
+					}),
+				]);
 
 				// Process results
 				if (isMounted) {
@@ -649,22 +651,31 @@ const Home = ({ onLogout }) => {
 						setCategoriesError("Failed to load categories");
 					}
 
-					// Handle ads
+					// Handle ads and best sellers (now from the same API call)
 					if (adsResult.status === "fulfilled") {
-						setAds(adsResult.value.organizedAds);
+						const organizedAds = adsResult.value.organizedAds;
+						const bestSellers = adsResult.value.bestSellers || [];
+
+						setAds(organizedAds);
 						setSubcategoryCounts(adsResult.value.subcategoryCounts);
+						setBestSellers(bestSellers);
 						setAdsError(null);
+						setBestSellersError(null);
+
+						// Update cache with fresh data
+						setCachedData({
+							categories:
+								categoriesResult.status === "fulfilled"
+									? categoriesResult.value
+									: cachedData.categories,
+							ads: organizedAds,
+							bestSellers: bestSellers,
+							lastFetch: Date.now(),
+						});
 					} else {
 						setAdsError("Failed to load ads");
-						setAds({});
-					}
-
-					// Handle best sellers
-					if (bestSellersResult.status === "fulfilled") {
-						setBestSellers(bestSellersResult.value);
-						setBestSellersError(null);
-					} else {
 						setBestSellersError("Failed to load best sellers");
+						setAds({});
 						setBestSellers([]);
 					}
 				}
@@ -700,6 +711,9 @@ const Home = ({ onLogout }) => {
 	// Initialize component state from URL parameters on mount
 	useEffect(() => {
 		setIsComponentMounted(true);
+
+		// Reset processing ref to ensure clean state
+		isProcessingRef.current = false;
 
 		// Initialize state directly from URL parameters
 		const query = searchParams.get("query") || "";
@@ -895,11 +909,12 @@ const Home = ({ onLogout }) => {
 				let ads = [];
 				let shops = [];
 
-				if (results.best_sellers) {
+				if (results.ads && results.ads.length > 0) {
+					// Regular ads response format
+					ads = results.ads;
+				} else if (results.best_sellers && results.best_sellers.length > 0) {
 					// Best sellers response format
 					ads = results.best_sellers;
-				} else if (results.ads) {
-					ads = results.ads;
 				} else if (Array.isArray(results)) {
 					ads = results;
 				}
@@ -990,7 +1005,7 @@ const Home = ({ onLogout }) => {
 				}
 			}
 		},
-		[searchParams, isComponentMounted, isSearching]
+		[searchParams, isComponentMounted]
 	);
 
 	// Separate effect to handle URL changes and trigger search
@@ -1034,7 +1049,6 @@ const Home = ({ onLogout }) => {
 		// Only trigger search if parameters have actually changed or this is the first time
 		if (paramsChanged || isFirstTimeWithParams) {
 			fetchSearchResults();
-		} else {
 		}
 	}, [searchParams, isComponentMounted, isInitialized, fetchSearchResults]);
 
@@ -1147,211 +1161,13 @@ const Home = ({ onLogout }) => {
 		await logSubcategoryClick(subcategoryName, categoryId);
 	};
 
-	// Reshuffle functionality
-	const performReshuffle = useCallback(
-		(options = {}) => {
-			if (isReshuffling || Object.keys(ads).length === 0) return;
-
-			const {
-				trigger = "manual",
-				// userBehavior: reshuffleUserBehavior, // Commented out unused variable
-				// timestamp, // Commented out unused variable
-				sessionDuration,
-			} = options;
-
-			setIsReshuffling(true);
-			// setReshuffleTrigger(trigger); // Commented out - variable not defined
-
-			try {
-				// Update user behavior with current session data
-				const currentTimeOnPage = Date.now() - pageLoadTimeRef.current;
-				const scrollDepth = Math.max(
-					userBehavior.scrollDepth || 0,
-					(window.scrollY /
-						(document.documentElement.scrollHeight - window.innerHeight)) *
-						100
-				);
-
-				const updatedUserBehavior = {
-					...userBehavior,
-					timeOnPage: currentTimeOnPage,
-					lastActivity: Date.now(),
-					scrollDepth,
-					sessionDuration:
-						sessionDuration || Date.now() - pageLoadTimeRef.current,
-					trigger,
-				};
-
-				// Use enhanced smart reshuffle for better personalization
-				// const reshuffledAds = enhancedSmartReshuffle( // Commented out - function not imported
-				// 	ads,
-				// 	updatedUserBehavior,
-				// 	{ trigger, timestamp },
-				// 	{
-				// 		maintainTierOrder: true,
-				// 		shuffleWithinTier: true,
-				// 	}
-				// );
-
-				// Fallback: simple reshuffle without enhanced features
-				const reshuffledAds = ads; // Keep original ads for now
-
-				// Update ads state with smooth transition
-				setAds(reshuffledAds);
-				setLastReshuffleTime(Date.now());
-
-				// Update user behavior state
-				setUserBehavior(updatedUserBehavior);
-			} catch (error) {
-				// Handle reshuffle error silently
-			} finally {
-				setIsReshuffling(false);
-			}
-		},
-		[ads, userBehavior, isReshuffling]
-	);
-
-	// Debounced reshuffle function
-	// const debouncedReshuffle = useMemo( // Commented out unused variable
-	// 	() => createDebouncedReshuffle(performReshuffle, 2000),
-	// 	[performReshuffle]
-	// );
-
-	// Enhanced automatic reshuffle system
-	useEffect(() => {
-		if (Object.keys(ads).length === 0 || !isComponentMounted) return;
-
-		// Initialize the auto reshuffle manager
-		// const reshuffleManager = new AutoReshuffleManager(); // Commented out - class not imported
-
-		// Define reshuffle callbacks (silent operation)
-		// const onReshuffleStart = (triggerType) => { // Commented out unused variable
-		// 	setIsReshuffling(true);
-		// 	// setReshuffleTrigger(triggerType); // Commented out - variable not defined
-		// };
-
-		// const onReshuffleEnd = (triggerType) => { // Commented out unused variable
-		// 	setIsReshuffling(false);
-		// };
-
-		// Start the intelligent reshuffle system
-		// reshuffleManager.start(performReshuffle, { // Commented out - manager not available
-		// 	userBehavior,
-		// 	onReshuffleStart,
-		// 	onReshuffleEnd,
-		// });
-
-		// autoReshuffleManagerRef.current = reshuffleManager; // Commented out - manager not available
-
-		// Cleanup on unmount
-		return () => {
-			// if (autoReshuffleManagerRef.current) { // Commented out - manager not available
-			// 	autoReshuffleManagerRef.current.stop();
-			// }
-		};
-	}, [ads, performReshuffle, userBehavior, isComponentMounted]);
-
-	// Manual reshuffle function for user-triggered reshuffles
-	// const handleManualReshuffle = useCallback(() => { // Commented out unused variable
-	// 	performReshuffle({
-	// 		trigger: "manual",
-	// 		timestamp: Date.now(),
-	// 	});
-	// }, [performReshuffle]);
-
-	// Track user behavior for intelligent reshuffling
-	const trackUserBehavior = useCallback((action, data) => {
-		setUserBehavior((prev) => {
-			const updated = { ...prev };
-
-			switch (action) {
-				case "adClick":
-					if (data.adId && !updated.clickedAds.includes(data.adId)) {
-						updated.clickedAds = [...updated.clickedAds, data.adId];
-					}
-					if (
-						data.categoryName &&
-						!updated.preferredCategories.includes(data.categoryName)
-					) {
-						updated.preferredCategories = [
-							...updated.preferredCategories,
-							data.categoryName,
-						];
-					}
-					break;
-				case "adAvoid":
-					if (data.adId && !updated.avoidedAds.includes(data.adId)) {
-						updated.avoidedAds = [...updated.avoidedAds, data.adId];
-					}
-					break;
-				case "activity":
-					updated.lastActivity = Date.now();
-					break;
-				default:
-					break;
-			}
-
-			return updated;
-		});
-	}, []);
-
-	// Track user activity for intelligent reshuffling
-	useEffect(() => {
-		const handleActivity = () => {
-			trackUserBehavior("activity");
-		};
-
-		const handleScroll = () => {
-			// Track scroll depth for reshuffle personalization
-			const scrollDepth = Math.max(
-				userBehavior.scrollDepth || 0,
-				(window.scrollY /
-					(document.documentElement.scrollHeight - window.innerHeight)) *
-					100
-			);
-
-			setUserBehavior((prev) => ({
-				...prev,
-				scrollDepth: Math.min(scrollDepth, 100), // Cap at 100%
-			}));
-		};
-
-		// Track various user activities
-		const events = ["mousedown", "mousemove", "keypress", "touchstart"];
-		events.forEach((event) => {
-			document.addEventListener(event, handleActivity, { passive: true });
-		});
-
-		// Separate scroll tracking
-		window.addEventListener("scroll", handleScroll, { passive: true });
-
-		return () => {
-			events.forEach((event) => {
-				document.removeEventListener(event, handleActivity, true);
-			});
-			window.removeEventListener("scroll", handleScroll, true);
-		};
-	}, [trackUserBehavior, userBehavior.scrollDepth]);
-
-	// Enhanced handleAdClick with behavior tracking
+	// Enhanced handleAdClick (simplified without behavior tracking)
 	const handleAdClickWithTracking = useCallback(
 		async (adUrl, adId) => {
-			// Track user behavior
-			const ad = Object.values(ads)
-				.flat()
-				.find((a) => a.id === adId);
-			if (ad) {
-				trackUserBehavior("adClick", {
-					adId,
-					categoryName: ad.category_name,
-					subcategoryName: ad.subcategory_name,
-				});
-			}
-
 			// Call original handleAdClick with both parameters
 			await handleAdClick(adUrl, adId);
 		},
-		[handleAdClick, ads, trackUserBehavior]
+		[handleAdClick]
 	);
 
 	// Function to clear search results and return to home view
@@ -1610,11 +1426,12 @@ const Home = ({ onLogout }) => {
 									const subcategory = searchParams.get("subcategory");
 
 									// Only show search results if we have a query parameter OR category/subcategory filtering
-									return (
+									const shouldShowSearch =
 										query !== null ||
 										(category && category !== "All") ||
-										(subcategory && subcategory !== "All")
-									);
+										(subcategory && subcategory !== "All");
+
+									return shouldShowSearch;
 							  })() ? (
 								(() => {
 									return (
@@ -1887,25 +1704,24 @@ const Home = ({ onLogout }) => {
 												</div>
 											)}
 
-											{/* Loading state for categories and ads */}
-											{!isSearching &&
-												(isLoadingCategories || isLoadingAds) && (
-													<div className="flex justify-center items-center min-h-[60vh] w-full bg-gray-50 rounded-lg">
-														<div className="text-center flex flex-col items-center justify-center">
-															<Spinner
-																variant="warning"
-																name="cube-grid"
-																style={{ width: 60, height: 60 }}
-															/>
-															<div className="mt-4 text-gray-600 font-medium text-center">
-																Loading categories and products...
-															</div>
-															<div className="mt-2 text-gray-500 text-sm text-center">
-																Please wait while we fetch the latest products
-															</div>
+											{/* Loading state for categories only - ads will show skeleton loading */}
+											{!isSearching && isLoadingCategories && (
+												<div className="flex justify-center items-center min-h-[60vh] w-full bg-gray-50 rounded-lg">
+													<div className="text-center flex flex-col items-center justify-center">
+														<Spinner
+															variant="warning"
+															name="cube-grid"
+															style={{ width: 60, height: 60 }}
+														/>
+														<div className="mt-4 text-gray-600 font-medium text-center">
+															Loading categories...
+														</div>
+														<div className="mt-2 text-gray-500 text-sm text-center">
+															Please wait while we fetch the latest categories
 														</div>
 													</div>
-												)}
+												</div>
+											)}
 
 											{/* Categories Section - Always show when not searching */}
 											{!isSearching &&
@@ -2001,7 +1817,6 @@ const Home = ({ onLogout }) => {
 																);
 															}
 
-															// Note: shuffleArray function removed as it was unused
 															return categoriesWithAds.map(
 																(category, index) => {
 																	// Get all subcategories for this category
@@ -2038,28 +1853,21 @@ const Home = ({ onLogout }) => {
 																				: 0;
 																			return bCount - aCount; // Descending order
 																		});
-																	const randomizedSubcategories =
-																		sortedSubcategories.slice(0, 4);
-
 																	return (
 																		<div key={category.id} className="mb-8">
 																			<CategorySection
 																				title={category.name}
 																				categoryId={category.id}
-																				randomizedSubcategories={
-																					randomizedSubcategories
-																				}
+																				subcategories={sortedSubcategories.slice(
+																					0,
+																					4
+																				)}
 																				ads={ads}
 																				handleAdClick={
 																					handleAdClickWithTracking
 																				}
 																				handleSubcategoryClick={
 																					handleSubcategoryClick
-																				}
-																				isReshuffled={
-																					!!lastReshuffleTime &&
-																					Date.now() - lastReshuffleTime <
-																						300000
 																				}
 																			/>
 																		</div>
@@ -2075,35 +1883,6 @@ const Home = ({ onLogout }) => {
 																		className="h-48 bg-gray-200 animate-pulse rounded"
 																	/>
 																))}
-															</div>
-														)}
-
-														{/* Skeleton loading for ads when categories are loaded but ads are still loading */}
-														{!isLoadingCategories && isLoadingAds && (
-															<div className="space-y-8">
-																{Array.from({ length: 3 }).map(
-																	(_, categoryIdx) => (
-																		<div key={categoryIdx} className="mb-8">
-																			<div className="h-8 bg-gray-200 animate-pulse rounded mb-4 w-48"></div>
-																			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
-																				{Array.from({ length: 6 }).map(
-																					(_, adIdx) => (
-																						<div
-																							key={adIdx}
-																							className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-																						>
-																							<div className="h-32 sm:h-36 lg:h-40 bg-gray-200 animate-pulse"></div>
-																							<div className="p-2 sm:p-3">
-																								<div className="h-4 bg-gray-200 animate-pulse rounded mb-2"></div>
-																								<div className="h-3 bg-gray-200 animate-pulse rounded w-2/3"></div>
-																							</div>
-																						</div>
-																					)
-																				)}
-																			</div>
-																		</div>
-																	)
-																)}
 															</div>
 														)}
 													</>
