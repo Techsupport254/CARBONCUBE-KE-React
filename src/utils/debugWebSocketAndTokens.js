@@ -59,7 +59,7 @@ export const debugWebSocketAndTokens = () => {
 		console.log(
 			"React is available, but we can't directly access hook state from console"
 		);
-		console.log("Check the browser's React DevTools for component state");
+		// Check the browser's React DevTools for component state
 	}
 
 	// Check localStorage for user data

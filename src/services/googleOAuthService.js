@@ -16,20 +16,32 @@ class GoogleOAuthService {
 		}
 	}
 
-	// Generate Google OAuth URL
-	getAuthUrl() {
+	// Generate Google OAuth URL using backend-initiated flow
+	getAuthUrl(role = "buyer") {
+		// Fallback: Use direct Google OAuth if backend route is not available
+		if (!this.clientId) {
+			// If no client_id available, use backend-initiated flow
+			const backendUrl =
+				process.env.REACT_APP_BACKEND_URL || "http://localhost:3001";
+			return `${backendUrl}/auth/google_oauth2/initiate?role=${role}`;
+		}
+
+		// Direct Google OAuth as fallback
 		const params = new URLSearchParams({
 			client_id: this.clientId,
-			redirect_uri: this.redirectUri,
+			redirect_uri:
+				this.redirectUri ||
+				`${
+					process.env.REACT_APP_BACKEND_URL || "http://localhost:3001"
+				}/auth/google_oauth2/callback`,
 			response_type: "code",
-			scope: this.scope,
+			scope: "openid email profile",
 			access_type: "offline",
 			prompt: "consent",
+			state: role,
 		});
 
-		const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-
-		return authUrl;
+		return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 	}
 
 	// Handle OAuth callback and exchange code for token
@@ -58,8 +70,8 @@ class GoogleOAuthService {
 	}
 
 	// Initiate Google OAuth flow
-	initiateAuth() {
-		window.location.href = this.getAuthUrl();
+	initiateAuth(role = "buyer") {
+		window.location.href = this.getAuthUrl(role);
 	}
 
 	// Check if we're in a callback scenario

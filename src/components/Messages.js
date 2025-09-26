@@ -1006,14 +1006,17 @@ const Messages = ({
 	return (
 		<>
 			{navbarComponent}
-			<div className="bg-gray-50 flex flex-col h-[100vh] md:h-[95vh] overflow-hidden">
-				<div className="flex flex-1 h-full overflow-hidden">
+			<div
+				className="bg-gray-50 flex flex-col h-screen overflow-hidden"
+				style={{ height: "100vh", maxHeight: "100vh", minHeight: "100vh" }}
+			>
+				<div className="flex flex-1 min-h-0 overflow-hidden">
 					<div className={`flex-1 ${containerClassName}`}>
-						<div className="max-w-7xl mx-auto h-full flex flex-col">
-							<div className="bg-white overflow-hidden h-full flex">
+						<div className="max-w-7xl mx-auto h-full flex flex-col min-h-0">
+							<div className="bg-white overflow-hidden h-full flex min-h-0">
 								{/* Conversations List */}
 								{showConversationsList && (
-									<div className="w-full md:w-80 lg:w-80 xl:w-96 2xl:w-96 md:border-r border-gray-200 flex flex-col bg-white md:bg-gray-50 h-full overflow-hidden flex-shrink-0">
+									<div className="w-full sm:w-80 md:w-80 lg:w-80 xl:w-96 2xl:w-96 md:border-r border-gray-200 flex flex-col bg-white md:bg-gray-50 h-full overflow-hidden flex-shrink-0 min-h-0">
 										{/* Header */}
 										<div className="bg-white flex-shrink-0 p-3 sm:p-4 border-b border-gray-200">
 											<div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -1042,7 +1045,7 @@ const Messages = ({
 										</div>
 
 										{/* Conversations */}
-										<div className="flex-1 overflow-y-auto scroll-smooth messages-scrollbar webkit-scrolling-touch bg-white md:bg-gray-50 ">
+										<div className="flex-1 overflow-y-auto scroll-smooth messages-scrollbar webkit-scrolling-touch bg-white md:bg-gray-50 min-h-0">
 											{loadingConversations ? (
 												<div className="flex items-center justify-center h-32">
 													<Spinner name="cube-grid" color="#ffc107" />
@@ -1109,7 +1112,7 @@ const Messages = ({
 																			: "bg-white hover:bg-gray-50 active:bg-gray-100"
 																	}`}
 																>
-																	<div className="flex items-center space-x-3">
+																	<div className="flex items-start space-x-3">
 																		{/* Avatar */}
 																		<div className="flex-shrink-0 relative">
 																			{participantInfo.avatar ? (
@@ -1169,11 +1172,11 @@ const Messages = ({
 
 																			{/* Bottom row: Message preview with status */}
 																			{lastMessage && (
-																				<div className="flex items-center justify-between">
-																					{/* Message status indicators (only for messages I sent) */}
-																					<div className="flex items-center space-x-1 min-w-0 flex-1">
+																				<div className="flex items-start justify-between gap-2">
+																					{/* Message content with proper flex behavior */}
+																					<div className="flex items-start space-x-1 min-w-0 flex-1">
 																						{isMyMessage && messageStatus && (
-																							<div className="flex items-center flex-shrink-0">
+																							<div className="flex items-center flex-shrink-0 mt-0.5">
 																								{getMessageStatusIcon(
 																									conversation.last_message?.id,
 																									messageStatuses,
@@ -1183,13 +1186,20 @@ const Messages = ({
 																						)}
 
 																						<p
-																							className={`text-xs truncate ${
+																							className={`text-xs sm:text-sm break-words overflow-hidden flex-1 min-w-0 ${
 																								unreadCounts[conversation.id] >
 																									0 && !isMyMessage
 																									? "text-gray-700 font-medium"
 																									: "text-gray-500"
 																							}`}
 																							title={lastMessage}
+																							style={{
+																								display: "-webkit-box",
+																								WebkitLineClamp: 2,
+																								WebkitBoxOrient: "vertical",
+																								lineHeight: "1.2",
+																								maxHeight: "2.4em",
+																							}}
 																						>
 																							{lastMessage}
 																						</p>
@@ -1209,7 +1219,7 @@ const Messages = ({
 
 								{/* Messages Area */}
 								{showMessagesArea && (
-									<div className="w-full md:flex-1 flex flex-col h-full overflow-hidden">
+									<div className="w-full md:flex-1 flex flex-col h-full overflow-hidden min-h-0">
 										{selectedConversation ? (
 											<div className="flex flex-col h-full">
 												{/* Header */}
@@ -1336,7 +1346,7 @@ const Messages = ({
 												</div>
 
 												{/* Messages */}
-												<div className="flex-1 overflow-y-auto bg-gray-50 scroll-smooth messages-scrollbar webkit-scrolling-touch">
+												<div className="flex-1 overflow-y-auto bg-gray-50 scroll-smooth messages-scrollbar webkit-scrolling-touch min-h-0">
 													{loadingMessages ? (
 														<div className="flex items-center justify-center h-32">
 															<Spinner name="cube-grid" color="#ffc107" />
@@ -1357,7 +1367,7 @@ const Messages = ({
 															</p>
 														</div>
 													) : (
-														<div className="p-4 space-y-4">
+														<div className="p-4 space-y-4 min-h-0">
 															{messages.map((message) => {
 																const isSent =
 																	isMessageSentByCurrentUser(message);

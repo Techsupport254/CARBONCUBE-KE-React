@@ -55,7 +55,7 @@ export const cleanupOnLogout = () => {
 			clearInterval(i);
 		}
 
-		console.log("Logout cleanup completed successfully");
+		// Logout cleanup completed successfully
 	} catch (error) {
 		console.error("Error during logout cleanup:", error);
 	}
@@ -77,7 +77,7 @@ export const clearAuthData = () => {
 		sessionStorage.removeItem("userRole");
 		sessionStorage.removeItem("token");
 
-		console.log("Authentication data cleared successfully");
+		// Authentication data cleared successfully
 	} catch (error) {
 		console.error("Error clearing authentication data:", error);
 	}

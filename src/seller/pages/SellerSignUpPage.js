@@ -17,7 +17,7 @@ import {
 	faChartLine,
 	faRecycle,
 } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 import LocationSelector from "../../components/LocationSelector";
@@ -348,6 +348,10 @@ function SellerSignUpPage({ onSignup }) {
 	const [emailCheckTimeout, setEmailCheckTimeout] = useState(null);
 	const [usernameCheckTimeout, setUsernameCheckTimeout] = useState(null);
 	const [phoneCheckTimeout, setPhoneCheckTimeout] = useState(null);
+	const [businessNameCheckTimeout, setBusinessNameCheckTimeout] =
+		useState(null);
+	const [businessNumberCheckTimeout, setBusinessNumberCheckTimeout] =
+		useState(null);
 
 	const handleEmailChange = async (e) => {
 		const email = e.target.value;
@@ -489,6 +493,80 @@ function SellerSignUpPage({ onSignup }) {
 		}
 	};
 
+	const handleEnterpriseNameChange = async (e) => {
+		const enterprise_name = e.target.value;
+		handleChange(e);
+
+		// Clear previous enterprise name error
+		if (errors.enterprise_name) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.enterprise_name;
+				return newErrors;
+			});
+		}
+
+		// Clear any existing timeout
+		if (businessNameCheckTimeout) {
+			clearTimeout(businessNameCheckTimeout);
+		}
+
+		// Check if enterprise name exists only when user stops typing (debounced)
+		if (enterprise_name && enterprise_name.trim().length >= 2) {
+			const timeoutId = setTimeout(async () => {
+				const businessNameExists = await checkBusinessNameExists(
+					enterprise_name
+				);
+				if (businessNameExists) {
+					setErrors((prev) => ({
+						...prev,
+						enterprise_name:
+							"This business name is already registered. Please choose a different name.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setBusinessNameCheckTimeout(timeoutId);
+		}
+	};
+
+	const handleBusinessNumberChange = async (e) => {
+		const business_number = e.target.value;
+		handleChange(e);
+
+		// Clear previous business number error
+		if (errors.business_registration_number) {
+			setErrors((prev) => {
+				const newErrors = { ...prev };
+				delete newErrors.business_registration_number;
+				return newErrors;
+			});
+		}
+
+		// Clear any existing timeout
+		if (businessNumberCheckTimeout) {
+			clearTimeout(businessNumberCheckTimeout);
+		}
+
+		// Check if business number exists only when user stops typing (debounced)
+		if (business_number && business_number.trim().length >= 3) {
+			const timeoutId = setTimeout(async () => {
+				const businessNumberExists = await checkBusinessNumberExists(
+					business_number
+				);
+				if (businessNumberExists) {
+					setErrors((prev) => ({
+						...prev,
+						business_registration_number:
+							"This business registration number is already registered. Please use a different number.",
+					}));
+				}
+			}, 1000); // 1 second after user stops typing
+
+			setBusinessNumberCheckTimeout(timeoutId);
+		}
+	};
+
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData({
@@ -510,8 +588,23 @@ function SellerSignUpPage({ onSignup }) {
 			if (usernameCheckTimeout) {
 				clearTimeout(usernameCheckTimeout);
 			}
+			if (phoneCheckTimeout) {
+				clearTimeout(phoneCheckTimeout);
+			}
+			if (businessNameCheckTimeout) {
+				clearTimeout(businessNameCheckTimeout);
+			}
+			if (businessNumberCheckTimeout) {
+				clearTimeout(businessNumberCheckTimeout);
+			}
 		};
-	}, [emailCheckTimeout, usernameCheckTimeout]);
+	}, [
+		emailCheckTimeout,
+		usernameCheckTimeout,
+		phoneCheckTimeout,
+		businessNameCheckTimeout,
+		businessNumberCheckTimeout,
+	]);
 
 	useEffect(() => {
 		// Fetch options for dropdowns from the API
@@ -900,12 +993,12 @@ function SellerSignUpPage({ onSignup }) {
 	return (
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
-			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
-				<div className="w-full max-w-4xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-4 py-8 sm:px-6">
+				<div className="w-full max-w-6xl">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-						<div className="flex flex-col lg:flex-row min-h-[600px]">
+						<div className="flex flex-col lg:flex-row min-h-[700px]">
 							{/* Left Branding Section */}
-							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 flex-col justify-between">
+							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 flex-col justify-center">
 								{/* Header Section */}
 								<div className="space-y-3 sm:space-y-4 lg:space-y-4">
 									<div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4 lg:mb-4">
@@ -919,71 +1012,91 @@ function SellerSignUpPage({ onSignup }) {
 											<span className="text-yellow-400">Portal</span>
 										</h2>
 									</div>
-									<p className="text-slate-300 text-xs sm:text-sm leading-relaxed ml-8 sm:ml-10 lg:ml-11">
-										Join our growing network of Kenyan businesses and take your
-										brand online.
+									<p className="text-slate-300 text-sm leading-relaxed mb-8">
+										Welcome to CarbonCube - your trusted online marketplace for
+										sustainable products and eco-conscious shopping.
 									</p>
 								</div>
 
 								{/* Features Section */}
-								<div className="space-y-5">
-									<h5 className="text-yellow-400 text-sm font-medium">
+								<div className="space-y-8 mt-12">
+									<h5 className="text-yellow-400 text-lg font-bold mb-8">
 										Why Sell with us?
 									</h5>
-									<div className="space-y-3">
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+									<div className="space-y-6">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faUsers}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Reach thousands of potential customers
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Reach thousands of potential customers
+												</span>
+												<span className="text-slate-400 text-sm">
+													Connect with buyers across Kenya
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
 													icon={faChartLine}
-													className="text-yellow-400 text-xs"
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Boost your business visibility online
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Boost your business visibility online
+												</span>
+												<span className="text-slate-400 text-sm">
+													Increase your market reach and sales
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
-													icon={faLeaf}
-													className="text-yellow-400 text-xs"
+													icon={faFileAlt}
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Easy-to-use tools to manage your listings
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Easy-to-use tools to manage your listings
+												</span>
+												<span className="text-slate-400 text-sm">
+													Simple dashboard for product management
+												</span>
+											</div>
 										</div>
-										<div className="flex items-center space-x-3">
-											<div className="w-5 h-5 bg-yellow-400/20 rounded flex items-center justify-center">
+										<div className="flex items-start space-x-4">
+											<div className="w-8 h-8 bg-yellow-400/20 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
 												<FontAwesomeIcon
-													icon={faRecycle}
-													className="text-yellow-400 text-xs"
+													icon={faBuilding}
+													className="text-yellow-400 text-base"
 												/>
 											</div>
-											<span className="text-slate-300 text-sm">
-												Support and resources for business growth
-											</span>
+											<div>
+												<span className="text-slate-300 text-base font-medium block">
+													Support and resources for business growth
+												</span>
+												<span className="text-slate-400 text-sm">
+													Get help growing your online business
+												</span>
+											</div>
 										</div>
 									</div>
 								</div>
 
 								{/* Vision Section */}
-								<div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-									<h6 className="text-yellow-400 font-medium text-sm mb-2">
+								<div className="bg-slate-800/50 rounded-lg p-5 border border-slate-700/50 mt-8">
+									<h6 className="text-yellow-400 font-semibold text-sm mb-3">
 										Vision
 									</h6>
-									<p className="text-slate-300 text-xs leading-relaxed">
+									<p className="text-slate-300 text-sm leading-relaxed">
 										"To be Kenya's most trusted and innovative online
 										marketplace."
 									</p>
@@ -991,19 +1104,19 @@ function SellerSignUpPage({ onSignup }) {
 							</div>
 
 							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10 flex items-center">
-								<div className="w-full max-w-md mx-auto">
+							<div className="w-full lg:w-3/5 bg-white p-8 sm:p-10 lg:p-12 flex items-center">
+								<div className="w-full max-w-2xl mx-auto">
 									{/* Header Section */}
-									<div className="text-center mb-8">
-										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+									<div className="text-center mb-10">
+										<h3 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
 											Seller Sign Up
 										</h3>
-										<p className="text-gray-600 text-sm">
+										<p className="text-gray-600 text-base sm:text-lg">
 											Create your seller account
 										</p>
 									</div>
 
-									<form onSubmit={handleSubmit} className="space-y-6">
+									<form onSubmit={handleSubmit} className="space-y-8">
 										{errors.general && (
 											<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 												{errors.general}
@@ -1014,7 +1127,7 @@ function SellerSignUpPage({ onSignup }) {
 											<>
 												{/* Step 1 Errors */}
 												{/* Personal Information Section */}
-												<div className="space-y-6">
+												<div className="space-y-8">
 													{/* Full Name */}
 													<div>
 														<label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1029,7 +1142,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter your full name"
 																name="fullname"
-																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.fullname
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1046,7 +1159,7 @@ function SellerSignUpPage({ onSignup }) {
 													</div>
 
 													{/* Username and Phone - Same Row */}
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
 																Username
@@ -1060,7 +1173,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter username"
 																	name="username"
-																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.username
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1088,7 +1201,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter phone number"
 																	name="phone_number"
-																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.phone_number
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1119,7 +1232,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="email"
 																placeholder="Enter your email address"
 																name="email"
-																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.email
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1136,14 +1249,14 @@ function SellerSignUpPage({ onSignup }) {
 													</div>
 
 													{/* Gender and Age Group - Same Row */}
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
 																Gender
 															</label>
 															<select
 																name="gender"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.gender
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1172,7 +1285,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="age_group_id"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.age_group_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1201,7 +1314,7 @@ function SellerSignUpPage({ onSignup }) {
 												{/* Business Information Section */}
 												<div className="space-y-6">
 													{/* Enterprise Name and Business Permit - Same Row */}
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
 																Enterprise Name
@@ -1215,13 +1328,13 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter enterprise name"
 																	name="enterprise_name"
-																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.enterprise_name
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 																	} focus:outline-none`}
 																	value={formData.enterprise_name}
-																	onChange={handleChange}
+																	onChange={handleEnterpriseNameChange}
 																/>
 															</div>
 															{errors.enterprise_name && (
@@ -1243,13 +1356,13 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter business permit number"
 																	name="business_registration_number"
-																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.business_registration_number
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 																	} focus:outline-none`}
 																	value={formData.business_registration_number}
-																	onChange={handleChange}
+																	onChange={handleBusinessNumberChange}
 																/>
 															</div>
 															{errors.business_registration_number && (
@@ -1274,7 +1387,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter physical address"
 																name="location"
-																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.location
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1302,7 +1415,7 @@ function SellerSignUpPage({ onSignup }) {
 															errors.enterprise_name ||
 															errors.location
 														}
-														className={`w-full font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+														className={`w-full font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform text-base shadow-lg ${
 															errors.fullname ||
 															errors.username ||
 															errors.phone_number ||
@@ -1324,53 +1437,28 @@ function SellerSignUpPage({ onSignup }) {
 											<>
 												{/* Step 2 Errors */}
 												{/* Location Information Section */}
-												<div className="space-y-6">
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-														<div>
-															<LocationSelector
-																formData={formData}
-																handleChange={handleChange}
-																errors={errors}
-																showCityInput={true}
-																showLocationInput={false}
-																className="space-y-3"
-															/>
-														</div>
-														<div>
-															<label className="block text-sm font-medium text-gray-700 mb-2">
-																Zip Code
-															</label>
-															<input
-																type="text"
-																placeholder="Enter zip code"
-																name="zipcode"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
-																	errors.zipcode
-																		? "border-red-500 focus:ring-red-400"
-																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
-																} focus:outline-none`}
-																value={formData.zipcode}
-																onChange={handleChange}
-															/>
-															{errors.zipcode && (
-																<div className="text-red-500 text-xs mt-1">
-																	{errors.zipcode}
-																</div>
-															)}
-														</div>
-													</div>
+												<div className="space-y-8">
+													<LocationSelector
+														key={`location-${formData.county_id}-${formData.sub_county_id}`}
+														formData={formData}
+														handleChange={handleChange}
+														errors={errors}
+														showCityInput={true}
+														showLocationInput={false}
+														className="space-y-6"
+													/>
 												</div>
 
 												{/* Document Information Section */}
-												<div className="space-y-6">
-													<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<div className="space-y-8">
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
 																Document Type (optional)
 															</label>
 															<select
 																name="document_type_id"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.document_type_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1398,7 +1486,7 @@ function SellerSignUpPage({ onSignup }) {
 															<input
 																type="date"
 																name="document_expiry_date"
-																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.document_expiry_date
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1411,7 +1499,7 @@ function SellerSignUpPage({ onSignup }) {
 												</div>
 
 												{/* File Upload Section */}
-												<div className="space-y-6">
+												<div className="space-y-8">
 													{/* Document Upload */}
 													<div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
 														<label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -1451,7 +1539,7 @@ function SellerSignUpPage({ onSignup }) {
 														<div className="flex items-center justify-center">
 															<label
 																htmlFor="documentUpload"
-																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+																className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
 															>
 																<svg
 																	className="w-5 h-5 mr-2"
@@ -1564,7 +1652,7 @@ function SellerSignUpPage({ onSignup }) {
 														<div className="flex items-center justify-center">
 															<label
 																htmlFor="profilePictureUpload"
-																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+																className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
 															>
 																<svg
 																	className="w-5 h-5 mr-2"
@@ -1621,7 +1709,7 @@ function SellerSignUpPage({ onSignup }) {
 													<h4 className="text-sm font-semibold text-gray-700 mb-4">
 														Account Security
 													</h4>
-													<div className="space-y-6">
+													<div className="space-y-8">
 														<div>
 															<label className="block text-sm font-medium text-gray-700 mb-2">
 																Password
@@ -1782,7 +1870,7 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="flex justify-between gap-4 pt-4">
 													<button
 														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
 														onClick={prevStep}
 													>
 														Back
@@ -1795,7 +1883,7 @@ function SellerSignUpPage({ onSignup }) {
 															errors.password ||
 															errors.password_confirmation
 														}
-														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
 															!terms ||
 															submittingSignup ||
 															errors.password ||
@@ -1825,7 +1913,7 @@ function SellerSignUpPage({ onSignup }) {
 															type="text"
 															placeholder="Enter OTP sent to your email"
 															name="otp"
-															className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.otp
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1883,7 +1971,7 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="flex justify-between gap-4 pt-4">
 													<button
 														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
 														onClick={prevStep}
 													>
 														Back
@@ -1891,7 +1979,7 @@ function SellerSignUpPage({ onSignup }) {
 
 													<button
 														type="button"
-														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
 															!terms ||
 															otpCode.trim().length === 0 ||
 															verifyingOtp ||
@@ -1951,12 +2039,12 @@ function SellerSignUpPage({ onSignup }) {
 											<p className="text-gray-600 mb-4 text-sm">
 												Already have an account?
 											</p>
-											<a
-												href="./login"
-												className="text-yellow-500 hover:text-yellow-600 transition-colors duration-200 text-sm font-medium"
+											<Link
+												to="/login"
+												className="text-yellow-600 hover:text-yellow-700 font-medium text-sm underline transition-colors duration-200"
 											>
-												Sign In
-											</a>
+												Sign in to your account
+											</Link>
 										</div>
 									</form>
 								</div>

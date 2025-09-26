@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -17,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Navbar from "../../components/Navbar";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
+import GoogleSignInButton from "../../components/GoogleSignInButton";
 import "../css/BuyerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -520,10 +521,10 @@ function BuyerSignUpPage({ onSignup }) {
 	return (
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
-			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
-				<div className="w-4/5 max-w-6xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-4 py-8 sm:px-6">
+				<div className="w-full max-w-6xl">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-						<div className="flex flex-col lg:flex-row min-h-[600px]">
+						<div className="flex flex-col lg:flex-row min-h-[700px]">
 							{/* Left Branding Section */}
 							<div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-10 flex-col justify-center">
 								{/* Header Section */}
@@ -638,10 +639,51 @@ function BuyerSignUpPage({ onSignup }) {
 								</div>
 							</div>
 
-							{/* Right Login Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-6 lg:p-8 flex items-center">
+							{/* Right Form Section */}
+							<div className="w-full lg:w-3/5 bg-white p-8 sm:p-10 lg:p-12 flex items-center">
 								<div className="w-full max-w-2xl mx-auto">
-									<form onSubmit={handleSubmit} className="space-y-4">
+									{/* Header Section */}
+									<div className="text-center mb-10">
+										<h3 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+											Buyer Sign Up
+										</h3>
+										<p className="text-gray-600 text-base sm:text-lg">
+											Create your buyer account
+										</p>
+									</div>
+
+									{/* Google Sign-In Button */}
+									<div className="mb-8">
+										<GoogleSignInButton
+											role="buyer"
+											onSuccess={(token, user) => {
+												// Handle successful Google sign-in
+												onSignup(token, user);
+												navigate("/");
+											}}
+											onError={(error) => {
+												console.error("Google sign-in error:", error);
+												setErrors({
+													general: "Google sign-in failed. Please try again.",
+												});
+											}}
+											disabled={submittingSignup}
+										/>
+									</div>
+
+									{/* Divider */}
+									<div className="relative mb-8">
+										<div className="absolute inset-0 flex items-center">
+											<div className="w-full border-t border-gray-300" />
+										</div>
+										<div className="relative flex justify-center text-sm">
+											<span className="px-2 bg-white text-gray-500">
+												Or continue with email
+											</span>
+										</div>
+									</div>
+
+									<form onSubmit={handleSubmit} className="space-y-8">
 										{successMessage && (
 											<div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
 												{successMessage}
@@ -654,7 +696,7 @@ function BuyerSignUpPage({ onSignup }) {
 										)}
 
 										{/* Personal Information Section */}
-										<div className="space-y-3">
+										<div className="space-y-8">
 											{/* Full Name */}
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
@@ -686,7 +728,7 @@ function BuyerSignUpPage({ onSignup }) {
 											</div>
 
 											{/* Username and Phone - Same Row */}
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 												<div>
 													<label className="block text-sm font-medium text-gray-700 mb-2">
 														Username
@@ -791,7 +833,7 @@ function BuyerSignUpPage({ onSignup }) {
 											</div>
 
 											{/* Gender and Age Group - Same Row */}
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 												<div>
 													<label className="block text-sm font-medium text-gray-700 mb-2">
 														Gender
@@ -855,9 +897,9 @@ function BuyerSignUpPage({ onSignup }) {
 										</div>
 
 										{/* Account Security Section */}
-										<div className="space-y-3">
+										<div className="space-y-8">
 											{/* Password Fields */}
-											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 												<div>
 													<label className="block text-sm font-medium text-gray-700 mb-2">
 														Password
@@ -940,7 +982,7 @@ function BuyerSignUpPage({ onSignup }) {
 										</div>
 
 										{/* Email Verification Section */}
-										<div className="space-y-3">
+										<div className="space-y-8">
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
 													Email Verification
@@ -1057,7 +1099,7 @@ function BuyerSignUpPage({ onSignup }) {
 													!otpRequested ||
 													!terms
 												}
-												className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+												className={`w-full font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform text-base shadow-lg ${
 													errors.fullname ||
 													errors.username ||
 													errors.email ||
@@ -1083,6 +1125,19 @@ function BuyerSignUpPage({ onSignup }) {
 													? "Accept Terms to Continue"
 													: "Create Account"}
 											</button>
+										</div>
+
+										{/* Sign In Link */}
+										<div className="text-center mt-6">
+											<p className="text-gray-600 mb-4 text-sm">
+												Already have an account?
+											</p>
+											<Link
+												to="/login"
+												className="text-yellow-600 hover:text-yellow-700 font-medium text-sm underline transition-colors duration-200"
+											>
+												Sign in to your account
+											</Link>
 										</div>
 									</form>
 								</div>

@@ -1605,6 +1605,64 @@ const AdDetails = () => {
 														</div>
 													</div>
 
+													{/* Price Section - Mobile Only */}
+													<div className="w-full bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm">
+														<div className="flex flex-wrap items-center justify-between gap-3">
+															{/* Price */}
+															<div className="flex items-center space-x-1">
+																<span className="text-sm sm:text-base text-gray-600">
+																	KSh
+																</span>
+																<span className="text-xl sm:text-2xl font-bold text-gray-900">
+																	{ad.price
+																		? Number(ad.price).toLocaleString("en-KE", {
+																				minimumFractionDigits: 2,
+																				maximumFractionDigits: 2,
+																		  })
+																		: "N/A"}
+																</span>
+															</div>
+
+															{/* Condition */}
+															<div className="flex items-center">
+																<span
+																	className={`px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm font-semibold rounded-lg text-white whitespace-nowrap ${
+																		ad.condition === "brand_new"
+																			? "bg-green-500"
+																			: ad.condition === "second_hand"
+																			? "bg-orange-500"
+																			: ad.condition === "refurbished"
+																			? "bg-blue-500"
+																			: "bg-gray-500"
+																	}`}
+																>
+																	{ad.condition === "brand_new"
+																		? "Brand New"
+																		: ad.condition === "second_hand"
+																		? "Used"
+																		: ad.condition === "refurbished"
+																		? "Refurbished"
+																		: ad.condition || "Unknown"}
+																</span>
+															</div>
+
+															{/* Listing Date */}
+															<div className="text-xs sm:text-sm text-gray-500">
+																Listed{" "}
+																{ad.created_at
+																	? new Date(ad.created_at).toLocaleDateString(
+																			"en-US",
+																			{
+																				day: "numeric",
+																				month: "long",
+																				year: "numeric",
+																			}
+																	  )
+																	: "Recently"}
+															</div>
+														</div>
+													</div>
+
 													{/* Action Buttons - Mobile Only */}
 													<div className="space-y-3">
 														{/* Show different content based on ownership */}
@@ -1898,66 +1956,6 @@ const AdDetails = () => {
 																	</div>
 																</div>
 															)}
-
-															{/* Price and Condition Card */}
-															<div className="w-full bg-white rounded-lg border border-gray-200 p-3 sm:p-4 shadow-sm">
-																<div className="flex flex-wrap items-center justify-between gap-3">
-																	{/* Price */}
-																	<div className="flex items-center space-x-1">
-																		<span className="text-sm sm:text-base text-gray-600">
-																			KSh
-																		</span>
-																		<span className="text-xl sm:text-2xl font-bold text-gray-900">
-																			{ad.price
-																				? Number(ad.price).toLocaleString(
-																						"en-KE",
-																						{
-																							minimumFractionDigits: 2,
-																							maximumFractionDigits: 2,
-																						}
-																				  )
-																				: "N/A"}
-																		</span>
-																	</div>
-
-																	{/* Condition */}
-																	<div className="flex items-center">
-																		<span
-																			className={`px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm font-semibold rounded-lg text-white whitespace-nowrap ${
-																				ad.condition === "brand_new"
-																					? "bg-green-500"
-																					: ad.condition === "second_hand"
-																					? "bg-orange-500"
-																					: ad.condition === "refurbished"
-																					? "bg-blue-500"
-																					: "bg-gray-500"
-																			}`}
-																		>
-																			{ad.condition === "brand_new"
-																				? "Brand New"
-																				: ad.condition === "second_hand"
-																				? "Used"
-																				: ad.condition === "refurbished"
-																				? "Refurbished"
-																				: ad.condition || "Unknown"}
-																		</span>
-																	</div>
-
-																	{/* Listing Date */}
-																	<div className="text-xs sm:text-sm text-gray-500">
-																		Listed{" "}
-																		{ad.created_at
-																			? new Date(
-																					ad.created_at
-																			  ).toLocaleDateString("en-US", {
-																					day: "numeric",
-																					month: "long",
-																					year: "numeric",
-																			  })
-																			: "Recently"}
-																	</div>
-																</div>
-															</div>
 														</div>
 
 														{/* Rating Section */}

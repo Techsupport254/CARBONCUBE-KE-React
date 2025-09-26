@@ -554,6 +554,7 @@ const LoginForm = ({ onLogin }) => {
 										{/* Google Sign-in Button */}
 										<div className="mb-6">
 											<GoogleSignInButton
+												role="buyer"
 												onSuccess={(token, user) => {
 													// Call onLogin to handle authentication and storage (same as normal login)
 													onLogin(token, user);

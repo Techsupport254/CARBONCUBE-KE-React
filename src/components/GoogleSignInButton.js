@@ -6,6 +6,7 @@ const GoogleSignInButton = ({
 	onError,
 	className = "",
 	disabled = false,
+	role = "buyer",
 }) => {
 	useEffect(() => {
 		// Load Google Identity Services script
@@ -29,7 +30,7 @@ const GoogleSignInButton = ({
 		if (disabled) return;
 
 		try {
-			googleOAuthService.initiateAuth();
+			googleOAuthService.initiateAuth(role);
 		} catch (error) {
 			console.error("Google sign-in error:", error);
 			if (onError) {

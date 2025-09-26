@@ -15,6 +15,12 @@ const LocationSelector = ({
 	const [subCounties, setSubCounties] = useState([]);
 	const [loadingCounties, setLoadingCounties] = useState(false);
 	const [loadingSubCounties, setLoadingSubCounties] = useState(false);
+	const [localCountyId, setLocalCountyId] = useState(formData.county_id || "");
+
+	// Sync local state with formData when it changes
+	useEffect(() => {
+		setLocalCountyId(formData.county_id || "");
+	}, [formData.county_id]);
 
 	// Fetch counties on component mount
 	useEffect(() => {
@@ -41,11 +47,11 @@ const LocationSelector = ({
 	// Fetch sub-counties when county changes
 	useEffect(() => {
 		const fetchSubCounties = async () => {
-			if (formData.county_id) {
+			if (localCountyId) {
 				setLoadingSubCounties(true);
 				try {
 					const response = await fetch(
-						`${process.env.REACT_APP_BACKEND_URL}/counties/${formData.county_id}/sub_counties`
+						`${process.env.REACT_APP_BACKEND_URL}/counties/${localCountyId}/sub_counties`
 					);
 					if (response.ok) {
 						const data = await response.json();
@@ -62,10 +68,11 @@ const LocationSelector = ({
 		};
 
 		fetchSubCounties();
-	}, [formData.county_id]);
+	}, [localCountyId]);
 
 	// Handle county change - reset sub-county when county changes
 	const handleCountyChange = (e) => {
+		setLocalCountyId(e.target.value);
 		handleChange(e);
 		// Reset sub-county when county changes
 		handleChange({
@@ -99,7 +106,7 @@ const LocationSelector = ({
 									? "border-red-500 focus:ring-red-400"
 									: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 							} focus:outline-none`}
-							value={formData.county_id}
+							value={localCountyId}
 							onChange={handleCountyChange}
 							disabled={loadingCounties}
 						>
@@ -139,10 +146,10 @@ const LocationSelector = ({
 							} focus:outline-none`}
 							value={formData.sub_county_id}
 							onChange={handleChange}
-							disabled={!formData.county_id || loadingSubCounties}
+							disabled={!localCountyId || loadingSubCounties}
 						>
 							<option value="">
-								{!formData.county_id
+								{!localCountyId
 									? "Select County First"
 									: loadingSubCounties
 									? "Loading sub-counties..."
@@ -163,35 +170,60 @@ const LocationSelector = ({
 				</div>
 			</div>
 
-			{/* City Input */}
+			{/* City and Zip Code - Same Row */}
 			{showCityInput && (
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						City {!optional && <span className="text-red-500">*</span>}
-					</label>
-					<div className="relative">
-						<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-							<FontAwesomeIcon
-								icon={faMapMarkerAlt}
-								className="h-4 w-4 text-gray-400"
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{/* City Input */}
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							City {!optional && <span className="text-red-500">*</span>}
+						</label>
+						<div className="relative">
+							<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+								<FontAwesomeIcon
+									icon={faMapMarkerAlt}
+									className="h-4 w-4 text-gray-400"
+								/>
+							</div>
+							<input
+								type="text"
+								placeholder="Enter your city"
+								name="city"
+								className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+									errors.city
+										? "border-red-500 focus:ring-red-400"
+										: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+								} focus:outline-none`}
+								value={formData.city}
+								onChange={handleChange}
 							/>
 						</div>
+						{errors.city && (
+							<div className="text-red-500 text-xs mt-1">{errors.city}</div>
+						)}
+					</div>
+
+					{/* Zip Code Input */}
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Zip Code
+						</label>
 						<input
 							type="text"
-							placeholder="Enter your city"
-							name="city"
-							className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
-								errors.city
+							placeholder="Enter zip code"
+							name="zipcode"
+							className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+								errors.zipcode
 									? "border-red-500 focus:ring-red-400"
 									: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
 							} focus:outline-none`}
-							value={formData.city}
+							value={formData.zipcode}
 							onChange={handleChange}
 						/>
+						{errors.zipcode && (
+							<div className="text-red-500 text-xs mt-1">{errors.zipcode}</div>
+						)}
 					</div>
-					{errors.city && (
-						<div className="text-red-500 text-xs mt-1">{errors.city}</div>
-					)}
 				</div>
 			)}
 
