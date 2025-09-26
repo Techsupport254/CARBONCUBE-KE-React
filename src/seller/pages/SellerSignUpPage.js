@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 // import { Google, Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
-import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import AlertModal from "../../components/AlertModal";
 import axios from "axios";
@@ -12,15 +12,12 @@ import {
 	faMapMarkerAlt,
 	faBuilding,
 	faFileAlt,
-	faLeaf,
 	faUsers,
 	faChartLine,
-	faRecycle,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
-import LocationSelector from "../../components/LocationSelector";
 import "../css/SellerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -51,7 +48,7 @@ function SellerSignUpPage({ onSignup }) {
 	const [previewURL, setPreviewURL] = useState(null);
 	const [profilePreviewURL, setProfilePreviewURL] = useState(null);
 	const navigate = useNavigate();
-	const [options, setOptions] = useState({ age_groups: [], counties: [] });
+	const [options, setOptions] = useState({ age_groups: [], counties: [], sub_counties: [] });
 	const [terms, setTerms] = useState(false);
 	const [step, setStep] = useState(1);
 
@@ -579,6 +576,16 @@ function SellerSignUpPage({ onSignup }) {
 		});
 	};
 
+	// Handle county change - reset sub-county when county changes
+	const handleCountyChange = (e) => {
+		handleChange(e);
+		// Reset sub-county when county changes
+		setFormData(prev => ({
+			...prev,
+			sub_county_id: ""
+		}));
+	};
+
 	// Cleanup email and username check timeouts on unmount
 	useEffect(() => {
 		return () => {
@@ -621,6 +628,7 @@ function SellerSignUpPage({ onSignup }) {
 				setOptions({
 					age_groups: age_groupRes.data,
 					counties: countiesRes.data,
+					sub_counties: [],
 					document_types: documentTypesRes.data, // new
 				});
 			} catch (error) {
@@ -630,6 +638,36 @@ function SellerSignUpPage({ onSignup }) {
 
 		fetchOptions();
 	}, []);
+
+	// Fetch sub-counties when county changes
+	useEffect(() => {
+		const fetchSubCounties = async () => {
+			if (formData.county_id) {
+				try {
+					const response = await axios.get(
+						`${process.env.REACT_APP_BACKEND_URL}/counties/${formData.county_id}/sub_counties`
+					);
+					setOptions(prev => ({
+						...prev,
+						sub_counties: response.data
+					}));
+				} catch (error) {
+					console.error("Error fetching sub-counties:", error);
+					setOptions(prev => ({
+						...prev,
+						sub_counties: []
+					}));
+				}
+			} else {
+				setOptions(prev => ({
+					...prev,
+					sub_counties: []
+				}));
+			}
+		};
+
+		fetchSubCounties();
+	}, [formData.county_id]);
 
 	const validatePassword = () => {
 		let isValid = true;
@@ -1438,15 +1476,118 @@ function SellerSignUpPage({ onSignup }) {
 												{/* Step 2 Errors */}
 												{/* Location Information Section */}
 												<div className="space-y-8">
-													<LocationSelector
-														key={`location-${formData.county_id}-${formData.sub_county_id}`}
-														formData={formData}
-														handleChange={handleChange}
-														errors={errors}
-														showCityInput={true}
-														showLocationInput={false}
-														className="space-y-6"
-													/>
+													{/* County and Sub-County - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																County
+															</label>
+															<select
+																name="county_id"
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.county_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.county_id}
+																onChange={handleCountyChange}
+															>
+																<option value="" disabled hidden>
+																	Select County
+																</option>
+																{options.counties.map((county) => (
+																	<option key={county.id} value={county.id}>
+																		{county.name}
+																	</option>
+																))}
+															</select>
+															{errors.county_id && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.county_id}
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Sub-County
+															</label>
+															<select
+																name="sub_county_id"
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.sub_county_id
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.sub_county_id}
+																onChange={handleChange}
+																disabled={!formData.county_id}
+															>
+																<option value="" disabled hidden>
+																	{!formData.county_id
+																		? "Select County First"
+																		: "Select Sub-County"}
+																</option>
+																{options.sub_counties.map((subCounty) => (
+																	<option key={subCounty.id} value={subCounty.id}>
+																		{subCounty.name}
+																	</option>
+																))}
+															</select>
+															{errors.sub_county_id && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.sub_county_id}
+																</div>
+															)}
+														</div>
+													</div>
+
+													{/* City and Zip Code - Same Row */}
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																City
+															</label>
+															<input
+																type="text"
+																placeholder="Enter your city"
+																name="city"
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.city
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.city}
+																onChange={handleChange}
+															/>
+															{errors.city && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.city}
+																</div>
+															)}
+														</div>
+														<div>
+															<label className="block text-sm font-medium text-gray-700 mb-2">
+																Zip Code
+															</label>
+															<input
+																type="text"
+																placeholder="Enter zip code"
+																name="zipcode"
+																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	errors.zipcode
+																		? "border-red-500 focus:ring-red-400"
+																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
+																} focus:outline-none`}
+																value={formData.zipcode}
+																onChange={handleChange}
+															/>
+															{errors.zipcode && (
+																<div className="text-red-500 text-xs mt-1">
+																	{errors.zipcode}
+																</div>
+															)}
+														</div>
+													</div>
 												</div>
 
 												{/* Document Information Section */}
