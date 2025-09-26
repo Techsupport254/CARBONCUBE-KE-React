@@ -282,16 +282,28 @@ class GoogleOAuthService {
 					}
 				} else {
 					console.error("❌ No token or user in response");
+					console.error("❌ Backend response:", backendResponse.data);
 					if (this.onErrorCallback) {
 						this.onErrorCallback("Authentication failed");
 					}
 				}
 			} catch (error) {
 				console.error("❌ Backend authentication error:", error);
+				console.error("❌ Error response:", error.response?.data);
+				console.error("❌ Error status:", error.response?.status);
+				console.error("❌ Error headers:", error.response?.headers);
+
+				let errorMessage = "Authentication failed";
+				if (error.response?.data?.errors?.[0]) {
+					errorMessage = error.response.data.errors[0];
+				} else if (error.response?.data?.error) {
+					errorMessage = error.response.data.error;
+				} else if (error.message) {
+					errorMessage = error.message;
+				}
+
 				if (this.onErrorCallback) {
-					this.onErrorCallback(
-						error.response?.data?.errors?.[0] || "Authentication failed"
-					);
+					this.onErrorCallback(errorMessage);
 				}
 			}
 		} else {
@@ -343,16 +355,28 @@ class GoogleOAuthService {
 					}
 				} else {
 					console.error("❌ No token or user in response");
+					console.error("❌ Backend response:", backendResponse.data);
 					if (this.onErrorCallback) {
 						this.onErrorCallback("Authentication failed");
 					}
 				}
 			} catch (error) {
 				console.error("❌ Backend authentication error:", error);
+				console.error("❌ Error response:", error.response?.data);
+				console.error("❌ Error status:", error.response?.status);
+				console.error("❌ Error headers:", error.response?.headers);
+
+				let errorMessage = "Authentication failed";
+				if (error.response?.data?.errors?.[0]) {
+					errorMessage = error.response.data.errors[0];
+				} else if (error.response?.data?.error) {
+					errorMessage = error.response.data.error;
+				} else if (error.message) {
+					errorMessage = error.message;
+				}
+
 				if (this.onErrorCallback) {
-					this.onErrorCallback(
-						error.response?.data?.errors?.[0] || "Authentication failed"
-					);
+					this.onErrorCallback(errorMessage);
 				}
 			}
 		} else {

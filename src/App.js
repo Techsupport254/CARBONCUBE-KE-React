@@ -41,9 +41,6 @@ const PerformanceMonitor = lazy(() =>
 // Test Component
 const AnalyticsTest = lazy(() => import("./components/AnalyticsTest"));
 
-// Google Sign-in Components
-const GoogleSignInPopup = lazy(() => import("./components/GoogleSignInPopup"));
-
 // Device Fingerprint Page
 const DeviceFingerprint = lazy(() => import("./pages/DeviceFingerprint"));
 const HowToPay = lazy(() => import("./pages/HowToPay"));
@@ -707,16 +704,6 @@ function AppContent({
 }) {
 	return (
 		<>
-			{/* Google Sign-in Popup for non-authenticated users */}
-			<Suspense fallback={null}>
-				<GoogleSignInPopup
-					onLogin={handleLogin}
-					onError={(error) => console.error("Google popup error:", error)}
-					isAuthenticated={isAuthenticated}
-					userRole={userRole}
-				/>
-			</Suspense>
-
 			{/* Analytics Tracking Components */}
 			{!excludeTracking && (
 				<Suspense fallback={null}>
