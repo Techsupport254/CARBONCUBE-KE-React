@@ -589,14 +589,22 @@
 					function extractProductCount() {
 						let productCount = "0";
 						try {
-							// Look for product count in various places on the page
-							const productCountElements = document.querySelectorAll("*");
-							for (let element of productCountElements) {
-								const text = element.textContent || "";
-								// Look for patterns like "32 products", "Products (32)", "32 total items"
-								const match = text.match(/(\d+)\s*(?:products?|total\s+items?)/i);
+							// Look for specific patterns in the page content
+							const pageText = document.body.textContent || "";
+							
+							// Try multiple patterns to find product count
+							const patterns = [
+								/(\d+)\s+products/i,           // "32 products"
+								/Products\s*\((\d+)\)/i,      // "Products (32)"
+								/(\d+)\s+total\s+items/i,     // "32 total items"
+								/Page\s+\d+\s+of\s+\d+\s+\((\d+)\s+total\s+items\)/i  // "Page 1 of 2 (32 total items)"
+							];
+							
+							for (const pattern of patterns) {
+								const match = pageText.match(pattern);
 								if (match) {
 									productCount = match[1];
+									console.log("Found product count:", productCount, "using pattern:", pattern);
 									break;
 								}
 							}
@@ -604,19 +612,6 @@
 							console.log("Could not extract product count:", e);
 						}
 						return productCount;
-					}
-					
-					// Try to extract product count immediately
-					let productCount = extractProductCount();
-					
-					// If no product count found, wait a bit and try again
-					if (productCount === "0") {
-						setTimeout(() => {
-							productCount = extractProductCount();
-							updateShopSEO(shopName, productCount, fullPath);
-						}, 1000);
-					} else {
-						updateShopSEO(shopName, productCount, fullPath);
 					}
 					
 					// Function to update shop SEO
@@ -635,6 +630,19 @@
 						updateTitle(title);
 						updateDescription(description);
 						updateURL(url);
+					}
+					
+					// Try to extract product count immediately
+					let productCount = extractProductCount();
+					
+					// If no product count found, wait a bit and try again
+					if (productCount === "0") {
+						setTimeout(() => {
+							productCount = extractProductCount();
+							updateShopSEO(shopName, productCount, fullPath);
+						}, 1000);
+					} else {
+						updateShopSEO(shopName, productCount, fullPath);
 					}
 				} else if (path.startsWith("/ads/")) {
 					const productName =
