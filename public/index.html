@@ -613,6 +613,34 @@
 					updateDescription(description);
 					updateURL(url);
 					updateCanonical(url);
+				} else if (path.startsWith("/how-to-pay")) {
+					const title = "How to Pay - Seller Payment Guide | Carbon Cube Kenya";
+					const description = "Learn how to make M-Pesa payments to upgrade your seller tier on Carbon Cube Kenya. Step-by-step guide for seller subscription payments.";
+					const url = `https://carboncube-ke.com${path}`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(url);
+					updateCanonical(url);
+				} else if (path.startsWith("/how-to-shop")) {
+					const title = "How to Shop - Buyer Guide | Carbon Cube Kenya";
+					const description = "Learn how to shop safely on Carbon Cube Kenya. Complete guide for buyers with secure payment methods and fast delivery.";
+					const url = `https://carboncube-ke.com${path}`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(url);
+					updateCanonical(url);
+				} else if (path.startsWith("/location/")) {
+					const locationName = path.split("/location/")[1]?.split("?")[0]?.replace(/-/g, " ") || "Location";
+					const title = `${locationName} - Local Shopping | Carbon Cube Kenya`;
+					const description = `Shop locally in ${locationName} with Carbon Cube Kenya. Find trusted sellers and fast delivery in your area.`;
+					const url = `https://carboncube-ke.com${path}`;
+
+					updateTitle(title);
+					updateDescription(description);
+					updateURL(url);
+					updateCanonical(url);
 				} else if (path.startsWith("/seller")) {
 					// Handle seller pages
 					const url = `https://carboncube-ke.com${path}`;
