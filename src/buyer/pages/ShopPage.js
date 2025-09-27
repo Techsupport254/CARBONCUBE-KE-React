@@ -901,9 +901,9 @@ const ShopPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col">
-			{shop ? (
-				<ShopSEO shop={seoData} />
-			) : (
+		{shop ? (
+			<ShopSEO shop={shop} />
+		) : (
 				<PageSEO
 					pageType="shop"
 					title={`Shop - ${slug || "Loading..."} | Carbon Cube Kenya`}
