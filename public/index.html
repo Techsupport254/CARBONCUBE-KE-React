@@ -573,18 +573,10 @@
 					updateMetaTag("og:url", url);
 				}
 
-				// Function to update canonical URL
+				// Function to update canonical URL (disabled - React Helmet handles this)
 				function updateCanonical(url) {
-					let canonical = document.querySelector('link[rel="canonical"]');
-					if (canonical) {
-						canonical.setAttribute("href", url);
-					} else {
-						// Create canonical tag if it doesn't exist
-						const link = document.createElement("link");
-						link.rel = "canonical";
-						link.href = url;
-						document.head.appendChild(link);
-					}
+					// Canonical URLs are handled by React Helmet components
+					// No need to set them here to avoid duplicates
 				}
 
 				// Handle different page types
@@ -605,7 +597,6 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else if (path.startsWith("/ads/")) {
 					const productName =
 						path.split("/ads/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
@@ -617,7 +608,6 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else if (path.startsWith("/categories/")) {
 					const categoryName =
 						path.split("/categories/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
@@ -629,7 +619,6 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else if (path.startsWith("/how-to-pay")) {
 					const title = "How to Pay - Seller Payment Guide | Carbon Cube Kenya";
 					const description =
@@ -639,7 +628,6 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else if (path.startsWith("/how-to-shop")) {
 					const title = "How to Shop - Buyer Guide | Carbon Cube Kenya";
 					const description =
@@ -649,7 +637,6 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else if (path.startsWith("/location/")) {
 					const locationName =
 						path.split("/location/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
@@ -661,10 +648,8 @@
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
-					updateCanonical(url);
 				} else {
-					// Default to homepage canonical
-					updateCanonical("https://carboncube-ke.com/");
+					// Default to homepage URL
 					updateURL("https://carboncube-ke.com/");
 				}
 			})();
