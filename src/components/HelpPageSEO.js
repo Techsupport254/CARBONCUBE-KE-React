@@ -49,11 +49,12 @@ const HelpPageSEO = ({
 				"shopping guide, how to buy online Kenya, marketplace shopping, buyer tips, secure shopping, product search, order tracking, shopping tips, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
 		},
 		becomeSeller: {
-			title: "Become a Seller on Carbon Cube Kenya | Complete Seller's Guide",
+			title:
+				"Become a Seller on Carbon Cube Kenya | Start Your Online Business Today",
 			description:
-				"Join Carbon Cube Kenya as a verified seller and start your online business. Complete guide to registration, listing products, managing orders, and growing your sales on Kenya's trusted marketplace.",
+				"Join Carbon Cube Kenya as a verified seller and start your online business. Complete guide to registration, listing products, managing orders, and growing your sales on Kenya's trusted marketplace. Free to start, premium features available.",
 			keywords:
-				"become a seller, start selling online Kenya, vendor registration, seller signup, online business Kenya, marketplace selling, seller guide, business setup, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
+				"become a seller Kenya, start selling online Kenya, vendor registration Carbon Cube, seller signup Kenya, online business Kenya, marketplace selling guide, seller benefits Kenya, business setup Kenya, automotive parts seller Kenya, computer parts seller Kenya, filtration systems seller Kenya, hardware tools seller Kenya, auto parts shop Kenya, computer accessories seller Kenya, filters seller Kenya, power tools seller Kenya, car parts seller Kenya, IT equipment seller Kenya, industrial supplies seller Kenya, secure online selling Kenya, fast delivery Kenya, seller tiers Kenya, premium seller features, seller dashboard Kenya",
 		},
 	};
 

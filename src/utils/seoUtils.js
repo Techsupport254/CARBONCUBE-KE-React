@@ -21,11 +21,29 @@ export const getCanonicalUrl = (path = "", queryParams = null) => {
 		canonicalUrl += `/${cleanPath}`;
 	}
 
-	// Add query parameters if provided
+	// Filter out tracking parameters and only include SEO-relevant query params
+	const allowedParams = [
+		"q",
+		"category",
+		"subcategory",
+		"location",
+		"sort",
+		"page",
+	];
 	if (queryParams && Object.keys(queryParams).length > 0) {
 		const searchParams = new URLSearchParams();
 		Object.entries(queryParams).forEach(([key, value]) => {
-			if (value !== null && value !== undefined && value !== "") {
+			// Only include allowed parameters and exclude tracking parameters
+			if (
+				allowedParams.includes(key) &&
+				value !== null &&
+				value !== undefined &&
+				value !== "" &&
+				!key.includes("fbclid") &&
+				!key.includes("utm_") &&
+				!key.includes("gclid") &&
+				!key.includes("from")
+			) {
 				searchParams.append(key, value);
 			}
 		});
@@ -133,6 +151,50 @@ export const generateSEOUrl = (pageType, data = {}) => {
 
 		default:
 			return getCanonicalUrl(pageType);
+	}
+};
+
+/**
+ * Clean URL by removing tracking parameters
+ * Removes Facebook, Google, and other tracking parameters
+ */
+export const cleanUrl = (url) => {
+	if (!url) return url;
+
+	try {
+		const urlObj = new URL(url);
+		const trackingParams = [
+			"fbclid",
+			"utm_source",
+			"utm_medium",
+			"utm_campaign",
+			"utm_term",
+			"utm_content",
+			"gclid",
+			"gclsrc",
+			"dclid",
+			"wbraid",
+			"gbraid",
+			"from",
+			"ref",
+			"source",
+			"campaign",
+			"medium",
+			"content",
+			"term",
+			"affiliate",
+			"partner",
+		];
+
+		// Remove tracking parameters
+		trackingParams.forEach((param) => {
+			urlObj.searchParams.delete(param);
+		});
+
+		return urlObj.toString();
+	} catch (error) {
+		console.warn("Error cleaning URL:", error);
+		return url;
 	}
 };
 

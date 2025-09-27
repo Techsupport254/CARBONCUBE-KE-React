@@ -22,11 +22,11 @@ import useSEO from "../hooks/useSEO";
 const Terms = () => {
 	// SEO Implementation
 	useSEO({
-		title: "Terms & Conditions - Carbon Cube Kenya",
+		title: "Terms & Conditions - Carbon Cube Kenya | Legal Agreement",
 		description:
-			"Read Carbon Cube Kenya's terms and conditions. Understand the legal agreement governing your use of Kenya's trusted online marketplace platform.",
+			"Read Carbon Cube Kenya's comprehensive terms and conditions. Understand the legal agreement, user rights, and platform policies governing Kenya's trusted online marketplace.",
 		keywords:
-			"terms and conditions, Carbon Cube Kenya legal, Kenya marketplace terms, user agreement, platform terms",
+			"terms and conditions Kenya, Carbon Cube Kenya legal, Kenya marketplace terms, user agreement Kenya, platform terms, legal agreement Kenya, e-commerce terms Kenya, online marketplace legal, user rights Kenya, platform policies",
 		url: "https://carboncube-ke.com/terms-and-conditions",
 		structuredData: {
 			"@context": "https://schema.org",
@@ -35,10 +35,11 @@ const Terms = () => {
 			description:
 				"Legal terms and conditions for using Carbon Cube Kenya marketplace",
 			url: "https://carboncube-ke.com/terms-and-conditions",
-			dateModified: "2025-07-25",
+			dateModified: "2025-09-23",
 			publisher: {
 				"@type": "Organization",
 				name: "Carbon Cube Kenya",
+				url: "https://carboncube-ke.com",
 			},
 		},
 	});

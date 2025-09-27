@@ -2,6 +2,22 @@
 User-agent: *
 Allow: /
 
+# Allow indexing of important user-facing pages
+Allow: /buyer/profile
+Allow: /buyer/messages
+Allow: /buyer/wish_lists
+Allow: /purchaser/profile
+Allow: /purchaser/messages
+Allow: /purchaser/wish_lists
+
+# Block sensitive admin and private areas
+Disallow: /admin/
+Disallow: /seller/dashboard/
+Disallow: /buyer/dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /private/
+
 # Googlebot
 User-agent: Googlebot
 Allow: /*.xml$

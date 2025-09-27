@@ -22,25 +22,29 @@ const AboutUs = () => {
 	const pageData = {
 		title: "About Us - Carbon Cube Kenya | Kenya's Trusted Marketplace",
 		description:
-			"Learn about Carbon Cube Kenya, Kenya's trusted digital marketplace. Discover our mission to connect verified sellers with buyers through secure, AI-powered tools.",
+			"Learn about Carbon Cube Kenya, Kenya's trusted digital marketplace connecting verified sellers with buyers. Discover our mission, team, and commitment to secure, AI-powered e-commerce solutions across Kenya.",
 		keywords: [
 			"about Carbon Cube Kenya",
-			"Kenya marketplace",
-			"digital procurement",
-			"verified sellers",
+			"Kenya marketplace company",
+			"digital procurement platform",
+			"verified sellers Kenya",
 			"AI-powered marketplace",
 			"online shopping Kenya",
 			"Nairobi marketplace",
-			"Kenyan e-commerce",
+			"Kenyan e-commerce platform",
 			"trusted sellers Kenya",
 			"digital marketplace Kenya",
-			"Carbon Cube company",
+			"Carbon Cube company Kenya",
 			"Kenya online shopping platform",
+			"e-commerce Kenya",
+			"marketplace Kenya",
+			"online store Kenya",
+			"digital shopping Kenya",
 		],
 		image: AboutUsImage,
 		url: `${window.location.origin}/about-us`,
 		section: "About",
-		tags: ["About", "Company", "Team", "Mission"],
+		tags: ["About", "Company", "Team", "Mission", "Kenya", "Marketplace"],
 	};
 
 	return (

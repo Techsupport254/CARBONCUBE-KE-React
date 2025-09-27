@@ -1,5 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { getCanonicalUrl, cleanUrl } from "../utils/seoUtils";
 
 /**
  * PageSEO Component - Optimized SEO component for all pages
@@ -250,7 +251,7 @@ const PageSEO = ({
 			/>
 
 			{/* Canonical URL */}
-			<link rel="canonical" href={finalUrl} />
+			<link rel="canonical" href={cleanUrl(finalUrl)} />
 
 			{/* Structured Data Scripts */}
 			<script type="application/ld+json">

@@ -215,9 +215,9 @@ const TierPageWithSEO = () => (
 	<>
 		<PageSEO
 			pageType="sellerTiers"
-			title="Seller Tiers & Benefits | Carbon Cube Kenya"
-			description="Learn about Carbon Cube Kenya seller tiers and their benefits. Choose the right tier for your business and unlock premium features to grow your online sales."
-			keywords="seller tiers, vendor tiers, premium features, business growth, marketplace benefits, seller benefits Kenya"
+			title="Seller Tiers & Benefits | Carbon Cube Kenya | Choose Your Plan"
+			description="Discover Carbon Cube Kenya's comprehensive seller tier system. Compare Bronze, Silver, Gold, and Platinum tiers with their exclusive benefits, pricing, and features to maximize your online business growth in Kenya."
+			keywords="seller tiers Kenya, vendor tiers Carbon Cube, premium seller features, business growth Kenya, marketplace benefits, seller benefits Kenya, Bronze tier, Silver tier, Gold tier, Platinum tier, seller subscription, online business Kenya, e-commerce tiers, seller plans Kenya"
 		/>
 		<TierPage />
 	</>

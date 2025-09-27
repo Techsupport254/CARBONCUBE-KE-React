@@ -1,5 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
+import { cleanUrl } from "../utils/seoUtils";
 
 /**
  * StaticPageSEO Component - SEO for static pages like About, Contact, Terms, etc.
@@ -191,7 +192,7 @@ const StaticPageSEO = ({
 			/>
 
 			{/* Canonical URL */}
-			<link rel="canonical" href={`${siteConfig.url}/${pageType}`} />
+			<link rel="canonical" href={cleanUrl(`${siteConfig.url}/${pageType}`)} />
 
 			{/* Structured Data Scripts */}
 			<script type="application/ld+json">

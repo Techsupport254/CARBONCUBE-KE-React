@@ -45,17 +45,18 @@ console.log(`🔧 Environment: ${process.env.NODE_ENV || "development"}`);
 const now = new Date();
 const CURRENT_DATE = now.toISOString().split("T")[0];
 const BUILD_TIMESTAMP = now.toISOString();
-const GENERATION_DATE = now.toLocaleDateString("en-US", {
-	year: "numeric",
-	month: "long",
-	day: "numeric",
-});
+// const GENERATION_DATE = now.toLocaleDateString("en-US", {
+// 	year: "numeric",
+// 	month: "long",
+// 	day: "numeric",
+// });
 
 console.log(`🚀 Starting dynamic sitemap generation...`);
 console.log(`📅 Current Date: ${CURRENT_DATE}`);
 console.log(`⏰ Build Timestamp: ${BUILD_TIMESTAMP}`);
 
 // Static routes with metadata
+// Based on actual App.js routes from the React application
 const staticRoutes = [
 	{
 		path: "/",
@@ -203,7 +204,7 @@ const staticRoutes = [
 			"privacy policy, Carbon Cube Kenya data protection, Kenya marketplace privacy, user data protection, GDPR compliance",
 	},
 	{
-		path: "/faq",
+		path: "/faqs",
 		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
 		priority: "0.6",
@@ -211,12 +212,12 @@ const staticRoutes = [
 			"FAQ, frequently asked questions, Carbon Cube Kenya help, Kenya marketplace FAQ, customer support",
 	},
 	{
-		path: "/how-it-works",
+		path: "/data-deletion",
 		lastmod: CURRENT_DATE,
 		changefreq: "monthly",
-		priority: "0.7",
+		priority: "0.5",
 		keywords:
-			"how it works, Carbon Cube Kenya guide, Kenya marketplace tutorial, online shopping guide, buyer guide, seller guide",
+			"data deletion, privacy rights, GDPR compliance, data removal, Carbon Cube Kenya privacy, user data protection",
 	},
 	{
 		path: "/how-to-pay",
@@ -257,6 +258,55 @@ const staticRoutes = [
 		priority: "0.6",
 		keywords:
 			"seller help Carbon Cube Kenya, seller support, marketplace help, seller assistance, seller guide, seller help center",
+	},
+	// Important user-facing pages that should be indexed
+	{
+		path: "/buyer/profile",
+		lastmod: CURRENT_DATE,
+		changefreq: "weekly",
+		priority: "0.6",
+		keywords:
+			"buyer profile, account settings, profile management, buyer dashboard, Carbon Cube Kenya",
+	},
+	{
+		path: "/buyer/messages",
+		lastmod: CURRENT_DATE,
+		changefreq: "daily",
+		priority: "0.6",
+		keywords:
+			"buyer messages, seller communication, conversations, buyer dashboard, Carbon Cube Kenya",
+	},
+	{
+		path: "/buyer/wish_lists",
+		lastmod: CURRENT_DATE,
+		changefreq: "daily",
+		priority: "0.6",
+		keywords:
+			"wishlist, favorite products, saved items, buyer dashboard, Carbon Cube Kenya",
+	},
+	{
+		path: "/purchaser/profile",
+		lastmod: CURRENT_DATE,
+		changefreq: "weekly",
+		priority: "0.6",
+		keywords:
+			"purchaser profile, account settings, profile management, buyer dashboard, Carbon Cube Kenya",
+	},
+	{
+		path: "/purchaser/messages",
+		lastmod: CURRENT_DATE,
+		changefreq: "daily",
+		priority: "0.6",
+		keywords:
+			"purchaser messages, seller communication, conversations, buyer dashboard, Carbon Cube Kenya",
+	},
+	{
+		path: "/purchaser/wish_lists",
+		lastmod: CURRENT_DATE,
+		changefreq: "daily",
+		priority: "0.6",
+		keywords:
+			"purchaser wishlist, favorite products, saved items, buyer dashboard, Carbon Cube Kenya",
 	},
 ];
 
@@ -446,6 +496,17 @@ async function fetchCategoriesAndSubcategories() {
 				"⚠️ No categories found from API, proceeding with empty data"
 			);
 		}
+
+		// Log API response details for debugging
+		console.log(`📊 API Response Summary:`);
+		console.log(`   - Categories: ${categories.length}`);
+		console.log(`   - Subcategories: ${subcategories.length}`);
+		console.log(
+			`   - Categories API Status: ${categoriesResponse.status || "N/A"}`
+		);
+		console.log(
+			`   - Subcategories API Status: ${subcategoriesResponse.status || "N/A"}`
+		);
 
 		return { categories, subcategories };
 	} catch (error) {
@@ -669,6 +730,74 @@ function generateSellerShopUrls(sellers) {
 	return shopUrls;
 }
 
+// Generate location-based URLs for local SEO
+function generateLocationUrls() {
+	const kenyaLocations = [
+		"nairobi",
+		"mombasa",
+		"kisumu",
+		"nakuru",
+		"eldoret",
+		"thika",
+		"malindi",
+		"kitale",
+		"garissa",
+		"kakamega",
+		"meru",
+		"kisii",
+		"nyeri",
+		"machakos",
+		"kericho",
+		"migori",
+		"bomet",
+		"kajiado",
+		"kilifi",
+		"kwale",
+		"tana-river",
+		"lamu",
+		"taita-taveta",
+		"turkana",
+		"west-pokot",
+		"samburu",
+		"trans-nzoia",
+		"uasin-gishu",
+		"elgeyo-marakwet",
+		"nandi",
+		"baringo",
+		"laikipia",
+		"nakuru",
+		"narok",
+		"kajiado",
+		"machakos",
+		"makueni",
+		"kitui",
+		"embu",
+		"meru",
+		"tharaka-nithi",
+		"marsabit",
+		"isiolo",
+		"mandera",
+		"wajir",
+		"garissa",
+		"tana-river",
+		"lamu",
+		"kilifi",
+		"mombasa",
+		"kwale",
+		"taita-taveta",
+	];
+
+	const locationUrls = kenyaLocations.map((location) => ({
+		path: `/location/${location}`,
+		lastmod: CURRENT_DATE,
+		changefreq: "weekly",
+		priority: "0.6",
+		keywords: `${location} Kenya, local products ${location}, ${location} marketplace, Carbon Cube Kenya ${location}, local sellers ${location}, online shopping ${location}`,
+	}));
+
+	return locationUrls;
+}
+
 // Generate URL-friendly slug from text (matches frontend createSlug function)
 function generateSlug(text) {
 	if (!text) return "";
@@ -679,6 +808,49 @@ function generateSlug(text) {
 		.replace(/\s+/g, "-") // Replace spaces with hyphens
 		.replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
 		.replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+}
+
+// Validate generated sitemap
+function validateSitemap(urls) {
+	const issues = [];
+
+	// Check for duplicate URLs
+	const urlPaths = urls.map((url) => url.path);
+	const duplicates = urlPaths.filter(
+		(path, index) => urlPaths.indexOf(path) !== index
+	);
+	if (duplicates.length > 0) {
+		issues.push(`Duplicate URLs found: ${duplicates.join(", ")}`);
+	}
+
+	// Check for invalid priorities
+	const invalidPriorities = urls.filter(
+		(url) => parseFloat(url.priority) < 0 || parseFloat(url.priority) > 1
+	);
+	if (invalidPriorities.length > 0) {
+		issues.push(`Invalid priorities found: ${invalidPriorities.length} URLs`);
+	}
+
+	// Check for invalid changefreq values
+	const validChangefreq = [
+		"always",
+		"hourly",
+		"daily",
+		"weekly",
+		"monthly",
+		"yearly",
+		"never",
+	];
+	const invalidChangefreq = urls.filter(
+		(url) => !validChangefreq.includes(url.changefreq)
+	);
+	if (invalidChangefreq.length > 0) {
+		issues.push(
+			`Invalid changefreq values found: ${invalidChangefreq.length} URLs`
+		);
+	}
+
+	return issues;
 }
 
 // Escape XML special characters
@@ -733,6 +905,22 @@ function generateRobotsTxt() {
 User-agent: *
 Allow: /
 
+# Allow indexing of important user-facing pages
+Allow: /buyer/profile
+Allow: /buyer/messages
+Allow: /buyer/wish_lists
+Allow: /purchaser/profile
+Allow: /purchaser/messages
+Allow: /purchaser/wish_lists
+
+# Block sensitive admin and private areas
+Disallow: /admin/
+Disallow: /seller/dashboard/
+Disallow: /buyer/dashboard/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /private/
+
 # Googlebot
 User-agent: Googlebot
 Allow: /*.xml$
@@ -780,6 +968,7 @@ async function generateDynamicSitemap() {
 		const subcategoryUrls = generateSubcategoryUrls(subcategories, categories);
 		const adUrls = generateAdUrls(ads);
 		const shopUrls = generateSellerShopUrls(sellers);
+		const locationUrls = generateLocationUrls();
 
 		// Combine all URLs
 		const allUrls = [
@@ -788,6 +977,7 @@ async function generateDynamicSitemap() {
 			...subcategoryUrls,
 			...adUrls,
 			...shopUrls,
+			...locationUrls,
 		];
 
 		console.log(`📊 Generated ${allUrls.length} URLs total:`);
@@ -796,6 +986,16 @@ async function generateDynamicSitemap() {
 		console.log(`   - ${subcategoryUrls.length} subcategory pages`);
 		console.log(`   - ${adUrls.length} individual ad pages`);
 		console.log(`   - ${shopUrls.length} seller shop pages`);
+		console.log(`   - ${locationUrls.length} location pages`);
+
+		// Validate the generated sitemap
+		const validationIssues = validateSitemap(allUrls);
+		if (validationIssues.length > 0) {
+			console.warn("⚠️ Sitemap validation issues found:");
+			validationIssues.forEach((issue) => console.warn(`   - ${issue}`));
+		} else {
+			console.log("✅ Sitemap validation passed - no issues found");
+		}
 
 		// Generate sitemap XML
 		const sitemapXML = generateSitemapXML(allUrls);
@@ -837,6 +1037,8 @@ async function generateDynamicSitemap() {
 			staticPages: staticRoutes.length,
 			publicCategories: categoryUrls.length,
 			publicAds: adUrls.length,
+			publicShops: shopUrls.length,
+			publicLocations: locationUrls.length,
 			publicBanners: 0, // Not implemented yet
 			generatedAt: BUILD_TIMESTAMP,
 			baseUrl: SITE_BASE_URL,
@@ -853,15 +1055,103 @@ async function generateDynamicSitemap() {
 		console.log(`🔗 Sitemap URL: ${SITE_BASE_URL}/sitemap.xml`);
 		console.log(`🤖 Robots URL: ${SITE_BASE_URL}/robots.txt`);
 		console.log(`📊 Total URLs: ${allUrls.length}`);
+
+		// Additional validation
+		if (allUrls.length === 0) {
+			console.warn("⚠️ Warning: No URLs generated. Check API endpoints.");
+		}
+
+		if (allUrls.length < staticRoutes.length) {
+			console.warn(
+				"⚠️ Warning: Generated fewer URLs than static routes. Check API data."
+			);
+		}
 	} catch (error) {
-		console.error("Error generating sitemap:", error);
+		console.error("❌ Error generating sitemap:", error.message);
+		console.error("Full error details:", error);
+		console.error("Stack trace:", error.stack);
 		process.exit(1);
+	}
+}
+
+// Test function to validate the script
+async function testSitemapGeneration() {
+	console.log("🧪 Testing sitemap generation...");
+
+	try {
+		// Test API connectivity
+		console.log("📡 Testing API connectivity...");
+		const testResponse = await axios.get(`${API_BASE_URL}/health`, {
+			timeout: 10000,
+			headers: {
+				"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+			},
+		});
+		console.log(`✅ API Health Check: ${testResponse.status}`);
+
+		// Test sitemap endpoints
+		console.log("📡 Testing sitemap endpoints...");
+		const endpoints = [
+			"/sitemap/categories",
+			"/sitemap/ads",
+			"/sitemap/sellers",
+		];
+
+		for (const endpoint of endpoints) {
+			try {
+				const response = await axios.get(`${API_BASE_URL}${endpoint}`, {
+					timeout: 5000,
+					headers: {
+						"User-Agent": "CarbonCube-SitemapGenerator/1.0",
+					},
+				});
+				console.log(`✅ ${endpoint}: ${response.status}`);
+			} catch (error) {
+				console.log(
+					`⚠️ ${endpoint}: ${error.response?.status || "Connection failed"}`
+				);
+			}
+		}
+
+		console.log("✅ API connectivity test completed");
+	} catch (error) {
+		console.error("❌ API connectivity test failed:", error.message);
 	}
 }
 
 // Run the generator
 if (require.main === module) {
-	generateDynamicSitemap();
+	const args = process.argv.slice(2);
+
+	if (args.includes("--test")) {
+		testSitemapGeneration();
+	} else if (args.includes("--help")) {
+		console.log(`
+🔧 Carbon Cube Kenya Sitemap Generator
+
+Usage:
+  node scripts/seo-generator.js          # Generate sitemap
+  node scripts/seo-generator.js --test   # Test API connectivity
+  node scripts/seo-generator.js --help   # Show this help
+
+Environment Variables:
+  REACT_APP_BACKEND_URL  # Backend API URL (default: https://carboncube-ke.com/api)
+  REACT_APP_SITE_URL     # Site URL (default: https://carboncube-ke.com)
+
+Generated Files:
+  - public/sitemap.xml
+  - public/robots.txt
+  - public/sitemap-index.xml
+  - public/urls.txt
+  - public/sitemap-stats.json
+		`);
+	} else {
+		generateDynamicSitemap();
+	}
 }
 
-module.exports = { generateDynamicSitemap };
+module.exports = {
+	generateDynamicSitemap,
+	testSitemapGeneration,
+	validateSitemap,
+};
