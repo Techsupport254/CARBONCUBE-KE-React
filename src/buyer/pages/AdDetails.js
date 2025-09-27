@@ -1425,30 +1425,18 @@ const AdDetails = () => {
 		);
 	}
 
-	// Create a basic product object for SEO even when ad data is not available
-	const basicProductData = ad ? productData : {
-		id: adId,
-		title: `Product #${adId}`,
-		description: `View product #${adId} details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`,
-		price: null,
-		currency: "KES",
-		condition: "new",
-		category: "Products",
-		category_name: "Products",
-		brand: null,
-		seller: "Verified Seller",
-		seller_enterprise_name: "Carbon Cube",
-		images: [],
-		location: "Kenya",
-		availability: "in stock",
-		sku: adId,
-		keywords: ["product", "buy online", "verified sellers", "Kenya marketplace"],
-		tags: ["product", "kenya", "marketplace"]
-	};
-
 	return (
 		<>
-			<ProductSEO product={basicProductData} />
+			{ad ? (
+				<ProductSEO product={productData} />
+			) : (
+				<PageSEO
+					pageType="product"
+					title="Product Details | Carbon Cube Kenya"
+					description="View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+					keywords="product, buy online, verified sellers, Kenya marketplace"
+				/>
+			)}
 			<Navbar
 				mode="buyer"
 				showSearch={false}
