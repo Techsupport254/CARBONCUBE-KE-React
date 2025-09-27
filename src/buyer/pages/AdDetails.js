@@ -41,7 +41,6 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import ProductSEO from "../../components/ProductSEO";
 import PageSEO from "../../components/PageSEO";
-import { Helmet } from "react-helmet-async";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl } from "../../utils/imageUtils";
@@ -1426,51 +1425,8 @@ const AdDetails = () => {
 		);
 	}
 
-	// Server-side rendered meta tags for instant SEO
-	// Extract ad ID from URL for dynamic meta tags even before data is fetched
-	const getAdIdFromUrl = () => {
-		if (typeof window !== 'undefined') {
-			const urlParams = new URLSearchParams(window.location.search);
-			return urlParams.get('id');
-		}
-		return adId; // Fallback to React hook value
-	};
-	
-	const currentAdId = getAdIdFromUrl();
-	
-	const serverSideMetaTags = (
-		<Helmet>
-			<title>{ad ? `${ad.title} | Carbon Cube Kenya` : `Product #${currentAdId || 'Details'} | Carbon Cube Kenya`}</title>
-			<meta name="description" content={
-				ad 
-					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya. ${ad.condition || 'new'} ${ad.category_name || 'product'} from verified seller ${ad.seller_name || 'Carbon Cube'}. Fast delivery across Kenya.`
-					: `View product #${currentAdId || 'details'} on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`
-			} />
-			<meta property="og:title" content={ad ? `${ad.title} | Carbon Cube Kenya` : `Product #${currentAdId || 'Details'} | Carbon Cube Kenya`} />
-			<meta property="og:description" content={
-				ad 
-					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya.`
-					: `View product #${currentAdId || 'details'} on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`
-			} />
-			<meta property="og:image" content={
-				ad && ad.media_urls && ad.media_urls.length > 0
-					? ad.media_urls[0]
-					: "https://carboncube-ke.com/og-image.png"
-			} />
-			<meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
-			<meta property="og:type" content="product" />
-			{ad && ad.price && <meta property="product:price:amount" content={ad.price.toString()} />}
-			{ad && <meta property="product:price:currency" content="KES" />}
-			{ad && <meta property="product:availability" content="in stock" />}
-			{ad && <meta property="product:condition" content={ad.condition || "new"} />}
-			{ad && ad.brand && <meta property="product:brand" content={ad.brand} />}
-			{ad && <meta property="product:category" content={ad.category_name || "Products"} />}
-		</Helmet>
-	);
-
 	return (
 		<>
-			{serverSideMetaTags}
 			{ad ? (
 				<ProductSEO product={productData} />
 			) : (
