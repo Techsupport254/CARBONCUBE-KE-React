@@ -33,10 +33,8 @@ const PopularAdsSection = ({
 		  }))
 		: [];
 
-	// Sort ads by comprehensive score (already sorted by backend, but ensure order)
-	const sortedAds = processedAds.sort(
-		(a, b) => (b.comprehensive_score || 0) - (a.comprehensive_score || 0)
-	);
+	// Preserve backend randomization - no frontend sorting
+	const sortedAds = processedAds;
 
 	const popularProducts = sortedAds.slice(0, 18);
 

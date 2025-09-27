@@ -3,27 +3,7 @@ import { Card } from "react-bootstrap";
 import AdCard from "../../components/AdCard";
 
 // Helper function to get tier priority (higher number = higher priority)
-const getTierPriority = (ad) => {
-	const tier = ad.seller_tier || 1; // Default to Free (1) if no tier
-	// Premium = 4, Standard = 3, Basic = 2, Free = 1
-	return tier;
-};
-
-// Helper function to sort ads by tier priority (Premium → Standard → Basic → Free)
-const sortAdsByTier = (ads) => {
-	return [...ads].sort((a, b) => {
-		const tierA = getTierPriority(a);
-		const tierB = getTierPriority(b);
-
-		// Higher tier number = higher priority
-		if (tierA !== tierB) {
-			return tierB - tierA;
-		}
-
-		// If same tier, sort by creation date (newest first)
-		return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-	});
-};
+// Removed tier-based sorting functions to preserve backend randomization
 
 const SubcategorySection = ({
 	subcategory,
