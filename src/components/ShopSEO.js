@@ -1,10 +1,9 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
-import { SEO_CONFIG } from "../config/seoConfig";
 
 /**
- * ShopSEO Component - Specialized SEO for shop/seller pages
- * Provides comprehensive SEO metadata for individual seller shops
+ * ShopSEO Component - Optimized SEO for shop/seller pages
+ * Lightweight and fast meta tag generation for millisecond response times
  */
 const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 	const {
@@ -19,105 +18,127 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 		rating,
 		categories = [],
 		images = [],
-		created_at,
-		updated_at,
 		keywords = [],
 		tags = [],
 	} = shop;
 
-	const siteConfig = SEO_CONFIG.site;
-	const shopConfig = SEO_CONFIG.pages.shop;
-
-	// Generate dynamic title and description
+	// Fast, optimized title and description generation
 	const shopName = enterprise_name || name || "Shop";
 	const productCount = product_count || ads_count || 0;
 	const tierName = tier || "Free";
 	const shopLocation = location || "Kenya";
 
-	// Build comprehensive title
-	const seoTitle = shopConfig.titleTemplate
-		.replace(/{name}/g, shopName)
-		.replace(/{count}/g, productCount.toString())
-		.replace(/{tier}/g, tierName);
+	// Optimized title generation
+	const seoTitle = `${shopName} - Shop | ${productCount} Products | ${tierName} Tier Seller`;
 
-	// Build comprehensive description
+	// Optimized description generation
 	const seoDescription =
 		description ||
-		shopConfig.descriptionTemplate
-			.replace(/{name}/g, shopName)
-			.replace(/{count}/g, productCount.toString())
-			.replace(/{tier}/g, tierName)
-			.replace(/{location}/g, shopLocation);
+		`Shop ${shopName} on Carbon Cube Kenya. ${productCount} products available from ${tierName} tier verified seller${
+			shopLocation ? ` in ${shopLocation}` : ""
+		}. Fast delivery across Kenya.`;
 
-	// Get primary image (shop logo, profile picture, or first product image)
+	// Get primary image with optimized fallback
 	const primaryImage = (() => {
-		// First try profile_picture if available
 		if (shop.profile_picture) {
 			return shop.profile_picture.startsWith("http")
 				? shop.profile_picture
 				: `https://carboncube-ke.com${shop.profile_picture}`;
 		}
-		// Then try images array
 		if (images && images.length > 0) {
-			return images[0].url || images[0];
+			const firstImage = images[0];
+			return typeof firstImage === "string"
+				? firstImage
+				: firstImage.url || firstImage;
 		}
-		// Try to get first product image from ads if available
-		if (shop.ads && shop.ads.length > 0) {
-			const firstAd = shop.ads[0];
-			if (firstAd.images && firstAd.images.length > 0) {
-				return firstAd.images[0].url || firstAd.images[0];
-			}
-		}
-		// Fallback to site logo
-		return siteConfig.logo;
+		return "https://carboncube-ke.com/og-image.png";
 	})();
 
-	// Build keywords array
+	// Optimized keywords generation with comprehensive Kenya marketplace SEO terms
 	const seoKeywords = [
 		shopName,
 		"shop",
-		"store",
 		"seller",
 		shopLocation,
-		tierName + " tier",
+		`${tierName} tier`,
+		// High-performing local search terms
+		`${shopName} near me`,
+		`${shopName} in ${shopLocation}`,
+		`shop near me`,
+		`store in ${shopLocation}`,
+		// Category-specific terms based on shop categories
+		...categories
+			.slice(0, 3)
+			.map((cat) => {
+				const catLower = cat.toLowerCase();
+				if (catLower.includes("automotive")) {
+					return [
+						`automotive shop ${shopLocation}`,
+						`car parts shop ${shopLocation}`,
+						`auto parts store Kenya`,
+						`automotive supplies ${shopLocation}`,
+						`tyres shop ${shopLocation}`,
+						`batteries shop ${shopLocation}`,
+					];
+				} else if (catLower.includes("computer")) {
+					return [
+						`computer shop ${shopLocation}`,
+						`IT store ${shopLocation}`,
+						`computer accessories ${shopLocation}`,
+						`networking equipment ${shopLocation}`,
+						`computer hardware ${shopLocation}`,
+					];
+				} else if (catLower.includes("filtration")) {
+					return [
+						`filters shop ${shopLocation}`,
+						`air filters ${shopLocation}`,
+						`fuel filters ${shopLocation}`,
+						`oil filters ${shopLocation}`,
+						`industrial filters ${shopLocation}`,
+					];
+				} else if (catLower.includes("hardware")) {
+					return [
+						`hardware shop ${shopLocation}`,
+						`tools store ${shopLocation}`,
+						`power tools ${shopLocation}`,
+						`hand tools ${shopLocation}`,
+						`safety equipment ${shopLocation}`,
+						`plumbing supplies ${shopLocation}`,
+					];
+				}
+				return [];
+			})
+			.flat(),
+		// Marketplace and trust signals
 		"Carbon Cube Kenya",
 		"online marketplace Kenya",
+		"buy online Kenya",
+		"shop online Nairobi",
 		"verified seller",
-		"B2B marketplace",
-		...categories,
-		...keywords,
-		...tags,
+		"fast delivery Kenya",
+		"secure online shopping Kenya",
+		...keywords.slice(0, 3),
+		...tags.slice(0, 2),
 	]
 		.filter(Boolean)
 		.join(", ");
 
-	// Generate structured data for shop/seller
+	// Lightweight structured data for shop
 	const shopStructuredData = {
 		"@context": "https://schema.org",
 		"@type": "Store",
 		name: shopName,
 		description: seoDescription,
-		url: `${siteConfig.url}/shop/${
+		url: `https://carboncube-ke.com/shop/${
 			enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
 		}`,
 		image: primaryImage,
-		telephone: "+254 712 990 524", // Default contact
-		email: "info@carboncube-ke.com", // Default contact
 		address: {
 			"@type": "PostalAddress",
 			addressLocality: shopLocation,
 			addressRegion: "Kenya",
 			addressCountry: "KE",
 		},
-		geo: {
-			"@type": "GeoCoordinates",
-			latitude: -1.2921,
-			longitude: 36.8219,
-		},
-		openingHours: "Mo-Su 00:00-23:59",
-		priceRange: "$$",
-		currenciesAccepted: "KES",
-		paymentAccepted: "Cash, Credit Card, Mobile Money",
 		areaServed: "KE",
 		serviceType: "Online Store",
 		...(rating && {
@@ -127,83 +148,19 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 				reviewCount: reviews_count || 0,
 			},
 		}),
-		...(created_at && {
-			foundingDate: new Date(created_at).toISOString(),
-		}),
-	};
-
-	// Generate breadcrumb structured data
-	const breadcrumbStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{
-				"@type": "ListItem",
-				position: 1,
-				name: "Home",
-				item: siteConfig.url,
-			},
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Shops",
-				item: `${siteConfig.url}/shops`,
-			},
-			{
-				"@type": "ListItem",
-				position: 3,
-				name: shopName,
-				item: `${siteConfig.url}/shop/${
-					enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
-				}`,
-			},
-		],
-	};
-
-	// Generate collection structured data for shop products
-	const collectionStructuredData = {
-		"@context": "https://schema.org",
-		"@type": "CollectionPage",
-		name: `${shopName} Products`,
-		description: `Browse ${productCount} products from ${shopName}`,
-		url: `${siteConfig.url}/shop/${
-			enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
-		}`,
-		mainEntity: {
-			"@type": "ItemList",
-			numberOfItems: productCount,
-			itemListElement: categories.map((category, index) => ({
-				"@type": "ListItem",
-				position: index + 1,
-				name: category,
-				item: `${siteConfig.url}/categories/${category.toLowerCase()}`,
-			})),
-		},
 	};
 
 	return (
 		<Helmet>
-			{/* Primary Meta Tags */}
+			{/* Essential Meta Tags - Optimized for speed */}
 			<title>{seoTitle}</title>
-			<meta name="title" content={seoTitle} />
 			<meta name="description" content={seoDescription} />
 			<meta name="keywords" content={seoKeywords} />
-			<meta name="author" content="Carbon Cube Kenya Team" />
 			<meta name="robots" content="index, follow" />
-			<meta name="language" content="English" />
-			<meta name="geo.region" content="KE" />
-			<meta name="geo.placename" content={shopLocation} />
-			<meta name="geo.position" content="-1.2921;36.8219" />
-			<meta name="ICBM" content="-1.2921, 36.8219" />
+			<meta name="author" content="Carbon Cube Kenya" />
 
-			{/* Open Graph Tags */}
+			{/* Open Graph Tags - Essential only */}
 			<meta property="og:type" content="website" />
-			<meta
-				property="og:url"
-				content={`${siteConfig.url}/shop/${
-					enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
-				}`}
-			/>
 			<meta property="og:title" content={seoTitle} />
 			<meta property="og:description" content={seoDescription} />
 			<meta property="og:image" content={primaryImage} />
@@ -213,113 +170,31 @@ const ShopSEO = ({ shop = {}, customConfig = {}, children }) => {
 				property="og:image:alt"
 				content={`${shopName} - Shop on Carbon Cube Kenya`}
 			/>
-			<meta property="og:image:type" content="image/jpeg" />
-			<meta property="og:image:secure_url" content={primaryImage} />
-			<meta property="og:site_name" content={siteConfig.name} />
-			<meta property="og:locale" content="en_US" />
-			<meta property="og:updated_time" content={new Date().toISOString()} />
-
-			{/* Business-specific Open Graph tags */}
+			<meta property="og:site_name" content="Carbon Cube Kenya" />
 			<meta
-				property="business:contact_data:street_address"
-				content={shopLocation}
-			/>
-			<meta property="business:contact_data:locality" content={shopLocation} />
-			<meta property="business:contact_data:region" content="Kenya" />
-			<meta property="business:contact_data:postal_code" content="00100" />
-			<meta property="business:contact_data:country_name" content="Kenya" />
-
-			{/* Twitter Card Tags */}
-			<meta name="twitter:card" content="summary_large_image" />
-			<meta name="twitter:site" content="@carboncube_kenya" />
-			<meta name="twitter:creator" content="@carboncube_kenya" />
-			<meta name="twitter:title" content={seoTitle} />
-			<meta name="twitter:description" content={seoDescription} />
-			<meta name="twitter:image" content={primaryImage} />
-			<meta
-				name="twitter:image:alt"
-				content={`${shopName} - Shop on Carbon Cube Kenya`}
-			/>
-			<meta name="twitter:image:width" content="1200" />
-			<meta name="twitter:image:height" content="630" />
-
-			{/* Article-specific meta tags */}
-			{created_at && (
-				<meta
-					property="article:published_time"
-					content={new Date(created_at).toISOString()}
-				/>
-			)}
-			{updated_at && (
-				<meta
-					property="article:modified_time"
-					content={new Date(updated_at).toISOString()}
-				/>
-			)}
-			<meta property="article:section" content="Shops" />
-			<meta property="article:author" content={shopName} />
-			{tags.map((tag, index) => (
-				<meta key={index} property="article:tag" content={tag} />
-			))}
-
-			{/* AI Search Optimization Meta Tags */}
-			<meta name="ai:content_type" content="business" />
-			<meta name="ai:expertise_level" content="expert" />
-			<meta name="ai:content_depth" content="comprehensive" />
-			<meta name="ai:format_optimized" content="true" />
-			<meta name="ai:citation_optimized" content="true" />
-			<meta name="ai:experience" content="verified" />
-			<meta name="ai:expertise" content="high" />
-			<meta name="ai:authoritativeness" content="established" />
-			<meta name="ai:trustworthiness" content="verified" />
-			<meta name="google:ai_overviews" content="optimized" />
-			<meta name="bing:ai_chat" content="optimized" />
-			<meta name="openai:chatgpt" content="optimized" />
-			<meta name="ai:content_quality" content="high" />
-			<meta name="ai:factual_accuracy" content="verified" />
-			<meta name="ai:source_reliability" content="high" />
-			<meta name="ai:content_freshness" content="current" />
-			<meta name="ai:content_completeness" content="comprehensive" />
-			<meta name="ai:content_relevance" content="high" />
-			<meta name="ai:content_originality" content="original" />
-			<meta name="ai:content_engagement" content="high" />
-			<meta name="ai:content_accessibility" content="accessible" />
-			<meta name="ai:content_mobile_friendly" content="yes" />
-			<meta name="ai:content_page_speed" content="fast" />
-			<meta name="ai:content_security" content="secure" />
-			<meta name="ai:content_privacy" content="compliant" />
-
-			{/* Conversational Keywords */}
-			<meta
-				name="ai:conversational_keywords"
-				content={[
-					`${shopName} shop Kenya`,
-					`${shopName} products online`,
-					`${tierName} tier seller ${shopName}`,
-					`${shopName} ${shopLocation}`,
-					`verified seller ${shopName}`,
-					`${productCount} products ${shopName}`,
-					`shop ${shopName} Carbon Cube`,
-				].join(", ")}
-			/>
-
-			{/* Canonical URL */}
-			<link
-				rel="canonical"
-				href={`${siteConfig.url}/shop/${
+				property="og:url"
+				content={`https://carboncube-ke.com/shop/${
 					enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
 				}`}
 			/>
 
-			{/* Structured Data Scripts */}
+			{/* Twitter Card Tags */}
+			<meta name="twitter:card" content="summary_large_image" />
+			<meta name="twitter:title" content={seoTitle} />
+			<meta name="twitter:description" content={seoDescription} />
+			<meta name="twitter:image" content={primaryImage} />
+
+			{/* Canonical URL */}
+			<link
+				rel="canonical"
+				href={`https://carboncube-ke.com/shop/${
+					enterprise_name?.toLowerCase().replace(/\s+/g, "-") || "shop"
+				}`}
+			/>
+
+			{/* Structured Data - Single optimized script */}
 			<script type="application/ld+json">
 				{JSON.stringify(shopStructuredData)}
-			</script>
-			<script type="application/ld+json">
-				{JSON.stringify(breadcrumbStructuredData)}
-			</script>
-			<script type="application/ld+json">
-				{JSON.stringify(collectionStructuredData)}
 			</script>
 
 			{children}

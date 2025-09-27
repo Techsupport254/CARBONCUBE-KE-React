@@ -309,8 +309,8 @@
 			/>
 		</noscript>
 
-		<!-- Canonical URL -->
-		<link rel="canonical" href="https://carboncube-ke.com/" />
+		<!-- Canonical URL - Will be dynamically set by React Helmet -->
+		<!-- <link rel="canonical" href="https://carboncube-ke.com/" /> -->
 
 		<!-- Analytics Loading - Completely deferred -->
 		<script>
@@ -562,6 +562,20 @@
 					updateMetaTag("og:url", url);
 				}
 
+				// Function to update canonical URL
+				function updateCanonical(url) {
+					let canonical = document.querySelector('link[rel="canonical"]');
+					if (canonical) {
+						canonical.setAttribute("href", url);
+					} else {
+						// Create canonical tag if it doesn't exist
+						const link = document.createElement("link");
+						link.rel = "canonical";
+						link.href = url;
+						document.head.appendChild(link);
+					}
+				}
+
 				// Handle different page types
 				if (path.startsWith("/shop/")) {
 					const shopName =
@@ -569,30 +583,59 @@
 						"Shop";
 					const title = `${shopName} - Shop | Carbon Cube Kenya`;
 					const description = `Browse products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${path}`;
 
 					updateTitle(title);
 					updateDescription(description);
-					updateURL(`https://carboncube-ke.com${path}`);
+					updateURL(url);
+					updateCanonical(url);
 				} else if (path.startsWith("/ads/")) {
 					const productName =
 						path.split("/ads/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
 						"Product";
 					const title = `${productName} | Carbon Cube Kenya`;
 					const description = `Buy ${productName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${path}`;
 
 					updateTitle(title);
 					updateDescription(description);
-					updateURL(`https://carboncube-ke.com${path}`);
+					updateURL(url);
+					updateCanonical(url);
 				} else if (path.startsWith("/categories/")) {
 					const categoryName =
 						path.split("/categories/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
 						"Category";
 					const title = `${categoryName} Products | Carbon Cube Kenya`;
 					const description = `Browse ${categoryName} products on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${path}`;
 
 					updateTitle(title);
 					updateDescription(description);
-					updateURL(`https://carboncube-ke.com${path}`);
+					updateURL(url);
+					updateCanonical(url);
+				} else if (path.startsWith("/seller")) {
+					// Handle seller pages
+					const url = `https://carboncube-ke.com${path}`;
+					updateCanonical(url);
+				} else if (path.startsWith("/terms-and-conditions")) {
+					// Handle terms page
+					const url = `https://carboncube-ke.com${path}`;
+					updateCanonical(url);
+				} else if (path.startsWith("/become-a-vendor")) {
+					// Handle vendor page
+					const url = `https://carboncube-ke.com${path}`;
+					updateCanonical(url);
+				} else if (path.startsWith("/purchaser/")) {
+					// Handle purchaser pages
+					const url = `https://carboncube-ke.com${path}`;
+					updateCanonical(url);
+				} else if (path.startsWith("/dispute-resolution")) {
+					// Handle dispute resolution page
+					const url = `https://carboncube-ke.com${path}`;
+					updateCanonical(url);
+				} else {
+					// Default to homepage canonical
+					updateCanonical("https://carboncube-ke.com/");
 				}
 			})();
 		</script>

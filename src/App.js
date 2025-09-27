@@ -564,6 +564,71 @@ const DeviceFingerprintWithSEO = () => (
 	</>
 );
 
+// Home Page SEO Wrapper
+const HomeWithSEO = ({ onLogout }) => (
+	<>
+		<PageSEO
+			pageType="home"
+			title="Carbon Cube Kenya - Kenya's #1 Online Marketplace | Trusted Sellers & Buyers"
+			description="Carbon Cube Kenya is Kenya's most trusted and secure online marketplace, connecting verified sellers with buyers using AI-powered tools and seamless digital procurement. Discover thousands of products from verified sellers across Kenya with secure payment and fast delivery."
+			keywords="Carbon Cube Kenya, online marketplace Kenya, trusted sellers, secure ecommerce, AI-powered marketplace, digital procurement Kenya, seller verification, sustainable sourcing Kenya, online shopping Kenya, B2B marketplace, buy online Kenya, shop online Nairobi, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, verified suppliers, business growth Kenya, secure online shopping Kenya, fast delivery Kenya"
+		/>
+		<Home onLogout={onLogout} />
+	</>
+);
+
+// Shop Page SEO Wrapper
+const ShopPageWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="shop"
+			title="Shop Online | Carbon Cube Kenya Marketplace"
+			description="Browse and shop from thousands of verified products on Carbon Cube Kenya. Find automotive parts, computer accessories, hardware tools, and more from trusted sellers across Kenya."
+			keywords="shop online Kenya, marketplace shopping, verified products, automotive parts Kenya, computer accessories Kenya, hardware tools Kenya, online shopping, Carbon Cube Kenya"
+		/>
+		<ShopPage />
+	</>
+);
+
+// Ad Details SEO Wrapper
+const AdDetailsWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="product"
+			title="Product Details | Carbon Cube Kenya"
+			description="View detailed product information, specifications, and seller details on Carbon Cube Kenya. Secure payment and fast delivery across Kenya."
+			keywords="product details, product information, seller details, secure payment, fast delivery, Carbon Cube Kenya"
+		/>
+		<AdDetails />
+	</>
+);
+
+// Location Page SEO Wrapper
+const LocationPageWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="location"
+			title="Local Products | Carbon Cube Kenya"
+			description="Find products and sellers in your local area on Carbon Cube Kenya. Discover local businesses and products available near you."
+			keywords="local products, local sellers, location-based shopping, local marketplace, Carbon Cube Kenya"
+		/>
+		<LocationPage />
+	</>
+);
+
+// NotFound Page SEO Wrapper
+const NotFoundWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="notFound"
+			title="Page Not Found | Carbon Cube Kenya"
+			description="The page you're looking for doesn't exist. Return to Carbon Cube Kenya homepage to continue shopping."
+			keywords="page not found, 404 error, Carbon Cube Kenya"
+		/>
+		<NotFound />
+	</>
+);
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
 	<div className="flex items-center justify-center min-h-screen w-full">
@@ -714,14 +779,14 @@ function AppContent({
 
 			<Suspense fallback={<LoadingSpinner />}>
 				<Routes>
-					<Route path="/ads/:slug" element={<AdDetails />} />
+					<Route path="/ads/:slug" element={<AdDetailsWithSEO />} />
 					<Route
 						path="/ad/:adId"
 						element={<Navigate to="/ads/:adId" replace />}
 					/>
-					<Route path="/shop/:slug" element={<ShopPage />} />
+					<Route path="/shop/:slug" element={<ShopPageWithSEO />} />
 					<Route path="/categories" element={<CategoriesPageWithSEO />} />
-					<Route path="/" element={<Home onLogout={handleLogout} />} />
+					<Route path="/" element={<HomeWithSEO onLogout={handleLogout} />} />
 					<Route path="/home" element={<Navigate to="/" replace />} />
 					<Route path="/admin" element={<Navigate to="/login" />} />
 					<Route path="/seller" element={<Navigate to="/login" />} />
@@ -766,7 +831,7 @@ function AppContent({
 					<Route path="/become-a-seller" element={<BecomeASellerWithSEO />} />
 
 					{/* Location-specific routes for local SEO */}
-					<Route path="/location/:location" element={<LocationPage />} />
+					<Route path="/location/:location" element={<LocationPageWithSEO />} />
 
 					{/* Admin Routes */}
 					<Route
@@ -935,7 +1000,7 @@ function AppContent({
 					</Route>
 
 					{/* 404 Page - Catch all route */}
-					<Route path="*" element={<NotFound />} />
+					<Route path="*" element={<NotFoundWithSEO />} />
 				</Routes>
 			</Suspense>
 		</>

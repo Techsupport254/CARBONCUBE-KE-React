@@ -144,17 +144,36 @@ const getOrCreateDeviceId = () => {
 		idbSet(IDB_KEY, deviceId);
 		return deviceId;
 	} catch (e) {
-		const fallback =
-			"dev-" +
-			Date.now().toString(36) +
-			"-" +
-			Math.random().toString(36).slice(2, 10);
+		// Try to recover existing UUID from any available storage
+		const storageKey = "device_uuid_v1";
+		let existingId = null;
+
+		// Check localStorage first
 		try {
-			localStorage.setItem("device_uuid_v1", fallback);
+			existingId = localStorage.getItem(storageKey);
 		} catch (_) {}
-		setCookie(COOKIE_NAME, fallback);
-		idbSet(IDB_KEY, fallback);
-		return fallback;
+
+		// Check cookie if localStorage failed
+		if (!existingId) {
+			existingId = getCookie(COOKIE_NAME);
+		}
+
+		// Only generate new UUID if no existing one found
+		if (!existingId) {
+			existingId =
+				"dev-" +
+				Date.now().toString(36) +
+				"-" +
+				Math.random().toString(36).slice(2, 10);
+		}
+
+		// Store the UUID in all available storage methods
+		try {
+			localStorage.setItem(storageKey, existingId);
+		} catch (_) {}
+		setCookie(COOKIE_NAME, existingId);
+		idbSet(IDB_KEY, existingId);
+		return existingId;
 	}
 };
 

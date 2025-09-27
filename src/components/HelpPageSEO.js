@@ -5,12 +5,12 @@ import { Helmet } from "react-helmet-async";
  * HelpPageSEO Component - SEO for help and guide pages
  * Provides comprehensive SEO metadata for help, FAQ, and guide pages
  */
-const HelpPageSEO = ({ 
-	pageType, 
-	title, 
-	description, 
-	keywords, 
-	customConfig = {} 
+const HelpPageSEO = ({
+	pageType,
+	title,
+	description,
+	keywords,
+	customConfig = {},
 }) => {
 	const siteConfig = {
 		name: "Carbon Cube Kenya",
@@ -22,36 +22,50 @@ const HelpPageSEO = ({
 	const seoData = {
 		faqs: {
 			title: "Frequently Asked Questions | Carbon Cube Kenya Help Center",
-			description: "Find answers to common questions about Carbon Cube Kenya marketplace. Get help with buying, selling, payments, shipping, and using Kenya's trusted online platform.",
-			keywords: "FAQ Carbon Cube Kenya, help center, marketplace questions, buying help, selling help, payment questions, shipping questions, customer support"
+			description:
+				"Find answers to common questions about Carbon Cube Kenya marketplace. Get help with buying, selling, payments, shipping, and using Kenya's trusted online platform.",
+			keywords:
+				"FAQ Carbon Cube Kenya, help center, marketplace questions, buying help, selling help, payment questions, shipping questions, customer support, buy online Kenya, shop online Nairobi, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
 		},
 		vendorHelp: {
 			title: "Vendor Help Center | How to Sell on Carbon Cube Kenya",
-			description: "Complete guide for vendors and sellers on Carbon Cube Kenya. Learn how to create listings, manage your shop, optimize sales, and grow your business on Kenya's trusted marketplace.",
-			keywords: "vendor help, seller guide, how to sell online Kenya, marketplace selling, vendor support, seller tips, business growth, online selling guide"
+			description:
+				"Complete guide for vendors and sellers on Carbon Cube Kenya. Learn how to create listings, manage your shop, optimize sales, and grow your business on Kenya's trusted marketplace.",
+			keywords:
+				"vendor help, seller guide, how to sell online Kenya, marketplace selling, vendor support, seller tips, business growth, online selling guide, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
 		},
 		howToPay: {
 			title: "How to Pay on Carbon Cube Kenya | Complete Payment Guide",
-			description: "Learn about all payment methods on Carbon Cube Kenya including M-Pesa, mobile money, credit cards, and bank transfers. Secure payment guide for Kenya's trusted marketplace.",
-			keywords: "payment methods Kenya, M-Pesa payment, mobile money, credit card payment, bank transfer, secure payments, payment guide, online payments Kenya"
+			description:
+				"Learn about all payment methods on Carbon Cube Kenya including M-Pesa, mobile money, credit cards, and bank transfers. Secure payment guide for Kenya's trusted marketplace.",
+			keywords:
+				"payment methods Kenya, M-Pesa payment, mobile money, credit card payment, bank transfer, secure payments, payment guide, online payments Kenya, buy online Kenya, shop online Nairobi, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
 		},
 		howToShop: {
 			title: "How to Shop on Carbon Cube Kenya | Complete Buyer's Guide",
-			description: "Complete shopping guide for Carbon Cube Kenya. Learn how to find products, compare prices, make secure purchases, track orders, and get the best deals on Kenya's trusted marketplace.",
-			keywords: "shopping guide, how to buy online Kenya, marketplace shopping, buyer tips, secure shopping, product search, order tracking, shopping tips"
+			description:
+				"Complete shopping guide for Carbon Cube Kenya. Learn how to find products, compare prices, make secure purchases, track orders, and get the best deals on Kenya's trusted marketplace.",
+			keywords:
+				"shopping guide, how to buy online Kenya, marketplace shopping, buyer tips, secure shopping, product search, order tracking, shopping tips, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
 		},
 		becomeSeller: {
 			title: "Become a Seller on Carbon Cube Kenya | Complete Seller's Guide",
-			description: "Join Carbon Cube Kenya as a verified seller and start your online business. Complete guide to registration, listing products, managing orders, and growing your sales on Kenya's trusted marketplace.",
-			keywords: "become a seller, start selling online Kenya, vendor registration, seller signup, online business Kenya, marketplace selling, seller guide, business setup"
-		}
+			description:
+				"Join Carbon Cube Kenya as a verified seller and start your online business. Complete guide to registration, listing products, managing orders, and growing your sales on Kenya's trusted marketplace.",
+			keywords:
+				"become a seller, start selling online Kenya, vendor registration, seller signup, online business Kenya, marketplace selling, seller guide, business setup, automotive parts Kenya, computer parts Kenya, filtration systems Kenya, hardware tools Kenya, auto parts shop Kenya, computer accessories Kenya, filters Kenya, power tools Kenya, car parts Kenya, IT equipment Kenya, industrial supplies Kenya, secure online shopping Kenya, fast delivery Kenya",
+		},
 	};
 
 	// Get SEO data for the page type
 	const pageSEO = seoData[pageType] || {
 		title: title || "Help Center | Carbon Cube Kenya",
-		description: description || "Get help and support for using Carbon Cube Kenya marketplace. Find guides, FAQs, and tips for buying and selling on Kenya's trusted online platform.",
-		keywords: keywords || "help center, Carbon Cube Kenya support, marketplace help, buying help, selling help, customer support"
+		description:
+			description ||
+			"Get help and support for using Carbon Cube Kenya marketplace. Find guides, FAQs, and tips for buying and selling on Kenya's trusted online platform.",
+		keywords:
+			keywords ||
+			"help center, Carbon Cube Kenya support, marketplace help, buying help, selling help, customer support",
 	};
 
 	// Enhanced structured data for help pages
@@ -67,48 +81,51 @@ const HelpPageSEO = ({
 			url: siteConfig.url,
 			logo: {
 				"@type": "ImageObject",
-				url: siteConfig.logo
-			}
+				url: siteConfig.logo,
+			},
 		},
 		mainEntity: {
 			"@type": "Organization",
 			name: "Carbon Cube Kenya",
 			url: siteConfig.url,
-			description: "Kenya's most trusted and secure online marketplace"
-		}
+			description: "Kenya's most trusted and secure online marketplace",
+		},
 	};
 
 	// FAQ structured data for FAQ pages
-	const faqStructuredData = pageType === 'faqs' ? {
-		"@context": "https://schema.org",
-		"@type": "FAQPage",
-		mainEntity: [
-			{
-				"@type": "Question",
-				name: "How do I create an account on Carbon Cube Kenya?",
-				acceptedAnswer: {
-					"@type": "Answer",
-					text: "You can create an account by clicking the 'Sign Up' button and choosing either 'Buyer' or 'Seller' registration. Fill in your details and verify your email to get started."
-				}
-			},
-			{
-				"@type": "Question",
-				name: "What payment methods are accepted?",
-				acceptedAnswer: {
-					"@type": "Answer",
-					text: "We accept M-Pesa, mobile money, credit cards, and bank transfers. All payments are processed securely through our trusted payment partners."
-				}
-			},
-			{
-				"@type": "Question",
-				name: "How do I track my order?",
-				acceptedAnswer: {
-					"@type": "Answer",
-					text: "You can track your order through your account dashboard or by using the tracking number provided by the seller. You'll receive updates via SMS and email."
-				}
-			}
-		]
-	} : null;
+	const faqStructuredData =
+		pageType === "faqs"
+			? {
+					"@context": "https://schema.org",
+					"@type": "FAQPage",
+					mainEntity: [
+						{
+							"@type": "Question",
+							name: "How do I create an account on Carbon Cube Kenya?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "You can create an account by clicking the 'Sign Up' button and choosing either 'Buyer' or 'Seller' registration. Fill in your details and verify your email to get started.",
+							},
+						},
+						{
+							"@type": "Question",
+							name: "What payment methods are accepted?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "We accept M-Pesa, mobile money, credit cards, and bank transfers. All payments are processed securely through our trusted payment partners.",
+							},
+						},
+						{
+							"@type": "Question",
+							name: "How do I track my order?",
+							acceptedAnswer: {
+								"@type": "Answer",
+								text: "You can track your order through your account dashboard or by using the tracking number provided by the seller. You'll receive updates via SMS and email.",
+							},
+						},
+					],
+			  }
+			: null;
 
 	// Breadcrumb structured data
 	const breadcrumbStructuredData = {
@@ -119,21 +136,21 @@ const HelpPageSEO = ({
 				"@type": "ListItem",
 				position: 1,
 				name: "Home",
-				item: siteConfig.url
+				item: siteConfig.url,
 			},
 			{
 				"@type": "ListItem",
 				position: 2,
 				name: "Help Center",
-				item: `${siteConfig.url}/help`
+				item: `${siteConfig.url}/help`,
 			},
 			{
 				"@type": "ListItem",
 				position: 3,
-				name: pageSEO.title.split(' | ')[0],
-				item: `${siteConfig.url}/${pageType}`
-			}
-		]
+				name: pageSEO.title.split(" | ")[0],
+				item: `${siteConfig.url}/${pageType}`,
+			},
+		],
 	};
 
 	return (
