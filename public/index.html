@@ -531,6 +531,9 @@
 			(function () {
 				const path = window.location.pathname;
 				const searchParams = new URLSearchParams(window.location.search);
+				
+				// Execute immediately for search engines
+				console.log('SEO Script executing for path:', path);
 
 				// Function to update meta tag
 				function updateMetaTag(property, content) {
@@ -585,6 +588,7 @@
 					const description = `Browse products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
 					const url = `https://carboncube-ke.com${path}`;
 
+					console.log('Updating shop page SEO:', { shopName, title, description, url });
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
@@ -615,7 +619,8 @@
 					updateCanonical(url);
 				} else if (path.startsWith("/how-to-pay")) {
 					const title = "How to Pay - Seller Payment Guide | Carbon Cube Kenya";
-					const description = "Learn how to make M-Pesa payments to upgrade your seller tier on Carbon Cube Kenya. Step-by-step guide for seller subscription payments.";
+					const description =
+						"Learn how to make M-Pesa payments to upgrade your seller tier on Carbon Cube Kenya. Step-by-step guide for seller subscription payments.";
 					const url = `https://carboncube-ke.com${path}`;
 
 					updateTitle(title);
@@ -624,7 +629,8 @@
 					updateCanonical(url);
 				} else if (path.startsWith("/how-to-shop")) {
 					const title = "How to Shop - Buyer Guide | Carbon Cube Kenya";
-					const description = "Learn how to shop safely on Carbon Cube Kenya. Complete guide for buyers with secure payment methods and fast delivery.";
+					const description =
+						"Learn how to shop safely on Carbon Cube Kenya. Complete guide for buyers with secure payment methods and fast delivery.";
 					const url = `https://carboncube-ke.com${path}`;
 
 					updateTitle(title);
@@ -632,7 +638,9 @@
 					updateURL(url);
 					updateCanonical(url);
 				} else if (path.startsWith("/location/")) {
-					const locationName = path.split("/location/")[1]?.split("?")[0]?.replace(/-/g, " ") || "Location";
+					const locationName =
+						path.split("/location/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
+						"Location";
 					const title = `${locationName} - Local Shopping | Carbon Cube Kenya`;
 					const description = `Shop locally in ${locationName} with Carbon Cube Kenya. Find trusted sellers and fast delivery in your area.`;
 					const url = `https://carboncube-ke.com${path}`;
