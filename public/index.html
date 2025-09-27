@@ -579,44 +579,63 @@
 					// No need to set them here to avoid duplicates
 				}
 
-		// Handle different page types
-		if (path.startsWith("/shop/")) {
-			const shopName =
-				path.split("/shop/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
-				"Shop";
-			
-			// Try to extract product count from page content
-			let productCount = "0";
-			try {
-				// Look for product count in various places on the page
-				const productCountElements = document.querySelectorAll('*');
-				for (let element of productCountElements) {
-					const text = element.textContent || '';
-					// Look for patterns like "32 products", "Products (32)", "32 total items"
-					const match = text.match(/(\d+)\s*(?:products?|total\s+items?)/i);
-					if (match) {
-						productCount = match[1];
-						break;
-					}
-				}
-			} catch (e) {
-				console.log("Could not extract product count:", e);
-			}
-			
-			const title = `${shopName} - Shop | ${productCount} Products | Carbon Cube Kenya`;
-			const description = `Browse ${productCount} products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
-			const url = `https://carboncube-ke.com${fullPath}`;
+				// Handle different page types
+				if (path.startsWith("/shop/")) {
+					const shopName =
+						path.split("/shop/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
+						"Shop";
 
-			console.log("Updating shop page SEO:", {
-				shopName,
-				productCount,
-				title,
-				description,
-				url,
-			});
-			updateTitle(title);
-			updateDescription(description);
-			updateURL(url);
+					// Function to extract product count with retry mechanism
+					function extractProductCount() {
+						let productCount = "0";
+						try {
+							// Look for product count in various places on the page
+							const productCountElements = document.querySelectorAll("*");
+							for (let element of productCountElements) {
+								const text = element.textContent || "";
+								// Look for patterns like "32 products", "Products (32)", "32 total items"
+								const match = text.match(/(\d+)\s*(?:products?|total\s+items?)/i);
+								if (match) {
+									productCount = match[1];
+									break;
+								}
+							}
+						} catch (e) {
+							console.log("Could not extract product count:", e);
+						}
+						return productCount;
+					}
+					
+					// Try to extract product count immediately
+					let productCount = extractProductCount();
+					
+					// If no product count found, wait a bit and try again
+					if (productCount === "0") {
+						setTimeout(() => {
+							productCount = extractProductCount();
+							updateShopSEO(shopName, productCount, fullPath);
+						}, 1000);
+					} else {
+						updateShopSEO(shopName, productCount, fullPath);
+					}
+					
+					// Function to update shop SEO
+					function updateShopSEO(shopName, productCount, fullPath) {
+						const title = `${shopName} - Shop | ${productCount} Products | Carbon Cube Kenya`;
+						const description = `Browse ${productCount} products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+						const url = `https://carboncube-ke.com${fullPath}`;
+
+						console.log("Updating shop page SEO:", {
+							shopName,
+							productCount,
+							title,
+							description,
+							url,
+						});
+						updateTitle(title);
+						updateDescription(description);
+						updateURL(url);
+					}
 				} else if (path.startsWith("/ads/")) {
 					const productName =
 						path.split("/ads/")[1]?.split("?")[0]?.replace(/-/g, " ") ||
