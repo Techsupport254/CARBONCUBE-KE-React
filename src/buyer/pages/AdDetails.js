@@ -1427,23 +1427,24 @@ const AdDetails = () => {
 	}
 
 	// Server-side rendered meta tags for instant SEO
+	// Use ad ID from URL for dynamic meta tags even before data is fetched
 	const serverSideMetaTags = (
 		<Helmet>
-			<title>{ad ? `${ad.title} | Carbon Cube Kenya` : "Product Details | Carbon Cube Kenya"}</title>
+			<title>{ad ? `${ad.title} | Carbon Cube Kenya` : `Product #${adId} | Carbon Cube Kenya`}</title>
 			<meta name="description" content={
 				ad 
 					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya. ${ad.condition || 'new'} ${ad.category_name || 'product'} from verified seller ${ad.seller_name || 'Carbon Cube'}. Fast delivery across Kenya.`
-					: "View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+					: `View product #${adId} details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`
 			} />
-			<meta property="og:title" content={ad ? `${ad.title} | Carbon Cube Kenya` : "Product Details | Carbon Cube Kenya"} />
+			<meta property="og:title" content={ad ? `${ad.title} | Carbon Cube Kenya` : `Product #${adId} | Carbon Cube Kenya`} />
 			<meta property="og:description" content={
 				ad 
 					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya.`
-					: "View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+					: `View product #${adId} details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`
 			} />
 			<meta property="og:image" content={
-				ad && ad.media_urls && ad.media_urls.length > 0 
-					? ad.media_urls[0] 
+				ad && ad.media_urls && ad.media_urls.length > 0
+					? ad.media_urls[0]
 					: "https://carboncube-ke.com/og-image.png"
 			} />
 			<meta property="og:url" content={window.location.href} />
