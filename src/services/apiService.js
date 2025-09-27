@@ -165,7 +165,7 @@ class ApiService {
 		if (params.category_id) queryParams.set("category_id", params.category_id);
 		if (params.subcategory_id)
 			queryParams.set("subcategory_id", params.subcategory_id);
-		
+
 		// Add randomization parameters to ensure different results on each request
 		queryParams.set("randomize", "true");
 		queryParams.set("no_cache", "true");
@@ -187,7 +187,7 @@ class ApiService {
 			queryParams.set("subcategory", filters.subcategory);
 		if (filters.page) queryParams.set("page", filters.page);
 		if (filters.per_page) queryParams.set("ads_per_page", filters.per_page);
-		
+
 		// Add randomization parameters to ensure different results on each request
 		queryParams.set("randomize", "true");
 		queryParams.set("no_cache", "true");

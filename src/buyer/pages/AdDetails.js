@@ -41,6 +41,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import ProductSEO from "../../components/ProductSEO";
 import PageSEO from "../../components/PageSEO";
+import { Helmet } from "react-helmet-async";
 import { getBorderColor } from "../utils/sellerTierUtils";
 import { logClickEvent } from "../../utils/clickEventLogger";
 import { getValidImageUrl } from "../../utils/imageUtils";
@@ -1425,8 +1426,40 @@ const AdDetails = () => {
 		);
 	}
 
+	// Server-side rendered meta tags for instant SEO
+	const serverSideMetaTags = (
+		<Helmet>
+			<title>{ad ? `${ad.title} | Carbon Cube Kenya` : "Product Details | Carbon Cube Kenya"}</title>
+			<meta name="description" content={
+				ad 
+					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya. ${ad.condition || 'new'} ${ad.category_name || 'product'} from verified seller ${ad.seller_name || 'Carbon Cube'}. Fast delivery across Kenya.`
+					: "View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+			} />
+			<meta property="og:title" content={ad ? `${ad.title} | Carbon Cube Kenya` : "Product Details | Carbon Cube Kenya"} />
+			<meta property="og:description" content={
+				ad 
+					? `Buy ${ad.title}${ad.brand ? ` by ${ad.brand}` : ''}${ad.price ? ` for KSh ${parseFloat(ad.price).toLocaleString()}` : ''} on Carbon Cube Kenya.`
+					: "View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
+			} />
+			<meta property="og:image" content={
+				ad && ad.media_urls && ad.media_urls.length > 0 
+					? ad.media_urls[0] 
+					: "https://carboncube-ke.com/og-image.png"
+			} />
+			<meta property="og:url" content={window.location.href} />
+			<meta property="og:type" content="product" />
+			{ad && ad.price && <meta property="product:price:amount" content={ad.price.toString()} />}
+			{ad && <meta property="product:price:currency" content="KES" />}
+			{ad && <meta property="product:availability" content="in stock" />}
+			{ad && <meta property="product:condition" content={ad.condition || "new"} />}
+			{ad && ad.brand && <meta property="product:brand" content={ad.brand} />}
+			{ad && <meta property="product:category" content={ad.category_name || "Products"} />}
+		</Helmet>
+	);
+
 	return (
 		<>
+			{serverSideMetaTags}
 			{ad ? (
 				<ProductSEO product={productData} />
 			) : (
