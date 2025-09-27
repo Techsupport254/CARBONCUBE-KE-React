@@ -1425,18 +1425,40 @@ const AdDetails = () => {
 		);
 	}
 
+	// Create basic product data for SEO when ad data is not available
+	const getAdIdFromUrl = () => {
+		if (typeof window !== 'undefined') {
+			const urlParams = new URLSearchParams(window.location.search);
+			return urlParams.get('id');
+		}
+		return adId; // Fallback to React hook
+	};
+	
+	const currentAdId = getAdIdFromUrl() || 'Details';
+	
+	const seoProductData = ad ? productData : {
+		id: currentAdId,
+		title: `Product #${currentAdId}`,
+		description: `View product #${currentAdId} details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya.`,
+		price: null,
+		currency: "KES",
+		condition: "new",
+		category: "Products",
+		category_name: "Products",
+		brand: null,
+		seller: "Verified Seller",
+		seller_enterprise_name: "Carbon Cube",
+		images: [],
+		location: "Kenya",
+		availability: "in stock",
+		sku: currentAdId,
+		keywords: ["product", "buy online", "verified sellers", "Kenya marketplace"],
+		tags: ["product", "kenya", "marketplace"]
+	};
+
 	return (
 		<>
-			{ad ? (
-				<ProductSEO product={productData} />
-			) : (
-				<PageSEO
-					pageType="product"
-					title="Product Details | Carbon Cube Kenya"
-					description="View product details on Carbon Cube Kenya. Buy from verified sellers with fast delivery across Kenya."
-					keywords="product, buy online, verified sellers, Kenya marketplace"
-				/>
-			)}
+			<ProductSEO product={seoProductData} />
 			<Navbar
 				mode="buyer"
 				showSearch={false}
