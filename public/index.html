@@ -525,15 +525,147 @@
 			}
 		</style>
 
+		<!-- Immediate SEO Meta Tag Injection -->
+		<script>
+			// Immediate SEO injection - executes before page load
+			(function() {
+				// Get current path immediately
+				const path = window.location.pathname;
+				const search = window.location.search;
+				const fullPath = path + search;
+				
+				console.log("IMMEDIATE SEO: Processing path:", path);
+				
+				// Function to immediately update meta tags
+				function updateMetaImmediate(property, content) {
+					let meta = document.querySelector(`meta[property="${property}"]`) || 
+							  document.querySelector(`meta[name="${property}"]`);
+					if (meta) {
+						meta.setAttribute('content', content);
+					} else {
+						meta = document.createElement('meta');
+						meta.setAttribute(property.startsWith('og:') ? 'property' : 'name', property);
+						meta.setAttribute('content', content);
+						document.head.appendChild(meta);
+					}
+				}
+				
+				// Function to immediately update title
+				function updateTitleImmediate(title) {
+					document.title = title;
+					updateMetaImmediate('title', title);
+					updateMetaImmediate('og:title', title);
+					updateMetaImmediate('twitter:title', title);
+				}
+				
+				// Function to immediately update description
+				function updateDescriptionImmediate(description) {
+					updateMetaImmediate('description', description);
+					updateMetaImmediate('og:description', description);
+					updateMetaImmediate('twitter:description', description);
+				}
+				
+				// Function to immediately update canonical
+				function updateCanonicalImmediate(url) {
+					let canonical = document.querySelector('link[rel="canonical"]');
+					if (canonical) {
+						canonical.setAttribute('href', url);
+					} else {
+						canonical = document.createElement('link');
+						canonical.rel = 'canonical';
+						canonical.href = url;
+						document.head.appendChild(canonical);
+					}
+				}
+				
+				// Function to immediately update OG URL
+				function updateOGUrlImmediate(url) {
+					updateMetaImmediate('og:url', url);
+				}
+				
+				// Immediate route-based SEO updates
+				if (path.startsWith('/shop/')) {
+					const shopName = path.split('/shop/')[1]?.split('?')[0]?.replace(/-/g, ' ') || 'Shop';
+					const title = `${shopName} - Shop | Carbon Cube Kenya`;
+					const description = `Browse products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating shop page:", { shopName, title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else if (path.startsWith('/ads/')) {
+					const productName = path.split('/ads/')[1]?.split('?')[0]?.replace(/-/g, ' ') || 'Product';
+					const title = `${productName} | Carbon Cube Kenya`;
+					const description = `Buy ${productName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating product page:", { productName, title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else if (path.startsWith('/categories/')) {
+					const categoryName = path.split('/categories/')[1]?.split('?')[0]?.replace(/-/g, ' ') || 'Category';
+					const title = `${categoryName} Products | Carbon Cube Kenya`;
+					const description = `Browse ${categoryName} products on Carbon Cube Kenya. Fast delivery across Kenya.`;
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating category page:", { categoryName, title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else if (path.startsWith('/how-to-pay')) {
+					const title = 'How to Pay - Seller Payment Guide | Carbon Cube Kenya';
+					const description = 'Learn how to make M-Pesa payments to upgrade your seller tier on Carbon Cube Kenya. Step-by-step guide for seller subscription payments.';
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating how-to-pay page:", { title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else if (path.startsWith('/how-to-shop')) {
+					const title = 'How to Shop - Buyer Guide | Carbon Cube Kenya';
+					const description = 'Learn how to shop safely on Carbon Cube Kenya. Complete guide for buyers with secure payment methods and fast delivery.';
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating how-to-shop page:", { title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else if (path.startsWith('/location/')) {
+					const locationName = path.split('/location/')[1]?.split('?')[0]?.replace(/-/g, ' ') || 'Location';
+					const title = `${locationName} - Local Shopping | Carbon Cube Kenya`;
+					const description = `Shop locally in ${locationName} with Carbon Cube Kenya. Find trusted sellers and fast delivery in your area.`;
+					const url = `https://carboncube-ke.com${fullPath}`;
+					
+					console.log("IMMEDIATE SEO: Updating location page:", { locationName, title, description, url });
+					updateTitleImmediate(title);
+					updateDescriptionImmediate(description);
+					updateCanonicalImmediate(url);
+					updateOGUrlImmediate(url);
+				} else {
+					// Homepage - keep default
+					console.log("IMMEDIATE SEO: Using default homepage SEO");
+					updateCanonicalImmediate('https://carboncube-ke.com/');
+					updateOGUrlImmediate('https://carboncube-ke.com/');
+				}
+			})();
+		</script>
+
 		<!-- Dynamic Meta Tags for Social Media Crawlers -->
 		<script>
 			// Update meta tags based on URL for social media crawlers
 			(function () {
 				const path = window.location.pathname;
 				const searchParams = new URLSearchParams(window.location.search);
-				
+
 				// Execute immediately for search engines
-				console.log('SEO Script executing for path:', path);
+				console.log("SEO Script executing for path:", path);
 
 				// Function to update meta tag
 				function updateMetaTag(property, content) {
@@ -588,7 +720,12 @@
 					const description = `Browse products from ${shopName} on Carbon Cube Kenya. Fast delivery across Kenya.`;
 					const url = `https://carboncube-ke.com${path}`;
 
-					console.log('Updating shop page SEO:', { shopName, title, description, url });
+					console.log("Updating shop page SEO:", {
+						shopName,
+						title,
+						description,
+						url,
+					});
 					updateTitle(title);
 					updateDescription(description);
 					updateURL(url);
