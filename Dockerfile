@@ -26,6 +26,9 @@ ENV SKIP_POSTBUILD=true
 # Build without postbuild (react-snap) to avoid Puppeteer/Chrome issues
 RUN npm run build
 
+# Remove node_modules to reduce image size
+RUN rm -rf node_modules
+
 # Use Nginx as the web server
 FROM nginx:alpine
 
