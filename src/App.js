@@ -6,7 +6,11 @@ import {
 	Navigate,
 } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { getDeviceFingerprint } from "./utils/deviceFingerprint";
+import {
+	getDeviceFingerprint,
+	isInternalUser,
+	isIPExcluded,
+} from "./utils/deviceFingerprint";
 import sourceTrackingService from "./utils/sourceTracking";
 import useAuth from "./hooks/useAuth";
 import tokenService from "./services/tokenService";
@@ -680,13 +684,20 @@ function App() {
 		// and track the initial visit (only once per session)
 		(async () => {
 			try {
-				const fp = getDeviceFingerprint();
+				const fp = await getDeviceFingerprint();
 
-				// Temporarily disable internal user check for testing
-				// if (isInternalUser(fp)) {
-				// 	setExcludeTracking(true);
-				// 	return;
-				// }
+				// Check for internal user patterns first
+				if (isInternalUser(fp)) {
+					setExcludeTracking(true);
+					return;
+				}
+
+				// Check for IP-based exclusions
+				const ipExcluded = await isIPExcluded();
+				if (ipExcluded) {
+					setExcludeTracking(true);
+					return;
+				}
 
 				const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -695,10 +706,7 @@ function App() {
 				);
 				if (resp.ok) {
 					const data = await resp.json();
-					if (
-						(data && data.status === "approved") ||
-						data?.is_excluded === true
-					) {
+					if (data && data.status === "approved") {
 						setExcludeTracking(true);
 						return;
 					}

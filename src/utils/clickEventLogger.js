@@ -5,18 +5,18 @@ import { getDeviceFingerprint, isInternalUser } from "./deviceFingerprint";
 let cachedFingerprint = null;
 let isInternalUserCached = null;
 
-// Get or generate device fingerprint
-const getCachedFingerprint = () => {
+// Get or generate device fingerprint (async)
+const getCachedFingerprint = async () => {
 	if (!cachedFingerprint) {
-		cachedFingerprint = getDeviceFingerprint();
+		cachedFingerprint = await getDeviceFingerprint();
 	}
 	return cachedFingerprint;
 };
 
-// Check if current user is internal (cached)
-const getCachedInternalUserStatus = () => {
+// Check if current user is internal (cached, async)
+const getCachedInternalUserStatus = async () => {
 	if (isInternalUserCached === null) {
-		const fingerprint = getCachedFingerprint();
+		const fingerprint = await getCachedFingerprint();
 		isInternalUserCached = isInternalUser(fingerprint);
 	}
 	return isInternalUserCached;
@@ -30,8 +30,8 @@ export const logClickEvent = async (
 ) => {
 	try {
 		// Get device fingerprint
-		const fingerprint = getCachedFingerprint();
-		const isInternal = getCachedInternalUserStatus();
+		const fingerprint = await getCachedFingerprint();
+		const isInternal = await getCachedInternalUserStatus();
 
 		// Prepare the request payload
 		const payload = {
@@ -170,10 +170,10 @@ export const logSubcategoryClick = async (subcategory, category) => {
 };
 
 // Initialize device fingerprinting on app startup
-export const initializeDeviceFingerprinting = () => {
+export const initializeDeviceFingerprinting = async () => {
 	try {
-		const fingerprint = getCachedFingerprint();
-		const isInternal = getCachedInternalUserStatus();
+		const fingerprint = await getCachedFingerprint();
+		const isInternal = await getCachedInternalUserStatus();
 
 		return { fingerprint, isInternal };
 	} catch (error) {
@@ -183,11 +183,11 @@ export const initializeDeviceFingerprinting = () => {
 };
 
 // Get current device information (for debugging)
-export const getDeviceInfo = () => {
-	const fingerprint = getCachedFingerprint();
+export const getDeviceInfo = async () => {
+	const fingerprint = await getCachedFingerprint();
 	return {
 		hash: fingerprint.hash,
-		isInternalUser: getCachedInternalUserStatus(),
+		isInternalUser: await getCachedInternalUserStatus(),
 		userAgent: fingerprint.fingerprint.userAgent,
 		screenResolution: `${fingerprint.fingerprint.screenWidth}x${fingerprint.fingerprint.screenHeight}`,
 		platform: fingerprint.fingerprint.platform,

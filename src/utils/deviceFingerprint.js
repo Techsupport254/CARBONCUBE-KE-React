@@ -82,9 +82,10 @@ const idbSet = async (key, value) => {
 };
 
 // Generate or load a persistent per-device UUID (scoped to this browser profile)
-const getOrCreateDeviceId = () => {
+const getOrCreateDeviceId = async () => {
 	try {
 		const storageKey = "device_uuid_v1";
+
 		// 1) Try cookie first (survives localStorage/sessionStorage clears if cookies remain)
 		let deviceId = getCookie(COOKIE_NAME);
 		if (deviceId) {
@@ -93,11 +94,35 @@ const getOrCreateDeviceId = () => {
 					localStorage.setItem(storageKey, deviceId);
 			} catch (_) {}
 			// backfill IDB asynchronously
-			idbSet(IDB_KEY, deviceId);
+			await idbSet(IDB_KEY, deviceId);
+			// Try to recover from server if available
+			await recoverFromServer(deviceId);
 			return deviceId;
 		}
 
-		// 2) Fallback to localStorage
+		// 2) Try IndexedDB (survives localStorage clears)
+		const idbDeviceId = await idbGet(IDB_KEY);
+		if (idbDeviceId) {
+			try {
+				localStorage.setItem(storageKey, idbDeviceId);
+			} catch (_) {}
+			setCookie(COOKIE_NAME, idbDeviceId);
+			await recoverFromServer(idbDeviceId);
+			return idbDeviceId;
+		}
+
+		// 3) Try to recover from server using hardware fingerprint
+		const serverRecoveredId = await recoverFromServer();
+		if (serverRecoveredId) {
+			try {
+				localStorage.setItem(storageKey, serverRecoveredId);
+			} catch (_) {}
+			setCookie(COOKIE_NAME, serverRecoveredId);
+			await idbSet(IDB_KEY, serverRecoveredId);
+			return serverRecoveredId;
+		}
+
+		// 4) Fallback to localStorage
 		deviceId = localStorage.getItem(storageKey);
 		if (!deviceId) {
 			if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -136,12 +161,16 @@ const getOrCreateDeviceId = () => {
 				localStorage.setItem(storageKey, deviceId);
 			} catch (_) {}
 			setCookie(COOKIE_NAME, deviceId);
-			idbSet(IDB_KEY, deviceId);
+			await idbSet(IDB_KEY, deviceId);
+			// Store on server for future recovery
+			await storeOnServer(deviceId);
 		}
 		// Ensure cookie exists if only localStorage had it
 		setCookie(COOKIE_NAME, deviceId);
 		// Ensure IDB holds a copy
-		idbSet(IDB_KEY, deviceId);
+		await idbSet(IDB_KEY, deviceId);
+		// Ensure server has a copy
+		await storeOnServer(deviceId);
 		return deviceId;
 	} catch (e) {
 		// Try to recover existing UUID from any available storage
@@ -158,6 +187,11 @@ const getOrCreateDeviceId = () => {
 			existingId = getCookie(COOKIE_NAME);
 		}
 
+		// Check IndexedDB
+		if (!existingId) {
+			existingId = await idbGet(IDB_KEY);
+		}
+
 		// Only generate new UUID if no existing one found
 		if (!existingId) {
 			existingId =
@@ -172,9 +206,107 @@ const getOrCreateDeviceId = () => {
 			localStorage.setItem(storageKey, existingId);
 		} catch (_) {}
 		setCookie(COOKIE_NAME, existingId);
-		idbSet(IDB_KEY, existingId);
+		await idbSet(IDB_KEY, existingId);
+		await storeOnServer(existingId);
 		return existingId;
 	}
+};
+
+// Server-side recovery functions for enhanced persistence
+const storeOnServer = async (deviceId) => {
+	try {
+		const API_URL = process.env.REACT_APP_BACKEND_URL;
+		if (!API_URL) return false;
+
+		// Generate hardware fingerprint for server-side matching
+		const hardwareFingerprint = generateHardwareFingerprint();
+
+		await fetch(`${API_URL}/device_fingerprints/store`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				device_id: deviceId,
+				hardware_fingerprint: hardwareFingerprint,
+				user_agent: navigator.userAgent,
+				timestamp: Date.now(),
+			}),
+		});
+		return true;
+	} catch (_) {
+		return false;
+	}
+};
+
+const recoverFromServer = async (existingDeviceId = null) => {
+	try {
+		const API_URL = process.env.REACT_APP_BACKEND_URL;
+		if (!API_URL) return null;
+
+		// Generate hardware fingerprint for matching
+		const hardwareFingerprint = generateHardwareFingerprint();
+
+		const response = await fetch(`${API_URL}/device_fingerprints/recover`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				existing_device_id: existingDeviceId,
+				hardware_fingerprint: hardwareFingerprint,
+				user_agent: navigator.userAgent,
+			}),
+		});
+
+		if (response.ok) {
+			const data = await response.json();
+			return data.device_id || null;
+		}
+		return null;
+	} catch (_) {
+		return null;
+	}
+};
+
+// Generate a stable hardware fingerprint for server-side matching
+const generateHardwareFingerprint = () => {
+	const fingerprint = {
+		screenWidth: window.screen.width,
+		screenHeight: window.screen.height,
+		hardwareConcurrency: navigator.hardwareConcurrency,
+		platform: navigator.platform,
+		language: navigator.language,
+		timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+		devicePixelRatio: window.devicePixelRatio,
+		maxTouchPoints: navigator.maxTouchPoints,
+		// Add canvas fingerprint for additional uniqueness
+		canvasFingerprint: (() => {
+			try {
+				const canvas = document.createElement("canvas");
+				const ctx = canvas.getContext("2d");
+				canvas.width = 200;
+				canvas.height = 50;
+				ctx.textBaseline = "top";
+				ctx.font = "14px Arial";
+				ctx.fillStyle = "#000000";
+				ctx.fillRect(0, 0, 200, 50);
+				ctx.fillStyle = "#ffffff";
+				ctx.fillText("Device fingerprint test 0123456789", 2, 2);
+				const imageData = ctx.getImageData(0, 0, 200, 50);
+				const pixels = imageData.data;
+				let hash = 0;
+				for (let i = 0; i < pixels.length; i += 40) {
+					hash = ((hash << 5) - hash + pixels[i]) & 0xffffffff;
+				}
+				return hash.toString(36);
+			} catch (_) {
+				return "canvas_not_supported";
+			}
+		})(),
+	};
+
+	return JSON.stringify(fingerprint);
 };
 
 // Background recovery: if both cookie and localStorage are missing but IndexedDB has the ID,
@@ -198,7 +330,7 @@ const getOrCreateDeviceId = () => {
 	} catch (_) {}
 })();
 
-export const generateDeviceFingerprint = () => {
+export const generateDeviceFingerprint = async () => {
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d");
 
@@ -322,7 +454,7 @@ export const generateDeviceFingerprint = () => {
 	// Note: advancedFingerprintString variable removed as it was unused
 
 	// Primary identifier: persistent per-device UUID
-	const deviceId = getOrCreateDeviceId();
+	const deviceId = await getOrCreateDeviceId();
 
 	return {
 		fingerprint: fingerprint,
@@ -348,6 +480,11 @@ const isUuidLike = (value) => {
 
 // Check if device matches internal user patterns
 export const isInternalUser = (fingerprint) => {
+	// Add null checks to prevent errors
+	if (!fingerprint || !fingerprint.fingerprint) {
+		return false;
+	}
+
 	const internalPatterns = [
 		// Development tools and testing frameworks
 		/Chrome-Lighthouse/i,
@@ -369,11 +506,13 @@ export const isInternalUser = (fingerprint) => {
 		/Test.*Environment/i,
 	];
 
-	// Check user agent
+	// Check user agent with null safety
 	const userAgent = fingerprint.fingerprint.userAgent;
-	for (const pattern of internalPatterns) {
-		if (pattern.test(userAgent)) {
-			return true;
+	if (userAgent) {
+		for (const pattern of internalPatterns) {
+			if (pattern.test(userAgent)) {
+				return true;
+			}
 		}
 	}
 
@@ -388,20 +527,48 @@ export const isInternalUser = (fingerprint) => {
 
 	// Check for specific screen resolutions common in development
 	// Only for very specific development setups
-	const { screenWidth, screenHeight } = fingerprint.fingerprint;
+	const { screenWidth, screenHeight, hardwareConcurrency } =
+		fingerprint.fingerprint;
 
 	// Only flag as internal if it's a very specific development setup
 	// (e.g., high-res monitor with specific characteristics)
 	if (
 		screenWidth === 2560 &&
 		screenHeight === 1440 &&
-		fingerprint.fingerprint.hardwareConcurrency >= 16
+		hardwareConcurrency >= 16
 	) {
 		// This is likely a high-end development machine
 		return true;
 	}
 
 	return false;
+};
+
+// Check if current IP is excluded (async function for server-side check)
+export const isIPExcluded = async () => {
+	try {
+		const API_URL = process.env.REACT_APP_BACKEND_URL;
+		if (!API_URL) return false;
+
+		// Make a request to check IP-based exclusions
+		const response = await fetch(
+			`${API_URL}/internal_user_exclusions/check_ip`,
+			{
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		if (response.ok) {
+			const data = await response.json();
+			return data.excluded === true;
+		}
+		return false;
+	} catch (_) {
+		return false;
+	}
 };
 
 // Store fingerprint in localStorage for consistency
@@ -423,18 +590,18 @@ export const storeFingerprint = (fingerprint) => {
 };
 
 // Main function to get or generate fingerprint
-export const getDeviceFingerprint = () => {
+export const getDeviceFingerprint = async () => {
 	let fingerprint = getStoredFingerprint();
 
 	// Migrate legacy fingerprints to UUID-based if needed
 	if (fingerprint && (!fingerprint.hash || !isUuidLike(fingerprint.hash))) {
-		const regenerated = generateDeviceFingerprint();
+		const regenerated = await generateDeviceFingerprint();
 		storeFingerprint(regenerated);
 		return regenerated;
 	}
 
 	if (!fingerprint) {
-		fingerprint = generateDeviceFingerprint();
+		fingerprint = await generateDeviceFingerprint();
 		storeFingerprint(fingerprint);
 	}
 
