@@ -164,8 +164,9 @@ const DeviceFingerprint = () => {
 				}
 
 				// Initialize device fingerprinting
-				const { fingerprint, isInternal } = initializeDeviceFingerprinting();
-				const info = getDeviceInfo();
+				const { fingerprint, isInternal } =
+					await initializeDeviceFingerprinting();
+				const info = await getDeviceInfo();
 
 				setDeviceInfo({
 					...info,
