@@ -19,8 +19,10 @@ const ForgotPassword = () => {
 	const [showNewPassword, setShowNewPassword] = useState(false);
 	const [step, setStep] = useState(1);
 	const [loading, setLoading] = useState(false);
+	const [resendLoading, setResendLoading] = useState(false);
 	const [errors, setErrors] = useState({});
 	const [message, setMessage] = useState("");
+	const [resendCooldown, setResendCooldown] = useState(0);
 
 	const handleRequestOtp = async (e) => {
 		e.preventDefault();
@@ -52,6 +54,44 @@ const ForgotPassword = () => {
 			}
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleResendOtp = async () => {
+		setResendLoading(true);
+		setErrors({});
+		setMessage("");
+
+		try {
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/password_resets/request_otp`,
+				{
+					email: email.trim(),
+				}
+			);
+			setMessage(
+				response.data.message || "OTP resent. Please check your email."
+			);
+
+			// Start cooldown timer (60 seconds)
+			setResendCooldown(60);
+			const timer = setInterval(() => {
+				setResendCooldown((prev) => {
+					if (prev <= 1) {
+						clearInterval(timer);
+						return 0;
+					}
+					return prev - 1;
+				});
+			}, 1000);
+		} catch (err) {
+			if (err.response?.data?.error) {
+				setErrors({ general: err.response.data.error });
+			} else {
+				setErrors({ general: "Failed to resend OTP. Please try again." });
+			}
+		} finally {
+			setResendLoading(false);
 		}
 	};
 
@@ -284,6 +324,12 @@ const ForgotPassword = () => {
 												</div>
 											)}
 
+											{errors.general && (
+												<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+													{errors.general}
+												</div>
+											)}
+
 											<div>
 												<label className="block text-sm font-medium text-gray-700 mb-2">
 													Verification Code
@@ -307,6 +353,33 @@ const ForgotPassword = () => {
 														{errors.otp}
 													</div>
 												)}
+											</div>
+
+											{/* Resend Email Section */}
+											<div className="text-center">
+												<p className="text-sm text-gray-600 mb-2">
+													Code sent to{" "}
+													<span className="font-medium text-gray-800">
+														{email}
+													</span>
+												</p>
+												<p className="text-sm text-gray-600 mb-3">
+													Didn't receive the code?{" "}
+													{resendCooldown > 0 ? (
+														<span className="text-gray-500">
+															Resend in {resendCooldown}s
+														</span>
+													) : (
+														<button
+															type="button"
+															onClick={handleResendOtp}
+															disabled={resendLoading}
+															className="text-yellow-600 hover:text-yellow-700 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
+														>
+															{resendLoading ? "Resending..." : "Resend Email"}
+														</button>
+													)}
+												</p>
 											</div>
 
 											<div className="pt-2">
