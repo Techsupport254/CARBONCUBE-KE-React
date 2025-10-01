@@ -401,10 +401,10 @@ const AdDetails = () => {
 		setRating(selectedRating);
 	};
 
-	useEffect(() => {
-		// Use adId from query params, fallback to slug if no id param
-		const effectiveAdId = adId || slug;
+	// Use adId from query params, fallback to slug if no id param
+	const effectiveAdId = adId || slug;
 
+	useEffect(() => {
 		if (!effectiveAdId) {
 			setError("Ad ID is missing.");
 			setLoading(false);
