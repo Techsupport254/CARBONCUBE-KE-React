@@ -402,7 +402,10 @@ const AdDetails = () => {
 	};
 
 	useEffect(() => {
-		if (!adId) {
+		// Use adId from query params, fallback to slug if no id param
+		const effectiveAdId = adId || slug;
+
+		if (!effectiveAdId) {
 			setError("Ad ID is missing.");
 			setLoading(false);
 			return;
@@ -420,7 +423,7 @@ const AdDetails = () => {
 				const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
 				const response = await fetch(
-					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${adId}`,
+					`${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${effectiveAdId}`,
 					{
 						signal: controller.signal,
 						headers: {
@@ -460,8 +463,8 @@ const AdDetails = () => {
 		// Fetch Related Ads
 		const fetchRelatedAds = async () => {
 			try {
-				// Clean the adId to remove any extra characters including ?
-				const cleanAdId = adId?.toString().replace(/[?&]/g, "").trim();
+				// Clean the effectiveAdId to remove any extra characters including ?
+				const cleanAdId = effectiveAdId?.toString().replace(/[?&]/g, "").trim();
 
 				const url = `${process.env.REACT_APP_BACKEND_URL}/buyer/ads/${cleanAdId}/related`;
 
@@ -517,13 +520,13 @@ const AdDetails = () => {
 
 		// Fetch all data
 		fetchAdDetails();
-		// Only fetch related ads if we have a valid adId
-		if (adId && adId !== "unknown") {
+		// Only fetch related ads if we have a valid effectiveAdId
+		if (effectiveAdId && effectiveAdId !== "unknown") {
 			fetchRelatedAds();
 		} else {
 			setRelatedAds([]);
 		}
-	}, [adId]);
+	}, [effectiveAdId]);
 
 	const fetchSellerDetails = async () => {
 		try {
