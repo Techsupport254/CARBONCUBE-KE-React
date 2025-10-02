@@ -35,6 +35,10 @@ const Terms = lazy(() => import("./components/Terms"));
 const PrivacyPolicy = lazy(() => import("./components/Privacy"));
 const DataDeletion = lazy(() => import("./components/DataDeletion"));
 const NotFound = lazy(() => import("./components/NotFound"));
+const GoogleOAuthError = lazy(() => import("./components/GoogleOAuthError"));
+const IssueSubmission = lazy(() => import("./components/IssueSubmission"));
+const PublicIssues = lazy(() => import("./components/PublicIssues"));
+const IssueDetail = lazy(() => import("./components/IssueDetail"));
 
 // Analytics Tracking Components - Deferred loading
 const DeferredAnalytics = lazy(() => import("./components/DeferredAnalytics"));
@@ -80,6 +84,7 @@ const FingerprintRemovalRequests = lazy(() =>
 	import("./admin/pages/FingerprintRemovalRequests")
 );
 const AdminProfile = lazy(() => import("./admin/pages/Profile"));
+const IssueManagement = lazy(() => import("./admin/pages/IssueManagement"));
 
 // Seller Imports - Lazy loaded
 const SellerSignUpPage = lazy(() => import("./seller/pages/SellerSignUpPage"));
@@ -433,6 +438,42 @@ const AdminProfileWithSEO = ({ onLogout }) => (
 	</>
 );
 
+const AdminIssuesWithSEO = ({ onLogout }) => (
+	<>
+		<PageSEO
+			pageType="adminIssues"
+			title="Issue Management | Carbon Cube Kenya Admin"
+			description="Manage and track reported issues, bugs, and feature requests on Carbon Cube Kenya admin dashboard."
+			keywords="issue management, admin dashboard, bug tracking, feature requests, support tickets, Carbon Cube Kenya"
+		/>
+		<IssueManagement onLogout={onLogout} />
+	</>
+);
+
+const IssueSubmissionWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="issueSubmission"
+			title="Report an Issue | Carbon Cube Kenya"
+			description="Report bugs, suggest features, or share feedback to help improve Carbon Cube Kenya platform."
+			keywords="report issue, bug report, feature request, feedback, support, Carbon Cube Kenya"
+		/>
+		<IssueSubmission />
+	</>
+);
+
+const PublicIssuesWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="publicIssues"
+			title="Issues & Support | Carbon Cube Kenya"
+			description="Report issues, track bug status, and see what we're working on at Carbon Cube Kenya. Get support and submit feedback."
+			keywords="issues, support, bug tracking, feature requests, help, Carbon Cube Kenya"
+		/>
+		<PublicIssues />
+	</>
+);
+
 // Seller SEO Wrapper Components
 const SellerMessagesWithSEO = ({ onLogout }) => (
 	<>
@@ -633,6 +674,18 @@ const NotFoundWithSEO = () => (
 	</>
 );
 
+const GoogleOAuthErrorWithSEO = () => (
+	<>
+		<PageSEO
+			pageType="googleOAuthError"
+			title="Google Sign-in Error | Carbon Cube Kenya"
+			description="There was an error with your Google sign-in. Contact support for assistance or try signing in again."
+			keywords="Google sign-in error, authentication error, login error, Carbon Cube Kenya"
+		/>
+		<GoogleOAuthError />
+	</>
+);
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
 	<div className="flex items-center justify-center min-h-screen w-full">
@@ -810,6 +863,10 @@ function AppContent({
 						path="/auth/google/callback"
 						element={<LoginFormWithSEO onLogin={handleLogin} />}
 					/>
+					<Route
+						path="/auth/google/error"
+						element={<GoogleOAuthErrorWithSEO />}
+					/>
 					<Route path="/forgot-password" element={<ForgotPasswordWithSEO />} />
 					<Route
 						path="/buyer-signup"
@@ -830,6 +887,14 @@ function AppContent({
 					<Route path="/faqs" element={<FAQsWithSEO />} />
 					<Route path="/terms-and-conditions" element={<TermsWithSEO />} />
 					<Route path="/privacy" element={<PrivacyWithSEO />} />
+
+					{/* Issue Tracking Routes */}
+					<Route path="/issues" element={<PublicIssuesWithSEO />} />
+					<Route
+						path="/issues/:issueId"
+						element={<IssueDetail isAdmin={false} />}
+					/>
+					<Route path="/report-issue" element={<IssueSubmissionWithSEO />} />
 					<Route path="/data-deletion" element={<DataDeletionWithSEO />} />
 					<Route path="/analytics-test" element={<AnalyticsTestWithSEO />} />
 					<Route path="/seo-test" element={<SEOTestWithSEO />} />
@@ -891,6 +956,14 @@ function AppContent({
 						<Route
 							path="notifications"
 							element={<AdminNotificationsWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="issues"
+							element={<AdminIssuesWithSEO onLogout={handleLogout} />}
+						/>
+						<Route
+							path="issues/:issueId"
+							element={<IssueDetail isAdmin={true} onLogout={handleLogout} />}
 						/>
 						<Route
 							path="categories"

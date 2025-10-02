@@ -83,16 +83,11 @@ const LoginForm = ({ onLogin }) => {
 			// Handle error cases
 			if (error) {
 				setLoading(false);
-				setAlertModalMessage(decodeURIComponent(error));
-				setAlertModalConfig({
-					icon: "error",
-					title: "Google Sign-in Failed",
-					confirmText: "OK",
-					showCancel: false,
-					onConfirm: () => setShowAlertModal(false),
-				});
-				setShowAlertModal(true);
-				googleOAuthService.clearUrlParams();
+				// Redirect to dedicated error page instead of showing modal
+				const errorMessage = decodeURIComponent(error);
+				navigate(
+					`/auth/google/error?error=${encodeURIComponent(errorMessage)}`
+				);
 				return;
 			}
 

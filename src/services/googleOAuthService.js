@@ -415,11 +415,13 @@ class GoogleOAuthService {
 		const hasCode = urlParams.has("code");
 		const hasToken = urlParams.has("token");
 		const hasUser = urlParams.has("user");
+		const hasError = urlParams.has("error");
 		const pathname = window.location.pathname;
 		const isOAuth2Callback =
 			hasCode && pathname.includes("/auth/google_oauth2/callback");
 		const isOAuthCallback =
-			hasToken && hasUser && pathname.includes("/auth/google/callback");
+			(hasToken && hasUser && pathname.includes("/auth/google/callback")) ||
+			(hasError && pathname.includes("/auth/google/callback"));
 
 		return isOAuth2Callback || isOAuthCallback;
 	}

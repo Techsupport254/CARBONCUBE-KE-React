@@ -535,6 +535,7 @@ const Navbar = ({
 						icon: faEnvelope,
 					},
 					{ href: "/admin/messages", label: "Messages", icon: faEnvelope },
+					{ href: "/admin/issues", label: "Issues", icon: faFileAlt },
 					{
 						href: "/admin/fingerprint-requests",
 						label: "WhiteList",
