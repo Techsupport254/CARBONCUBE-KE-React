@@ -5,26 +5,14 @@ class GoogleOAuthService {
 	constructor() {
 		this.clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 		this.redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI;
-		this.scope = "openid email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.phonenumbers.read https://www.googleapis.com/auth/user.addresses.read https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read https://www.googleapis.com/auth/user.organization.read";
+		this.scope =
+			"openid email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.phonenumbers.read https://www.googleapis.com/auth/user.addresses.read https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read https://www.googleapis.com/auth/user.organization.read";
 		this.gsiClient = null;
 		this.isGsiLoaded = false;
 
-		// Debug environment variables
-		console.log("🔧 GoogleOAuthService initialized");
-		console.log("Client ID:", this.clientId ? "✅ Set" : "❌ Missing");
-		console.log("Redirect URI:", this.redirectUri ? "✅ Set" : "❌ Missing");
-		console.log(
-			"Backend URL:",
-			process.env.REACT_APP_BACKEND_URL ? "✅ Set" : "❌ Missing"
-		);
+		// Environment variables validation (silent)
 
-		// Validate required environment variables
-		if (!this.clientId) {
-			console.error("❌ REACT_APP_GOOGLE_CLIENT_ID is not set");
-		}
-		if (!this.redirectUri) {
-			console.error("❌ REACT_APP_GOOGLE_REDIRECT_URI is not set");
-		}
+		// Validate required environment variables (silent validation)
 	}
 
 	// Initialize Google Identity Services
@@ -111,34 +99,23 @@ class GoogleOAuthService {
 	// Initiate Google OAuth flow with popup
 	async initiateAuth(role = "buyer") {
 		try {
-			console.log("🚀 Starting Google OAuth authentication...");
-			console.log("Client ID:", this.clientId);
-			console.log("Role:", role);
-
 			// Check if we have a valid client ID
 			if (!this.clientId) {
-				console.warn("⚠️ No client ID, falling back to redirect method");
 				this.fallbackToRedirect(role);
 				return;
 			}
 
 			// Use redirect method for reliable authentication
-			console.log("🔄 Using redirect method for reliable authentication...");
 			this.fallbackToRedirect(role);
 		} catch (error) {
-			console.error("❌ All popup methods failed:", error);
-			console.log("🔄 Falling back to redirect method...");
 			this.fallbackToRedirect(role);
 		}
 	}
 
 	// Try GSI popup method
 	async tryGsiPopup(role) {
-		console.log("🔧 Trying GSI popup method...");
-
 		// Initialize Google Identity Services
 		await this.initializeGsi();
-		console.log("✅ GSI initialized successfully");
 
 		// Check if Google is available
 		if (!window.google || !window.google.accounts) {
@@ -146,8 +123,6 @@ class GoogleOAuthService {
 		}
 
 		// Use OAuth2 flow instead of FedCM to avoid CORS issues
-		console.log("🔧 Initializing GSI OAuth2 flow...");
-
 		// Initialize GSI OAuth2 client for popup
 		this.gsiClient = window.google.accounts.oauth2.initCodeClient({
 			client_id: this.clientId,
@@ -156,19 +131,13 @@ class GoogleOAuthService {
 			callback: (response) => this.handleGsiCallback(response, role),
 		});
 
-		console.log("✅ GSI OAuth2 client initialized");
-		console.log("🎯 Requesting authorization code...");
-
 		// Request authorization code (this should open the popup)
 		this.gsiClient.requestCode();
 	}
 
 	// Try manual popup method
 	async tryManualPopup(role) {
-		console.log("🔧 Trying manual popup method...");
-
 		const authUrl = this.getAuthUrl(role);
-		console.log("🔗 Opening popup with URL:", authUrl);
 
 		// Open popup window
 		const popup = window.open(
@@ -236,18 +205,13 @@ class GoogleOAuthService {
 
 	// Fallback to redirect method if popup fails
 	fallbackToRedirect(role = "buyer") {
-		console.log("🔄 Using redirect fallback method");
 		const authUrl = this.getAuthUrl(role);
-		console.log("🔗 Redirecting to:", authUrl);
 		window.location.href = authUrl;
 	}
 
 	// Handle GSI credential response (for popup mode)
 	async handleGsiCredentialResponse(response, role) {
-		console.log("📨 GSI credential response received:", response);
-
 		if (response.error) {
-			console.error("❌ Google OAuth error:", response.error);
 			if (this.onErrorCallback) {
 				this.onErrorCallback(response.error);
 			}
@@ -255,12 +219,7 @@ class GoogleOAuthService {
 		}
 
 		if (response.credential) {
-			console.log(
-				"✅ JWT credential received:",
-				response.credential.substring(0, 20) + "..."
-			);
 			try {
-				console.log("🔄 Sending credential to backend...");
 				// Send the JWT credential to backend
 				const backendResponse = await axios.post(
 					`${process.env.REACT_APP_BACKEND_URL}/auth/google`,
@@ -270,10 +229,7 @@ class GoogleOAuthService {
 					}
 				);
 
-				console.log("✅ Backend response:", backendResponse.data);
-
 				if (backendResponse.data.token && backendResponse.data.user) {
-					console.log("🎉 Authentication successful!");
 					if (this.onSuccessCallback) {
 						this.onSuccessCallback(
 							backendResponse.data.token,
@@ -281,18 +237,11 @@ class GoogleOAuthService {
 						);
 					}
 				} else {
-					console.error("❌ No token or user in response");
-					console.error("❌ Backend response:", backendResponse.data);
 					if (this.onErrorCallback) {
 						this.onErrorCallback("Authentication failed");
 					}
 				}
 			} catch (error) {
-				console.error("❌ Backend authentication error:", error);
-				console.error("❌ Error response:", error.response?.data);
-				console.error("❌ Error status:", error.response?.status);
-				console.error("❌ Error headers:", error.response?.headers);
-
 				let errorMessage = "Authentication failed";
 				if (error.response?.data?.errors?.[0]) {
 					errorMessage = error.response.data.errors[0];
@@ -307,7 +256,6 @@ class GoogleOAuthService {
 				}
 			}
 		} else {
-			console.error("❌ No credential in response");
 			if (this.onErrorCallback) {
 				this.onErrorCallback("No credential received");
 			}
@@ -316,10 +264,7 @@ class GoogleOAuthService {
 
 	// Handle GSI callback
 	async handleGsiCallback(response, role) {
-		console.log("📨 GSI callback received:", response);
-
 		if (response.error) {
-			console.error("❌ Google OAuth error:", response.error);
 			if (this.onErrorCallback) {
 				this.onErrorCallback(response.error);
 			}
@@ -327,12 +272,7 @@ class GoogleOAuthService {
 		}
 
 		if (response.code) {
-			console.log(
-				"✅ Authorization code received:",
-				response.code.substring(0, 20) + "..."
-			);
 			try {
-				console.log("🔄 Sending code to backend...");
 				// Send the authorization code to backend
 				const backendResponse = await axios.post(
 					`${process.env.REACT_APP_BACKEND_URL}/auth/google`,
@@ -343,10 +283,7 @@ class GoogleOAuthService {
 					}
 				);
 
-				console.log("✅ Backend response:", backendResponse.data);
-
 				if (backendResponse.data.token && backendResponse.data.user) {
-					console.log("🎉 Authentication successful!");
 					if (this.onSuccessCallback) {
 						this.onSuccessCallback(
 							backendResponse.data.token,
@@ -354,18 +291,11 @@ class GoogleOAuthService {
 						);
 					}
 				} else {
-					console.error("❌ No token or user in response");
-					console.error("❌ Backend response:", backendResponse.data);
 					if (this.onErrorCallback) {
 						this.onErrorCallback("Authentication failed");
 					}
 				}
 			} catch (error) {
-				console.error("❌ Backend authentication error:", error);
-				console.error("❌ Error response:", error.response?.data);
-				console.error("❌ Error status:", error.response?.status);
-				console.error("❌ Error headers:", error.response?.headers);
-
 				let errorMessage = "Authentication failed";
 				if (error.response?.data?.errors?.[0]) {
 					errorMessage = error.response.data.errors[0];
@@ -380,7 +310,6 @@ class GoogleOAuthService {
 				}
 			}
 		} else {
-			console.error("❌ No authorization code in response");
 			if (this.onErrorCallback) {
 				this.onErrorCallback("No authorization code received");
 			}
