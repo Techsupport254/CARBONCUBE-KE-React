@@ -32,7 +32,6 @@ const DeferredAnalytics = () => {
 					gtag("config", "G-JCS1KWM0GH");
 				};
 				script.onerror = () => {
-					console.warn("Failed to load Google Analytics script");
 				};
 				document.head.appendChild(script);
 			}
@@ -50,7 +49,6 @@ const DeferredAnalytics = () => {
 				script.src =
 					"https://cdn.matomo.cloud/carboncubeke.matomo.cloud/container_6Rza2oIF.js";
 				script.onerror = () => {
-					console.warn("Failed to load Matomo Analytics script");
 				};
 				document.head.appendChild(script);
 			}

@@ -163,7 +163,6 @@ const TierPage = () => {
 			})
 			.catch((err) => {
 				clearTimeout(timeoutId);
-				console.error("Error fetching tier data:", err);
 				// For social media crawlers or when API fails, still render the page with default content
 				setTiers([]); // Set empty tiers array so the page can render
 				setLoading(false);
@@ -381,7 +380,6 @@ const TierPage = () => {
 				setPaymentStep("instructions");
 			}
 		} catch (error) {
-			console.error("Payment initiation error:", error);
 			setError(
 				error.response?.data?.error ||
 					"Failed to initiate payment. Please try again."
@@ -447,7 +445,6 @@ const TierPage = () => {
 					}
 				}
 			} catch (error) {
-				console.error("Error checking payment status:", error);
 			}
 		}, 3000); // Poll every 3 seconds
 
@@ -495,7 +492,6 @@ const TierPage = () => {
 				setError(response.data.error || "Failed to get payment instructions");
 			}
 		} catch (error) {
-			console.error("Error getting manual payment instructions:", error);
 			setError("Failed to get payment instructions. Please try again.");
 		}
 	};
@@ -532,7 +528,6 @@ const TierPage = () => {
 				setError(response.data.error || "Payment verification failed");
 			}
 		} catch (error) {
-			console.error("Error verifying payment:", error);
 			setError(
 				error.response?.data?.error ||
 					"Failed to verify payment. Please try again."
@@ -571,7 +566,6 @@ const TierPage = () => {
 				setError(response.data.error || "Payment confirmation failed");
 			}
 		} catch (error) {
-			console.error("Error confirming payment:", error);
 			setError(
 				error.response?.data?.error ||
 					"Failed to confirm payment. Please try again."
@@ -600,7 +594,6 @@ const TierPage = () => {
 					setIsSellerLoggedIn(true);
 				}
 			} catch (error) {
-				console.error("Invalid token:", error);
 			}
 		}
 	}, []);

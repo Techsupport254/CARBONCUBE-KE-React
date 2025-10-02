@@ -159,7 +159,6 @@ const ShopPage = () => {
 			await navigator.clipboard.writeText(shopUrl);
 			setShowShareModal(false);
 		} catch (error) {
-			console.error("Error copying to clipboard:", error);
 		}
 	};
 
@@ -179,7 +178,6 @@ const ShopPage = () => {
 				setReviewStats(data.statistics);
 			}
 		} catch (err) {
-			console.error("Error fetching review stats:", err);
 		}
 	}, [slug]);
 
@@ -235,7 +233,6 @@ const ShopPage = () => {
 				setCategories(data);
 			}
 		} catch (error) {
-			console.error("Error fetching categories:", error);
 		}
 	};
 

@@ -177,7 +177,6 @@ export const initializeDeviceFingerprinting = async () => {
 
 		return { fingerprint, isInternal };
 	} catch (error) {
-		console.error("Error initializing device fingerprinting:", error);
 		return { fingerprint: null, isInternal: false };
 	}
 };

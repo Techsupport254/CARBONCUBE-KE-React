@@ -128,7 +128,6 @@ const AddNewAd = () => {
 				const data = await response.json();
 				setCategories(data);
 			} catch (error) {
-				console.error("Error fetching categories:", error);
 			}
 		};
 
@@ -151,7 +150,6 @@ const AddNewAd = () => {
 					// Set the selected subcategory to the one stored in the ad data
 					setSelectedSubcategory(formValues.subcategory_id);
 				} catch (error) {
-					console.error("Error fetching subcategories:", error);
 				}
 			};
 
@@ -279,7 +277,6 @@ const AddNewAd = () => {
 
 						return result;
 					} catch (error) {
-						console.error("Error in model classification:", error);
 						return [];
 					}
 				},

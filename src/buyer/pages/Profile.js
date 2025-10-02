@@ -133,7 +133,6 @@ const ProfilePage = () => {
 				setSectors(sectorsRes.data);
 				setCounties(countiesRes.data);
 			} catch (error) {
-				console.error("Failed to fetch optional data:", error);
 			}
 		};
 
@@ -143,7 +142,6 @@ const ProfilePage = () => {
 	// Fetch profile data from the backend API
 	useEffect(() => {
 		if (!token) {
-			// console.error('No auth token found');
 			return;
 		}
 
@@ -158,9 +156,7 @@ const ProfilePage = () => {
 				setOriginalProfile({ ...response.data });
 			})
 			.catch((error) => {
-				// console.error('Error fetching profile data:', error);
 				if (error.response.status === 401) {
-					// console.error('Unauthorized access. Please login again.');
 				}
 			});
 	}, [token]);
@@ -175,7 +171,6 @@ const ProfilePage = () => {
 					);
 					setSubCounties(response.data);
 				} catch (error) {
-					console.error("Failed to fetch sub-counties:", error);
 					setSubCounties([]);
 				}
 			} else {
@@ -219,7 +214,6 @@ const ProfilePage = () => {
 	// Handle form submission to save updated profile
 	const handleSaveClick = () => {
 		if (!token) {
-			console.error("No auth token found");
 			return;
 		}
 
@@ -266,7 +260,6 @@ const ProfilePage = () => {
 				setShowAlertModal(true);
 			})
 			.catch((error) => {
-				console.error("Error saving profile data:", error);
 				if (error.response) {
 					// Server responded with error status
 					setAlertModalMessage(
@@ -388,7 +381,6 @@ const ProfilePage = () => {
 						onConfirm: () => setShowAlertModal(false),
 					});
 					setShowAlertModal(true);
-					console.error(error);
 				}
 			},
 		});
@@ -464,7 +456,6 @@ const ProfilePage = () => {
 			});
 			setShowAlertModal(true);
 		} catch (error) {
-			console.error("Error uploading profile picture:", error);
 			setAlertModalMessage(
 				error.response?.data?.error ||
 					"Failed to upload profile picture. Please try again."
@@ -489,7 +480,7 @@ const ProfilePage = () => {
 
 	return (
 		<>
-			<Navbar mode="buyer" showSearch={true} showCategories={true} />
+			<Navbar mode="buyer" showSearch={false} showCategories={false} />
 			<div className="min-h-screen bg-gray-50">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 					{/* Header Section */}
@@ -498,11 +489,32 @@ const ProfilePage = () => {
 							<div className="flex items-center space-x-4 mb-4 sm:mb-0">
 								<div className="relative">
 									{profile.profile_picture ? (
-										<img
-											src={profile.profile_picture}
-											alt="Profile"
-											className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200"
-										/>
+										<>
+											<img
+												src={profile.profile_picture}
+												alt="Profile"
+												className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200"
+												onError={(e) => {
+													// Hide image and show fallback
+													e.target.style.display = "none";
+													const fallback = e.target.nextElementSibling;
+													if (fallback) {
+														fallback.style.display = "flex";
+													}
+												}}
+											/>
+											<div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-300 border-2 border-gray-200 items-center justify-center hidden">
+												<span className="text-gray-600 font-semibold text-lg sm:text-xl">
+													{profile.fullname
+														? profile.fullname
+																.split(" ")
+																.map((n) => n[0])
+																.join("")
+																.toUpperCase()
+														: "U"}
+												</span>
+											</div>
+										</>
 									) : (
 										<div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-300 border-2 border-gray-200 flex items-center justify-center">
 											<span className="text-gray-600 font-semibold text-lg sm:text-xl">

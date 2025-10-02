@@ -167,7 +167,6 @@ const SellerProfile = () => {
 				setCounties(data);
 			}
 		} catch (error) {
-			console.error("Error fetching counties:", error);
 		}
 	}, []);
 
@@ -185,7 +184,6 @@ const SellerProfile = () => {
 				setSubCounties(data);
 			}
 		} catch (error) {
-			console.error("Error fetching sub-counties:", error);
 		}
 	}, []);
 
@@ -199,7 +197,6 @@ const SellerProfile = () => {
 				setAgeGroups(data);
 			}
 		} catch (error) {
-			console.error("Error fetching age groups:", error);
 		}
 	}, []);
 
@@ -213,7 +210,6 @@ const SellerProfile = () => {
 				setDocumentTypes(data);
 			}
 		} catch (error) {
-			console.error("Error fetching document types:", error);
 		}
 	}, []);
 
@@ -404,7 +400,6 @@ const SellerProfile = () => {
 			setPendingDocuments({});
 			setDocumentPreviews({});
 		} catch (error) {
-			console.error("Document upload error:", error);
 			setAlertModalMessage(`Failed to upload documents: ${error.message}`);
 			setAlertModalConfig({
 				icon: "error",

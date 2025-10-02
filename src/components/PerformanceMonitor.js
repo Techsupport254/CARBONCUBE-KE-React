@@ -50,7 +50,6 @@ const PerformanceMonitor = () => {
 						if (entry.duration > 50) {
 							// Tasks longer than 50ms
 							if (process.env.NODE_ENV === "development") {
-								console.warn("Long task detected:", entry.duration + "ms");
 							}
 
 							// Send to analytics
@@ -66,7 +65,6 @@ const PerformanceMonitor = () => {
 
 				longTaskObserver.observe({ entryTypes: ["longtask"] });
 			} catch (error) {
-				console.warn("Long task monitoring not supported:", error);
 			}
 		}
 

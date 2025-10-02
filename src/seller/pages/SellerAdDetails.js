@@ -80,7 +80,6 @@ const SellerAdDetails = () => {
 				const data = await response.json();
 				setAd(data);
 			} catch (error) {
-				console.error("Error fetching ad details:", error);
 				setError("Failed to load ad details");
 			} finally {
 				setLoading(false);
@@ -124,7 +123,6 @@ const SellerAdDetails = () => {
 					const data = await response.json();
 					setCategories(data);
 				} catch (error) {
-					console.error("Error fetching categories:", error);
 				}
 			};
 			fetchCategories();
@@ -145,7 +143,6 @@ const SellerAdDetails = () => {
 					const data = await response.json();
 					setSubcategories(data);
 				} catch (error) {
-					console.error("Error fetching subcategories:", error);
 				}
 			};
 			fetchSubcategories();
@@ -174,7 +171,6 @@ const SellerAdDetails = () => {
 				enableProdMode();
 				nsfwModelRef.current = await load();
 			} catch (error) {
-				console.error("Failed to load NSFW model:", error);
 				// Set a dummy model to prevent repeated loading attempts
 				nsfwModelRef.current = { classify: () => Promise.resolve([]) };
 			}
@@ -218,7 +214,6 @@ const SellerAdDetails = () => {
 
 				return await Promise.race([classificationPromise, timeoutPromise]);
 			} catch (error) {
-				console.error("Error checking image for NSFW content:", error);
 				return false; // Default to safe if check fails
 			}
 		},
@@ -403,7 +398,6 @@ const SellerAdDetails = () => {
 			// Exit edit mode
 			navigate(`/seller/ads/${adId}`);
 		} catch (error) {
-			console.error("Error updating ad:", error);
 			showToastNotification("Failed to update ad. Please try again.", "error");
 		} finally {
 			setIsSaving(false);
@@ -501,7 +495,6 @@ const SellerAdDetails = () => {
 					});
 				}
 			} catch (error) {
-				console.error("Error checking image for NSFW:", file.name, error);
 				// Remove from scanning even on error
 				setScanningImages((prev) => prev.filter((id) => id !== fileId));
 				// Don't remove the image on error - assume it's safe
@@ -645,14 +638,12 @@ const SellerAdDetails = () => {
 				}, 1500);
 			} else {
 				const errorData = await response.json();
-				console.error("Error deleting ad:", errorData);
 				showToastNotification(
 					"Failed to delete ad. Please try again.",
 					"error"
 				);
 			}
 		} catch (error) {
-			console.error("Error deleting ad:", error);
 			showToastNotification(
 				"An error occurred while deleting the ad. Please try again.",
 				"error"
@@ -702,14 +693,12 @@ const SellerAdDetails = () => {
 				}, 1500);
 			} else {
 				const errorData = await response.json();
-				console.error("Error restoring ad:", errorData);
 				showToastNotification(
 					"Failed to restore ad. Please try again.",
 					"error"
 				);
 			}
 		} catch (error) {
-			console.error("Error restoring ad:", error);
 			showToastNotification(
 				"An error occurred while restoring the ad. Please try again.",
 				"error"

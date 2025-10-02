@@ -96,7 +96,6 @@ const IssueSubmission = () => {
 					reporter_email: user.email || "",
 				}));
 			} catch (error) {
-				console.error("Error parsing user data:", error);
 			}
 		}
 	}, []);
@@ -181,7 +180,6 @@ const IssueSubmission = () => {
 			}
 
 			const result = await response.json();
-			console.log("Issue submitted successfully:", result);
 
 			setSuccess(true);
 			setFormData({
@@ -194,7 +192,6 @@ const IssueSubmission = () => {
 				status: "pending",
 			});
 		} catch (error) {
-			console.error("Error submitting issue:", error);
 			setErrors({
 				submit: error.message || "Network error. Please try again.",
 			});

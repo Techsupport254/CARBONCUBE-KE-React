@@ -16,21 +16,17 @@ const GoogleAuthTest = () => {
 
 		if (hasCode) {
 			setAuthStatus("Returned from Google with code");
-			console.log("🔍 OAuth callback detected with code");
 		} else if (hasToken && hasUser && success === "true") {
 			setAuthStatus("Authentication successful!");
 			setToken(urlParams.get("token"));
 			setUser(JSON.parse(decodeURIComponent(urlParams.get("user"))));
-			console.log("🎉 Authentication successful!", { token, user });
 		} else if (urlParams.has("error")) {
 			setAuthStatus("Authentication failed: " + urlParams.get("error"));
-			console.error("❌ Authentication failed:", urlParams.get("error"));
 		}
 	}, []);
 
 	const testGoogleAuth = () => {
 		setAuthStatus("Starting Google authentication...");
-		console.log("🚀 Starting Google OAuth test...");
 
 		// Set up callbacks
 		googleOAuthService.setCallbacks(
@@ -38,11 +34,9 @@ const GoogleAuthTest = () => {
 				setAuthStatus("Authentication successful!");
 				setToken(token);
 				setUser(user);
-				console.log("✅ Authentication successful!", { token, user });
 			},
 			(error) => {
 				setAuthStatus("Authentication failed: " + error);
-				console.error("❌ Authentication failed:", error);
 			}
 		);
 

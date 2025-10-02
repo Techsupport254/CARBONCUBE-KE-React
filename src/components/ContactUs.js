@@ -69,14 +69,13 @@ const ContactUs = () => {
 				});
 			} else {
 				setSubmitStatus("error");
-				console.error(
+				console.log(
 					"Contact form error:",
 					result.error || result.message || "Unknown error"
 				);
 			}
 		} catch (error) {
 			setSubmitStatus("error");
-			console.error("Network error:", error);
 		} finally {
 			setIsSubmitting(false);
 		}

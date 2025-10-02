@@ -62,7 +62,6 @@ const Messages = () => {
 
 				setConversations(conversationsList);
 			} catch (error) {
-				// console.error('Error fetching conversations:', error);
 			} finally {
 				setLoadingConversations(false);
 			}
@@ -90,7 +89,6 @@ const Messages = () => {
 				: [];
 			setMessages(sortedMessages);
 		} catch (error) {
-			// console.error('Error fetching messages:', error);
 		} finally {
 			setLoadingMessages(false);
 		}
@@ -171,7 +169,6 @@ const Messages = () => {
 
 			setNewMessage("");
 		} catch (error) {
-			// console.error('Error sending message:', error);
 		}
 	};
 

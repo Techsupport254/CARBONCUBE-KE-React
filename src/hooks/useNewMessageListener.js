@@ -120,7 +120,7 @@ const useNewMessageListener = (
 				const token = localStorage.getItem("token");
 
 				if (!token) {
-					console.warn(
+					console.log(
 						"No authentication token found, WebSocket connection will likely fail"
 					);
 				}
@@ -133,7 +133,7 @@ const useNewMessageListener = (
 				);
 
 				if (!consumer) {
-					console.error(
+					console.log(
 						"useNewMessageListener: Failed to create WebSocket consumer"
 					);
 					isConnectingRef.current = false;
@@ -185,7 +185,7 @@ const useNewMessageListener = (
 							if (onConnectionStatus) {
 								onConnectionStatus("rejected");
 							}
-							console.warn(
+							console.log(
 								"useNewMessageListener: ConversationsChannel subscription rejected - likely authentication issue"
 							);
 
@@ -203,7 +203,7 @@ const useNewMessageListener = (
 									}, 10000); // 10 second delay
 								}
 							} else {
-								console.warn(
+								console.log(
 									"useNewMessageListener: No token available, not attempting to reconnect"
 								);
 							}
@@ -239,7 +239,7 @@ const useNewMessageListener = (
 									);
 								}
 							} catch (error) {
-								console.error(
+								console.log(
 									"useNewMessageListener: Error handling received message:",
 									error
 								);

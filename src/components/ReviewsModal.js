@@ -73,7 +73,6 @@ const ReviewsModal = ({ show, onHide, shopSlug, shopName }) => {
 			setReviews((prev) => [...prev, ...data.reviews]);
 			setHasMore(data.pagination.current_page < data.pagination.total_pages);
 		} catch (err) {
-			console.error("Error loading more reviews:", err);
 		}
 	}, [shopSlug, currentPage]);
 

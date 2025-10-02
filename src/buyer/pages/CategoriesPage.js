@@ -138,7 +138,6 @@ const CategoriesPage = () => {
 				setRetryCount(0);
 				setError(null);
 			} catch (error) {
-				console.error("Error fetching categories:", error);
 
 				if (error.name === "AbortError") {
 					setError(

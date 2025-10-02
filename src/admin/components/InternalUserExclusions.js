@@ -67,7 +67,6 @@ const InternalUserExclusions = () => {
 				setExclusions(data);
 			}
 		} catch (error) {
-			console.error("Error fetching exclusions:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -89,7 +88,6 @@ const InternalUserExclusions = () => {
 				setStats(data);
 			}
 		} catch (error) {
-			console.error("Error fetching stats:", error);
 		}
 	};
 
@@ -123,7 +121,6 @@ const InternalUserExclusions = () => {
 				alert("Error: " + (error.errors || "Unknown error"));
 			}
 		} catch (error) {
-			console.error("Error saving exclusion:", error);
 			alert("Error saving exclusion");
 		}
 	};
@@ -149,7 +146,6 @@ const InternalUserExclusions = () => {
 				fetchStats();
 			}
 		} catch (error) {
-			console.error("Error deleting exclusion:", error);
 		}
 	};
 
@@ -185,7 +181,6 @@ const InternalUserExclusions = () => {
 				setTestResult(result);
 			}
 		} catch (error) {
-			console.error("Error testing exclusion:", error);
 		}
 	};
 

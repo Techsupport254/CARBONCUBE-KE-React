@@ -5,6 +5,9 @@ import axios from "axios";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import OAuthCompletionModal from "./OAuthCompletionModal";
+import MissingFieldsModal from "./MissingFieldsModal";
+import LoadingModal from "./LoadingModal";
 import {
 	faEnvelope,
 	faKey,
@@ -16,6 +19,7 @@ import {
 import Navbar from "./Navbar";
 import AlertModal from "../components/AlertModal"; // Import your modal
 import GoogleSignInButton from "./GoogleSignInButton";
+import Swal from "sweetalert2";
 import "./LoginForm.css";
 import useSEO from "../hooks/useSEO";
 import tokenService from "../services/tokenService";
@@ -58,6 +62,19 @@ const LoginForm = ({ onLogin }) => {
 	// AlertModal states
 	const [showAlertModal, setShowAlertModal] = useState(false);
 	const [alertModalMessage, setAlertModalMessage] = useState("");
+
+	// Missing fields modal states
+	const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false);
+	const [missingFields, setMissingFields] = useState([]);
+	const [userData, setUserData] = useState({});
+
+	// OAuth completion modal state
+	const [showCompletionModal, setShowCompletionModal] = useState(false);
+	const [incompleteUser, setIncompleteUser] = useState(null);
+
+	// Loading modal state
+	const [showLoadingModal, setShowLoadingModal] = useState(false);
+	const [loadingMessage, setLoadingMessage] = useState("Processing...");
 	const [alertModalConfig, setAlertModalConfig] = useState({
 		icon: "error",
 		title: "Error",
@@ -100,40 +117,54 @@ const LoginForm = ({ onLogin }) => {
 					// Call onLogin to handle authentication and storage (same as normal login)
 					onLogin(token, user);
 
-					// Check for redirect parameter (same as normal login)
-					const redirectUrl = searchParams.get("redirect");
+					// Show success message with SweetAlert
+					Swal.fire({
+						icon: "success",
+						title: "Welcome!",
+						text: `Successfully signed in with Google! Welcome back, ${
+							user.name || user.fullname || "User"
+						}!`,
+						showConfirmButton: false,
+						timer: 2000,
+						timerProgressBar: true,
+						allowOutsideClick: false,
+						allowEscapeKey: false,
+					}).then(() => {
+						// Check for redirect parameter (same as normal login)
+						const redirectUrl = searchParams.get("redirect");
 
-					// If there's a redirect URL, use it for buyers (most common case)
-					if (redirectUrl && user.role === "buyer") {
-						navigate(redirectUrl);
-						return;
-					}
+						// If there's a redirect URL, use it for buyers (most common case)
+						if (redirectUrl && user.role === "buyer") {
+							navigate(redirectUrl);
+							return;
+						}
 
-					// Navigate based on user role (same as normal login)
-					switch (user.role) {
-						case "buyer":
-							navigate("/");
-							break;
-						case "seller":
-							navigate("/seller/dashboard");
-							break;
-						case "admin":
-							navigate("/admin/analytics");
-							break;
-						case "sales":
-							navigate("/sales/dashboard");
-							break;
-						default:
-							setAlertModalMessage("Unexpected user role.");
-							setAlertModalConfig({
-								icon: "error",
-								title: "Error",
-								confirmText: "OK",
-								showCancel: false,
-								onConfirm: () => setShowAlertModal(false),
-							});
-							setShowAlertModal(true);
-					}
+						// Navigate based on user role (same as normal login)
+						switch (user.role) {
+							case "buyer":
+								navigate("/");
+								break;
+							case "seller":
+								navigate("/seller/dashboard");
+								break;
+							case "admin":
+								navigate("/admin/analytics");
+								break;
+							case "sales":
+								navigate("/sales/dashboard");
+								break;
+							default:
+								setAlertModalMessage("Unexpected user role.");
+								setAlertModalConfig({
+									icon: "error",
+									title: "Error",
+									confirmText: "OK",
+									showCancel: false,
+									onConfirm: () => setShowAlertModal(false),
+								});
+								setShowAlertModal(true);
+						}
+					});
 				} catch (error) {
 					console.error("Google OAuth callback error:", error);
 					setAlertModalMessage(
@@ -324,6 +355,115 @@ const LoginForm = ({ onLogin }) => {
 		}
 	};
 
+	// Handle missing fields submission
+	const handleMissingFieldsSubmit = async (formData) => {
+		setLoading(true);
+		setShowLoadingModal(true);
+		setLoadingMessage("Completing your registration...");
+
+		try {
+			// Send the missing fields data to the backend
+			const response = await axios.post(
+				`${process.env.REACT_APP_BACKEND_URL}/auth/complete_oauth_registration`,
+				{
+					...userData,
+					...formData,
+					missing_fields: missingFields,
+				}
+			);
+
+			if (response.data.success) {
+				// Store token and user data
+				if (response.data.token) {
+					tokenService.setToken(response.data.token);
+				}
+
+				// Update loading message
+				setLoadingMessage("Signing you in...");
+
+				// Call onLogin to handle authentication
+				onLogin(response.data.token, response.data.user);
+
+				// Close the modals
+				setShowMissingFieldsModal(false);
+				setShowLoadingModal(false);
+
+				// Show success message with SweetAlert
+				Swal.fire({
+					icon: "success",
+					title: "Welcome!",
+					text: `Registration completed successfully! Welcome to Carbon Cube, ${
+						response.data.user.name || response.data.user.fullname || "User"
+					}!`,
+					showConfirmButton: false,
+					timer: 2000,
+					timerProgressBar: true,
+					allowOutsideClick: false,
+					allowEscapeKey: false,
+				}).then(() => {
+					// Navigate based on user role
+					switch (response.data.user.role) {
+						case "buyer":
+							navigate("/");
+							break;
+						case "seller":
+							navigate("/seller/dashboard");
+							break;
+						case "admin":
+							navigate("/admin/analytics");
+							break;
+						case "sales":
+							navigate("/sales/dashboard");
+							break;
+						default:
+							navigate("/");
+					}
+				});
+			} else {
+				setShowLoadingModal(false);
+				setAlertModalMessage(
+					response.data.error || "Failed to complete registration"
+				);
+				setAlertModalConfig({
+					icon: "error",
+					title: "Registration Error",
+					confirmText: "OK",
+					showCancel: false,
+					onConfirm: () => setShowAlertModal(false),
+				});
+				setShowAlertModal(true);
+			}
+		} catch (error) {
+			console.error("❌ Missing fields submission error:", error);
+			setShowLoadingModal(false);
+
+			let errorMessage = "Failed to complete registration";
+			if (error.response?.data?.error) {
+				errorMessage = error.response.data.error;
+			} else if (error.response?.data?.message) {
+				errorMessage = error.response.data.message;
+			}
+
+			setAlertModalMessage(errorMessage);
+			setAlertModalConfig({
+				icon: "error",
+				title: "Registration Error",
+				confirmText: "OK",
+				showCancel: false,
+				onConfirm: () => setShowAlertModal(false),
+			});
+			setShowAlertModal(true);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	// Handle loading state changes from OAuth service
+	const handleOAuthLoading = (isLoading, message = "Processing...") => {
+		setShowLoadingModal(isLoading);
+		setLoadingMessage(message);
+	};
+
 	return (
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
@@ -343,7 +483,7 @@ const LoginForm = ({ onLogin }) => {
 											className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-contain"
 										/>
 										<h2 className="text-lg sm:text-xl font-bold">
-											<span className="text-white">Carbon</span>
+											<span className="text-white">arbon</span>
 											<span className="text-yellow-400">Cube</span>
 										</h2>
 									</div>
@@ -554,49 +694,52 @@ const LoginForm = ({ onLogin }) => {
 													// Call onLogin to handle authentication and storage (same as normal login)
 													onLogin(token, user);
 
-													// Check for redirect parameter (same as normal login)
-													const searchParams = new URLSearchParams(
-														location.search
-													);
-													const redirectUrl = searchParams.get("redirect");
-
-													// If there's a redirect URL, use it for buyers (most common case)
-													if (redirectUrl && user.role === "buyer") {
-														navigate(redirectUrl);
-														return;
-													}
-
-													// Navigate based on user role (same as normal login)
-													switch (user.role) {
-														case "buyer":
-															navigate("/");
-															break;
-														case "seller":
-															navigate("/seller/dashboard");
-															break;
-														case "admin":
-															navigate("/admin/analytics");
-															break;
-														case "sales":
-															navigate("/sales/dashboard");
-															break;
-														default:
-															setAlertModalMessage("Unexpected user role.");
-															setAlertModalConfig({
-																icon: "error",
-																title: "Error",
-																confirmText: "OK",
-																showCancel: false,
-																onConfirm: () => setShowAlertModal(false),
-															});
-															setShowAlertModal(true);
-													}
+													// Show success message with SweetAlert
+													Swal.fire({
+														icon: "success",
+														title: "Welcome!",
+														text: `Successfully signed in with Google! Welcome back, ${
+															user.name || user.fullname || "User"
+														}!`,
+														showConfirmButton: false,
+														timer: 2000,
+														timerProgressBar: true,
+														allowOutsideClick: false,
+														allowEscapeKey: false,
+													});
 												}}
+												onCompletion={(user) => {
+													setIncompleteUser(user);
+													setShowCompletionModal(true);
+												}}
+												onMissingFields={(fields, userData) => {
+													console.log("📝 Missing fields detected:", fields);
+													console.log("📝 User data:", userData);
+
+													// Store data in localStorage for the complete registration page
+													localStorage.setItem(
+														"registrationData",
+														JSON.stringify({
+															missingFields: fields,
+															userData: userData,
+														})
+													);
+
+													// Navigate to complete registration page
+													navigate("/complete-registration", {
+														state: {
+															missingFields: fields,
+															userData: userData,
+														},
+													});
+												}}
+												onLoading={handleOAuthLoading}
 												onError={(error) => {
+													console.error("❌ Google OAuth error:", error);
 													setAlertModalMessage(error);
 													setAlertModalConfig({
 														icon: "error",
-														title: "Google Sign-in Failed",
+														title: "Authentication Error",
 														confirmText: "OK",
 														showCancel: false,
 														onConfirm: () => setShowAlertModal(false),
@@ -646,6 +789,56 @@ const LoginForm = ({ onLogin }) => {
 					cancelText={alertModalConfig.cancelText}
 					showCancel={alertModalConfig.showCancel}
 					onConfirm={alertModalConfig.onConfirm}
+				/>
+
+				{/* Missing Fields Modal */}
+				<MissingFieldsModal
+					isOpen={showMissingFieldsModal}
+					onClose={() => setShowMissingFieldsModal(false)}
+					onSubmit={handleMissingFieldsSubmit}
+					missingFields={missingFields}
+					userData={userData}
+					isLoading={loading}
+				/>
+
+				{/* OAuth Completion Modal */}
+				<OAuthCompletionModal
+					show={showCompletionModal}
+					onHide={() => setShowCompletionModal(false)}
+					userData={incompleteUser}
+					onComplete={(token, user) => {
+						onLogin(token, user);
+						setShowCompletionModal(false);
+						setIncompleteUser(null);
+
+						// Show success message with SweetAlert
+						Swal.fire({
+							icon: "success",
+							title: "Welcome!",
+							text: `Registration completed successfully! Welcome to Carbon Cube, ${
+								user.name || user.fullname || "User"
+							}!`,
+							showConfirmButton: false,
+							timer: 2000,
+							timerProgressBar: true,
+							allowOutsideClick: false,
+							allowEscapeKey: false,
+						}).then(() => {
+							// Navigate to home page
+							navigate("/");
+						});
+					}}
+					onCancel={() => {
+						setShowCompletionModal(false);
+						setIncompleteUser(null);
+					}}
+				/>
+
+				{/* Loading Modal */}
+				<LoadingModal
+					isVisible={showLoadingModal}
+					message={loadingMessage}
+					type="loading"
 				/>
 			</div>
 		</>

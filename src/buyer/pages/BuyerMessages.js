@@ -36,7 +36,7 @@ const BuyerMessages = () => {
 			userType="buyer"
 			apiBaseUrl="/conversations"
 			navbarComponent={
-				<Navbar mode="buyer" showSearch={true} showCategories={true} />
+				<Navbar mode="buyer" showSearch={false} showCategories={false} />
 			}
 			title="Messages"
 			showProductContext={true}

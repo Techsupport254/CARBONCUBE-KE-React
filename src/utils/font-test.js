@@ -15,15 +15,11 @@ const testFontPreloading = () => {
 				// Fonts loaded successfully
 			})
 			.catch((error) => {
-				console.error("Font loading error:", error);
 			});
 	}
 
 	// Check for any 404 errors in console
-	const originalError = console.error;
-	console.error = (...args) => {
 		if (args[0] && args[0].includes("404")) {
-			console.warn("404 error detected:", args);
 		}
 		originalError.apply(console, args);
 	};

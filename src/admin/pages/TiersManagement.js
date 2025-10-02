@@ -199,7 +199,6 @@ const TiersManagement = () => {
 				alert("Failed to delete the tier.");
 			}
 		} catch (error) {
-			console.error("Error deleting tier:", error);
 			alert("An error occurred while deleting the tier.");
 		}
 	};

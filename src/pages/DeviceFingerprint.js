@@ -159,9 +159,7 @@ const DeviceFingerprint = () => {
 				// Test API connection
 				try {
 					await fetch(`${API_BASE_URL}/internal_user_exclusions/check/test`);
-				} catch (apiError) {
-					console.error("API connection failed:", apiError);
-				}
+				} catch (apiError) {}
 
 				// Initialize device fingerprinting
 				const { fingerprint, isInternal } =
@@ -177,7 +175,6 @@ const DeviceFingerprint = () => {
 				// Check if there's already a request for this device
 				await checkExistingRequest(info.hash);
 			} catch (error) {
-				console.error("Error initializing fingerprint:", error);
 			} finally {
 				setLoading(false);
 			}
@@ -260,7 +257,6 @@ const DeviceFingerprint = () => {
 			const data = await response.json();
 			setRequestStatus(data);
 		} catch (error) {
-			console.error("Error checking request status:", error);
 			setRequestStatus(null);
 		} finally {
 			setRefreshing(false);
@@ -323,8 +319,7 @@ const DeviceFingerprint = () => {
 				setShowErrorModal(true);
 			}
 		} catch (error) {
-			console.error("Error submitting request:", error);
-			console.error("Error details:", {
+			console.log({
 				name: error.name,
 				message: error.message,
 				stack: error.stack,
@@ -373,7 +368,6 @@ const DeviceFingerprint = () => {
 				device: "",
 			});
 		} catch (error) {
-			console.error("Error submitting whitelist request:", error);
 			setErrorMessage("Failed to submit whitelist request. Please try again.");
 			setShowErrorModal(true);
 		} finally {
@@ -386,9 +380,7 @@ const DeviceFingerprint = () => {
 			await navigator.clipboard.writeText(text);
 			setCopied(field);
 			setTimeout(() => setCopied(""), 2000);
-		} catch (error) {
-			console.error("Failed to copy:", error);
-		}
+		} catch (error) {}
 	};
 
 	const getStatusColor = (isInternal) => {

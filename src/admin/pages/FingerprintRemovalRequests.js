@@ -44,10 +44,8 @@ const FingerprintRemovalRequests = () => {
 				setRequests(data);
 			} else {
 				const errorData = await response.json();
-				console.error("Failed to fetch requests:", errorData);
 			}
 		} catch (error) {
-			console.error("Error fetching requests:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -69,7 +67,6 @@ const FingerprintRemovalRequests = () => {
 				setStats(data);
 			}
 		} catch (error) {
-			console.error("Error fetching stats:", error);
 		}
 	}, [API_BASE_URL]);
 
@@ -104,7 +101,6 @@ const FingerprintRemovalRequests = () => {
 				setShowErrorModal(true);
 			}
 		} catch (error) {
-			console.error("Error approving request:", error);
 			setErrorMessage("Failed to approve request");
 			setShowErrorModal(true);
 		}
@@ -144,7 +140,6 @@ const FingerprintRemovalRequests = () => {
 				setShowErrorModal(true);
 			}
 		} catch (error) {
-			console.error("Error rejecting request:", error);
 			setErrorMessage("Failed to reject request");
 			setShowErrorModal(true);
 		}

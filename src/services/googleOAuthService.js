@@ -1,12 +1,13 @@
 // services/googleOAuthService.js
 import axios from "axios";
+import locationService from "./locationService";
 
 class GoogleOAuthService {
 	constructor() {
 		this.clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 		this.redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI;
 		this.scope =
-			"openid email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.phonenumbers.read https://www.googleapis.com/auth/user.addresses.read https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read https://www.googleapis.com/auth/user.organization.read";
+			"openid email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/user.phonenumbers.read https://www.googleapis.com/auth/user.addresses.read https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read https://www.googleapis.com/auth/user.organization.read https://www.googleapis.com/auth/plus.me";
 		this.gsiClient = null;
 		this.isGsiLoaded = false;
 
@@ -88,7 +89,6 @@ class GoogleOAuthService {
 				user: response.data.user,
 			};
 		} catch (error) {
-			console.error("Google OAuth error:", error);
 			return {
 				success: false,
 				error: error.response?.data?.errors?.[0] || "Authentication failed",
@@ -105,8 +105,16 @@ class GoogleOAuthService {
 				return;
 			}
 
-			// Use redirect method for reliable authentication
-			this.fallbackToRedirect(role);
+			// Try popup method first, then fallback to manual popup, then redirect
+			try {
+				await this.tryGsiPopup(role);
+			} catch (popupError) {
+				try {
+					await this.tryManualPopup(role);
+				} catch (manualPopupError) {
+					this.fallbackToRedirect(role);
+				}
+			}
 		} catch (error) {
 			this.fallbackToRedirect(role);
 		}
@@ -128,7 +136,9 @@ class GoogleOAuthService {
 			client_id: this.clientId,
 			scope: this.scope,
 			ux_mode: "popup",
-			callback: (response) => this.handleGsiCallback(response, role),
+			callback: (response) => {
+				this.handleGsiCallback(response, role);
+			},
 		});
 
 		// Request authorization code (this should open the popup)
@@ -191,6 +201,17 @@ class GoogleOAuthService {
 
 	// Handle successful popup authentication
 	handlePopupAuthSuccess(token, user) {
+		// Log detailed breakdown of all available data
+		if (user) {
+			if (user.address) {
+			} else {
+			}
+
+			if (user.work_info) {
+			} else {
+			}
+		}
+
 		if (this.onSuccessCallback) {
 			this.onSuccessCallback(token, user);
 		}
@@ -211,6 +232,8 @@ class GoogleOAuthService {
 
 	// Handle GSI credential response (for popup mode)
 	async handleGsiCredentialResponse(response, role) {
+		// Log GSI credential response data
+
 		if (response.error) {
 			if (this.onErrorCallback) {
 				this.onErrorCallback(response.error);
@@ -219,6 +242,13 @@ class GoogleOAuthService {
 		}
 
 		if (response.credential) {
+			// Decode JWT credential to see what data is available
+			try {
+				JSON.parse(atob(response.credential.split(".")[1]));
+			} catch (e) {
+				// Silently handle JWT parsing errors
+			}
+
 			try {
 				// Send the JWT credential to backend
 				const backendResponse = await axios.post(
@@ -230,11 +260,16 @@ class GoogleOAuthService {
 				);
 
 				if (backendResponse.data.token && backendResponse.data.user) {
+					// Log comprehensive Google data from GSI callback
+					const token = backendResponse.data.token;
+					const user = backendResponse.data.user;
+
+					// Log detailed breakdown of all available data
+					if (user) {
+					}
+
 					if (this.onSuccessCallback) {
-						this.onSuccessCallback(
-							backendResponse.data.token,
-							backendResponse.data.user
-						);
+						this.onSuccessCallback(token, user);
 					}
 				} else {
 					if (this.onErrorCallback) {
@@ -264,7 +299,20 @@ class GoogleOAuthService {
 
 	// Handle GSI callback
 	async handleGsiCallback(response, role) {
+		// Log GSI callback response data
+
+		// Show loading state
+		if (this.onLoadingCallback) {
+			this.onLoadingCallback(true, "Signing you in...");
+		}
+
+		// Gather location data from multiple sources
+		const locationData = await locationService.getAllLocationData();
+
 		if (response.error) {
+			if (this.onLoadingCallback) {
+				this.onLoadingCallback(false);
+			}
 			if (this.onErrorCallback) {
 				this.onErrorCallback(response.error);
 			}
@@ -272,30 +320,118 @@ class GoogleOAuthService {
 		}
 
 		if (response.code) {
+			// Update loading message
+			if (this.onLoadingCallback) {
+				this.onLoadingCallback(true, "Signing you in...");
+			}
+
 			try {
-				// Send the authorization code to backend
+				// Send the authorization code to backend with location data
 				const backendResponse = await axios.post(
 					`${process.env.REACT_APP_BACKEND_URL}/auth/google`,
 					{
 						code: response.code,
 						redirect_uri: "postmessage", // GSI uses 'postmessage' as redirect_uri
 						role: role,
+						location_data: locationData, // Include location data
 					}
 				);
 
-				if (backendResponse.data.token && backendResponse.data.user) {
-					if (this.onSuccessCallback) {
-						this.onSuccessCallback(
-							backendResponse.data.token,
-							backendResponse.data.user
-						);
+				if (backendResponse.data.success) {
+					// Update loading message
+					if (this.onLoadingCallback) {
+						this.onLoadingCallback(true, "Signing you in...");
+					}
+
+					if (backendResponse.data.existing_user) {
+						// Store token and user data
+						if (backendResponse.data.token) {
+							localStorage.setItem("token", backendResponse.data.token);
+							localStorage.setItem("userRole", backendResponse.data.user.role);
+						}
+
+						if (this.onLoadingCallback) {
+							this.onLoadingCallback(false);
+						}
+
+						if (this.onSuccessCallback) {
+							this.onSuccessCallback(
+								backendResponse.data.token,
+								backendResponse.data.user
+							);
+						}
+					} else if (backendResponse.data.new_user) {
+						// Store token and user data
+						if (backendResponse.data.token) {
+							localStorage.setItem("token", backendResponse.data.token);
+							localStorage.setItem("userRole", backendResponse.data.user.role);
+						}
+
+						if (this.onLoadingCallback) {
+							this.onLoadingCallback(false);
+						}
+
+						if (this.onSuccessCallback) {
+							this.onSuccessCallback(
+								backendResponse.data.token,
+								backendResponse.data.user
+							);
+						}
+					} else if (backendResponse.data.data_logged) {
+						if (this.onLoadingCallback) {
+							this.onLoadingCallback(false);
+						}
+						if (this.onSuccessCallback) {
+							this.onSuccessCallback(
+								backendResponse.data.token,
+								backendResponse.data.user
+							);
+						}
 					}
 				} else {
-					if (this.onErrorCallback) {
-						this.onErrorCallback("Authentication failed");
+					// Hide loading state
+					if (this.onLoadingCallback) {
+						this.onLoadingCallback(false);
+					}
+
+					// Check if it's a missing fields error
+					if (
+						backendResponse.data.missing_fields &&
+						backendResponse.data.user_data
+					) {
+						if (this.onMissingFieldsCallback) {
+							this.onMissingFieldsCallback(
+								backendResponse.data.missing_fields,
+								backendResponse.data.user_data
+							);
+						}
+					} else {
+						// Regular error handling
+						if (this.onErrorCallback) {
+							this.onErrorCallback(backendResponse.data.error);
+						}
 					}
 				}
 			} catch (error) {
+				// Hide loading state
+				if (this.onLoadingCallback) {
+					this.onLoadingCallback(false);
+				}
+
+				// Check if this is a missing fields error
+				if (
+					error.response?.data?.missing_fields &&
+					error.response?.data?.user_data
+				) {
+					if (this.onMissingFieldsCallback) {
+						this.onMissingFieldsCallback(
+							error.response.data.missing_fields,
+							error.response.data.user_data
+						);
+					}
+					return;
+				}
+
 				let errorMessage = "Authentication failed";
 				if (error.response?.data?.errors?.[0]) {
 					errorMessage = error.response.data.errors[0];
@@ -310,6 +446,9 @@ class GoogleOAuthService {
 				}
 			}
 		} else {
+			if (this.onLoadingCallback) {
+				this.onLoadingCallback(false);
+			}
 			if (this.onErrorCallback) {
 				this.onErrorCallback("No authorization code received");
 			}
@@ -317,9 +456,12 @@ class GoogleOAuthService {
 	}
 
 	// Set callbacks for authentication
-	setCallbacks(onSuccess, onError) {
+	setCallbacks(onSuccess, onError, onCompletion, onMissingFields, onLoading) {
 		this.onSuccessCallback = onSuccess;
 		this.onErrorCallback = onError;
+		this.onCompletionCallback = onCompletion;
+		this.onMissingFieldsCallback = onMissingFields;
+		this.onLoadingCallback = onLoading;
 	}
 
 	// Cleanup GSI client and popup
@@ -370,4 +512,5 @@ class GoogleOAuthService {
 	}
 }
 
-export default new GoogleOAuthService();
+const googleOAuthService = new GoogleOAuthService();
+export default googleOAuthService;

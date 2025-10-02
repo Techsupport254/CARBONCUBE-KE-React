@@ -27,7 +27,6 @@ const SellerInsights = () => {
 				setLoading(false);
 			})
 			.catch((error) => {
-				console.error("Error fetching seller insights:", error);
 				setLoading(false);
 			});
 	};

@@ -15,7 +15,6 @@ const getToken = () => {
 
 	const parts = token.split(".");
 	if (parts.length !== 3 || !parts.every((part) => part.length > 0)) {
-		console.warn("Invalid token format for WebSocket connection");
 		// Clear invalid token
 		localStorage.removeItem("token");
 		return null;
@@ -25,12 +24,10 @@ const getToken = () => {
 	try {
 		const payload = JSON.parse(atob(parts[1]));
 		if (!payload.user_id && !payload.seller_id) {
-			console.warn("Invalid token payload for WebSocket connection");
 			localStorage.removeItem("token");
 			return null;
 		}
 	} catch (error) {
-		console.warn("Token decode error for WebSocket connection:", error.message);
 		localStorage.removeItem("token");
 		return null;
 	}

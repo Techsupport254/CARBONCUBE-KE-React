@@ -39,7 +39,6 @@ const AdminProfilePage = () => {
 	// Fetch profile data from the backend API
 	useEffect(() => {
 		if (!token) {
-			console.error("No auth token found");
 			return;
 		}
 
@@ -53,9 +52,7 @@ const AdminProfilePage = () => {
 				setProfile(response.data);
 			})
 			.catch((error) => {
-				console.error("Error fetching profile data:", error);
 				if (error.response?.status === 401) {
-					console.error("Unauthorized access. Please login again.");
 				}
 			});
 	}, [token]);

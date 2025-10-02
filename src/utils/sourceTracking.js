@@ -266,7 +266,6 @@ class SourceTrackingService {
 
 			return response.data;
 		} catch (error) {
-			console.error("Failed to track visit:", error);
 			return null;
 		}
 	}
@@ -462,7 +461,6 @@ class SourceTrackingService {
 
 			return response.data;
 		} catch (error) {
-			console.error("Failed to get source analytics:", error);
 			return null;
 		}
 	}

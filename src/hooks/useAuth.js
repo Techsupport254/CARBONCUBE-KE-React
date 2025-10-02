@@ -26,22 +26,25 @@ const useAuth = () => {
 	}, []);
 
 	const checkAuth = useCallback(() => {
-		// Debug token information
-		tokenService.debugToken();
-
-		// Clear any invalid tokens before checking authentication
-		tokenService.clearInvalidTokens();
+		// Note: Removed automatic token clearing to prevent race conditions
+		// Token validation happens in tokenService.getToken() if needed
 
 		const token = tokenService.getToken();
 
+		// Only log when there's a change in token status to reduce console spam
+		if (!token && isAuthenticated) {
+		}
+
 		// If no token, user is not authenticated
 		if (!token) {
-			setIsAuthenticated(false);
-			setUserRole(null);
-			setUserName("");
-			setUserUsername("");
-			setUserEmail("");
-			setUserProfilePicture("");
+			if (isAuthenticated) {
+				setIsAuthenticated(false);
+				setUserRole(null);
+				setUserName("");
+				setUserUsername("");
+				setUserEmail("");
+				setUserProfilePicture("");
+			}
 			return;
 		}
 
@@ -61,18 +64,18 @@ const useAuth = () => {
 		const userEmail = localStorage.getItem("userEmail") || "";
 		const userProfilePicture = localStorage.getItem("userProfilePicture") || "";
 
-		if (userRole) {
+		if (userRole && !isAuthenticated) {
 			setIsAuthenticated(true);
 			setUserRole(userRole);
 			setUserName(userName);
 			setUserUsername(userUsername);
 			setUserEmail(userEmail);
 			setUserProfilePicture(userProfilePicture);
-		} else {
+		} else if (!userRole && isAuthenticated) {
 			// No user role found, log out
 			logout();
 		}
-	}, [logout]);
+	}, [logout, isAuthenticated]);
 
 	useEffect(() => {
 		checkAuth();
@@ -80,8 +83,8 @@ const useAuth = () => {
 		// Setup automatic token refresh
 		tokenService.setupAutoRefresh();
 
-		// Check auth periodically (every 30 seconds for more responsive logout)
-		const interval = setInterval(checkAuth, 30000);
+		// Check auth periodically (every 2 minutes to reduce excessive calls)
+		const interval = setInterval(checkAuth, 120000);
 
 		// Listen for storage changes (logout from other tabs)
 		const handleStorageChange = (e) => {
@@ -99,7 +102,6 @@ const useAuth = () => {
 
 		// Listen for force logout events from token service
 		const handleForceLogout = () => {
-			console.warn("useAuth: Force logout event received");
 			logout();
 		};
 

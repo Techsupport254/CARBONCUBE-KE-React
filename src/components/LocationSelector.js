@@ -35,7 +35,6 @@ const LocationSelector = ({
 					setCounties(data);
 				}
 			} catch (error) {
-				console.error("Error fetching counties:", error);
 			} finally {
 				setLoadingCounties(false);
 			}
@@ -58,7 +57,6 @@ const LocationSelector = ({
 						setSubCounties(data);
 					}
 				} catch (error) {
-					console.error("Error fetching sub-counties:", error);
 				} finally {
 					setLoadingSubCounties(false);
 				}

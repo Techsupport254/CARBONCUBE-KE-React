@@ -38,7 +38,6 @@ const ResponsiveImage = ({
 					return `https://res.cloudinary.com/${urlParts[3]}/image/upload/w_${width},q_auto:low,f_auto,c_fill,g_auto/${version}/${publicId}`;
 				}
 			} catch (error) {
-				console.warn("Error generating Cloudinary URL:", error);
 				// Return original URL if transformation fails
 				return originalSrc;
 			}
@@ -93,7 +92,6 @@ const ResponsiveImage = ({
 					const responsiveSrc = generateResponsiveSrc(originalSrc, size);
 					return responsiveSrc ? `${responsiveSrc} ${size}w` : null;
 				} catch (error) {
-					console.warn(`Error generating srcSet for size ${size}:`, error);
 					return null;
 				}
 			})

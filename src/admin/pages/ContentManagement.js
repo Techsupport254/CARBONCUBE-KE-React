@@ -69,7 +69,6 @@ const ContentManagement = () => {
 				setFaqsData(faqs);
 				setBanners(banners);
 			} catch (error) {
-				// console.error('Error fetching data:', error);
 				setError("Error fetching data");
 			} finally {
 				setLoading(false);
@@ -123,7 +122,6 @@ const ContentManagement = () => {
 			setEditMode(false);
 			setCurrentEdit(null);
 		} catch (error) {
-			// console.error('Error saving changes:', error);
 			setError("Error saving changes");
 		}
 	};
@@ -146,7 +144,6 @@ const ContentManagement = () => {
 
 			setFaqsData((prevFaqs) => prevFaqs.filter((faq) => faq.id !== faqId));
 		} catch (error) {
-			// console.error('Error deleting FAQ:', error);
 			setError("Error deleting FAQ");
 		}
 	};
@@ -178,7 +175,6 @@ const ContentManagement = () => {
 			const responseData = await response.json(); // Get JSON response
 
 			if (!response.ok) {
-				console.error("Backend Error:", responseData);
 				throw new Error(responseData.error || "Failed to upload banner");
 			}
 
@@ -186,7 +182,6 @@ const ContentManagement = () => {
 			setShowModal(false);
 			setFile(null);
 		} catch (error) {
-			console.error("Upload Error:", error.message);
 			setError(error.message); // Show actual error
 		} finally {
 			setIsUploading(false);
@@ -211,7 +206,6 @@ const ContentManagement = () => {
 
 			setBanners(banners.filter((banner) => banner.id !== id));
 		} catch (error) {
-			// console.error('Error deleting banner:', error);
 			setError("Error deleting banner");
 		}
 	};

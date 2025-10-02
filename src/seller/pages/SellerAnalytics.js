@@ -182,7 +182,6 @@ const SellerAnalytics = () => {
 				setAnalyticsData(validatedAnalytics);
 				setLoading(false);
 			} catch (err) {
-				console.error("Error fetching analytics data:", err.message);
 				setError(err.message);
 				setLoading(false);
 			}
@@ -219,7 +218,6 @@ const SellerAnalytics = () => {
 			setEditingReplyId(null);
 			setReplyDraft("");
 		} catch (err) {
-			console.error(err);
 			setAlertModalMessage("Failed to submit reply. Please try again.");
 			setAlertModalConfig({
 				icon: "error",
@@ -251,7 +249,6 @@ const SellerAnalytics = () => {
 			const data = await response.json();
 			setReviews(data);
 		} catch (err) {
-			console.error("Error fetching reviews:", err.message);
 		} finally {
 			setLoadingReviews(false);
 		}

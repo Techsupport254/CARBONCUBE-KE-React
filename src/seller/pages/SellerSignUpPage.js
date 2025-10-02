@@ -636,7 +636,6 @@ function SellerSignUpPage({ onSignup }) {
 					document_types: documentTypesRes.data, // new
 				});
 			} catch (error) {
-				console.error("Error fetching dropdown options:", error);
 			}
 		};
 
@@ -656,7 +655,6 @@ function SellerSignUpPage({ onSignup }) {
 						sub_counties: response.data,
 					}));
 				} catch (error) {
-					console.error("Error fetching sub-counties:", error);
 					setOptions((prev) => ({
 						...prev,
 						sub_counties: [],
@@ -888,7 +886,6 @@ function SellerSignUpPage({ onSignup }) {
 				setErrors({ otp: "Invalid or expired OTP." });
 			}
 		} catch (err) {
-			console.error("Signup error:", err.response?.data || err.message);
 
 			const serverErrors = {};
 
@@ -912,7 +909,6 @@ function SellerSignUpPage({ onSignup }) {
 			}
 
 			// Log detailed error for debugging
-			console.error("Processed errors:", serverErrors);
 
 			setErrors(serverErrors);
 		} finally {
@@ -935,7 +931,6 @@ function SellerSignUpPage({ onSignup }) {
 			);
 			return response.data.exists;
 		} catch (error) {
-			console.error("Error checking email:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -955,7 +950,6 @@ function SellerSignUpPage({ onSignup }) {
 			);
 			return response.data.exists;
 		} catch (error) {
-			console.error("Error checking username:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -975,7 +969,6 @@ function SellerSignUpPage({ onSignup }) {
 			);
 			return response.data.exists;
 		} catch (error) {
-			console.error("Error checking phone number:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -995,7 +988,6 @@ function SellerSignUpPage({ onSignup }) {
 			);
 			return response.data.exists;
 		} catch (error) {
-			console.error("Error checking business name:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -1015,7 +1007,6 @@ function SellerSignUpPage({ onSignup }) {
 			);
 			return response.data.exists;
 		} catch (error) {
-			console.error("Error checking business number:", error);
 			// If API fails, don't block user - let server validation handle it
 			return false;
 		}
@@ -1050,7 +1041,7 @@ function SellerSignUpPage({ onSignup }) {
 											className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 object-contain"
 										/>
 										<h2 className="text-lg sm:text-xl font-bold">
-											<span className="text-white">Seller</span>
+											<span className="text-white">arbonCube Seller </span>
 											<span className="text-yellow-400">Portal</span>
 										</h2>
 									</div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Facebook, Apple, Eye, EyeSlash } from "react-bootstrap-icons";
-import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import "react-datepicker/dist/react-datepicker.css";
@@ -9,7 +8,6 @@ import {
 	faUser,
 	faEnvelope,
 	faPhone,
-	faMapMarkerAlt,
 	faLeaf,
 	faUsers,
 	faChartLine,
@@ -18,6 +16,8 @@ import {
 import Navbar from "../../components/Navbar";
 import PasswordStrengthIndicator from "../../components/PasswordStrengthIndicator";
 import GoogleSignInButton from "../../components/GoogleSignInButton";
+import LoadingModal from "../../components/LoadingModal";
+import Swal from "sweetalert2";
 import "../css/BuyerSignUpPage.css";
 import useSEO from "../../hooks/useSEO";
 
@@ -31,6 +31,16 @@ function BuyerSignUpPage({ onSignup }) {
 		password_confirmation: "",
 		age_group_id: "",
 		gender: "",
+		location: "",
+		city: "",
+		zipcode: "",
+		profile_picture: "",
+		county_id: "",
+		sub_county_id: "",
+		income_id: "",
+		sector_id: "",
+		education_id: "",
+		employment_id: "",
 	});
 	const [errors, setErrors] = useState({});
 	const [successMessage, setSuccessMessage] = useState("");
@@ -41,10 +51,19 @@ function BuyerSignUpPage({ onSignup }) {
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [otpCode, setOtpCode] = useState("");
 	const [submittingSignup, setSubmittingSignup] = useState(false);
-	const [verifyingOtp, setVerifyingOtp] = useState(false);
 	const [otpRequested, setOtpRequested] = useState(false);
 	const [requestingOtp, setRequestingOtp] = useState(false);
 	const [validatingField, setValidatingField] = useState(null);
+
+	// Loading modal state
+	const [showLoadingModal, setShowLoadingModal] = useState(false);
+	const [loadingMessage, setLoadingMessage] = useState("Processing...");
+
+	// Handle loading state changes from OAuth service
+	const handleOAuthLoading = (isLoading, message = "Processing...") => {
+		setShowLoadingModal(isLoading);
+		setLoadingMessage(message);
+	};
 
 	// Enhanced SEO Implementation
 	useSEO({
@@ -437,8 +456,19 @@ function BuyerSignUpPage({ onSignup }) {
 						})
 					);
 
-					// Navigate to home page
-					navigate("/");
+					// Show success message with SweetAlert
+					Swal.fire({
+						icon: "success",
+						title: "Welcome!",
+						text: "Account created successfully! Welcome to Carbon Cube!",
+						showConfirmButton: false,
+						timer: 2000,
+						timerProgressBar: true,
+						allowOutsideClick: false,
+						allowEscapeKey: false,
+					}).then(() => {
+						navigate("/");
+					});
 				}
 			} else {
 				setErrors({ otp: "Invalid or expired OTP." });
@@ -657,10 +687,26 @@ function BuyerSignUpPage({ onSignup }) {
 										<GoogleSignInButton
 											role="buyer"
 											onSuccess={(token, user) => {
-												// Handle successful Google sign-in
+												// Use the same authentication process as login page
 												onSignup(token, user);
-												navigate("/");
+
+												// Show success message with SweetAlert
+												Swal.fire({
+													icon: "success",
+													title: "Welcome!",
+													text: `Successfully signed up with Google! Welcome to Carbon Cube, ${
+														user.name || user.fullname || "User"
+													}!`,
+													showConfirmButton: false,
+													timer: 2000,
+													timerProgressBar: true,
+													allowOutsideClick: false,
+													allowEscapeKey: false,
+												}).then(() => {
+													navigate("/");
+												});
 											}}
+											onLoading={handleOAuthLoading}
 											onError={(error) => {
 												console.error("Google sign-in error:", error);
 												setErrors({
@@ -1146,6 +1192,13 @@ function BuyerSignUpPage({ onSignup }) {
 					</div>
 				</div>
 			</div>
+
+			{/* Loading Modal */}
+			<LoadingModal
+				isVisible={showLoadingModal}
+				message={loadingMessage}
+				type="loading"
+			/>
 		</>
 	);
 }

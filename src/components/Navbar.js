@@ -139,7 +139,6 @@ const Navbar = ({
 			// Unread message count updated
 			setUnreadMessageCount(count);
 		} catch (error) {
-			console.error("Navbar: Error fetching unread message count:", error);
 		}
 	}, [isAuthenticated, userRole]);
 
@@ -233,7 +232,11 @@ const Navbar = ({
 	// Fetch wishlist count when user logs in
 	useEffect(() => {
 		if (isAuthenticated && userRole === "buyer") {
-			fetchWishlistCount();
+			// Add a small delay to ensure token is fully processed
+			const timeoutId = setTimeout(() => {
+				fetchWishlistCount();
+			}, 500);
+			return () => clearTimeout(timeoutId);
 		} else {
 			setWishlistCount(0);
 		}
@@ -269,7 +272,11 @@ const Navbar = ({
 	// Fetch unread message count when user logs in
 	useEffect(() => {
 		if (isAuthenticated && userRole) {
-			fetchUnreadMessageCount();
+			// Add a small delay to ensure token is fully processed
+			const timeoutId = setTimeout(() => {
+				fetchUnreadMessageCount();
+			}, 500);
+			return () => clearTimeout(timeoutId);
 		} else {
 			setUnreadMessageCount(0);
 		}

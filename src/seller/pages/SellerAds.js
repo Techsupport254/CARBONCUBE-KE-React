@@ -102,7 +102,6 @@ const SellerAds = () => {
 					deleted: sortByNewest(data.deleted_ads || []),
 				});
 			} catch (error) {
-				console.error("Error fetching ads:", error);
 				setError("Error fetching ads");
 			} finally {
 				setLoading(false);
@@ -177,7 +176,6 @@ const SellerAds = () => {
 				deleted: prev.deleted.filter((a) => a.id !== adId),
 			}));
 		} catch (error) {
-			console.error("Restore failed:", error);
 			alert("Failed to restore ad.");
 		}
 	};

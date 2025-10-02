@@ -4,6 +4,9 @@ import googleOAuthService from "../services/googleOAuthService";
 const GoogleSignInButton = ({
 	onSuccess,
 	onError,
+	onCompletion,
+	onMissingFields,
+	onLoading,
 	className = "",
 	disabled = false,
 	role = "buyer",
@@ -17,22 +20,22 @@ const GoogleSignInButton = ({
 
 	const handleGoogleSignIn = async () => {
 		if (disabled) {
-			console.log("🚫 Button is disabled");
 			return;
 		}
 
-		console.log("🖱️ Google sign-in button clicked");
-		console.log("Role:", role);
-
 		try {
 			// Set callbacks for authentication
-			googleOAuthService.setCallbacks(onSuccess, onError);
-			console.log("✅ Callbacks set");
+			googleOAuthService.setCallbacks(
+				onSuccess,
+				onError,
+				onCompletion,
+				onMissingFields,
+				onLoading
+			);
 
 			// Initiate GSI popup-based authentication
 			await googleOAuthService.initiateAuth(role);
 		} catch (error) {
-			console.error("❌ Google sign-in error:", error);
 			if (onError) {
 				onError("Failed to initiate Google sign-in: " + error.message);
 			}

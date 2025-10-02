@@ -529,7 +529,6 @@ function SalesDashboard({ onLogout }) {
 			);
 			setCategories(res.data);
 		} catch (err) {
-			console.error("Failed to fetch categories:", err);
 		}
 	}, []);
 
@@ -540,7 +539,6 @@ function SalesDashboard({ onLogout }) {
 			);
 			setCategoryAnalytics(res.data);
 		} catch (err) {
-			console.error("Failed to fetch category analytics:", err);
 		}
 	}, []);
 
@@ -570,7 +568,6 @@ function SalesDashboard({ onLogout }) {
 				// Don't set source analytics here - let the useEffect handle it
 				// This prevents the all-time data from overriding filtered data
 			} catch (err) {
-				console.error("Failed to fetch analytics:", err);
 			} finally {
 				setLoading(false);
 			}

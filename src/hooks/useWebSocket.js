@@ -109,17 +109,12 @@ class WebSocketConnectionManager {
 		const { maxReconnectAttempts = 5, reconnectInterval = 1000 } = options;
 
 		if (attempt >= maxReconnectAttempts) {
-			console.error(
 				`Max reconnection attempts (${maxReconnectAttempts}) reached for ${url}`
 			);
 			return;
 		}
 
 		const delay = Math.min(reconnectInterval * Math.pow(2, attempt), 30000); // Exponential backoff, max 30s
-
-		console.log(
-			`Scheduling reconnection attempt ${attempt + 1} for ${url} in ${delay}ms`
-		);
 
 		const timeout = setTimeout(() => {
 			this.reconnectTimeouts.delete(url);
@@ -159,11 +154,9 @@ class WebSocketConnectionManager {
 				try {
 					handler(data);
 				} catch (error) {
-					console.error("Message handler error:", error);
 				}
 			});
 		} catch (error) {
-			console.error("Failed to parse WebSocket message:", error);
 		}
 	}
 
@@ -256,7 +249,6 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 	// Connection setup
 	const connect = useCallback(async () => {
 		if (!channelName || !userType || !userId || !authToken) {
-			console.warn("Missing required parameters for WebSocket connection");
 			return;
 		}
 
@@ -339,7 +331,6 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 						break;
 
 					case MESSAGE_TYPES.MESSAGE_ERROR:
-						console.error("Message error:", data.error);
 						wsStore.setConnectionState(WS_STATES.ERROR, data.error);
 						break;
 
@@ -354,7 +345,6 @@ export const useWebSocket = (channelName, userType, userId, options = {}) => {
 				const processingTime = performance.now() - startTime;
 				wsStore.trackMessageLatency(processingTime);
 			} catch (error) {
-				console.error("Message processing error:", error);
 			}
 		};
 

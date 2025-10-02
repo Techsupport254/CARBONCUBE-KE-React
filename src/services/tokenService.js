@@ -7,6 +7,7 @@ class TokenService {
 	constructor() {
 		this.refreshPromise = null;
 		this.API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+		this.isSettingToken = false;
 	}
 
 	/**
@@ -27,9 +28,6 @@ class TokenService {
 	 * Force clear all authentication data and trigger logout
 	 */
 	forceLogout() {
-		console.warn(
-			"TokenService: Force logout triggered due to invalid authentication state"
-		);
 		this.clearAllAuthData();
 
 		// Dispatch custom event to trigger logout in all components
@@ -60,7 +58,6 @@ class TokenService {
 	clearMalformedTokens() {
 		const token = localStorage.getItem("token");
 		if (token && !this.isValidTokenFormat(token)) {
-			console.warn("Clearing malformed token from storage");
 			this.removeToken();
 			return true;
 		}
@@ -78,14 +75,20 @@ class TokenService {
 			// Try to decode the token to check if it's valid
 			const payload = this.decodeToken(token);
 			if (!payload) {
-				console.warn("Clearing token that failed to decode");
 				this.removeToken();
 				return true;
 			}
 
-			// Check if token has required fields
-			if (!payload.user_id && !payload.seller_id) {
-				console.warn("Clearing token missing user/seller ID");
+			// Check if token has required fields - at least one ID field should be present
+			const hasValidId =
+				payload.user_id ||
+				payload.seller_id ||
+				payload.admin_id ||
+				payload.sales_id;
+			if (!hasValidId) {
+				console.log(
+					"Token missing required ID field (user_id, seller_id, admin_id, or sales_id), clearing token"
+				);
 				this.removeToken();
 				return true;
 			}
@@ -93,14 +96,12 @@ class TokenService {
 			// Check if token is expired
 			const now = Math.floor(Date.now() / 1000);
 			if (payload.exp && payload.exp < now) {
-				console.warn("Clearing expired token");
 				this.removeToken();
 				return true;
 			}
 
 			// Check if token has valid email format
 			if (payload.email && !payload.email.includes("@")) {
-				console.warn("Clearing token with invalid email format");
 				this.removeToken();
 				return true;
 			}
@@ -108,33 +109,40 @@ class TokenService {
 			// Check for known problematic emails that don't exist in database
 			const problematicEmails = []; // Removed kiruivictor097@gmail.com as it's a valid buyer
 			if (payload.email && problematicEmails.includes(payload.email)) {
-				console.warn("Clearing token for non-existent user:", payload.email);
 				this.forceLogout();
 				return true;
 			}
 
-			// Check for role consistency - if user has seller_id, role should be seller
+			// Check for role consistency - each ID field should match its expected role
 			if (payload.seller_id && payload.role && payload.role !== "seller") {
-				console.warn(
-					"Token has seller_id but role is not seller:",
-					payload.role
+				console.log(
+					"Token has seller_id but role is not seller, clearing token"
 				);
 				this.removeToken();
 				return true;
 			}
 
-			// Check for role consistency - if user has user_id, role should not be seller
-			if (payload.user_id && payload.role && payload.role === "seller") {
-				console.warn(
-					"Token has user_id but role is seller - this is inconsistent"
-				);
+			if (payload.admin_id && payload.role && payload.role !== "admin") {
+				console.log("Token has admin_id but role is not admin, clearing token");
+				this.removeToken();
+				return true;
+			}
+
+			if (payload.sales_id && payload.role && payload.role !== "sales") {
+				console.log("Token has sales_id but role is not sales, clearing token");
+				this.removeToken();
+				return true;
+			}
+
+			// Check for role consistency - if user has user_id, role should be buyer
+			if (payload.user_id && payload.role && payload.role !== "buyer") {
+				console.log("Token has user_id but role is not buyer, clearing token");
 				this.removeToken();
 				return true;
 			}
 
 			return false;
 		} catch (error) {
-			console.warn("Clearing token due to decode error:", error.message);
 			this.removeToken();
 			return true;
 		}
@@ -147,16 +155,21 @@ class TokenService {
 		// First check if there's a malformed token and clear it
 		this.clearMalformedTokens();
 
-		// Also check for invalid tokens (signature verification failures)
-		this.clearInvalidTokens();
-
 		const token = localStorage.getItem("token");
 
 		// Validate token format before returning
 		if (token && !this.isValidTokenFormat(token)) {
-			console.warn("Invalid token format detected, clearing token");
 			this.removeToken();
 			return null;
+		}
+
+		// Only check for invalid tokens if we have a token and it's not being set
+		// This prevents clearing tokens during the login process
+		if (token && !this.isSettingToken) {
+			const wasCleared = this.clearInvalidTokens();
+			if (wasCleared) {
+				return null;
+			}
 		}
 
 		return token;
@@ -178,13 +191,22 @@ class TokenService {
 	 * Set token in localStorage
 	 */
 	setToken(token) {
+		// Set flag to prevent clearing during token setting
+		this.isSettingToken = true;
+
 		// Validate token format before storing
 		if (!this.isValidTokenFormat(token)) {
-			console.error("Invalid token format, not storing token");
+			this.isSettingToken = false;
 			return false;
 		}
 
 		localStorage.setItem("token", token);
+
+		// Reset flag after a longer delay to allow the token to be fully processed
+		setTimeout(() => {
+			this.isSettingToken = false;
+		}, 1000);
+
 		return true;
 	}
 
@@ -222,7 +244,6 @@ class TokenService {
 			const payload = JSON.parse(atob(parts[1]));
 			return payload;
 		} catch (error) {
-			console.error("Token decode error:", error);
 			return null;
 		}
 	}
@@ -310,9 +331,6 @@ class TokenService {
 
 			// Check if the token role matches the expected role
 			if (tokenRole !== expectedRole) {
-				console.warn(
-					`Token role mismatch: expected ${expectedRole}, got ${tokenRole}`
-				);
 				return false;
 			}
 
@@ -320,20 +338,17 @@ class TokenService {
 			if (expectedRole === "seller") {
 				// For sellers, should have seller_id
 				if (!payload.seller_id) {
-					console.warn("Seller token missing seller_id");
 					return false;
 				}
 			} else {
 				// For buyers, admins, sales, should have user_id
 				if (!payload.user_id) {
-					console.warn(`${expectedRole} token missing user_id`);
 					return false;
 				}
 			}
 
 			return true;
 		} catch (error) {
-			console.warn("Error validating token for user type:", error.message);
 			return false;
 		}
 	}
@@ -410,7 +425,6 @@ class TokenService {
 			await this.refreshToken();
 			return true;
 		} catch (error) {
-			console.error("Token refresh failed:", error);
 			this.clearAuthData();
 
 			// Redirect to login page

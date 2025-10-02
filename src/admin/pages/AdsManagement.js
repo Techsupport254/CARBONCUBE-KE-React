@@ -62,7 +62,6 @@ const AdsManagement = () => {
 			setFlaggedAds(flagged);
 			setNonFlaggedAds(non_flagged);
 		} catch (error) {
-			// console.error('Error fetching ads:', error);
 			setError(`Error fetching ads: ${error.message}`);
 		} finally {
 			setLoading(false);
@@ -90,7 +89,6 @@ const AdsManagement = () => {
 			// Assuming subcategories are included with categories in the response
 			setCategories(data || []);
 		} catch (error) {
-			// console.error('Error fetching categories:', error);
 		}
 	};
 
@@ -165,7 +163,6 @@ const AdsManagement = () => {
 			setSelectedAd(data);
 			setShowDetailsModal(true);
 		} catch (error) {
-			// console.error('Error fetching ad details:', error);
 		}
 	};
 
@@ -200,7 +197,6 @@ const AdsManagement = () => {
 			handleModalClose();
 			await fetchAds(); // Refresh ad list
 		} catch (error) {
-			// console.error('Error sending notification:', error);
 		}
 	};
 
@@ -234,7 +230,6 @@ const AdsManagement = () => {
 
 			await fetchAds(); // Refresh ad list
 		} catch (error) {
-			// console.error('Error flagging ad:', error);
 		}
 	};
 
@@ -258,13 +253,11 @@ const AdsManagement = () => {
 
 			await fetchAds(); // Refresh ad list
 		} catch (error) {
-			// console.error('Error restoring ad:', error);
 		}
 	};
 
 	const renderRatingStars = (rating) => {
 		if (typeof rating !== "number" || rating < 0) {
-			// console.error('Invalid rating value:', rating);
 			return <div className="rating-stars">Invalid rating</div>;
 		}
 

@@ -54,7 +54,6 @@ const ShareableUrlGenerator = ({ baseUrl, title, description }) => {
 			await navigator.clipboard.writeText(generatedUrl);
 			setShowToast(true);
 		} catch (err) {
-			console.error("Failed to copy URL:", err);
 			// Fallback for older browsers
 			const textArea = document.createElement("textarea");
 			textArea.value = generatedUrl;

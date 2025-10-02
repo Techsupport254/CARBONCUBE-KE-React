@@ -27,13 +27,11 @@ class WebSocketConnectionManager {
 
 		// Validate token format before creating connection
 		if (!token || typeof token !== "string") {
-			console.warn("Invalid token for WebSocket connection");
 			return null;
 		}
 
 		const parts = token.split(".");
 		if (parts.length !== 3 || !parts.every((part) => part.length > 0)) {
-			console.warn("Invalid token format for WebSocket connection");
 			return null;
 		}
 

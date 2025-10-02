@@ -272,7 +272,6 @@ const SearchResultSection = ({
 				setTotalResults(responseData.total_count);
 			}
 		} catch (error) {
-			console.error("Error loading page:", error);
 		} finally {
 			setIsLoadingPage(false);
 		}

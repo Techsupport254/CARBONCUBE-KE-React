@@ -193,7 +193,6 @@ export const cleanUrl = (url) => {
 
 		return urlObj.toString();
 	} catch (error) {
-		console.warn("Error cleaning URL:", error);
 		return url;
 	}
 };
@@ -282,7 +281,6 @@ export const generatePageSEO = (pageType, data = {}, currentPath = "") => {
 	// Validate and fix issues
 	const validation = validateSEO(seoData);
 	if (!validation.isValid) {
-		// console.warn("SEO Issues Found:", validation.issues);
 		return {
 			...seoData,
 			...validation.fixes,

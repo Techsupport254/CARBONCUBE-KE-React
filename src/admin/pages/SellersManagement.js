@@ -168,7 +168,6 @@ const SellersManagement = () => {
 			setSelectedTab("profile");
 			setShowModal(true);
 		} catch (error) {
-			// console.error('Error fetching seller details:', error);
 		}
 	};
 
@@ -192,7 +191,6 @@ const SellersManagement = () => {
 
 			if (!response.ok) {
 				const errorData = await response.json();
-				console.error("Error updating seller status:", errorData);
 				return;
 			}
 
@@ -211,7 +209,6 @@ const SellersManagement = () => {
 				}));
 			}
 		} catch (error) {
-			// console.error('Error updating seller status:', error);
 		}
 	};
 
@@ -232,7 +229,6 @@ const SellersManagement = () => {
 
 			return await response.json();
 		} catch (error) {
-			// console.error('Error fetching seller analytics:', error);
 			return {};
 		}
 	};

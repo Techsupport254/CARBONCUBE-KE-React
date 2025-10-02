@@ -43,7 +43,6 @@ const BuyersManagement = () => {
 				const data = await response.json();
 				setBuyers(data);
 			} catch (error) {
-				// console.error('Error fetching buyers:', error);
 				setError("Error fetching buyers");
 			} finally {
 				setLoading(false);
@@ -72,7 +71,6 @@ const BuyersManagement = () => {
 			setSelectedBuyer(data);
 			setShowModal(true);
 		} catch (error) {
-			// console.error('Error fetching buyer details:', error);
 		}
 	};
 
@@ -110,7 +108,6 @@ const BuyersManagement = () => {
 				}));
 			}
 		} catch (error) {
-			// console.error('Error updating buyer status:', error);
 		}
 	};
 

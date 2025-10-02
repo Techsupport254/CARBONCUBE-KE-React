@@ -42,7 +42,6 @@ const SellerNotifications = () => {
 					// Fetched Seller ID Data
 					setSellerId(data.seller_id);
 				} catch (error) {
-					console.error("Error fetching seller ID:", error);
 					setError("Error fetching seller ID");
 				} finally {
 					setLoading(false);

@@ -109,7 +109,6 @@ const Banner = () => {
 									sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1280px) 100vw, 100vw"
 									srcSet={getResponsiveImageSrcSet(banner.name)}
 									onError={(e) => {
-										console.warn(`Failed to load banner image: ${banner.src}`);
 										e.target.style.display = "none";
 									}}
 								/>

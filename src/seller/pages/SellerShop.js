@@ -196,7 +196,6 @@ const SellerShop = () => {
 				setShowAlertModal(true);
 			} else {
 				// Other errors - fallback to clipboard
-				console.error("Error sharing:", error);
 				try {
 					// Keep loading state during clipboard fallback
 					await navigator.clipboard.writeText(shopUrl);
@@ -211,7 +210,6 @@ const SellerShop = () => {
 					});
 					setShowAlertModal(true);
 				} catch (clipboardError) {
-					console.error("Clipboard error:", clipboardError);
 					setAlertModalMessage(
 						"Unable to share or copy URL. Please try again."
 					);

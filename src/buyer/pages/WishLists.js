@@ -68,10 +68,8 @@ const WishList = () => {
 				if (data && Array.isArray(data)) {
 					setWishLists(data);
 				} else {
-					// console.error("Invalid data format:", data);
 				}
 			} catch (error) {
-				// console.error("Error fetching wish_lists:", error);
 			}
 		};
 
@@ -92,13 +90,11 @@ const WishList = () => {
 			);
 			setWishLists(wish_lists.filter((wish_list) => wish_list.ad.id !== adId));
 		} catch (error) {
-			// console.error("Error deleting wish_list:", error);
 		}
 	};
 
 	const handleAdClick = async (adUrl, adId) => {
 		if (!adId) {
-			console.error("Invalid adId");
 			return;
 		}
 
@@ -112,7 +108,6 @@ const WishList = () => {
 
 			navigate(`${adUrl}${separator}${currentQuery}`);
 		} catch (error) {
-			console.error("Error logging ad click:", error);
 
 			// Fallback navigation with preserved query parameters
 			const currentParams = new URLSearchParams(window.location.search);
@@ -141,10 +136,8 @@ const WishList = () => {
 			);
 
 			if (!response.ok) {
-				console.warn("Failed to log click event");
 			}
 		} catch (error) {
-			console.error("Error logging click event:", error);
 		}
 	};
 
@@ -152,11 +145,8 @@ const WishList = () => {
 		<>
 			<Navbar
 				mode="buyer"
-				showSearch={true}
-				showCategories={true}
-				searchQuery={searchQuery}
-				setSearchQuery={setSearchQuery}
-				handleSearch={handleSearch}
+				showSearch={false}
+				showCategories={false}
 			/>
 			<div className="min-h-screen bg-gray-50">
 				<div className="flex">

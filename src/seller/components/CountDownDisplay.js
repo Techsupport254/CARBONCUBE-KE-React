@@ -39,7 +39,6 @@ const CountDownDisplay = () => {
 				day: "numeric",
 			});
 		} catch (error) {
-			console.error("Error formatting expiry date:", error);
 			return null;
 		}
 	};
@@ -77,7 +76,6 @@ const CountDownDisplay = () => {
 					decodedToken.seller_id || decodedToken.user_id || decodedToken.id;
 
 				if (!sellerId) {
-					console.error("Token payload:", decodedToken);
 					throw new Error("User ID not found in token");
 				}
 
@@ -92,7 +90,6 @@ const CountDownDisplay = () => {
 
 				if (!response.ok) {
 					const errorText = await response.text();
-					console.error("API Error:", response.status, errorText);
 					throw new Error(
 						`Failed to fetch countdown: ${response.status} ${response.statusText}`
 					);
@@ -183,7 +180,6 @@ const CountDownDisplay = () => {
 					throw new Error("No countdown data available");
 				}
 			} catch (err) {
-				console.error("CountDownDisplay error:", err);
 				setError(err.message);
 				// Set default values to prevent UI breaking
 				setCurrentTier(1);

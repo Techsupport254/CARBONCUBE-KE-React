@@ -39,6 +39,9 @@ const GoogleOAuthError = lazy(() => import("./components/GoogleOAuthError"));
 const IssueSubmission = lazy(() => import("./components/IssueSubmission"));
 const PublicIssues = lazy(() => import("./components/PublicIssues"));
 const IssueDetail = lazy(() => import("./components/IssueDetail"));
+const CompleteRegistrationPage = lazy(() =>
+	import("./pages/CompleteRegistrationPage")
+);
 
 // Analytics Tracking Components - Deferred loading
 const DeferredAnalytics = lazy(() => import("./components/DeferredAnalytics"));
@@ -110,6 +113,7 @@ const BuyerSignUpPage = lazy(() => import("./buyer/pages/BuyerSignUpPage"));
 const ProfilePage = lazy(() => import("./buyer/pages/Profile"));
 const CategoriesPage = lazy(() => import("./buyer/pages/CategoriesPage"));
 const PrivateRoute = lazy(() => import("./components/PrivateRoute"));
+const GuestRoute = lazy(() => import("./components/GuestRoute"));
 
 //sales imports - Lazy loaded
 const SalesDashboard = lazy(() => import("./sales/pages/SalesDashboard"));
@@ -686,6 +690,13 @@ const GoogleOAuthErrorWithSEO = () => (
 	</>
 );
 
+const CompleteRegistrationWithSEO = () => (
+	<>
+		<AuthPageSEO pageType="completeRegistration" />
+		<CompleteRegistrationPage />
+	</>
+);
+
 // Loading component for Suspense fallback
 const LoadingSpinner = () => (
 	<div className="flex items-center justify-center min-h-screen w-full">
@@ -786,9 +797,9 @@ function App() {
 		logout();
 	};
 
-	const handleBuyerSignup = () => {
-		// This will be handled by the signup process
-		// The actual authentication will happen after successful signup
+	const handleBuyerSignup = (token, user) => {
+		// Use the same authentication process as login
+		handleLogin(token, user);
 	};
 
 	const handleSellerSignup = () => {
@@ -853,28 +864,63 @@ function AppContent({
 					<Route path="/seller" element={<Navigate to="/login" />} />
 					<Route
 						path="/login"
-						element={<LoginFormWithSEO onLogin={handleLogin} />}
+						element={
+							<GuestRoute>
+								<LoginFormWithSEO onLogin={handleLogin} />
+							</GuestRoute>
+						}
 					/>
 					<Route
 						path="/auth/google_oauth2/callback"
-						element={<LoginFormWithSEO onLogin={handleLogin} />}
+						element={
+							<GuestRoute>
+								<LoginFormWithSEO onLogin={handleLogin} />
+							</GuestRoute>
+						}
 					/>
 					<Route
 						path="/auth/google/callback"
-						element={<LoginFormWithSEO onLogin={handleLogin} />}
+						element={
+							<GuestRoute>
+								<LoginFormWithSEO onLogin={handleLogin} />
+							</GuestRoute>
+						}
 					/>
 					<Route
 						path="/auth/google/error"
 						element={<GoogleOAuthErrorWithSEO />}
 					/>
-					<Route path="/forgot-password" element={<ForgotPasswordWithSEO />} />
+					<Route
+						path="/complete-registration"
+						element={
+							<GuestRoute>
+								<CompleteRegistrationWithSEO />
+							</GuestRoute>
+						}
+					/>
+					<Route
+						path="/forgot-password"
+						element={
+							<GuestRoute>
+								<ForgotPasswordWithSEO />
+							</GuestRoute>
+						}
+					/>
 					<Route
 						path="/buyer-signup"
-						element={<BuyerSignUpPageWithSEO onSignup={handleBuyerSignup} />}
+						element={
+							<GuestRoute>
+								<BuyerSignUpPageWithSEO onSignup={handleBuyerSignup} />
+							</GuestRoute>
+						}
 					/>
 					<Route
 						path="/seller-signup"
-						element={<SellerSignUpPageWithSEO onSignup={handleSellerSignup} />}
+						element={
+							<GuestRoute>
+								<SellerSignUpPageWithSEO onSignup={handleSellerSignup} />
+							</GuestRoute>
+						}
 					/>
 					<Route path="/seller/tiers" element={<TierPageWithSEO />} />
 					<Route path="/about-us" element={<AboutUsWithSEO />} />

@@ -159,7 +159,6 @@ const IssueDetail = ({ isAdmin = false, onLogout }) => {
 				fetchIssue();
 			}
 		} catch (err) {
-			console.error("Failed to update status:", err);
 		}
 	};
 
@@ -189,7 +188,6 @@ const IssueDetail = ({ isAdmin = false, onLogout }) => {
 				fetchIssue();
 			}
 		} catch (err) {
-			console.error("Failed to add comment:", err);
 		}
 	};
 

@@ -39,7 +39,6 @@ export const useLazyComponent = (importFunc, preload = false) => {
 			return component;
 		} catch (err) {
 			setError(err);
-			console.error("Failed to load component:", err);
 		} finally {
 			setLoading(false);
 		}

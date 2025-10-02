@@ -57,7 +57,6 @@ export const cleanupOnLogout = () => {
 
 		// Logout cleanup completed successfully
 	} catch (error) {
-		console.error("Error during logout cleanup:", error);
 	}
 };
 
@@ -79,7 +78,6 @@ export const clearAuthData = () => {
 
 		// Authentication data cleared successfully
 	} catch (error) {
-		console.error("Error clearing authentication data:", error);
 	}
 };
 

@@ -489,20 +489,16 @@ The Carbon Team`,
 						const sellerData = await detailResponse.json();
 						setTestSeller(sellerData);
 					} else {
-						console.error(
+						console.log(
 							"Error fetching seller details for ID:",
 							selectedSeller.id
 						);
 					}
 				} else {
-					console.error("No sellers found in the database");
 				}
 			} else {
-				console.error("Error fetching sellers list");
 			}
-		} catch (error) {
-			console.error("Error fetching test seller:", error);
-		}
+		} catch (error) {}
 	};
 
 	useEffect(() => {
@@ -944,7 +940,6 @@ The Carbon Team`,
 											);
 											setShowEmailPreview(false);
 										} catch (error) {
-											console.error("Error sending email:", error);
 											alert("Error sending email. Please try again.");
 										}
 									}}
