@@ -5,7 +5,7 @@ class GoogleOAuthService {
 	constructor() {
 		this.clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 		this.redirectUri = process.env.REACT_APP_GOOGLE_REDIRECT_URI;
-		this.scope = "openid email profile";
+		this.scope = "openid email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/user.phonenumbers.read https://www.googleapis.com/auth/user.addresses.read https://www.googleapis.com/auth/user.birthday.read https://www.googleapis.com/auth/user.gender.read https://www.googleapis.com/auth/user.organization.read";
 		this.gsiClient = null;
 		this.isGsiLoaded = false;
 
@@ -74,7 +74,7 @@ class GoogleOAuthService {
 					process.env.REACT_APP_BACKEND_URL || "http://localhost:3001"
 				}/auth/google_oauth2/popup_callback`,
 			response_type: "code",
-			scope: "openid email profile",
+			scope: this.scope,
 			access_type: "offline",
 			prompt: "consent",
 			state: role,
