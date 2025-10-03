@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import LocationSelector from "../components/LocationSelector";
+import locationService from "../services/locationService";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "../components/LoginForm.css";
@@ -22,6 +23,8 @@ const CompleteRegistrationPage = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [missingFields, setMissingFields] = useState([]);
 	const [userData, setUserData] = useState({});
+	const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+	const [locationDetected, setLocationDetected] = useState(false);
 
 	// Format date to YYYY-MM-DD format for HTML date inputs
 	const formatDateForInput = (dateString) => {
@@ -131,6 +134,18 @@ const CompleteRegistrationPage = () => {
 		setFormData(initialData);
 		setErrors({});
 	}, [location.state, navigate]);
+
+	// Detect location when component mounts and location fields are needed
+	useEffect(() => {
+		const needsLocationFields = getAllFields().includes("county_id") || 
+			getAllFields().includes("sub_county_id") || 
+			getAllFields().includes("city") || 
+			getAllFields().includes("location");
+		
+		if (needsLocationFields && !locationDetected) {
+			detectUserLocation();
+		}
+	}, [missingFields, userData, locationDetected]);
 
 	const handleInputChange = (field, value) => {
 		setFormData((prev) => {
@@ -388,6 +403,178 @@ const CompleteRegistrationPage = () => {
 		return missingFields.includes(field);
 	};
 
+	// Detect user location and map to county/sub-county
+	const detectUserLocation = async () => {
+		if (locationDetected) return;
+		
+		setIsDetectingLocation(true);
+		try {
+			// Get location data from multiple sources
+			const locationData = await locationService.getAllLocationData();
+			
+			if (locationData && locationData.data) {
+				// Try to get city from different sources
+				let detectedCity = null;
+				let detectedRegion = null;
+				
+				// Try browser location first
+				if (locationData.data.browser_location) {
+					detectedCity = locationData.data.browser_location.city;
+					detectedRegion = locationData.data.browser_location.region;
+				}
+				
+				// Try IP location as fallback
+				if (!detectedCity && locationData.data.ip_location) {
+					detectedCity = locationData.data.ip_location.city;
+					detectedRegion = locationData.data.ip_location.regionName;
+				}
+				
+				// Try address from coordinates
+				if (!detectedCity && locationData.data.address_from_coordinates) {
+					detectedCity = locationData.data.address_from_coordinates.city;
+					detectedRegion = locationData.data.address_from_coordinates.region;
+				}
+				
+				if (detectedCity) {
+					// Map city to county and sub-county
+					const mappingResult = await mapCityToCounty(detectedCity, detectedRegion);
+					
+					if (mappingResult) {
+						// Update form data with detected location
+						setFormData(prev => ({
+							...prev,
+							city: detectedCity,
+							location: `${detectedCity}, ${detectedRegion || 'Kenya'}`,
+							county_id: mappingResult.county_id,
+							sub_county_id: mappingResult.sub_county_id
+						}));
+						
+						setLocationDetected(true);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Location detection failed:', error);
+		} finally {
+			setIsDetectingLocation(false);
+		}
+	};
+
+	// Map city name to county and sub-county
+	const mapCityToCounty = async (city, region) => {
+		try {
+			// Get all counties
+			const countiesResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/counties`);
+			const counties = countiesResponse.data;
+			
+			// Normalize city name for matching
+			const normalizedCity = city.toLowerCase().trim();
+			
+			// City to county mapping (similar to backend)
+			const cityCountyMapping = {
+				'nairobi': 'Nairobi',
+				'mombasa': 'Mombasa',
+				'kisumu': 'Kisumu',
+				'nakuru': 'Nakuru',
+				'eldoret': 'Uasin Gishu',
+				'thika': 'Kiambu',
+				'malindi': 'Kilifi',
+				'kitale': 'Trans Nzoia',
+				'garissa': 'Garissa',
+				'kakamega': 'Kakamega',
+				'meru': 'Meru',
+				'kisii': 'Kisii',
+				'nyeri': 'Nyeri',
+				'machakos': 'Machakos',
+				'kericho': 'Kericho',
+				'lamu': 'Lamu',
+				'bomet': 'Bomet',
+				'vihiga': 'Vihiga',
+				'baringo': 'Baringo',
+				'bungoma': 'Bungoma',
+				'busia': 'Busia',
+				'embu': 'Embu',
+				'homa bay': 'Homa Bay',
+				'isiolo': 'Isiolo',
+				'kajiado': 'Kajiado',
+				'kilifi': 'Kilifi',
+				'kirinyaga': 'Kirinyaga',
+				'kitui': 'Kitui',
+				'kwale': 'Kwale',
+				'laikipia': 'Laikipia',
+				'makueni': 'Makueni',
+				'mandera': 'Mandera',
+				'marsabit': 'Marsabit',
+				'murang\'a': 'Murang\'a',
+				'muranga': 'Murang\'a',
+				'nyamira': 'Nyamira',
+				'nyandarua': 'Nyandarua',
+				'samburu': 'Samburu',
+				'siaya': 'Siaya',
+				'taita taveta': 'Taita Taveta',
+				'tana river': 'Tana River',
+				'tharaka nithi': 'Tharaka Nithi',
+				'trans nzoia': 'Trans Nzoia',
+				'turkana': 'Turkana',
+				'uasin gishu': 'Uasin Gishu',
+				'wajir': 'Wajir',
+				'west pokot': 'West Pokot'
+			};
+			
+			// Try to find county by city name
+			let countyName = cityCountyMapping[normalizedCity];
+			
+			// If not found, try partial matching
+			if (!countyName) {
+				for (const [key, value] of Object.entries(cityCountyMapping)) {
+					if (normalizedCity.includes(key) || key.includes(normalizedCity)) {
+						countyName = value;
+						break;
+					}
+				}
+			}
+			
+			if (countyName) {
+				// Find the county in the list
+				const county = counties.find(c => c.name === countyName);
+				if (county) {
+					// Get sub-counties for this county
+					const subCountiesResponse = await axios.get(
+						`${process.env.REACT_APP_BACKEND_URL}/counties/${county.id}/sub_counties`
+					);
+					const subCounties = subCountiesResponse.data;
+					
+					// Use the first sub-county (or implement more sophisticated logic)
+					const subCounty = subCounties[0];
+					
+					return {
+						county_id: county.id,
+						sub_county_id: subCounty?.id || null
+					};
+				}
+			}
+			
+			// Default to Nairobi if no mapping found
+			const nairobiCounty = counties.find(c => c.name === 'Nairobi');
+			if (nairobiCounty) {
+				const subCountiesResponse = await axios.get(
+					`${process.env.REACT_APP_BACKEND_URL}/counties/${nairobiCounty.id}/sub_counties`
+				);
+				const subCounties = subCountiesResponse.data;
+				const nairobiSubCounty = subCounties[0];
+				
+				return {
+					county_id: nairobiCounty.id,
+					sub_county_id: nairobiSubCounty?.id || null
+				};
+			}
+		} catch (error) {
+			console.error('County mapping failed:', error);
+		}
+		
+		return null;
+	};
+
 	// Render field input based on field type
 	const renderFieldInput = (field) => {
 		const commonClasses = `w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
@@ -604,7 +791,10 @@ const CompleteRegistrationPage = () => {
 											{/* Regular Fields */}
 											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
 												{getAllFields()
-													.filter(field => field !== "county_id" && field !== "sub_county_id")
+													.filter(
+														(field) =>
+															field !== "county_id" && field !== "sub_county_id"
+													)
 													.map((field) => {
 														return (
 															<div key={field}>
@@ -627,18 +817,37 @@ const CompleteRegistrationPage = () => {
 											</div>
 
 											{/* County and Sub-County Fields */}
-											{(getAllFields().includes("county_id") || getAllFields().includes("sub_county_id")) && (
+											{(getAllFields().includes("county_id") ||
+												getAllFields().includes("sub_county_id")) && (
 												<div className="space-y-4">
-													<h4 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
-														<MapPin className="w-5 h-5 text-yellow-500" />
-														<span>Location Details</span>
-													</h4>
+													<div className="flex items-center justify-between">
+														<h4 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
+															<MapPin className="w-5 h-5 text-yellow-500" />
+															<span>Location Details</span>
+														</h4>
+														{isDetectingLocation && (
+															<div className="flex items-center space-x-2 text-sm text-blue-600">
+																<div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+																<span>Detecting location...</span>
+															</div>
+														)}
+														{locationDetected && !isDetectingLocation && (
+															<div className="flex items-center space-x-2 text-sm text-green-600">
+																<MapPin className="w-4 h-4" />
+																<span>Location detected</span>
+															</div>
+														)}
+													</div>
 													<LocationSelector
 														formData={formData}
-														handleChange={(e) => handleInputChange(e.target.name, e.target.value)}
+														handleChange={(e) =>
+															handleInputChange(e.target.name, e.target.value)
+														}
 														errors={errors}
 														showCityInput={getAllFields().includes("city")}
-														showLocationInput={getAllFields().includes("location")}
+														showLocationInput={getAllFields().includes(
+															"location"
+														)}
 														optional={!isFieldRequired("county_id")}
 														className=""
 													/>
