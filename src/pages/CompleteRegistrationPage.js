@@ -137,11 +137,12 @@ const CompleteRegistrationPage = () => {
 
 	// Detect location when component mounts and location fields are needed
 	useEffect(() => {
-		const needsLocationFields = getAllFields().includes("county_id") || 
-			getAllFields().includes("sub_county_id") || 
-			getAllFields().includes("city") || 
+		const needsLocationFields =
+			getAllFields().includes("county_id") ||
+			getAllFields().includes("sub_county_id") ||
+			getAllFields().includes("city") ||
 			getAllFields().includes("location");
-		
+
 		if (needsLocationFields && !locationDetected) {
 			detectUserLocation();
 		}
@@ -392,6 +393,8 @@ const CompleteRegistrationPage = () => {
 			"location",
 			"city",
 			"username",
+			"county_id",
+			"sub_county_id",
 		];
 		commonFields.forEach((field) => allFields.add(field));
 
@@ -406,55 +409,58 @@ const CompleteRegistrationPage = () => {
 	// Detect user location and map to county/sub-county
 	const detectUserLocation = async () => {
 		if (locationDetected) return;
-		
+
 		setIsDetectingLocation(true);
 		try {
 			// Get location data from multiple sources
 			const locationData = await locationService.getAllLocationData();
-			
+
 			if (locationData && locationData.data) {
 				// Try to get city from different sources
 				let detectedCity = null;
 				let detectedRegion = null;
-				
+
 				// Try browser location first
 				if (locationData.data.browser_location) {
 					detectedCity = locationData.data.browser_location.city;
 					detectedRegion = locationData.data.browser_location.region;
 				}
-				
+
 				// Try IP location as fallback
 				if (!detectedCity && locationData.data.ip_location) {
 					detectedCity = locationData.data.ip_location.city;
 					detectedRegion = locationData.data.ip_location.regionName;
 				}
-				
+
 				// Try address from coordinates
 				if (!detectedCity && locationData.data.address_from_coordinates) {
 					detectedCity = locationData.data.address_from_coordinates.city;
 					detectedRegion = locationData.data.address_from_coordinates.region;
 				}
-				
+
 				if (detectedCity) {
 					// Map city to county and sub-county
-					const mappingResult = await mapCityToCounty(detectedCity, detectedRegion);
-					
+					const mappingResult = await mapCityToCounty(
+						detectedCity,
+						detectedRegion
+					);
+
 					if (mappingResult) {
 						// Update form data with detected location
-						setFormData(prev => ({
+						setFormData((prev) => ({
 							...prev,
 							city: detectedCity,
-							location: `${detectedCity}, ${detectedRegion || 'Kenya'}`,
+							location: `${detectedCity}, ${detectedRegion || "Kenya"}`,
 							county_id: mappingResult.county_id,
-							sub_county_id: mappingResult.sub_county_id
+							sub_county_id: mappingResult.sub_county_id,
 						}));
-						
+
 						setLocationDetected(true);
 					}
 				}
 			}
 		} catch (error) {
-			console.error('Location detection failed:', error);
+			console.error("Location detection failed:", error);
 		} finally {
 			setIsDetectingLocation(false);
 		}
@@ -464,66 +470,68 @@ const CompleteRegistrationPage = () => {
 	const mapCityToCounty = async (city, region) => {
 		try {
 			// Get all counties
-			const countiesResponse = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/counties`);
+			const countiesResponse = await axios.get(
+				`${process.env.REACT_APP_BACKEND_URL}/counties`
+			);
 			const counties = countiesResponse.data;
-			
+
 			// Normalize city name for matching
 			const normalizedCity = city.toLowerCase().trim();
-			
+
 			// City to county mapping (similar to backend)
 			const cityCountyMapping = {
-				'nairobi': 'Nairobi',
-				'mombasa': 'Mombasa',
-				'kisumu': 'Kisumu',
-				'nakuru': 'Nakuru',
-				'eldoret': 'Uasin Gishu',
-				'thika': 'Kiambu',
-				'malindi': 'Kilifi',
-				'kitale': 'Trans Nzoia',
-				'garissa': 'Garissa',
-				'kakamega': 'Kakamega',
-				'meru': 'Meru',
-				'kisii': 'Kisii',
-				'nyeri': 'Nyeri',
-				'machakos': 'Machakos',
-				'kericho': 'Kericho',
-				'lamu': 'Lamu',
-				'bomet': 'Bomet',
-				'vihiga': 'Vihiga',
-				'baringo': 'Baringo',
-				'bungoma': 'Bungoma',
-				'busia': 'Busia',
-				'embu': 'Embu',
-				'homa bay': 'Homa Bay',
-				'isiolo': 'Isiolo',
-				'kajiado': 'Kajiado',
-				'kilifi': 'Kilifi',
-				'kirinyaga': 'Kirinyaga',
-				'kitui': 'Kitui',
-				'kwale': 'Kwale',
-				'laikipia': 'Laikipia',
-				'makueni': 'Makueni',
-				'mandera': 'Mandera',
-				'marsabit': 'Marsabit',
-				'murang\'a': 'Murang\'a',
-				'muranga': 'Murang\'a',
-				'nyamira': 'Nyamira',
-				'nyandarua': 'Nyandarua',
-				'samburu': 'Samburu',
-				'siaya': 'Siaya',
-				'taita taveta': 'Taita Taveta',
-				'tana river': 'Tana River',
-				'tharaka nithi': 'Tharaka Nithi',
-				'trans nzoia': 'Trans Nzoia',
-				'turkana': 'Turkana',
-				'uasin gishu': 'Uasin Gishu',
-				'wajir': 'Wajir',
-				'west pokot': 'West Pokot'
+				nairobi: "Nairobi",
+				mombasa: "Mombasa",
+				kisumu: "Kisumu",
+				nakuru: "Nakuru",
+				eldoret: "Uasin Gishu",
+				thika: "Kiambu",
+				malindi: "Kilifi",
+				kitale: "Trans Nzoia",
+				garissa: "Garissa",
+				kakamega: "Kakamega",
+				meru: "Meru",
+				kisii: "Kisii",
+				nyeri: "Nyeri",
+				machakos: "Machakos",
+				kericho: "Kericho",
+				lamu: "Lamu",
+				bomet: "Bomet",
+				vihiga: "Vihiga",
+				baringo: "Baringo",
+				bungoma: "Bungoma",
+				busia: "Busia",
+				embu: "Embu",
+				"homa bay": "Homa Bay",
+				isiolo: "Isiolo",
+				kajiado: "Kajiado",
+				kilifi: "Kilifi",
+				kirinyaga: "Kirinyaga",
+				kitui: "Kitui",
+				kwale: "Kwale",
+				laikipia: "Laikipia",
+				makueni: "Makueni",
+				mandera: "Mandera",
+				marsabit: "Marsabit",
+				"murang'a": "Murang'a",
+				muranga: "Murang'a",
+				nyamira: "Nyamira",
+				nyandarua: "Nyandarua",
+				samburu: "Samburu",
+				siaya: "Siaya",
+				"taita taveta": "Taita Taveta",
+				"tana river": "Tana River",
+				"tharaka nithi": "Tharaka Nithi",
+				"trans nzoia": "Trans Nzoia",
+				turkana: "Turkana",
+				"uasin gishu": "Uasin Gishu",
+				wajir: "Wajir",
+				"west pokot": "West Pokot",
 			};
-			
+
 			// Try to find county by city name
 			let countyName = cityCountyMapping[normalizedCity];
-			
+
 			// If not found, try partial matching
 			if (!countyName) {
 				for (const [key, value] of Object.entries(cityCountyMapping)) {
@@ -533,45 +541,45 @@ const CompleteRegistrationPage = () => {
 					}
 				}
 			}
-			
+
 			if (countyName) {
 				// Find the county in the list
-				const county = counties.find(c => c.name === countyName);
+				const county = counties.find((c) => c.name === countyName);
 				if (county) {
 					// Get sub-counties for this county
 					const subCountiesResponse = await axios.get(
 						`${process.env.REACT_APP_BACKEND_URL}/counties/${county.id}/sub_counties`
 					);
 					const subCounties = subCountiesResponse.data;
-					
+
 					// Use the first sub-county (or implement more sophisticated logic)
 					const subCounty = subCounties[0];
-					
+
 					return {
 						county_id: county.id,
-						sub_county_id: subCounty?.id || null
+						sub_county_id: subCounty?.id || null,
 					};
 				}
 			}
-			
+
 			// Default to Nairobi if no mapping found
-			const nairobiCounty = counties.find(c => c.name === 'Nairobi');
+			const nairobiCounty = counties.find((c) => c.name === "Nairobi");
 			if (nairobiCounty) {
 				const subCountiesResponse = await axios.get(
 					`${process.env.REACT_APP_BACKEND_URL}/counties/${nairobiCounty.id}/sub_counties`
 				);
 				const subCounties = subCountiesResponse.data;
 				const nairobiSubCounty = subCounties[0];
-				
+
 				return {
 					county_id: nairobiCounty.id,
-					sub_county_id: nairobiSubCounty?.id || null
+					sub_county_id: nairobiSubCounty?.id || null,
 				};
 			}
 		} catch (error) {
-			console.error('County mapping failed:', error);
+			console.error("County mapping failed:", error);
 		}
-		
+
 		return null;
 	};
 
