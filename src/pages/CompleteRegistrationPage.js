@@ -192,6 +192,14 @@ const CompleteRegistrationPage = () => {
 				if (!value.trim()) return "City is required";
 				return "";
 
+			case "county_id":
+				if (!value.trim()) return "County is required";
+				return "";
+
+			case "sub_county_id":
+				if (!value.trim()) return "Sub-county is required";
+				return "";
+
 			case "fullname":
 				if (!value.trim()) return "Full name is required";
 				if (value.trim().length < 2)

@@ -16,6 +16,8 @@ const OAuthCompletionModal = ({
 		zipcode: "",
 		gender: "",
 		age_group_id: "",
+		county_id: "",
+		sub_county_id: "",
 	});
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -33,6 +35,8 @@ const OAuthCompletionModal = ({
 				zipcode: userData?.zipcode || "",
 				gender: userData?.gender || "",
 				age_group_id: userData?.age_group_id || "",
+				county_id: userData?.county_id || "",
+				sub_county_id: userData?.sub_county_id || "",
 			});
 		}
 	}, [show, userData]);
@@ -43,8 +47,7 @@ const OAuthCompletionModal = ({
 				`${process.env.REACT_APP_BACKEND_URL}/age_groups`
 			);
 			setAgeGroups(response.data);
-		} catch (error) {
-		}
+		} catch (error) {}
 	};
 
 	const handleInputChange = (e) => {
@@ -93,6 +96,8 @@ const OAuthCompletionModal = ({
 			zipcode: "",
 			gender: "",
 			age_group_id: "",
+			county_id: "",
+			sub_county_id: "",
 		});
 		setError("");
 		onCancel();
@@ -224,6 +229,34 @@ const OAuthCompletionModal = ({
 									value={formData.zipcode}
 									onChange={handleInputChange}
 									placeholder="e.g., 00100"
+								/>
+							</Form.Group>
+						</div>
+					</div>
+
+					<div className="row">
+						<div className="col-md-6 mb-3">
+							<Form.Group>
+								<Form.Label>County</Form.Label>
+								<Form.Control
+									type="text"
+									name="county_id"
+									value={formData.county_id}
+									onChange={handleInputChange}
+									placeholder="e.g., Nairobi County"
+								/>
+							</Form.Group>
+						</div>
+
+						<div className="col-md-6 mb-3">
+							<Form.Group>
+								<Form.Label>Sub-County</Form.Label>
+								<Form.Control
+									type="text"
+									name="sub_county_id"
+									value={formData.sub_county_id}
+									onChange={handleInputChange}
+									placeholder="e.g., Westlands"
 								/>
 							</Form.Group>
 						</div>
