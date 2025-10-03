@@ -181,8 +181,8 @@ const ForgotPassword = () => {
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
-			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
-				<div className="w-full max-w-4xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-2 py-4 sm:px-4 sm:py-6">
+				<div className="w-full max-w-4xl mx-auto">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
@@ -259,11 +259,11 @@ const ForgotPassword = () => {
 							</div>
 
 							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10 flex items-center">
+							<div className="w-full lg:w-3/5 bg-white p-4 sm:p-6 lg:p-8 xl:p-10 flex items-center">
 								<div className="w-full max-w-md mx-auto">
 									{/* Header Section */}
 									<div className="text-center mb-8">
-										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+										<h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-3">
 											Reset Password
 										</h3>
 										<p className="text-gray-600 text-sm">
@@ -291,7 +291,7 @@ const ForgotPassword = () => {
 													<input
 														type="email"
 														placeholder="Enter your email address"
-														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														className="w-full pl-10 pr-4 py-2.5 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={email}
 														onChange={(e) => setEmail(e.target.value)}
 														required
@@ -308,7 +308,7 @@ const ForgotPassword = () => {
 												<button
 													type="submit"
 													disabled={loading}
-													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
 												>
 													{loading ? "Sending..." : "Send Reset Code"}
 												</button>
@@ -342,7 +342,7 @@ const ForgotPassword = () => {
 													<input
 														type="text"
 														placeholder="Enter verification code"
-														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														className="w-full pl-10 pr-4 py-2.5 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={otp}
 														onChange={(e) => setOtp(e.target.value)}
 														required
@@ -386,7 +386,7 @@ const ForgotPassword = () => {
 												<button
 													type="submit"
 													disabled={loading}
-													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
 												>
 													{loading ? "Verifying..." : "Verify Code"}
 												</button>
@@ -404,7 +404,7 @@ const ForgotPassword = () => {
 													<input
 														type={showNewPassword ? "text" : "password"}
 														placeholder="Enter new password"
-														className="w-full px-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														className="w-full px-4 py-2.5 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={newPassword}
 														onChange={(e) => setNewPassword(e.target.value)}
 														required
@@ -435,7 +435,7 @@ const ForgotPassword = () => {
 												<button
 													type="submit"
 													disabled={loading}
-													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+													className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
 												>
 													{loading ? "Updating..." : "Update Password"}
 												</button>

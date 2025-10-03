@@ -551,8 +551,8 @@ function BuyerSignUpPage({ onSignup }) {
 	return (
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
-			<div className="login-container min-h-screen flex items-center justify-center px-4 py-8 sm:px-6">
-				<div className="w-full max-w-6xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-2 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+				<div className="w-full max-w-6xl mx-auto">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[700px]">
 							{/* Left Branding Section */}
@@ -670,14 +670,14 @@ function BuyerSignUpPage({ onSignup }) {
 							</div>
 
 							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-8 sm:p-10 lg:p-12 flex items-center">
-								<div className="w-full max-w-2xl mx-auto">
+							<div className="w-full lg:w-3/5 bg-white p-4 sm:p-6 lg:p-8 xl:p-12 flex items-center">
+								<div className="w-full max-w-2xl mx-auto px-2 sm:px-0">
 									{/* Header Section */}
 									<div className="text-center mb-10">
-										<h3 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+										<h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
 											Buyer Sign Up
 										</h3>
-										<p className="text-gray-600 text-base sm:text-lg">
+										<p className="text-gray-600 text-sm sm:text-base lg:text-lg">
 											Create your buyer account
 										</p>
 									</div>
@@ -704,6 +704,27 @@ function BuyerSignUpPage({ onSignup }) {
 													allowEscapeKey: false,
 												}).then(() => {
 													navigate("/");
+												});
+											}}
+											onMissingFields={(fields, userData) => {
+												console.log("📝 Missing fields detected:", fields);
+												console.log("📝 User data:", userData);
+
+												// Store data in localStorage for the complete registration page
+												localStorage.setItem(
+													"registrationData",
+													JSON.stringify({
+														missingFields: fields,
+														userData: userData,
+													})
+												);
+
+												// Navigate to complete registration page
+												navigate("/complete-registration", {
+													state: {
+														missingFields: fields,
+														userData: userData,
+													},
 												});
 											}}
 											onLoading={handleOAuthLoading}
@@ -757,7 +778,7 @@ function BuyerSignUpPage({ onSignup }) {
 														type="text"
 														placeholder="Enter your full name"
 														name="fullname"
-														className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+														className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 															errors.fullname
 																? "border-red-500 focus:ring-red-400"
 																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -788,7 +809,7 @@ function BuyerSignUpPage({ onSignup }) {
 															type="text"
 															placeholder="Enter username"
 															name="username"
-															className={`w-full pl-10 pr-10 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full pl-10 pr-10 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.username
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -821,7 +842,7 @@ function BuyerSignUpPage({ onSignup }) {
 															type="text"
 															placeholder="Enter phone number"
 															name="phone_number"
-															className={`w-full pl-10 pr-10 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full pl-10 pr-10 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.phone_number
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -886,7 +907,7 @@ function BuyerSignUpPage({ onSignup }) {
 													</label>
 													<select
 														name="gender"
-														className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+														className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 															errors.gender
 																? "border-red-500 focus:ring-red-400"
 																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -916,7 +937,7 @@ function BuyerSignUpPage({ onSignup }) {
 													</label>
 													<select
 														name="age_group_id"
-														className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+														className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 															errors.age_group_id
 																? "border-red-500 focus:ring-red-400"
 																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -955,7 +976,7 @@ function BuyerSignUpPage({ onSignup }) {
 															type={showPassword ? "text" : "password"}
 															placeholder="Enter password"
 															name="password"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.password
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -996,7 +1017,7 @@ function BuyerSignUpPage({ onSignup }) {
 															type={showConfirmPassword ? "text" : "password"}
 															placeholder="Confirm password"
 															name="password_confirmation"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.password_confirmation
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1037,7 +1058,7 @@ function BuyerSignUpPage({ onSignup }) {
 													<input
 														type="text"
 														placeholder="Enter OTP code"
-														className={`flex-1 px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+														className={`flex-1 px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 															errors.otp
 																? "border-red-500 focus:ring-red-400"
 																: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1058,7 +1079,7 @@ function BuyerSignUpPage({ onSignup }) {
 															errors.phone_number ||
 															validatingField
 														}
-														className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+														className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
 															requestingOtp ||
 															!formData.email ||
 															!formData.fullname ||
@@ -1145,7 +1166,7 @@ function BuyerSignUpPage({ onSignup }) {
 													!otpRequested ||
 													!terms
 												}
-												className={`w-full font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform text-base shadow-lg ${
+												className={`w-full font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-lg ${
 													errors.fullname ||
 													errors.username ||
 													errors.email ||

@@ -381,7 +381,7 @@ const CompleteRegistrationPage = () => {
 
 	// Render field input based on field type
 	const renderFieldInput = (field) => {
-		const commonClasses = `w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+		const commonClasses = `w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 			errors[field]
 				? "border-red-500 focus:ring-red-400"
 				: "border-gray-300 focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
@@ -477,8 +477,8 @@ const CompleteRegistrationPage = () => {
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
-			<div className="login-container min-h-screen flex items-center justify-center px-2 py-6 sm:px-4">
-				<div className="w-full max-w-6xl xl:w-[70%]">
+			<div className="login-container min-h-screen flex items-center justify-center px-2 py-4 sm:px-4 sm:py-6">
+				<div className="w-full max-w-6xl xl:w-[70%] mx-auto">
 					<div className="bg-white rounded-2xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
@@ -556,7 +556,7 @@ const CompleteRegistrationPage = () => {
 							</div>
 
 							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 xl:w-3/5 bg-white p-2 sm:p-4 lg:p-6 xl:p-8 flex items-center">
+							<div className="w-full lg:w-3/5 xl:w-3/5 bg-white p-4 sm:p-6 lg:p-8 xl:p-10 flex items-center">
 								<div className="w-full max-w-2xl mx-auto">
 									{/* Header Section */}
 									<div className="text-center mb-4 sm:mb-6">
@@ -617,7 +617,7 @@ const CompleteRegistrationPage = () => {
 										<button
 											type="submit"
 											disabled={isSubmitting}
-											className={`w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm ${
+											className={`w-full font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm ${
 												isSubmitting
 													? "bg-gradient-to-r from-yellow-300 to-yellow-400 text-black scale-100 cursor-not-allowed"
 													: "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black hover:scale-[1.02]"

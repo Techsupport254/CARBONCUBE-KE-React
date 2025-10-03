@@ -635,8 +635,7 @@ function SellerSignUpPage({ onSignup }) {
 					sub_counties: [],
 					document_types: documentTypesRes.data, // new
 				});
-			} catch (error) {
-			}
+			} catch (error) {}
 		};
 
 		fetchOptions();
@@ -886,7 +885,6 @@ function SellerSignUpPage({ onSignup }) {
 				setErrors({ otp: "Invalid or expired OTP." });
 			}
 		} catch (err) {
-
 			const serverErrors = {};
 
 			if (err.response?.data?.errors) {
@@ -1026,8 +1024,8 @@ function SellerSignUpPage({ onSignup }) {
 	return (
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
-			<div className="login-container min-h-screen flex items-center justify-center px-4 py-8 sm:px-6">
-				<div className="w-full max-w-6xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-2 py-4 sm:px-4 sm:py-6 lg:px-6 lg:py-8">
+				<div className="w-full max-w-6xl mx-auto">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[700px]">
 							{/* Left Branding Section */}
@@ -1042,7 +1040,7 @@ function SellerSignUpPage({ onSignup }) {
 										/>
 										<h2 className="text-lg sm:text-xl font-bold">
 											<span className="text-white">arbonCube Seller </span>
-											<span className="text-yellow-400">Portal</span>
+											<span className="text-yellow-400">SignUp</span>
 										</h2>
 									</div>
 									<p className="text-slate-300 text-sm leading-relaxed mb-8">
@@ -1137,17 +1135,8 @@ function SellerSignUpPage({ onSignup }) {
 							</div>
 
 							{/* Right Form Section */}
-							<div className="w-full lg:w-3/5 bg-white p-8 sm:p-10 lg:p-12 flex items-center">
+							<div className="w-full lg:w-3/5 bg-white p-4 sm:p-6 lg:p-8 xl:p-12 flex items-center">
 								<div className="w-full max-w-2xl mx-auto">
-									{/* Header Section */}
-									<div className="text-center mb-10">
-										<h3 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
-											Seller Sign Up
-										</h3>
-										<p className="text-gray-600 text-base sm:text-lg">
-											Create your seller account
-										</p>
-									</div>
 
 									<form onSubmit={handleSubmit} className="space-y-8">
 										{errors.general && (
@@ -1175,7 +1164,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter your full name"
 																name="fullname"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.fullname
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1206,7 +1195,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter username"
 																	name="username"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.username
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1234,7 +1223,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter phone number"
 																	name="phone_number"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.phone_number
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1265,7 +1254,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="email"
 																placeholder="Enter your email address"
 																name="email"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.email
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1289,7 +1278,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="gender"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.gender
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1318,7 +1307,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="age_group_id"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.age_group_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1361,7 +1350,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter enterprise name"
 																	name="enterprise_name"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.enterprise_name
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1389,7 +1378,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type="text"
 																	placeholder="Enter business permit number"
 																	name="business_registration_number"
-																	className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																	className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																		errors.business_registration_number
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1420,7 +1409,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter physical address"
 																name="location"
-																className={`w-full pl-10 pr-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full pl-10 pr-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.location
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1448,7 +1437,7 @@ function SellerSignUpPage({ onSignup }) {
 															errors.enterprise_name ||
 															errors.location
 														}
-														className={`w-full font-semibold py-4 px-8 rounded-lg transition-all duration-200 transform text-base shadow-lg ${
+														className={`w-full font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-lg ${
 															errors.fullname ||
 															errors.username ||
 															errors.phone_number ||
@@ -1479,7 +1468,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="county_id"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.county_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1508,7 +1497,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="sub_county_id"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.sub_county_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1549,7 +1538,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter your city"
 																name="city"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.city
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1571,7 +1560,7 @@ function SellerSignUpPage({ onSignup }) {
 																type="text"
 																placeholder="Enter zip code"
 																name="zipcode"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.zipcode
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1597,7 +1586,7 @@ function SellerSignUpPage({ onSignup }) {
 															</label>
 															<select
 																name="document_type_id"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.document_type_id
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1625,7 +1614,7 @@ function SellerSignUpPage({ onSignup }) {
 															<input
 																type="date"
 																name="document_expiry_date"
-																className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+																className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																	errors.document_expiry_date
 																		? "border-red-500 focus:ring-red-400"
 																		: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1678,7 +1667,7 @@ function SellerSignUpPage({ onSignup }) {
 														<div className="flex items-center justify-center">
 															<label
 																htmlFor="documentUpload"
-																className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
 															>
 																<svg
 																	className="w-5 h-5 mr-2"
@@ -1791,7 +1780,7 @@ function SellerSignUpPage({ onSignup }) {
 														<div className="flex items-center justify-center">
 															<label
 																htmlFor="profilePictureUpload"
-																className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
+																className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 rounded-xl cursor-pointer transition-all duration-200 text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
 															>
 																<svg
 																	className="w-5 h-5 mr-2"
@@ -1858,7 +1847,7 @@ function SellerSignUpPage({ onSignup }) {
 																	type={showPassword ? "text" : "password"}
 																	placeholder="Enter your password"
 																	name="password"
-																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																	className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
 																		errors.password
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -1918,7 +1907,7 @@ function SellerSignUpPage({ onSignup }) {
 																	}
 																	placeholder="Confirm your password"
 																	name="password_confirmation"
-																	className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
+																	className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 pr-10 text-sm ${
 																		errors.password_confirmation
 																			? "border-red-500 focus:ring-red-400"
 																			: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -2009,7 +1998,7 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="flex justify-between gap-4 pt-4">
 													<button
 														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
 														onClick={prevStep}
 													>
 														Back
@@ -2022,7 +2011,7 @@ function SellerSignUpPage({ onSignup }) {
 															errors.password ||
 															errors.password_confirmation
 														}
-														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
 															!terms ||
 															submittingSignup ||
 															errors.password ||
@@ -2052,7 +2041,7 @@ function SellerSignUpPage({ onSignup }) {
 															type="text"
 															placeholder="Enter OTP sent to your email"
 															name="otp"
-															className={`w-full px-4 py-3 text-left rounded-lg border transition-all duration-200 text-sm ${
+															className={`w-full px-4 py-2.5 text-left rounded-lg border transition-all duration-200 text-sm ${
 																errors.otp
 																	? "border-red-500 focus:ring-red-400"
 																	: "border-gray-300 focus:ring-yellow-400 focus:border-transparent"
@@ -2110,7 +2099,7 @@ function SellerSignUpPage({ onSignup }) {
 												<div className="flex justify-between gap-4 pt-4">
 													<button
 														type="button"
-														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+														className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
 														onClick={prevStep}
 													>
 														Back
@@ -2118,7 +2107,7 @@ function SellerSignUpPage({ onSignup }) {
 
 													<button
 														type="button"
-														className={`flex-1 font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
+														className={`flex-1 font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform text-sm shadow-md ${
 															!terms ||
 															otpCode.trim().length === 0 ||
 															verifyingOtp ||

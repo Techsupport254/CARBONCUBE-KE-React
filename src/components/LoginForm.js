@@ -468,8 +468,8 @@ const LoginForm = ({ onLogin }) => {
 		<>
 			<Navbar mode="minimal" showSearch={false} showCategories={false} />
 
-			<div className="login-container min-h-screen flex items-center justify-center px-0 py-6 sm:px-4">
-				<div className="w-full max-w-4xl">
+			<div className="login-container min-h-screen flex items-center justify-center px-2 py-4 sm:px-4 sm:py-6">
+				<div className="w-full max-w-4xl mx-auto">
 					<div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 						<div className="flex flex-col lg:flex-row min-h-[600px]">
 							{/* Left Branding Section */}
@@ -563,7 +563,7 @@ const LoginForm = ({ onLogin }) => {
 								<div className="w-full max-w-md mx-auto">
 									{/* Header Section */}
 									<div className="text-center mb-8">
-										<h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+										<h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-3">
 											Welcome Back
 										</h3>
 										<p className="text-gray-600 text-sm">
@@ -587,7 +587,7 @@ const LoginForm = ({ onLogin }) => {
 													<input
 														type="text"
 														placeholder="Enter your email"
-														className="w-full pl-10 pr-4 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														className="w-full pl-10 pr-4 py-2.5 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={identifier}
 														onChange={(e) => setIdentifier(e.target.value)}
 														required
@@ -608,7 +608,7 @@ const LoginForm = ({ onLogin }) => {
 													<input
 														type={showPassword ? "text" : "password"}
 														placeholder="Enter your password"
-														className="w-full pl-10 pr-10 py-3 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
+														className="w-full pl-10 pr-10 py-2.5 text-left rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all duration-200 text-sm placeholder-gray-400"
 														value={password}
 														onChange={(e) => setPassword(e.target.value)}
 														required
@@ -669,7 +669,7 @@ const LoginForm = ({ onLogin }) => {
 											<button
 												type="submit"
 												disabled={loading}
-												className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
+												className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-yellow-300 disabled:to-yellow-400 text-black font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:cursor-not-allowed text-sm shadow-md hover:shadow-lg"
 											>
 												{loading ? "Signing In..." : "Sign In"}
 											</button>
@@ -758,14 +758,14 @@ const LoginForm = ({ onLogin }) => {
 												<button
 													type="button"
 													onClick={() => navigate("/buyer-signup")}
-													className="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all duration-200 transform hover:scale-105 text-sm font-medium shadow-md hover:shadow-lg"
+													className="px-6 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all duration-200 transform hover:scale-105 text-sm font-medium shadow-md hover:shadow-lg"
 												>
 													Buyer
 												</button>
 												<button
 													type="button"
 													onClick={() => navigate("/seller-signup")}
-													className="px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all duration-200 transform hover:scale-105 text-sm font-medium shadow-md hover:shadow-lg"
+													className="px-6 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-all duration-200 transform hover:scale-105 text-sm font-medium shadow-md hover:shadow-lg"
 												>
 													Seller
 												</button>
