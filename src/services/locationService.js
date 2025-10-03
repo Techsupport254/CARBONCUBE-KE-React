@@ -44,7 +44,6 @@ class LocationService {
 	// Method 5: Reverse geocoding using browser location
 	async getAddressFromCoordinates(latitude, longitude) {
 		try {
-
 			// Use a free reverse geocoding service
 			const response = await fetch(
 				`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
@@ -75,8 +74,7 @@ class LocationService {
 	// Method 6: Get location from IP (frontend)
 	async getLocationFromIP() {
 		try {
-
-			const response = await fetch("http://ip-api.com/json/");
+			const response = await fetch("https://ip-api.com/json/");
 			if (response.ok) {
 				const data = await response.json();
 				const location = {
@@ -104,7 +102,6 @@ class LocationService {
 
 	// Method 7: Comprehensive location gathering
 	async getAllLocationData() {
-
 		const locationData = {
 			sources: [],
 			data: {},
@@ -127,8 +124,7 @@ class LocationService {
 					locationData.sources.push("reverse_geocoding");
 				}
 			}
-		} catch (error) {
-		}
+		} catch (error) {}
 
 		try {
 			// Try IP-based location as fallback
@@ -137,8 +133,7 @@ class LocationService {
 				locationData.data.ip_location = ipLocation;
 				locationData.sources.push("ip_geolocation");
 			}
-		} catch (error) {
-		}
+		} catch (error) {}
 
 		return locationData;
 	}

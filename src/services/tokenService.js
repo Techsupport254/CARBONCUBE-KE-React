@@ -134,9 +134,16 @@ class TokenService {
 				return true;
 			}
 
-			// Check for role consistency - if user has user_id, role should be buyer
-			if (payload.user_id && payload.role && payload.role !== "buyer") {
-				console.log("Token has user_id but role is not buyer, clearing token");
+			// Check for role consistency - if user has user_id, role should be buyer, admin, or sales
+			// (user_id is used for all non-seller roles)
+			if (
+				payload.user_id &&
+				payload.role &&
+				!["buyer", "admin", "sales"].includes(payload.role)
+			) {
+				console.log(
+					"Token has user_id but role is not valid (buyer, admin, or sales), clearing token"
+				);
 				this.removeToken();
 				return true;
 			}

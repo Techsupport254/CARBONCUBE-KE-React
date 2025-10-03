@@ -31,12 +31,13 @@ const DeferredAnalytics = () => {
 					gtag("js", new Date());
 					gtag("config", "G-JCS1KWM0GH");
 				};
-				script.onerror = () => {
-				};
+				script.onerror = () => {};
 				document.head.appendChild(script);
 			}
 
-			// Load Matomo Analytics
+			// Load Matomo Analytics - Temporarily disabled due to 404 error
+			// TODO: Fix Matomo container URL or implement proper Matomo setup
+			/*
 			if (typeof window !== "undefined" && !window._mtm) {
 				const _mtm = (window._mtm = window._mtm || []);
 				_mtm.push({
@@ -52,6 +53,7 @@ const DeferredAnalytics = () => {
 				};
 				document.head.appendChild(script);
 			}
+			*/
 
 			setAnalyticsLoaded(true);
 		};
