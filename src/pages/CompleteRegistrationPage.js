@@ -9,6 +9,7 @@ import {
 	ArrowLeft,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import LocationSelector from "../components/LocationSelector";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "../components/LoginForm.css";
@@ -286,6 +287,10 @@ const CompleteRegistrationPage = () => {
 				return "Location";
 			case "city":
 				return "City";
+			case "county_id":
+				return "County";
+			case "sub_county_id":
+				return "Sub-County";
 			case "fullname":
 			case "name":
 				return "Full Name";
@@ -314,6 +319,10 @@ const CompleteRegistrationPage = () => {
 				return "Enter your location";
 			case "city":
 				return "Enter your city";
+			case "county_id":
+				return "Select your county";
+			case "sub_county_id":
+				return "Select your sub-county";
 			case "fullname":
 			case "name":
 				return "Enter your full name";
@@ -591,26 +600,50 @@ const CompleteRegistrationPage = () => {
 										)}
 
 										{/* Form Fields */}
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-											{getAllFields().map((field) => {
-												return (
-													<div key={field}>
-														<label className="block text-sm font-medium text-gray-700 mb-2">
-															{getFieldLabel(field)}
-															{isFieldRequired(field) && (
-																<span className="text-red-500 ml-1">*</span>
-															)}
-														</label>
-														{renderFieldInput(field)}
-														{errors[field] && (
-															<p className="text-red-500 text-sm mt-1 flex items-center space-x-1">
-																<AlertCircle className="w-4 h-4 flex-shrink-0" />
-																<span>{errors[field]}</span>
-															</p>
-														)}
-													</div>
-												);
-											})}
+										<div className="space-y-6">
+											{/* Regular Fields */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+												{getAllFields()
+													.filter(field => field !== "county_id" && field !== "sub_county_id")
+													.map((field) => {
+														return (
+															<div key={field}>
+																<label className="block text-sm font-medium text-gray-700 mb-2">
+																	{getFieldLabel(field)}
+																	{isFieldRequired(field) && (
+																		<span className="text-red-500 ml-1">*</span>
+																	)}
+																</label>
+																{renderFieldInput(field)}
+																{errors[field] && (
+																	<p className="text-red-500 text-sm mt-1 flex items-center space-x-1">
+																		<AlertCircle className="w-4 h-4 flex-shrink-0" />
+																		<span>{errors[field]}</span>
+																	</p>
+																)}
+															</div>
+														);
+													})}
+											</div>
+
+											{/* County and Sub-County Fields */}
+											{(getAllFields().includes("county_id") || getAllFields().includes("sub_county_id")) && (
+												<div className="space-y-4">
+													<h4 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
+														<MapPin className="w-5 h-5 text-yellow-500" />
+														<span>Location Details</span>
+													</h4>
+													<LocationSelector
+														formData={formData}
+														handleChange={(e) => handleInputChange(e.target.name, e.target.value)}
+														errors={errors}
+														showCityInput={getAllFields().includes("city")}
+														showLocationInput={getAllFields().includes("location")}
+														optional={!isFieldRequired("county_id")}
+														className=""
+													/>
+												</div>
+											)}
 										</div>
 
 										{/* Submit Button */}
